@@ -1,0 +1,218 @@
+ABROZ COMBAT — WEB + DESKTOP DISTRIBUTION
+Implementation and verification report — 2026-10-05
+
+STATUS
+The same game now builds for web and Electron desktop. An unsigned, explicitly
+offline macOS ARM64 app and DMG were generated and actual gameplay was tested.
+Windows x64 application files were generated, but NSIS installer compilation
+failed on this ARM64 Mac (makensis exit -1). No finished Windows installer is
+claimed. Windows native build/install/gameplay validation remains a release gate.
+Linux AppImage and Intel Mac targets are configured but have not been built here.
+This is a tested packaging foundation, not public-release certification.
+
+1. TECHNOLOGY AND ARCHITECTURE
+Electron 44.5.1, electron-builder 26.15.3, pinned in the existing pnpm lockfile.
+The audit and recommendation preceded implementation: architecture-audit.txt.
+Bundled Chromium is the lower compatibility risk for this game's Three.js/WebGL,
+Canvas readback, Web Audio and shared Gamepad API input. Tauri would reduce wrapper
+size but introduces system WebView2/WKWebView/WebKitGTK differences. No claim of
+better FPS, latency, startup or memory use is made without hardware measurements.
+
+Shared TypeScript client + deterministic game core + rollback networking
+  -> existing Vite web build: dist/
+  -> Vite desktop mode: dist-desktop/ -> Electron resources/game
+There is one copy of gameplay source and one packaged copy of game assets.
+The installer does not run or embed a multiplayer server.
+
+2. FILES ADDED
+apps/desktop/metadata.json: product identity, application ID, executable name,
+  publisher/icon placeholders and category.
+apps/desktop/main.mjs: native window, local asset protocol, security, diagnostics.
+apps/desktop/preload.cjs: only fullscreen and constrained failure reporting.
+apps/desktop/policy.mjs: origin, path, development URL and CSP policies.
+apps/desktop/builder.cjs: NSIS, DMG and AppImage packaging.
+scripts/desktop.mjs: development, local preview and release build entry points.
+apps/client/src/platform/runtime.ts: fullscreen bridge and endpoint resolution.
+apps/client/src/platform/storage.ts: guarded persistent settings access.
+apps/client/src/bootstrap.ts: readable initialization failure boundary.
+apps/client/public/fonts/barlow.css, barlow-0.ttf through barlow-8.ttf,
+  barlow-OFL.txt, barlowcondensed-OFL.txt: offline copies of the existing families.
+tests/platform.test.ts, tests/desktop-policy.test.mjs: platform/security checks.
+docs/desktop/: audit, this report and gameplay screenshots.
+
+3. IMPORTANT MODIFICATIONS
+Client index.html starts through bootstrap.ts. main.ts delegates only fullscreen.
+AudioManager and InputManager delegate storage calls without changing settings
+keys or schemas. network.ts resolves a configured desktop endpoint without
+changing any message, rollback or combat behavior. style.css loads local fonts.
+Vite retains normal web output and isolates desktop output. Server default local
+origin list includes the desktop origin. .env.example documents explicit origins.
+package.json adds desktop scripts; pnpm lock/workspace adds packaging dependencies.
+Build outputs are ignored by Git and ESLint. tests/network.test.ts now exercises
+browser/browser, desktop/browser and desktop/desktop origin pairs on a real relay.
+
+4. ADAPTATIONS AND SECURITY
+Root-relative assets continue to work at secure standard origin abroz://game/.
+Packaged files are constrained to resources/game with traversal and symlink checks.
+Scripts, fonts, media and images load locally. CSP allows only the configured relay
+for external connections; no remote scripts, frames or arbitrary navigation.
+Renderer sandbox, context isolation and web security remain enabled; Node access,
+webviews, new windows and downloads are disabled. Release devtools are disabled.
+Only a trusted main frame may toggle fullscreen or report allowlisted failures.
+No filesystem/shell APIs, updater, telemetry or new native gameplay permissions.
+The separate browser-only basic-attacks developer tool remains in the web build.
+
+5. INSTALL AND DEVELOPMENT COMMANDS
+Use Node.js 22.12+ and pnpm. Run from the project root:
+  pnpm install --frozen-lockfile
+  pnpm run desktop:install-runtime
+The second command downloads the pinned official Electron runtime; useful when
+package-manager lifecycle-script policy does not automatically install it.
+
+Browser development, in separate terminals:
+  pnpm run dev:client
+  pnpm run dev:server
+Existing npm run dev remains available on standard Node installations with npm.
+
+Browser production:
+  pnpm run build:web
+  pnpm exec tsc -p apps/server/tsconfig.json
+Serve dist/ as before. Run the relay separately with pnpm run start:server.
+
+Desktop development:
+  pnpm run dev:server
+  pnpm run dev:desktop
+The desktop command starts its own loopback Vite server on 127.0.0.1:5175,
+uses the shared client and defaults to ws://localhost:8080. It stops its Vite
+child when the desktop process exits. Development has a separate storage profile.
+
+6. PRODUCTION DESKTOP COMMANDS
+Offline local/testing edition, with no online endpoint:
+  pnpm run build:desktop --offline --dir
+  pnpm run start:desktop
+
+On Windows, build the normal x64 NSIS installer:
+  pnpm run build:desktop --offline --win --x64
+On macOS:
+  pnpm run build:desktop --offline --mac --arm64
+For Intel Mac use --x64 on an appropriate native build/test host.
+On Linux:
+  pnpm run build:desktop --offline --linux --x64
+
+For an ONLINE release, set VITE_WS_URL to the actual production wss:// relay
+in the build environment and OMIT --offline. The build deliberately fails if
+neither secure production endpoint nor explicit offline mode is supplied.
+Do not put secrets or credentials in VITE_* variables; these are public client data.
+ABROZ_BUILD_VERSION can hold a CI run/commit identity; package.json version is the
+single release version. desktop-config.json records both along with the endpoint.
+With npm scripts, insert -- before the arguments, e.g.
+  npm run build:desktop -- --offline --win --x64
+
+7. OUTPUTS CREATED HERE
+release/mac-arm64/abroz-combat.app
+release/Abroz Combat-0.1.0-mac-arm64.dmg (approximately 1.6 GB, unsigned, offline)
+release/win-unpacked/abroz-combat.exe plus its sibling resources/runtime files
+  (not run here; the EXE must not be copied without the surrounding directory).
+The attempted NSIS output is incomplete and must not be distributed.
+All release/ and dist*/ content is generated and ignored by Git.
+Large size is mostly the existing ~1.5 GiB public asset tree, including review art.
+No art was removed or recompressed to meet packaging requirements.
+
+8. MULTIPLAYER AND VERSION COMPATIBILITY
+Same WebSocket relay, rooms, seat assignments and rollback protocol for both builds.
+The existing contentVersion + simulation revision rejects incompatible create/join
+requests. Packaging-only changes do not arbitrarily change gameplay compatibility.
+Actual relay tests passed for all three browser/desktop origin combinations,
+including create/join/ready/input/hash/disconnect and incompatible content rejection.
+These are Node WebSocket integration tests, not a live Electron-to-browser match.
+Production relay ALLOWED_ORIGINS must include the real HTTPS site and abroz://game.
+Keep the existing origin restrictions; do not replace them with a wildcard.
+No production endpoint was provided. The generated edition is intentionally offline.
+Live WSS/TLS, remote latency and packaged desktop/browser match testing remain open.
+Existing disconnect-forfeit behavior is preserved; no reconnection feature was added.
+
+9. INPUT AND SETTINGS
+Both outputs use the same keyboard/GamepadManager/InputManager/controller UI.
+Packaged local 1v1 started; P1 I and P2 0 each triggered their special and spent
+25 energy. Training keyboard ultimate also connected. Physical controllers,
+hot-plug/reconnect and simultaneous multi-pad play were not available to verify.
+Browser keyboard events do not distinguish physical keyboards; two existing
+keyboard mappings share the OS keyboard stream. No raw-input dependency was added.
+Controllers remain the route to independently assigned physical devices.
+
+Settings retain afterglow-controls and abroz-audio-v1 keys and existing validation.
+Unreadable storage fails safely; corrupt JSON follows existing default recovery.
+Packaged Chromium persists settings under the stable app profile/origin. Mute was
+changed, the app quit/relaunched, and the changed setting was verified; then restored.
+Web and desktop profiles are independent; there is no automatic settings migration.
+No unlock/save system was invented where the existing game does not provide one.
+
+10. VERIFICATION EVIDENCE
+Before changes: 734 tests passed and typecheck/lint/build passed.
+After foundation: 736 tests passed, zero failures, plus all 5 desktop policy tests.
+After extending the network test to three origin pairs: all 8 tests in that file
+passed, including both added scenarios (738 total game tests across these checks).
+Final TypeScript check, ESLint and server compilation passed. Production Vite web
+build passed; pre-existing large-chunk warning remains, not suppressed.
+
+Packaged macOS ARM64 UI: main menu, fighter and arena selection, training start,
+Nikalz ultimate connected (412 training damage), pause/settings, app restart,
+mute persistence, fullscreen entry/return, local 1v1 and both keyboard specials.
+Offline online-room attempt gives a readable explanation instead of crashing.
+Production browser UI: menu, both training selections, rooftop, training and
+Nikalz ultimate (409 damage); captured console error list was empty.
+Screenshots: desktop-gameplay.png and web-gameplay.png.
+
+Not verified: audible music/SFX quality or latency, every audio overlap/loop/focus
+case, physical controllers, every fighter/arena/mode manually, full remote online
+matches, minimize/restore during an online match, high-DPI/ultrawide/multimonitor
+hardware, low-end GPU, CPU/GPU/memory/frame-time/input-latency profiling, Windows
+installation/uninstallation/runtime, Linux runtime, Intel Mac runtime.
+The automated combat/input/audio/network suite is regression evidence, not a
+replacement for those hardware tests. No performance improvement is claimed.
+
+11. ERROR HANDLING AND LOGGING
+Readable initialization failure/retry UI; native startup/crash messages; existing
+network and controller-disconnect UI retained. Asset loaders retain existing
+fallbacks. Offline build networking errors were verified in the real app.
+Local userData/logs/desktop.log records startup version/platform/architecture and
+bounded failure categories. Rotates around 256 KiB, caps events per run, no room
+codes, inputs, secrets or user identifiers. No log upload or telemetry.
+macOS profile: ~/Library/Application Support/Abroz Combat.
+Windows profile: %APPDATA%/Abroz Combat. Linux follows Electron's appData location.
+An unpackaged runtime preview can log Electron's version; packaged logs use the
+game's package version. Build identity is in resources/game/desktop-config.json.
+
+12. BEFORE PUBLIC RELEASE
+Supply real publisher and approved icon in apps/desktop/metadata.json; current
+build uses the default Electron icon. Finalize the stable app ID before shipping.
+Provide/deploy WSS relay and exact origin list, then test actual cross-client play.
+Build NSIS on native Windows and test installation, update-over-install, uninstall,
+settings retention, GPU and controller behavior. The Mac cross-build failed in the
+NSIS compiler; do not treat its partially generated installer as usable.
+Run the hardware/audio/performance matrix above. Audit distributable art/music
+rights separately; this packaging task does not grant rights to existing assets.
+For trusted Windows distribution configure Authenticode signing credentials via
+the build environment. For macOS use Developer ID Application signing, hardened
+runtime, Apple notarization and stapling on CI. No certificates were purchased or
+accounts configured. Unsigned builds are for development/testing, not trusted release.
+
+CI can use native Windows/macOS/Linux jobs: frozen install, runtime installation,
+tests/typecheck/lint, build:web and build:desktop with endpoint/version environment,
+sign/notarize using secret-managed credentials, then upload release artifacts.
+Do not change app IDs or origin/profile locations between updates.
+No updater was added. Later add a signed update feed, stable release channels,
+verified downloads, staged rollout/rollback policy, and explicit version support
+at the existing Electron boundary. NSIS/DMG target architecture does not prevent it.
+
+13. CHECKPOINT AND SOURCES
+Pre-desktop Git checkpoint: f57e143, tag pre-desktop-2026-10-05.
+Shared game-core, fighter data, balance, physics and network protocol are unchanged.
+Electron security: https://www.electronjs.org/docs/latest/tutorial/security
+Protocol: https://www.electronjs.org/docs/latest/api/protocol
+Tauri engine differences: https://v2.tauri.app/reference/webview-versions/
+Packaging: https://www.electron.build/configuration/
+Local Barlow/Barlow Condensed came from Google Fonts / fonts.gstatic.com; SIL Open
+Font License copies are bundled beside the fonts. Original license sources:
+https://github.com/google/fonts/tree/main/ofl/barlow
+https://github.com/google/fonts/tree/main/ofl/barlowcondensed

@@ -1,5 +1,20 @@
 # AFTERGLOW — Fighting Lab
 
+## Web and desktop builds
+
+The game shares one client and simulation across the browser and Electron desktop.
+See [the desktop distribution report](docs/desktop/distribution.txt) for setup,
+build commands, security, generated artifacts and the exact verification limits.
+The [architecture audit](docs/desktop/architecture-audit.txt) records the runtime decision.
+
+- Browser: `pnpm run dev:client` and `pnpm run dev:server`; build with `pnpm run build:web`.
+- Desktop: `pnpm run desktop:install-runtime`, then `pnpm run dev:desktop`.
+- Offline desktop build: `pnpm run build:desktop --offline --dir`.
+- Windows installer target: `pnpm run build:desktop --offline --win --x64` on Windows.
+
+The current macOS test build is unsigned and offline. Windows installer compilation
+failed on the Mac host; native Windows testing and production WSS setup remain required.
+
 An original browser fighting-game foundation with two generic combat rigs, a cel-shaded Three.js arena, a pure TypeScript combat simulation and input-based WebSocket rollback multiplayer.
 
 **This is the engine phase.** VECTOR and BRUT are test fighters, not finished roster characters. There are no borrowed game characters, sounds or environments.
