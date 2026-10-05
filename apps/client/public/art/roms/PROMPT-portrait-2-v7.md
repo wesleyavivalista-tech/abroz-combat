@@ -1,0 +1,5 @@
+# Off duty portrait revision 7
+
+Base: portrait-1.png, approved firefighter portrait.
+
+Edit this exact firefighter portrait into his Off duty clothing variant. Use case: identity-preserve. The same exact man, face, short haircut, expression, glasses, head angle, body proportions, pose, hand positions, axe, camera framing and lighting must remain unchanged. Change ONLY his clothes and facial hair. Replace the red firefighter T-shirt with a plain charcoal black cotton hoodie with sleeves pushed up to the elbows, replace the work pants with blue jeans. Add a natural thin dark mustache, a small soul patch and a short sparse chin beard/goatee. Do not reshape the face or jaw. Preserve the original haircut EXACTLY. Preserve the original turned head and gaze EXACTLY. Same axe in exactly the same position and same grip. Clean natural fabric and skin, no etched patterns or noisy artificial textures. Preserve the original visual rendering style. Deliver the isolated character and axe on a genuinely transparent alpha background, no colored background, no glow backdrop, no checkerboard. This is a clothing and facial-hair edit, not a new portrait or pose.

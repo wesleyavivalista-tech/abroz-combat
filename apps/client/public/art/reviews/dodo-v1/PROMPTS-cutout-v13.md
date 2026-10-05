@@ -1,0 +1,5 @@
+# Cutout cleanup v13
+
+Built-in image generation.
+
+Background extraction / alpha matte repair ONLY. Deliver this exact man and guitar as a crisp transparent PNG cutout. Remove ALL surrounding orange/blue/brown glow, fog, haze, blurry fringe and background remnants, particularly around headstock, hair, cheek, raised fist, right arm, waist, shorts and between legs. Exterior pixels must be fully transparent right up to the natural silhouette, with only a narrow antialiased edge. Keep warm/cool lighting ON the subject but ZERO colored halo outside the silhouette. Preserve the entire subject pixels, face and natural skin detail, exact pose, black T-shirt, beige shorts, strap and large upright guitar geometry. Do not redraw, redesign, reposition, enlarge or alter any object. Same dimensions/crop. Genuine alpha transparency, not a colored or checkerboard background.

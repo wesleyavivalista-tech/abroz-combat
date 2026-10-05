@@ -1,0 +1,73 @@
+{
+  "tool": "Built-in imagegen",
+  "assets": [
+    {
+      "name": "versus",
+      "prompt": "Use case: stylized-concept. Create a NEW original wide 16:9 fighting-game mode-card illustration for Abroz Combat. Reference images specify character identities and painterly style ONLY: redraw every character in NEW poses, new camera angles and integrated dramatic scene, never collage/reuse original standing poses. Angular hand-painted brushwork, graphic shadow shapes, clearly illustrated faces, NOT photorealistic. Preserve each man's likeness, clothing and signature powers. No Street Fighter characters. No text, letters, logos, UI or borders. Composition: large readable upper bodies and faces across upper 65% of wide image, bottom 35% fades into dark navy quiet space for UI text. Keep heads fully inside frame. Strong cinematic rim lighting, dark rooftop arena, energetic painted streaks. 1v1 duel: Nikalz (beige sweater curly hair beard) left faces Jopa (young clean-shaven black-white striped football shirt) right. Tight dramatic profile faceoff, leaning forward, raised fists about to clash, electric blue light against gold-orange sparks, central gap. Exactly two people.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/nikalz/portrait-1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/jopa/portrait-painted-1-v1.png"
+      ]
+    },
+    {
+      "name": "ffa",
+      "prompt": "Use case: stylized-concept. Create a NEW original wide 16:9 fighting-game mode-card illustration for Abroz Combat. Reference images specify character identities and painterly style ONLY: redraw every character in NEW poses, new camera angles and integrated dramatic scene, never collage/reuse original standing poses. Angular hand-painted brushwork, graphic shadow shapes, clearly illustrated faces, NOT photorealistic. Preserve each man's likeness, clothing and signature powers. No Street Fighter characters. No text, letters, logos, UI or borders. Composition: large readable upper bodies and faces across upper 65% of wide image, bottom 35% fades into dark navy quiet space for UI text. Keep heads fully inside frame. Strong cinematic rim lighting, dark rooftop arena, energetic painted streaks. Free-for-all: four rivals in a chaotic circular battle, Caio teal shirt throwing a red energy punch foreground left, Gut white shirt deflecting it foreground right, Tocha skull shirt launches fire behind, Bozo navy polo long beard unleashes hair tendrils from rear left. Four-way rivalry, no teams, electric cyan and deep blue palette, diagonal camera. Exactly four distinct people.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/caio/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-approved-polo-v5.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/gut/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/tocha/portrait-painted-1-v1.png"
+      ]
+    },
+    {
+      "name": "teams",
+      "prompt": "Use case: stylized-concept. Create a NEW original wide 16:9 fighting-game mode-card illustration for Abroz Combat. Reference images specify character identities and painterly style ONLY: redraw every character in NEW poses, new camera angles and integrated dramatic scene, never collage/reuse original standing poses. Angular hand-painted brushwork, graphic shadow shapes, clearly illustrated faces, NOT photorealistic. Preserve each man's likeness, clothing and signature powers. No Street Fighter characters. No text, letters, logos, UI or borders. Composition: large readable upper bodies and faces across upper 65% of wide image, bottom 35% fades into dark navy quiet space for UI text. Keep heads fully inside frame. Strong cinematic rim lighting, dark rooftop arena, energetic painted streaks. 2 versus 2: two clear pairs squared off across center. Left team Nikalz beige sweater and Jopa striped football shirt back-to-back leaning toward opponents. Right team Gut white shirt and Tocha skull shirt, coordinated guarding poses. Low-angle waist-up four-person showdown, amber light, center orange flare separating teams. Exactly four people.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/nikalz/portrait-1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/jopa/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/gut/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/tocha/portrait-painted-1-v1.png"
+      ]
+    },
+    {
+      "name": "squads",
+      "prompt": "Use case: stylized-concept. Create a NEW original wide 16:9 fighting-game mode-card illustration for Abroz Combat. Reference images specify character identities and painterly style ONLY: redraw every character in NEW poses, new camera angles and integrated dramatic scene, never collage/reuse original standing poses. Angular hand-painted brushwork, graphic shadow shapes, clearly illustrated faces, NOT photorealistic. Preserve each man's likeness, clothing and signature powers. No Street Fighter characters. No text, letters, logos, UI or borders. Composition: large readable upper bodies and faces across upper 65% of wide image, bottom 35% fades into dark navy quiet space for UI text. Keep heads fully inside frame. Strong cinematic rim lighting, dark rooftop arena, energetic painted streaks. 3 versus 3: two distinct three-person teams confronting each other. Left Nikalz, Jopa, Caio; right Bozo, Gut, Tocha. Layered triangular squad compositions, leaders lunging inward, teammates backing them, diagonal overhead camera, red/crimson light streak splitting center. Exactly six people with distinct matching likenesses. No duplicate characters. Final reference is a roster screenshot for likeness only: Gut is the short curly hair bearded man with rectangular glasses in white dress shirt; Tocha is black skull shirt, short styled dark hair, cropped beard, tattooed arm. Do not copy UI.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/nikalz/portrait-1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/jopa/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/caio/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-approved-polo-v5.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/docs/local-mode-redesign.jpg"
+      ]
+    },
+    {
+      "name": "champion",
+      "prompt": "Use case: stylized-concept. Create a NEW original wide 16:9 fighting-game mode-card illustration for Abroz Combat. Reference images specify character identities and painterly style ONLY: redraw every character in NEW poses, new camera angles and integrated dramatic scene, never collage/reuse original standing poses. Angular hand-painted brushwork, graphic shadow shapes, clearly illustrated faces, NOT photorealistic. Preserve each man's likeness, clothing and signature powers. No Street Fighter characters. No text, letters, logos, UI or borders. Composition: large readable upper bodies and faces across upper 65% of wide image, bottom 35% fades into dark navy quiet space for UI text. Keep heads fully inside frame. Strong cinematic rim lighting, dark rooftop arena, energetic painted streaks. Championship: Caio teal shirt joyfully raises a large golden trophy with both hands above shoulder height, Jopa in striped jersey beside him applauding, new expressive victorious poses and faces, low-angle podium celebration with golden confetti, gold spotlights and faint bracket-shaped architecture behind. Exactly two people; trophy central and prominent, warm gold palette.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/caio/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/jopa/portrait-painted-1-v1.png"
+      ]
+    },
+    {
+      "name": "elimination",
+      "prompt": "Use case: stylized-concept. Create a NEW original wide 16:9 fighting-game mode-card illustration for Abroz Combat. Reference images specify character identities and painterly style ONLY: redraw every character in NEW poses, new camera angles and integrated dramatic scene, never collage/reuse original standing poses. Angular hand-painted brushwork, graphic shadow shapes, clearly illustrated faces, NOT photorealistic. Preserve each man's likeness, clothing and signature powers. No Street Fighter characters. No text, letters, logos, UI or borders. Composition: large readable upper bodies and faces across upper 65% of wide image, bottom 35% fades into dark navy quiet space for UI text. Keep heads fully inside frame. Strong cinematic rim lighting, dark rooftop arena, energetic painted streaks. Elimination survival: Tocha skull shirt foreground center looking fiercely over his shoulder with flame-wreathed fist raised, Gut white shirt on left and Bozo navy polo on right bracing as a violet illuminated floor cracks into separate platforms. Three rivals, only one can remain, purple-magenta rim lights, dramatic perspective and smoky silhouettes in distance. Exactly three recognizable main characters.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-approved-polo-v5.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/gut/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/tocha/portrait-painted-1-v1.png"
+      ]
+    },
+    {
+      "name": "party",
+      "prompt": "Use case: stylized-concept. Create a NEW original wide 16:9 fighting-game mode-card illustration for Abroz Combat. Reference images specify character identities and painterly style ONLY: redraw every character in NEW poses, new camera angles and integrated dramatic scene, never collage/reuse original standing poses. Angular hand-painted brushwork, graphic shadow shapes, clearly illustrated faces, NOT photorealistic. Preserve each man's likeness, clothing and signature powers. No Street Fighter characters. No text, letters, logos, UI or borders. Composition: large readable upper bodies and faces across upper 65% of wide image, bottom 35% fades into dark navy quiet space for UI text. Keep heads fully inside frame. Strong cinematic rim lighting, dark rooftop arena, energetic painted streaks. Elimination party: all six fighters in a playful but fierce free-for-all scramble, dynamic intertwined action without gore, Jopa vaulting past Gut's palm block, Nikalz ducking Caio's red-energy fist, Tocha flames arc opposite Bozo's beard tendrils. Wide energetic ensemble diagonal composition, emerald and turquoise lighting, arcade confetti and speed strokes. Exactly six different characters. Emphasize faces and shoulders in upper half. Final reference is a roster screenshot for likeness only: Gut is the short curly hair bearded man with rectangular glasses in white dress shirt; Tocha is black skull shirt, short styled dark hair, cropped beard, tattooed arm. Do not copy UI.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/nikalz/portrait-1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/jopa/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/caio/portrait-painted-1-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-approved-polo-v5.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/docs/local-mode-redesign.jpg"
+      ]
+    }
+  ],
+  "partyCorrection": "Edit this mode-card illustration only to add the missing sixth fighter: Gut, from reference 2, short curly hair, rectangular glasses, cropped beard, white rolled-sleeve dress shirt. Place him behind Nikalz at center-right, below Bozo, making a defensive palm gesture toward Jopa. Recompose enough to make all SIX distinct faces readable: Tocha, Jopa, Caio, Nikalz, Bozo, Gut. Preserve existing likenesses, painterly style, wide canvas, energy and dark bottom space. No text. No additional people."
+}

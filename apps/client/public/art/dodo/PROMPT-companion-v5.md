@@ -1,0 +1,3 @@
+Mode: built-in image generation
+
+Edit target: the attached six-frame game sprite sheet. Change ONLY the head grooming of the Black companion in EVERY frame: completely bald smooth scalp with no hair, and completely clean-shaven face, no beard, moustache, goatee, sideburns or stubble. Preserve his rich dark brown skin, glasses, facial identity as much as possible, body, poses, uniform, number 11, shoes, basketball, exact six frame 3x2 layout, spacing and detailed arcade pixel-art style. Keep all six silhouettes separate and connected. Preserve actual transparent background. No other changes.

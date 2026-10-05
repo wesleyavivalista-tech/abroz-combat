@@ -1,0 +1,6 @@
+Mode: built-in imagegen edit; transparent_background=true
+Targets: portrait-user-tee-v2.png and portrait-user-gym-v2.png, each edited separately.
+Style reference: ../nikalz/portrait-1.png
+Outputs: portrait-painted-tee-v3.png and portrait-painted-gym-v3.png
+
+Use case: style-transfer. Image 1 is the edit target Napa; image 2 is Nikalz, STYLE REFERENCE ONLY. Edit Napa's FACE AND BEARD to match Nikalz's hand-painted game portrait: simplify fine stubble and lip detail into deliberate broader brush shapes, replace smooth photographic facial shading with clearly defined painted planes of light and shadow, retaining expressive eyes and recognizable likeness, same short haircut, beard shape, smirk and head angle. Preserve Napa's rich warm peach/copper skin saturation and strong highlight-shadow contrast: do NOT desaturate, mute, flatten, pale or yellow his skin. Keep his clothing, tattoos, cookie, pose, hands, anatomy, silhouette, size, composition, full-body framing and orientation unchanged. Do not borrow Nikalz's face/hair/clothing. Output only the edited Napa full body, at original aspect ratio, genuine transparent background, clean alpha edges, no background or glow. Focus change on the face, preserving everything else.

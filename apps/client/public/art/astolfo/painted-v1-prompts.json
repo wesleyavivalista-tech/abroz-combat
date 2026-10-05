@@ -1,0 +1,24 @@
+{
+  "mode": "built-in imagegen",
+  "sourcePreviews": [
+    "exec-999f7fd0-09ea-4dc8-9b57-89abee994fdc.png",
+    "exec-76580891-80c9-4213-8f95-821e1e628c87.png"
+  ],
+  "edits": [
+    {
+      "output": "portrait-painted-1-v1.png",
+      "source": "exec-e7facb60-659e-4d76-ad35-f7e8d408bede.png",
+      "prompt": "Background extraction only. Preserve approved character face, pose, clothing, proportions and painterly style. Extract left suited fighter / right casual fighter individually, and preserve all three personalities in victory. Remove background and ground shadows; genuine transparent PNG."
+    },
+    {
+      "output": "portrait-painted-2-v1.png",
+      "source": "exec-58161d9c-0711-4bee-9b57-c6d6582a1980.png",
+      "prompt": "Background extraction only. Preserve approved character face, pose, clothing, proportions and painterly style. Extract left suited fighter / right casual fighter individually, and preserve all three personalities in victory. Remove background and ground shadows; genuine transparent PNG."
+    },
+    {
+      "output": "victory-painted-v1.png",
+      "source": "exec-c1b53df7-ca63-4162-b6b2-51dee238e1dd.png",
+      "prompt": "Background extraction only. Preserve approved character face, pose, clothing, proportions and painterly style. Extract left suited fighter / right casual fighter individually, and preserve all three personalities in victory. Remove background and ground shadows; genuine transparent PNG."
+    }
+  ]
+}

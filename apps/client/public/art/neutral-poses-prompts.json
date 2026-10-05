@@ -1,0 +1,25 @@
+{
+  "mode": "built-in image generation",
+  "assets": [
+    {
+      "fighter": "fausto",
+      "path": "fausto/neutral-poses-v1.png",
+      "prompt": "Use case: stylized-concept. Transparent fighting game pixel-art sprite sheet matching the supplied character references exactly, same face, proportions, clothing and crisp 2D sprite style. Uniform grid THREE COLUMNS, each row one outfit, wide transparent gutters. All full-body sprites face RIGHT, three-quarter side view, identical pixel scale across all poses. Column1 standing idle guard, used as size reference. Column2 NEUTRAL CROUCH: both knees bent deeply, feet underneath hips, both fists close to face in guard. NOT a sweep kick, neither leg extended horizontally, no attack. Column3 NEUTRAL AIRBORNE JUMP: both knees tucked naturally underneath torso, both fists close in guard. NOT a flying kick, no arm or leg extended toward opponent. No weapons swinging, effects, text, floor, grid or shadows. Actual transparent background. THREE ROWS. Row1 black suit, white shirt, dark tie, black shoes. Row2 oversized black T-shirt, blue jeans, white sneakers. Row3 dark navy samurai outfit and black armor, white tabi, sword held quietly close to body in guard with blade pointing up, never slashing. Preserve Fausto silver hair and trimmed silver beard."
+    },
+    {
+      "fighter": "napa",
+      "path": "napa/neutral-poses-v1.png",
+      "prompt": "Use case: stylized-concept. Transparent fighting game pixel-art sprite sheet matching the supplied character references exactly, same face, proportions, clothing and crisp 2D sprite style. Uniform grid THREE COLUMNS, each row one outfit, wide transparent gutters. All full-body sprites face RIGHT, three-quarter side view, identical pixel scale across all poses. Column1 standing idle guard, used as size reference. Column2 NEUTRAL CROUCH: both knees bent deeply, feet underneath hips, both fists close to face in guard. NOT a sweep kick, neither leg extended horizontally, no attack. Column3 NEUTRAL AIRBORNE JUMP: both knees tucked naturally underneath torso, both fists close in guard. NOT a flying kick, no arm or leg extended toward opponent. No weapons swinging, effects, text, floor, grid or shadows. Actual transparent background. TWO ROWS. Row1 brown T-shirt with small white chest emblem, beige shorts, black sneakers. Row2 burgundy gym tank, black shorts with white side stripe, black sneakers. Preserve short dark hair, small beard and arm tattoos."
+    },
+    {
+      "fighter": "dodo",
+      "path": "dodo/neutral-poses-v1.png",
+      "prompt": "Use case: stylized-concept. Transparent fighting game pixel-art sprite sheet matching the supplied character references exactly, same face, proportions, clothing and crisp 2D sprite style. Uniform grid THREE COLUMNS, each row one outfit, wide transparent gutters. All full-body sprites face RIGHT, three-quarter side view, identical pixel scale across all poses. Column1 standing idle guard, used as size reference. Column2 NEUTRAL CROUCH: both knees bent deeply, feet underneath hips, both fists close to face in guard. NOT a sweep kick, neither leg extended horizontally, no attack. Column3 NEUTRAL AIRBORNE JUMP: both knees tucked naturally underneath torso, both fists close in guard. NOT a flying kick, no arm or leg extended toward opponent. No weapons swinging, effects, text, floor, grid or shadows. Actual transparent background. TWO ROWS. Row1 black and gold leaf-print short sleeve shirt, black shorts, black high-top sneakers. Row2 plain black T-shirt, beige shorts, black high-top sneakers. Both wear the SAME white electric guitar strapped safely ON THE BACK in ALL three poses, never in hands. Preserve salt-and-pepper hair and dark beard."
+    },
+    {
+      "fighter": "astolfo",
+      "path": "astolfo/neutral-poses-v1.png",
+      "prompt": "Use case: stylized-concept. Transparent fighting game pixel-art sprite sheet matching the supplied character references exactly, same face, proportions, clothing and crisp 2D sprite style. Uniform grid THREE COLUMNS, each row one outfit, wide transparent gutters. All full-body sprites face RIGHT, three-quarter side view, identical pixel scale across all poses. Column1 standing idle guard, used as size reference. Column2 NEUTRAL CROUCH: both knees bent deeply, feet underneath hips, both fists close to face in guard. NOT a sweep kick, neither leg extended horizontally, no attack. Column3 NEUTRAL AIRBORNE JUMP: both knees tucked naturally underneath torso, both fists close in guard. NOT a flying kick, no arm or leg extended toward opponent. No weapons swinging, effects, text, floor, grid or shadows. Actual transparent background. TWO ROWS. Row1 charcoal full suit, white shirt, grey tie, black shoes. Row2 pale blue long-sleeve shirt, light beige trousers, black shoes. Preserve short stocky body, receding black hair, black beard and rectangular glasses. Match exact approved face and body."
+    }
+  ]
+}

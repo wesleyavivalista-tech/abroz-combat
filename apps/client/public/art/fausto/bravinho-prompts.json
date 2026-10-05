@@ -1,0 +1,14 @@
+{
+  "mode": "built-in image_gen",
+  "prompt": "Use case: precise-object-edit. Make an ANGER MODE variant of this existing fighting game sprite atlas. Preserve EXACT grid, every pose and silhouette, identical clothing, body proportions, silver hair/beard, weapons, full bodies, foot baselines and transparent alpha. Change ONLY the exposed skin and face in EVERY sprite: visibly flushed red skin, unmistakably FURIOUS expression with sharply knitted downturned eyebrows, narrowed angry eyes, tense scowling clenched jaw. Keep his recognizable face and slim-average build. Do not add muscles or age lines. Do not alter hands, legs, poses, outfit, backgrounds, spacing or number of cells. Clean crisp original pixel fighter style. No aura or effects added; those are rendered in game. Actual transparent background.",
+  "outputs": [
+    "rage-combat-1.png",
+    "rage-combat-2.png",
+    "rage-samurai.png",
+    "rage-walk-near-v2.png",
+    "rage-walk-far-v2.png",
+    "rage-walk-samurai.png",
+    "rage-corrections-v2.png",
+    "rage-samurai-specials.png"
+  ]
+}

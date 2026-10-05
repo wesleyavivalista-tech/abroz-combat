@@ -1,0 +1,301 @@
+HISTORICAL PRE-FIX AUDIT. All numbered findings were subsequently addressed.
+See FIXES-2026-09-30.txt for exact changes and verification.
+
+ABROZ COMBAT — CODE AUDIT
+Date: 2026-09-30
+Root: outputs/afterglow
+Status: audit complete; no CRITICAL issue confirmed; production code unchanged.
+
+SUMMARY
+CRITICAL: 0 confirmed
+HIGH: 5 confirmed
+MEDIUM: 5 (3 reproduced behavior bugs, 1 protocol hardening issue, 1 latent validation gap)
+LOW: 2
+
+This is a bounded audit, not proof that every possible character combination is safe.
+No damage, speed, cooldown, stun duration, move timing, or other balance value was changed.
+Because no CRITICAL issue was confirmed, there was no critical-fix patch to apply.
+The HIGH/MEDIUM/LOW recommendations below are intentionally not implemented.
+
+SCOPE AND EVIDENCE
+- Inventoried 167 source files under packages, client src, and server src.
+- Reviewed shared combat, contact policy, damage, hitstun, movement, platform and
+  structure collision, all character-specific simulation systems, actor lifecycle,
+  projectile pooling, timers, tournament resets, rollback/history, room service,
+  client connection/start/navigation, rendering/asset ownership and listener cleanup.
+- Reviewed rendering integration and pose/timing contracts; did not visually replay
+  every frame of every atlas or profile GPU allocations on every browser/device.
+- Existing automated suite: 448/448 passed (including combat, rollback, departures,
+  tournament resets, asset failure/retry, input teardown, and per-character tests).
+- TypeScript check and whole-project ESLint passed after adding audit artifacts.
+- Additional deterministic stress: 20 eight-player simulations, 1,500 input frames
+  each (30,000 total), finite-state numerical checks and snapshot replay checks.
+- Additional six-peer test with Jopa, Jomp, Luizinho, Roms, Astolfo and Napa:
+  delayed/reordered input delivery, 900 frames per peer; all final hashes 5a2066b1.
+- Actual local WebSocket handshake: localhost:5173 accepted; localhost:5174 HTTP 401.
+- Reproductions: audits/reproduce-2026-09-30.ts
+- Captured observations: audits/evidence-2026-09-30.txt
+- Baseline test log: audits/tests-2026-09-30.txt
+- Run probes from repository root: node_modules/.bin/tsx audits/reproduce-2026-09-30.ts
+  (Node must be on PATH.) These create disposable simulations, not live matches.
+- Same-engine replay was exercised here. Existing cross-engine protections were
+  inspected; a new real Safari/Firefox/Chromium cross-engine run was not performed.
+
+CRITICAL
+
+None confirmed in this pass. No crash, non-finite simulation state, divergent peer
+hash, or permanent match failure occurred in the tests and added stress scenarios.
+This does not rule out untested failures. Do not reinterpret the following HIGH
+issues as fixed merely because the baseline tests pass.
+
+HIGH
+
+H1 — Jopa contacts bypass shared stun-escape and interruption policy
+Where: packages/game-core/simulation/JopaSystem.ts:81-88 (strike and advanceJopa);
+       packages/game-core/combat/HitstunSystem.ts:9;
+       packages/game-core/combat/PeriodicHit.ts:6.
+Problem: Football/chess/tentacle/knight contacts assign stun and cancel moves
+without consulting consecutiveHitstun. Existing escape immunity does not protect
+against these contacts. The private deadline can subsequently override another
+reaction's stun. This is a duplicated combat system, not merely a different value.
+Reproduce: Give a defender hitstunImmuneUntil=1000 at frame 0, then hit it with
+Chess Master. Probe prints stun=119 and jopaStunUntil=121 despite immunity.
+Why: strike calls applyDamage and writes reaction fields directly; no shared
+hitstun eligibility or armor check. advanceJopa rewrites the timer each frame.
+Safest fix: Reuse the shared reaction eligibility/escape policy while retaining
+Jopa's intended damage and full 60/120-frame stun when eligible. Explicitly decide
+how a new hit replaces an existing longer stun; avoid blanket timing changes.
+Regression risk: HIGH. Interacts with armor, Gym Bro, fifth-hit escape, fixed stun,
+clones and airborne hits. Add immunity, armored-target, and mixed-hit regressions.
+
+H2 — Gym Bro can reserve/grab a protected tree occupant or mounted fighter
+Where: packages/game-core/simulation/JompSystem.ts:15-18, 42-56;
+       packages/game-core/simulation/JopaSystem.ts:70-75.
+Problem: A fighter can simultaneously be mounted and Grappled. A protected tree
+occupant is also considered a valid gym target. Two systems then control the same
+position/state, and protection can nullify damage while the grab still consumes
+Jomp's action.
+Reproduce: Activate Jopa's tree, then call gymTarget for enemy Jomp: it returns
+Jopa's seat. With a mounted Jopa, advance Gym Bro's homing: probe observes
+jopaRide=0, grappleUntil=330 and state=Grappled together.
+Why: gymTarget checks raw invulnerableUntil instead of mount/tree-aware protection;
+advanceJomp does not recheck newly acquired protection before establishing a grab.
+Safest fix: Exclude protected occupants at selection AND before homing capture.
+Release an existing reservation safely if protection becomes active. Keep ordinary
+Gym Bro targeting/range/damage unchanged.
+Regression risk: MEDIUM-HIGH. Test protection gained during startup, both seat
+orders, target defeat, interruption and ordinary successful grabs.
+
+H3 — Jopa projectiles bypass house surfaces and collapse resolution
+Where: packages/game-core/simulation/JopaSystem.ts:153-174;
+       packages/game-core/simulation/StructureSystem.ts:60-100.
+Problem: Jopa's football treats the entire house rectangle as solid, including its
+empty interior. When it destroys a house, it skips the shared collapse damage/stun.
+Chess projectiles use this separate structure path too.
+Reproduce: Build Luizinho's house, set remaining health to 65, place another fighter
+inside and a football in the interior. advanceJopa marks the house collapsed but
+occupant damage is 0; the interior itself supplied a collision. Shared destruction
+uses the configured collapse effect and hollow wall/roof surfaces.
+Why: JopaSystem duplicates collision and directly subtracts structure health and
+sets phase. It never calls structureSurfaces/damageStructure's collapse path.
+Safest fix: Share structure contact and destruction resolution, exposing a narrow
+helper for ricochet behavior. Preserve football bounce and friendly-contact rules;
+retain all configured damage values. Keep earliest-contact ordering explicit.
+Regression risk: MEDIUM-HIGH. Test interior travel, wall/roof contacts, friendly
+walls, house destruction, and a fighter immediately before a blocking surface.
+
+H4 — Current development URL cannot connect to the default multiplayer server
+Where: apps/server/src/index.ts:6-17; apps/client/vite.config.ts server configuration;
+       apps/client/src/network.ts:18-23.
+Problem: Vite can automatically move from port 5173 to 5174, but the default server
+origin allowlist only includes port 5173. Current user page is on port 5174.
+Reproduce: Connect to ws://localhost:8080 with Origin http://localhost:5174.
+Actual result: HTTP 401. Same connection with localhost:5173 is accepted.
+Why: Client HTTP port selection and server allowlist are configured independently.
+Safest fix: Configure ALLOWED_ORIGINS to the actual explicit development origins,
+and document/enforce a matching client port. A dev proxy is another option, but
+is a larger change. Do not solve this by disabling production origin validation.
+Regression risk: LOW for an explicit environment configuration; MEDIUM for changing
+shared server defaults. Verify permitted localhost origins and rejected others.
+
+H5 — A companion's basic input can mount its owner unexpectedly
+Where: packages/game-core/simulation/JopaSystem.ts:69-78;
+       packages/game-core/simulation/GameSimulation.ts:248-254, 372;
+       packages/game-core/simulation/HairSystem.ts:38-44.
+Problem: AI companion input can change the real player's mount state without that
+player pressing mount. The companion itself need not be near the knight.
+Reproduce: In teams, leave Jopa's allied knight empty, place Bozo in mount range,
+and give one of Bozo's distant clones a fresh Medium press. Call the normal
+controlJopa path with clone.owner. Probe observes Bozo's jopaRide becoming 0.
+Why: updateFighter passes the owner's seat for companion simulation. controlJopa
+reads the companion's button, then mountableKnight and mount operate on the
+real seat fighter instead of the actor that supplied the button.
+Safest fix: Only permit seat fighters to initiate mount/remount controls; check
+s.fighters[seat]===f before the rider-input branch. Preserve summon updates and
+human dismount behavior. Do not give companions new mount abilities implicitly.
+Regression risk: LOW-MEDIUM. Test Bozo/Astolfo/Dodo companion inputs, owner input,
+remote ownership, both teams and simultaneous human mount attempts.
+
+MEDIUM
+
+M1 — Expired chess stun changes eliminated fighters out of KO
+Where: packages/game-core/simulation/LifeSystem.ts:42-85;
+       packages/game-core/simulation/JopaSystem.ts:88.
+Problem: An eliminated fighter can change from KO to Idle/Fall when its old chess
+stun expires. Similar stale state can exist during respawn waiting. It does not
+resurrect health/lives: isActive still prevents play, so this is not a confirmed
+critical resurrection bug.
+Reproduce: In a three-player fight, give a fighter a chess stun deadline, eliminate
+its last life, then advance to that deadline. Probe prints KO/0 then Idle/0.
+Why: Knockout cleanup omits jopaStunUntil; advanceJopa processes inactive fighters
+and enters Idle/Fall unconditionally on expiry.
+Safest fix: Clear the private stun deadline on defeat and guard timer-driven state
+transitions with active-life/reaction ownership checks.
+Regression risk: LOW-MEDIUM. Test final KO, non-final KO, respawn, forfeit and reset.
+
+M2 — Airborne tentacles stop falling when no eligible target exists
+Where: packages/game-core/simulation/JopaSystem.ts:101-114.
+Problem: A tentacle can hang motionless in the air during enemy respawn/protection.
+Reproduce: Give a tentacle y=100/vy=-5 and make the only opponent invulnerable.
+After 20 advanceJopa ticks the probe still reports y=100/vy=-5.
+Why: Gravity/landing are inside if(target), not independent of target selection.
+Safest fix: Always integrate airborne tentacle gravity/collision; keep steering,
+attack decisions and jump initiation conditional on an eligible target.
+Regression risk: LOW-MEDIUM. Test lost targets mid-jump, platform landing and no
+opponents without changing speed, jump height or attack cadence.
+
+M3 — Abilities disagree about whether a structure roof is ground
+Where: packages/game-core/simulation/GameSimulation.ts:122-125, 213-216;
+       packages/game-core/simulation/FireTrailSystem.ts:15;
+       packages/game-core/simulation/BloodSystem.ts:43.
+Problem: A fighter can stand on a wall/house roof but ground-dependent trails do
+not activate there. Shared movement recognizes dynamic roofs; these abilities do not.
+Reproduce: Put an on-fire Tocha exactly on a built wall roof. advanceFireTrails with
+the stage used by GameSimulation creates zero trail cells (captured by probe).
+Why: Movement uses collisionStage (base stage plus structures), while these systems
+receive the base stage. Blood trails have the same support query discrepancy.
+Safest fix: Pass the same effective support geometry to ground-dependent effects.
+Preserve floor-only effects where intentionally specified; do not globally replace
+all stage arguments without reviewing their meanings.
+Regression risk: MEDIUM. Test roofs, roof destruction, native platforms, and floods.
+
+M4 — Unverifiable old hash messages have no client eviction policy
+Where: apps/client/src/main.ts:420-445;
+       packages/networking/RollbackManager.ts:158-165;
+       apps/server/src/rooms.ts:143-173.
+Problem: pendingHashes keeps a hash forever if its snapshot has already aged out.
+A modified peer can send many distinct old valid hash frames over a long match;
+this adds persistent entries and repeated per-tick verification work.
+Reproduce: Advance beyond the 180-frame history, then deliver hashes for old
+multiples of 60. confirmedHash returns undefined, and checkNetworkHealth deletes
+only entries whose verification result is not undefined. The server permits old
+frames <= the sender's lastFrame. This is a static control-flow finding, not an
+observed normal-network memory failure.
+Why: Future hashes and permanently unavailable past hashes share the same result;
+no age/cap filter exists in the pending map.
+Safest fix: Drop hashes older than retained history, validate the expected frame
+window, and cap pending hashes per peer. Never treat an unverifiable hash as a
+successful agreement.
+Regression risk: LOW-MEDIUM. Preserve delayed-but-still-retained hash checks and
+terminal desync behavior. Test reordering, departures, resets and duplicate packets.
+
+M5 — New turret definitions can validate then crash on first shot
+Where: packages/game-core/characters/registry.ts:63;
+       packages/game-core/simulation/StructureSystem.ts:53-58.
+Problem: Latent extension hazard: shotMove must exist, but validation does not require
+that move to contain a projectile specification. Current shipped turret is valid.
+Reproduce: In a copied character definition, point turret.structure.shotMove to
+an existing melee-only move. The structural validation condition accepts the
+reference; firing dereferences shot.projectile.speed with a non-null assertion.
+Why: Reference existence and reference capability are different invariants.
+Safest fix: Validate that turret shotMove has a valid projectile definition during
+roster registration, with an explicit error. Do not modify existing move behavior.
+Regression risk: LOW. Add malformed-definition tests and validate all shipped data.
+
+LOW
+
+L1 — Crying Tree instructions still promise no timeout
+Where: apps/client/src/ui/FighterGuide.ts:10; docs/JOPA.md:16 versus :37.
+Problem: The guide and original ability summary contradict the new 70-second rule.
+Reproduce: Read Jopa's traits: “tree has 980 health and no timer”; compare the actual
+4,200-frame expiry and the appended documentation note.
+Why: The recent behavior change appended documentation without updating the primary
+summary or guide copy.
+Safest fix: Update those two descriptions to 70 seconds and mention timeout death.
+Regression risk: VERY LOW; prose only. Verify the in-game guide and docs agree.
+
+L2 — Atlas validation permits partially out-of-image rectangles
+Where: apps/client/src/rendering/AnimationContract.ts:2-9.
+Problem: Validation rejects frames entirely outside an image but accepts negative
+starts or ends beyond width/height, despite the comment promising image bounds.
+Reproduce: validateAtlasFrames([[0,0,120,100]],100,100) succeeds. So does a partially
+negative-origin rectangle. This is a validation gap, not proof a shipped atlas is bad.
+Why: It tests intersection with the image, not containment within the image.
+Safest fix: Audit existing authored bounds first, then enforce containment or explicitly
+support/document intentional clipping; keep nominal-cell overhang separate.
+Regression risk: LOW-MEDIUM: tightening validation may expose currently tolerated
+art metadata. Check every existing atlas before enabling a hard failure.
+
+WORKING BUT FRAGILE AS THE ROSTER GROWS
+
+F1 — Multiple reaction pipelines.
+CombatSystem, PeriodicHit, JopaSystem, JompSystem and beam/area systems each decide
+which state fields to clear. Some differences are intentional (e.g. continuous beam
+no stun), but protection/escape eligibility should not drift. H1/H2 show actual drift.
+Recommendation: Add policy-level interaction tests before considering extraction;
+do not funnel every attack through an identical behavior-changing resolver.
+
+F2 — Seat IDs and actor identity are easy to confuse.
+Companions carry owner seats yet are distinct Fighters. GameSimulation, projectile
+attribution and ability input APIs mix these concepts. H5 is a concrete consequence.
+Recommendation: Explicit source actor plus owner seat parameters, introduced locally
+when touching affected paths, with companion/seat regression cases.
+
+F3 — Lifecycle cleanup is an expanding manual field list.
+LifeSystem, resetPositions, private ability cleanup and tournament reset have different
+responsibilities. New optional Fighter fields can survive until respawn (M1).
+Recommendation: Document ownership/cleanup rules for every new field; tests should
+assert terminal states, not just health. Avoid a blanket field-reset refactor now.
+
+F4 — Rendering contains duplicated timing and per-character asset assumptions.
+For example, JopaRenderer uses numeric pose indices and moveFrame thresholds (5, 20,
+32, 35, 50); MountedVisual has a manual roster/height mapping. These currently work
+for the reviewed assets, but adding a skin/move or editing startup can desynchronize
+pose and collision. Recommend small manifest/pose-contract checks with each addition;
+no timing or asset rewrite is proposed in this audit.
+
+F5 — Clock semantics and stage semantics are implicit in call order.
+Some systems run before hitstop returns, others after; some use collisionStage,
+others base stage. Returning projectiles get a second relative-motion pass. Moving
+calls for “cleanup” can silently change timing/contact order. Existing tests protect
+many paths; add cross-system tests before reordering them.
+
+F6 — Resource ownership spans factories, caches and scene traversal.
+Current InputManager/UI abort controllers, main HMR teardown, texture-cache disposal,
+retry ownership, websocket timers, state-history pruning and projectile slot reset
+are present and tested or inspected. No definite global-listener or GPU leak was
+confirmed. Shared source textures persist for application lifetime intentionally.
+The teardown contracts remain implicit for new effect classes, and cached assets
+can retain peak memory after visiting many fighters. Recommend allocation profiling
+and an ownership checklist, not indiscriminate disposal of shared textures.
+
+F7 — Networking is input-relay/rollback, not an authoritative simulation server.
+Version checks, bounded rollback, stable departure frames and terminal desync handling
+are good protections. There is no transparent in-progress reconnect: disconnect is
+a forfeit and a new connection cannot join a started room. This is current behavior,
+not an undocumented promise of reconnect support. Do not add resume by reusing a
+seat without a separately designed snapshot/input/version protocol.
+
+FIX PHASE / EXACT CHANGES
+- CRITICAL fixes applied: none, because no CRITICAL issue was established.
+- Gameplay, networking and rendering production files modified in this audit: none.
+- Added this report, a reproducible audit probe, captured probe output, baseline test
+  output and a source inventory under audits/.
+- HIGH/MEDIUM/LOW issues above remain open. No automatic refactoring or balance edits.
+
+RECOMMENDED FOLLOW-UP ORDER (NOT EXECUTED)
+1. H4 explicit local environment correction, then H5 narrow actor identity guard.
+2. H2 protected-target reservation/capture tests and narrow eligibility correction.
+3. H1 reaction policy tests, preserving the requested stun durations.
+4. H3 common structure destruction/surface helper with ricochet tests.
+5. M1/M2 lifecycle/physics fixes; then remaining validation/documentation work.

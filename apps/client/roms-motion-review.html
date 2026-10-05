@@ -1,0 +1,29 @@
+<!doctype html><html><meta charset="utf-8"><title>Roms motion review</title><style>body{margin:16px;background:#171c23;color:#eee;font:14px sans-serif}main{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}article{background:#252d38;padding:8px}canvas{width:100%;height:210px}button{padding:8px;margin-bottom:12px}</style><h1>Roms motion review</h1><button id="pause">Pause / play</button><main></main><script type="module">
+import * as THREE from 'three';
+import {RomsRenderer} from './src/rendering/RomsRenderer.ts';
+import {RomsEffects} from './src/rendering/RomsEffects.ts';
+import {romsSheets} from './src/rendering/RomsAtlas.ts';
+import {prepareSpriteIsolation} from './src/rendering/SpriteIsolation.ts';
+import {GameSimulation} from '../../packages/game-core/simulation/GameSimulation.ts';
+import {worldX} from './src/rendering/StageCoordinates.ts';
+const names=['movement','combat-1','combat-2','gear','juggling','return-walk','motion-1-v2','motion-2-v2','motion-gear-v2','combat-gear-v2'];
+const textures=await Promise.all(names.map(async(n,i)=>{const t=await new THREE.TextureLoader().loadAsync('/art/roms/'+n+'.png');t.colorSpace=THREE.SRGBColorSpace;t.magFilter=t.minFilter=THREE.NearestFilter;prepareSpriteIsolation(t,romsSheets[i].frames);return t;}));
+const cards=[];
+for(const mode of ['spin','dash','juggle','combat','water'])for(let outfit=0;outfit<3;outfit++){
+ const el=document.createElement('article');el.innerHTML='<b>'+['Firefighter','Off duty','Armor'][outfit]+' · '+mode+'</b>';document.querySelector('main').append(el);
+ const renderer=new THREE.WebGLRenderer({alpha:true});renderer.setSize(330,210);el.append(renderer.domElement);
+ const scene=new THREE.Scene(),cam=new THREE.OrthographicCamera(-1.8,1.8,2.65,-.1,.1,20);cam.position.z=5;
+ const game=new GameSimulation(['roms','gut'],true),f=game.state.fighters[0];f.x=1200;f.armorUntil=outfit===2?999999:0;cam.position.x=worldX(f.x);
+ const visual=new RomsRenderer(textures,outfit===1?1:0),effects=new RomsEffects();scene.add(visual.root,effects.root);
+ cards.push({renderer,scene,cam,game,f,visual,effects,mode});
+}
+let tick=0,paused=false;document.querySelector('#pause').onclick=()=>paused=!paused;
+function draw(){if(!paused)tick++;for(const c of cards){const {f,mode}=c;f.state='Idle';f.move=null;f.weaponUntil=0;f.stateFrame=tick;f.moveFrame=0;
+ if(mode==='spin'){f.move='spin';f.moveFrame=15+tick%180;}
+ if(mode==='dash'){f.state='DashForward';f.stateFrame=tick%12;}
+ if(mode==='juggle'){f.weaponUntil=999999;f.state='WalkForward';}
+ if(mode==='combat'){f.move=['chop','backhand','heavy','toss','low','air'][Math.floor(tick/40)%6];f.moveFrame=tick%40;}
+ if(mode==='water'){f.move='water';f.moveFrame=40;}
+ c.game.state.frame=tick;c.visual.update(f);c.effects.update(c.game.state,false);c.renderer.render(c.scene,c.cam);}
+ requestAnimationFrame(draw);}draw();
+</script></html>

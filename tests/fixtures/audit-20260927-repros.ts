@@ -1,0 +1,12 @@
+/** Diagnostic reproductions of open audit findings, not desired-behavior regression tests. */
+import assert from 'node:assert/strict';
+import {GameSimulation} from '../../packages/game-core/simulation/GameSimulation.js';
+import {characters} from '../../packages/game-core/characters/registry.js';
+import {Button} from '../../packages/game-core/types.js';
+import {activateStructure,hitStructureProjectile} from '../../packages/game-core/simulation/StructureSystem.js';
+import {initializeProjectile} from '../../packages/game-core/simulation/ProjectilePool.js';
+const match=(ids:string[])=>{const g=new GameSimulation(ids);g.state.phase='fight';g.state.fighters.forEach(f=>{f.state='Idle';f.y=g.stage.floorHeight;});return g;};
+function guard(roof:boolean){const g=match(['gut','luizinho']);const [a,d]=g.state.fighters;a.x=500;d.x=560;if(roof){activateStructure(g.state,g.stage,d,1,characters.luizinho.moves.wall);const b=g.state.structures![0];a.x=b.x-30;d.x=b.x;a.y=d.y=b.y+b.height;}g.hit(0,characters.gut.moves.palm,Button.Right,false,1,1);return d.state;}
+assert.equal(guard(false),'BlockStanding');assert.equal(guard(true),'BlockStanding');console.log('H1 fixed: guard works on ground and structure roofs.');
+const charge=match(['jomp','luizinho']);const [j,l]=charge.state.fighters;l.x=1000;l.facing=1;activateStructure(charge.state,charge.stage,l,1,characters.luizinho.moves.home);activateStructure(charge.state,charge.stage,l,1,characters.luizinho.moves.build);j.x=900;j.facing=1;j.meter=100;charge.step([Button.Special2,0]);for(let i=0;i<900;i++)charge.step([0,0]);assert.equal(j.move,null);console.log('C1 fixed: Investida recovers after hitting a permanent house.',{x:j.x,houseHealth:charge.state.structures![0].health});
+const balls=match(['dodo','luizinho']);balls.state.fighters[0].x=100;balls.state.fighters[1].x=1200;activateStructure(balls.state,balls.stage,balls.state.fighters[1],1,characters.luizinho.moves.wall);const b=balls.state.structures![0];const ball=Object.values(characters.dodo.moves).find(m=>m.projectile&&m.id.includes('ball'))!;assert.ok(ball);const hp=b.health;for(let id=0;id<2;id++){const p=balls.state.projectiles[id];initializeProjectile(p,{active:true,owner:0,companionId:id,move:ball.id,serial:1,x:b.x+60,y:b.y+80,vx:10,vy:0,life:60});assert.ok(hitStructureProjectile(balls.state,p,{x:b.x-70,y:b.y+80},balls.stage));}assert.equal(hp-b.health,ball.damage*2);console.log('M1 fixed: both companion balls damage the structure.');

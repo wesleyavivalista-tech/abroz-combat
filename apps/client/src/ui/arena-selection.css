@@ -1,0 +1,44 @@
+.shell:has(.arena-select){background:#080e12;--arena-orange:#ff6940}
+.shell:has(.arena-select)::before,.shell:has(.arena-select)::after{display:none}
+.shell:has(.arena-select)>header{height:54px;min-height:54px;background:#080e12f5;border-bottom:1px solid #fc704544}
+.shell:has(.arena-select)>.footer{font-size:9px;min-height:30px;padding:8px 22px;border-color:#ff694033}
+.arena-select{position:relative;isolation:isolate;flex:1;min-height:0;display:grid;grid-template-columns:190px 1fr;overflow:auto;background:#090e13;color:#f2eee3}
+.as-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:-2}
+.arena-select::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#070c12f5 0%,#070c12db 24%,#070c1270 48%,#070c1210 80%),linear-gradient(0deg,#070c12d9,transparent 50%)}
+.as-rail{background:#080e12c9;border-right:1px solid #ec714436;padding:24px 16px 16px;display:flex;flex-direction:column;gap:10px;z-index:1}
+.as-rail h2{font:600 14px 'Barlow Condensed',sans-serif;letter-spacing:4px;margin:0 0 4px}
+.as-card{position:relative;flex:0 0 98px;width:100%;overflow:hidden;isolation:isolate;border:1px solid #71818d66;background:#0b141b;text-align:left;padding:12px;color:#e9e7df;transition:border-color .15s,box-shadow .15s}
+.as-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;filter:saturate(.55) brightness(.65)}
+.as-card::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#050c13ee,transparent 95%);z-index:-1}
+.as-card>span:last-child{position:absolute;bottom:10px;left:10px;right:8px}
+.as-card strong{display:block;font:700 15px 'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase}
+.as-card small{display:block;font:9px monospace;letter-spacing:2px;margin-top:3px}
+.as-card-number{position:absolute;right:8px;top:6px;font:10px monospace;color:#ffffff80}
+.as-card.is-selected{border:2px solid var(--arena-orange);box-shadow:0 0 15px #ff69404d}
+.as-card.is-selected img,.as-card:hover img{filter:saturate(1) brightness(1)}
+.as-rail-sign{margin:auto 0 0;padding-top:15px;font:900 italic 24px/1 'Barlow Condensed',sans-serif;transform:rotate(-5deg);color:#b5a89a80}
+.as-detail{position:relative;min-width:0;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(26px,5vh,65px) 28px 22px 38px;gap:22px}
+.as-copy{max-width:470px}
+.as-eyebrow{font:11px monospace;letter-spacing:3px;color:#ddd8cc}
+.as-copy h1{font:900 italic clamp(52px,6.5vw,102px)/.94 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:-2px;margin:14px 0 20px;text-shadow:none;color:#fff}
+.as-copy h1 span,.as-copy h1 strong{display:block;font-weight:900}.as-copy h1 strong{color:#fff}
+.as-tagline{font:600 16px/1.45 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:3px;max-width:370px;margin:0 0 20px}
+.as-facts{list-style:none;padding:0;margin:0;display:grid;gap:10px;font:11px 'Barlow Condensed',sans-serif;letter-spacing:1.7px}
+.as-facts li{display:flex;align-items:center;gap:13px}.as-facts b{color:var(--arena-orange);font:22px/1 monospace;width:20px;text-align:center}
+.as-description{border-top:1px solid #dad4c54a;padding-top:14px;max-width:350px;color:#b5bcc1;font:11px/1.8 monospace;letter-spacing:.3px}
+.as-launch{align-self:flex-end;width:min(470px,100%);background:linear-gradient(110deg,#0b1119cf,#0b1119f2);border:1px solid #ff694086;border-top:3px solid var(--arena-orange);padding:0 10px 0 18px;box-shadow:0 10px 40px #0005}
+.as-matchup{display:flex;align-items:center;justify-content:space-around;height:94px;gap:8px;overflow:hidden}
+.as-matchup>div{display:flex;align-items:center;gap:12px}.as-matchup small{display:block;font:10px monospace;color:#b3b9bb}.as-matchup b{display:block;font:700 21px 'Barlow Condensed';margin-top:3px}.as-matchup img{width:82px;height:110px;object-fit:cover;object-position:50% 0;align-self:flex-start;mask-image:linear-gradient(#000 80%,transparent)}
+.as-matchup i{font:900 italic 42px 'Barlow Condensed';color:var(--arena-orange)}
+.as-enter{width:100%;background:linear-gradient(110deg,#ff963e,#ff583c);color:#11161a;border:0;border-radius:0;display:flex;justify-content:space-between;align-items:center;padding:16px 24px;font:800 22px 'Barlow Condensed';letter-spacing:1px;transform:skewX(-8deg);cursor:pointer}
+.as-enter:hover{filter:brightness(1.15)}.as-enter b{font:32px/1 sans-serif}.as-back{display:block;width:100%;padding:11px;background:none;border:0;color:#b7bdc2;font:11px monospace;letter-spacing:1px}
+.as-corner{position:absolute;bottom:25px;left:38px;border-left:25px solid var(--arena-orange);padding-left:12px;font:9px/1.6 monospace;letter-spacing:2px;color:#9aabae}
+@media(min-width:1050px) and (min-height:700px){.as-launch{margin-top:-100px}.as-detail{padding-bottom:28px}}
+@media(max-height:740px){.as-rail{padding-top:16px;gap:8px}.as-card{flex-basis:85px}.as-copy h1{font-size:clamp(48px,6vw,82px);margin:10px 0}.as-detail{padding-top:25px;gap:8px}.as-tagline{margin-bottom:12px}.as-description{display:none}.as-launch{margin-top:-85px}.as-corner{display:none}}
+@media(max-width:950px){.arena-select{grid-template-columns:155px 1fr}.as-rail{padding:16px 10px}.as-detail{padding-left:24px}.as-copy h1{font-size:64px}.as-launch{width:365px;margin-top:0}.as-corner{display:none}.as-description{display:none}.as-facts{font-size:10px}.as-matchup{height:70px}.as-matchup img{height:90px;width:60px}}
+@media(max-width:650px){.arena-select{display:flex;flex-direction:column}.as-rail{flex-direction:row;overflow-x:auto;flex-shrink:0;border-right:0;border-bottom:1px solid #ff694044}.as-rail h2,.as-rail-sign{display:none}.as-card{flex:0 0 140px;height:85px}.as-detail{padding:25px 20px;gap:24px}.as-copy h1{font-size:58px}.as-tagline{font-size:14px}.as-launch{width:100%}.as-backdrop{position:fixed}.as-facts{font-size:12px}}
+
+.as-fighter-art{display:block;position:relative;width:100px;height:94px;overflow:hidden}.as-matchup .as-fighter-art img{position:absolute;width:155px;height:235px;max-width:none;left:-27px;top:0;object-fit:cover;object-position:50% 0;mask-image:none}
+@media(max-width:950px){.as-fighter-art{width:75px;height:70px}.as-matchup .as-fighter-art img{width:120px;height:180px;left:-22px}}
+
+.as-copy h1,.as-copy h1 span,.as-copy h1 strong{color:#fff;text-shadow:none;-webkit-text-fill-color:#fff;filter:none}

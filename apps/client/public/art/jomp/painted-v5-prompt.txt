@@ -1,0 +1,5 @@
+Tool: built-in imagegen
+Outputs: portrait-painted-shirtless-v5.png, portrait-painted-charcoal-v5.png, victory-painted-v5.png
+Edit targets respectively: portrait-user-shirtless-v4.png, portrait-user-charcoal-v4.png, victory-user-v4.png
+Style reference: ../nikalz/portrait-1.png
+Prompt (each target separately): Use case: style-transfer. Image 1 is the edit target Jomp; image 2 is Nikalz, a STYLE REFERENCE ONLY. Repaint Jomp to match Nikalz's cohesive hand-painted fighting-game illustration style: broader organic matte painted shapes, softer lower-contrast shadows, fewer tiny triangular facets, simpler facial planes and muscle shading. Reduce excessive orange saturation to a natural warm tan. Face must be illustrated consistently with the body, not smooth photorealistic. Keep Jomp's exact recognizable face, smile, short hair, muscular build, outfit, pose, proportions, framing and silhouette. Do not copy Nikalz's identity, clothes or pose. Preserve entire figure head to shoes and same canvas proportions. Genuinely transparent background, clean alpha edges, no backdrop, no glow, no text. Change only rendering/shading style.

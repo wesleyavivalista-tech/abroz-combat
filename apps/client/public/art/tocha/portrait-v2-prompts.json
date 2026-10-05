@@ -1,0 +1,17 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: style-transfer. Create a production fighter-select portrait for Abroz Combat. Image 1 is VECTOR, the authoritative rendering style reference. Image 2 is TOCHA, the identity, clothes and tattoo reference and edit target. Redraw Tocha in EXACTLY Vector's stylized AAA fighting-game character illustration style: sculpted angular facial planes, bold heroic anatomy, crisp painted shadow shapes, expressive focused eyes, chunky individually sculpted hair locks, controlled detailed brushwork and warm key light with cold blue rim. Tocha currently looks like a photograph of a real man; replace that photographic look with the same polished illustrated game-character treatment as Vector. Preserve Tocha's recognizable face, age, warm brown complexion, full short black beard, sturdy build and tattoo designs. Upright alert head, confident intense fighting expression, three-quarter stance facing right, fists raised, both fists fully visible. Same knee-up composition and head scale as Vector, top hair safely inside canvas. Do not copy Vector's identity, clothes or hand wraps. Tocha keeps bare fists and bare forearms, black slim pants. Skull/skeleton tattoo only on anatomical left upper arm. Genuine transparent alpha background, no backdrop, no text, no VFX. 1024x1536 PNG.",
+  "references": [
+    "../prototype-a-cutout-v1.png",
+    "skin-1-portrait.png",
+    "skin-2-portrait.png"
+  ],
+  "outputs": [
+    "skin-1-portrait-v2.png",
+    "skin-2-portrait-v2.png"
+  ],
+  "variants": {
+    "skin1": "Normal swept-up short hair, black white-skull T-shirt.",
+    "skin2": "Very short buzzcut, shirtless, winged sun chest tattoo and left upper-arm skull tattoo."
+  }
+}

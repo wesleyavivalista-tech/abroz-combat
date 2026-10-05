@@ -1,0 +1,5 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: precise-object-edit. Edit this shirtless Tocha fighter-select portrait. Change ONLY his physique to a slightly less muscular, natural everyday sturdy male build. Reduce the oversized rounded shoulder muscles and upper-arm bulk by about 20%, soften chest definition and remove carved abdominal/oblique definition, give abdomen a gently smooth natural shape. He should still look healthy and sturdy, neither skinny nor overweight. Preserve EXACT same Vector-style illustrated rendering, strong painted shading and dramatic warm/cool light. Preserve face, expression, beard, buzzcut, skin tone, raised-fist pose, composition, black pants, central winged sun chest tattoo and left upper-arm skull tattoo. Forearms bare. Keep the same 1024x1536 canvas and genuinely transparent PNG alpha background; no new background, text, or effects. This is a subtle physique correction, not a different character or art style.",
+  "output": "skin-2-portrait-v3.png"
+}

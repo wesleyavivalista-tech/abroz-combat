@@ -1,0 +1,9 @@
+{
+  "mode": "built-in imagegen",
+  "prompt": "Background extraction only. Remove pale backdrop and ground shadow. Preserve approved fighter, expression, original tattoo designs, clothes, pose, proportions and painterly style unchanged. Genuine transparent PNG, complete head and shoes.",
+  "assets": {
+    "exec-d57323d1-3ff2-462d-af35-df477e4d098f.png": "portrait-painted-1-v1.png",
+    "exec-4a4b1ac1-d141-40b8-8f3b-78181df90f7d.png": "portrait-painted-2-v1.png",
+    "exec-ca749dcc-97e0-4a33-9989-26fcc0de4aa5.png": "victory-painted-v1.png"
+  }
+}

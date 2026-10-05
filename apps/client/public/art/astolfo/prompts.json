@@ -1,0 +1,75 @@
+{
+  "mode": "built-in imagegen",
+  "jobs": [
+    {
+      "key": "astCombat1",
+      "prompt": "Create Astolfo fighting game animation sprite sheet in the EXACT pixel art style and identity/outfit of the reference. Exactly 4 columns x 4 rows, 16 isolated full-body sprites, one per equal cell, all facing RIGHT, identical character scale, transparent background, no text, no lines, large clear gaps. Row 1: idle closed-fist guard; lead straight punch extended; high forward kick; rear heavy punch extended with opposite fist guarding chin. Row 2: heavy kick extended; crouching low kick; airborne kick; blocking with both forearms. Row 3: recoil hit reaction; knocked down lying on back; talking with open mouth one hand gesturing; crouching to place a tiny spider. Row 4: excited idea pointing index finger up; arms out splitting personalities; victory confident hands on hips; idle second breathing pose. Astolfo is a short stocky 1.60m man, receding black hair, dark full beard, thin rectangular glasses. Preserve his approved body and face, no added muscles. Punches and kicks must have clear silhouettes. No cropped body parts.",
+      "refs": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/reviews/astolfo-v1/model-1.png"
+      ]
+    },
+    {
+      "key": "astCombat2",
+      "prompt": "Create Astolfo fighting game animation sprite sheet in the EXACT pixel art style and identity/outfit of the reference. Exactly 4 columns x 4 rows, 16 isolated full-body sprites, one per equal cell, all facing RIGHT, identical character scale, transparent background, no text, no lines, large clear gaps. Row 1: idle closed-fist guard; lead straight punch extended; high forward kick; rear heavy punch extended with opposite fist guarding chin. Row 2: heavy kick extended; crouching low kick; airborne kick; blocking with both forearms. Row 3: recoil hit reaction; knocked down lying on back; talking with open mouth one hand gesturing; crouching to place a tiny spider. Row 4: excited idea pointing index finger up; arms out splitting personalities; victory confident hands on hips; idle second breathing pose. Astolfo is a short stocky 1.60m man, receding black hair, dark full beard, thin rectangular glasses. Preserve his approved body and face, no added muscles. Punches and kicks must have clear silhouettes. No cropped body parts.",
+      "refs": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/reviews/astolfo-v1/model-2.png"
+      ]
+    },
+    {
+      "key": "astWalk1",
+      "prompt": "Create a 4 column by 3 row sprite sheet of the EXACT approved Astolfo from reference, same pixel art style, clothing, short stocky body and thin glasses. Every cell a full body side-view walking pose facing RIGHT. Each row is one four-frame walk cycle: frame1 NEAR leg extended FORWARD heel contact, FAR leg back toe contact; frame2 NEAR leg supporting under hip, FAR knee lifted passing forward; frame3 FAR leg extended FORWARD heel contact and NEAR leg back toe contact; frame4 FAR leg supporting under hip, NEAR knee lifted passing forward. BOTH legs must exchange front/back, not slide the same foot. Hands loosely closed in guard with small counter swing. Same hips position and scale, grounded baseline across row, clear spacing. Row1 normal Astolfo. Row2 same man with subtly BLUE skin and extremely SAD eyebrows and frown. Row3 same man subtly RED skin and furious angry scowl. Clothes same for all rows. Exactly 12 separated sprites, transparent background, no labels.",
+      "refs": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/reviews/astolfo-v1/model-1.png"
+      ]
+    },
+    {
+      "key": "astWalk2",
+      "prompt": "Create a 4 column by 3 row sprite sheet of the EXACT approved Astolfo from reference, same pixel art style, clothing, short stocky body and thin glasses. Every cell a full body side-view walking pose facing RIGHT. Each row is one four-frame walk cycle: frame1 NEAR leg extended FORWARD heel contact, FAR leg back toe contact; frame2 NEAR leg supporting under hip, FAR knee lifted passing forward; frame3 FAR leg extended FORWARD heel contact and NEAR leg back toe contact; frame4 FAR leg supporting under hip, NEAR knee lifted passing forward. BOTH legs must exchange front/back, not slide the same foot. Hands loosely closed in guard with small counter swing. Same hips position and scale, grounded baseline across row, clear spacing. Row1 normal Astolfo. Row2 same man with subtly BLUE skin and extremely SAD eyebrows and frown. Row3 same man subtly RED skin and furious angry scowl. Clothes same for all rows. Exactly 12 separated sprites, transparent background, no labels.",
+      "refs": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/reviews/astolfo-v1/model-2.png"
+      ]
+    },
+    {
+      "key": "astCombat-sad",
+      "prompt": "Edit this exact 4x4 pixel-art sheet of Astolfo. Preserve ALL 16 poses, cell layout, full bodies, clothing, black hair and beard, glasses and style. Change only personality: subtly blue-tinted skin, extremely sad drooping eyebrows and visibly downturned mouth. All frames must show this expression. Keep suit uncolored and background transparent. No additional objects, no layout changes.",
+      "refs": [
+        "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-c7ac2ad4-0ef5-4ba2-832a-702b9108566d.png"
+      ]
+    },
+    {
+      "key": "astCombat-angry",
+      "prompt": "Edit this exact 4x4 pixel-art sheet of Astolfo. Preserve ALL 16 poses, cell layout, full bodies, clothing, black hair and beard, glasses and style. Change only personality: subtly red-tinted skin, furious sharply furrowed eyebrows and exaggerated angry scowl. All frames must show this expression. Keep suit uncolored and background transparent. No additional objects, no layout changes.",
+      "refs": [
+        "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-c7ac2ad4-0ef5-4ba2-832a-702b9108566d.png"
+      ]
+    },
+    {
+      "prompt": "Create the OPPOSITE half of Astolfo's side-view walking cycle. Reference 1 shows current walk sprites; they wrongly repeat near leg forward. We need FAR LEG FORWARD. Exactly 2 columns x 4 rows, eight full-body pixel art sprites facing RIGHT on transparent background. COLUMN 1: the FAR leg (behind torso, dark shaded) extends to the RIGHT/front in heel contact; the NEAR leg (lighter, in front of pelvis) extends LEFT/back, its knee and trouser line visibly overlaying the far leg at the pelvis. COLUMN 2: FAR leg planted straight under hip; NEAR leg lifted with knee rising forward toward right, near knee overlaps far thigh. Keep torso stable and fists in guard. DO NOT reproduce near leg leading from reference. Row1 charcoal suit normal skin. Row2 pale blue shirt beige trousers normal skin. Row3 charcoal suit BLUE sad face. Row4 charcoal suit RED furious face. Match references exactly in face, stocky short body, glasses and crisp pixel art. Equal cells, clear spacing, same scale, no text."
+    },
+    {
+      "prompt": "Use case: identity-preserve. Create Astolfo's victory portrait from the approved reference. Exact same person, short stocky natural build, receding dark hair, full dark beard, thin rectangular glasses, charcoal suit white shirt silver gray tie black shoes. He beams proudly and raises one index finger beside his head as if celebrating a great idea, other hand relaxed at hip. Full body, no crop, no words or speech bubbles, no props. Keep the polished Bozo-style realistic game key art and orange/blue rim light, smooth natural skin and clean fabric. Transparent background. No added muscles."
+    },
+    {
+      "key": "astCasualsad",
+      "prompt": "Edit the exact 16-pose sheet. Preserve layout, poses, Astolfo's face, glasses, body and pixel style. Change all clothing only into pale blue long sleeved shirt untucked, light beige trousers and black shoes, using image2. KEEP the blue skin and extremely sad frown in EVERY pose. Full bodies, transparent background.",
+      "refs": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/astolfo/combat-sad.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/astolfo/model-2.png"
+      ]
+    },
+    {
+      "key": "astCasualangry",
+      "prompt": "Edit the exact 16-pose sheet. Preserve layout, poses, Astolfo's face, glasses, body and pixel style. Change all clothing only into pale blue long sleeved shirt untucked, light beige trousers and black shoes, using image2. KEEP the red skin and furious angry scowl in EVERY pose. Full bodies, transparent background.",
+      "refs": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/astolfo/combat-angry.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/astolfo/model-2.png"
+      ]
+    },
+    {
+      "prompt": "Create Astolfo's far-leg-leading walking sprite sheet. Image1 is an EXACT POSE reference, NOT identity. Copy the FIRST THREE FULL-BODY POSES in image1 precisely, especially which trouser leg is in front at the crotch and the raised BACK heel in the second pose. Replace Fausto with Astolfo from image2: short stocky man, receding black hair, black full beard, rectangular glasses. Pixel art as image2. Output exactly 3 columns x 4 rows. Every row repeats those 3 different POSES from image1 (long far-leg-forward stride, near leg bent BEHIND with heel kicked toward bottom, near knee lifting forward). Row1 Astolfo charcoal gray suit white shirt silver tie black shoes. Row2 Astolfo pale blue shirt beige trousers black shoes. Row3 same charcoal suit BLUE sad face. Row4 same charcoal suit RED furious scowl. No pose duplication: especially second column must have lifted foot BEHIND torso, not a high knee in front. Fullbody equal cells, clear separation, transparent background."
+    },
+    {
+      "prompt": "Edit this exact 3-column 4-row sprite sheet, preserve ALL walking poses and EXACT layout and framing. Change ONLY clothing of EVERY sprite to pale blue long sleeved shirt, light beige trousers and black shoes. Preserve heads, faces, dark beard, glasses, receding hair. Keep sad expressions on third row, angry expressions on fourth row. Tint ONLY skin in third row visibly blue and ONLY skin in fourth row visibly red. Top two rows natural skin. Transparent background, same pixel art."
+    }
+  ]
+}

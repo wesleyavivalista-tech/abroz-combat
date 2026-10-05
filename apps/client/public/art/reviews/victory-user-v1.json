@@ -1,0 +1,70 @@
+{
+  "method": "Built-in imagegen",
+  "prompt": "Remove only pale background and floor shadow to genuine transparency; preserve full body, exact face, pose, clothing, textures, all props and floating effects; keep all three Astolfo figures.",
+  "assets": [
+    {
+      "name": "astolfo",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-c059e8ef-5104-4d48-b6fc-4cdabff3bca4.png"
+    },
+    {
+      "name": "biel",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-8c4788f6-cd5b-44bd-8b4a-65cea4ee1dac.png"
+    },
+    {
+      "name": "bozo",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-38169e36-20a5-4f9f-bce0-0dd144b989de.png"
+    },
+    {
+      "name": "caio",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-0781e825-3084-4fa0-92a8-fe294611cdb3.png"
+    },
+    {
+      "name": "dodo",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-f16496a2-c661-4b5f-9f78-02e7abd3794b.png"
+    },
+    {
+      "name": "drupa",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-894cf9bc-c69a-4fef-b790-54ac9a8f656f.png"
+    },
+    {
+      "name": "eide",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-d72cc76d-b886-46cf-ac35-dcb898e1c280.png"
+    },
+    {
+      "name": "fausto",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-d04b68de-78bd-4ffa-987d-81bb481ed484.png"
+    },
+    {
+      "name": "gut",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-6915d437-e56b-46e9-95ee-fc008f9602ba.png"
+    },
+    {
+      "name": "jomp",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-2b50fdda-0cc2-4b23-b871-2e8eafff0c6d.png"
+    },
+    {
+      "name": "jopa",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-0e556c4f-55e5-4c24-9b72-0fc76ebf7c30.png"
+    },
+    {
+      "name": "nikalz",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-224891dd-39c0-493c-8ff3-86f2fe31a40b.png"
+    },
+    {
+      "name": "napa",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-8ec9f12c-b7a6-4fd3-bc3b-43a4d9b08030.png"
+    },
+    {
+      "name": "luizinho",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-dac7f00f-6de7-4cad-856f-90b58bedc7c2.png"
+    },
+    {
+      "name": "roms",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-1ab1748d-1ea2-40bc-98f5-1d98bff8e355.png"
+    },
+    {
+      "name": "tocha",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-7979119e-81cb-4768-8d30-d69d9fef8d17.png"
+    }
+  ]
+}

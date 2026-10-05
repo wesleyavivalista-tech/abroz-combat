@@ -1,0 +1,32 @@
+[
+  {
+    "id": "nikalz",
+    "prompt": "Create a production sprite sheet for existing 2D fighting game matching the attached sprites' drawn outlined pixel-informed shading and exact character identity. Transparent RGBA background. EXACTLY 2 columns by 2 rows, four separate complete full-body sprites in evenly spaced cells, no overlap or cropping, no labels or shadows or floor. Each row is a skin: left column standing neutral guard reference, right column NEW unmistakably AIRBORNE ATTACK pose. Same anatomical size within each row, airborne pose may have shorter bounding height because knees bent; don't enlarge it. All face RIGHT. A forceful jumping straight punch to the right, both knees bent in midair, BOTH feet pulled off the ground. Row 1 beige sweater charcoal trousers brown sneakers. Row 2 Palmeiras green white striped jersey black cap olive shorts black flip flops. Preserve outfit and face, no photorealism. Lots of transparent separation between cells. Left standing pose is for scale calibration; right attacking pose must have visibly different lifted legs.",
+    "tool": "built-in image_gen",
+    "asset": "apps/client/public/art/nikalz/air-attack-v1.png"
+  },
+  {
+    "id": "drupa",
+    "prompt": "Create a production sprite sheet for existing 2D fighting game matching the attached sprites' drawn outlined pixel-informed shading and exact character identity. Transparent RGBA background. EXACTLY 2 columns by 2 rows, four separate complete full-body sprites in evenly spaced cells, no overlap or cropping, no labels or shadows or floor. Each row is a skin: left column standing neutral guard reference, right column NEW unmistakably AIRBORNE ATTACK pose. Same anatomical size within each row, airborne pose may have shorter bounding height because knees bent; don't enlarge it. All face RIGHT. A flying belly-first body check to the right, torso leaning back slightly with belly projected right, both legs bent and kicked back LEFT in midair, fists guarding. Large stocky bald bearded man. Row 1 red white varsity jacket black pants red sneakers. Row 2 purple tee black shorts white sneakers. Preserve outfit and face, no photorealism. Lots of transparent separation between cells. Left standing pose is for scale calibration; right attacking pose must have visibly different lifted legs.",
+    "tool": "built-in image_gen",
+    "asset": "apps/client/public/art/drupa/air-attack-v1.png"
+  },
+  {
+    "id": "caio",
+    "prompt": "Create a production sprite sheet for existing 2D fighting game matching the attached sprites' drawn outlined pixel-informed shading and exact character identity. Transparent RGBA background. EXACTLY 2 columns by 2 rows, four separate complete full-body sprites in evenly spaced cells, no overlap or cropping, no labels or shadows or floor. Each row is a skin: left column standing neutral guard reference, right column NEW unmistakably AIRBORNE ATTACK pose. Same anatomical size within each row, airborne pose may have shorter bounding height because knees bent; don't enlarge it. All face RIGHT. A jumping forward side kick to the right with one leg extended and other knee folded back, BOTH feet in midair, no planted standing leg. Row 1 teal tee black pants white sneakers gold chain forearm tattoos. Row 2 black tee sunglasses black pants white sneakers gold chain tattoos. Preserve outfit and face, no photorealism. Lots of transparent separation between cells. Left standing pose is for scale calibration; right attacking pose must have visibly different lifted legs.",
+    "tool": "built-in image_gen",
+    "asset": "apps/client/public/art/caio/air-attack-v1.png"
+  },
+  {
+    "id": "gut",
+    "prompt": "Create a production sprite sheet for existing 2D fighting game matching the attached sprites' drawn outlined pixel-informed shading and exact character identity. Transparent RGBA background. EXACTLY 2 columns by 2 rows, four separate complete full-body sprites in evenly spaced cells, no overlap or cropping, no labels or shadows or floor. Each row is a skin: left column standing neutral guard reference, right column NEW unmistakably AIRBORNE ATTACK pose. Same anatomical size within each row, airborne pose may have shorter bounding height because knees bent; don't enlarge it. All face RIGHT. A jumping two-handed spear thrust to the right, both legs clearly folded off the ground. Include the long wooden spear with silver point red tassel exactly like second reference, held firmly at two places. Row 1 white rolled sleeve dress shirt blue pants black shoes. Row 2 black sleeveless kung fu tunic red trim and sash black pants black shoes. Preserve dark curly short hair black beard glasses. Preserve outfit and face, no photorealism. Lots of transparent separation between cells. Left standing pose is for scale calibration; right attacking pose must have visibly different lifted legs.",
+    "tool": "built-in image_gen",
+    "asset": "apps/client/public/art/gut/air-attack-v1.png"
+  },
+  {
+    "id": "biel",
+    "prompt": "Create a production sprite sheet for existing 2D fighting game matching the attached sprites' drawn outlined pixel-informed shading and exact character identity. Transparent RGBA background. EXACTLY 2 columns by 2 rows, four separate complete full-body sprites in evenly spaced cells, no overlap or cropping, no labels or shadows or floor. Each row is a skin: left column standing neutral guard reference, right column NEW unmistakably AIRBORNE ATTACK pose. Same anatomical size within each row, airborne pose may have shorter bounding height because knees bent; don't enlarge it. All face RIGHT. Jumping forward and forcefully pressing a large wooden LOAN stamp toward the right opponent, both knees tucked and feet off the ground. Preserve stamp with red rectangular face and white LOAN lettering, not a sign. Row 1 gray suit white shirt black shoes. Row 2 gray tee tattoo arm dark pants black shoes. Preserve outfit and face, no photorealism. Lots of transparent separation between cells. Left standing pose is for scale calibration; right attacking pose must have visibly different lifted legs.",
+    "tool": "built-in image_gen",
+    "asset": "apps/client/public/art/biel/air-attack-v1.png"
+  }
+]

@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Tournament review</title><body><main id="review"></main><script type="module">
+import './src/style.css';import './src/ui/match-overlays.css';import {GameSimulation} from '../../packages/game-core/simulation/GameSimulation.ts';import {characters} from '../../packages/game-core/characters/registry.ts';import {tournamentPanel} from './src/ui/TournamentPanel.ts';import {resultScreen} from './src/ui/ResultScreen.ts';
+const sim=new GameSimulation(Object.keys(characters).slice(0,8),false,undefined,undefined,undefined,true),s=sim.state;
+s.phase='result';s.winner=0;s.tournament.wins=[2,1,1,0,0,0,0,0];s.tournament.round=5;s.tournament.scoredRound=5;
+const host=document.querySelector('#review');host.innerHTML='<button id="final">Preview tournament champion</button>'+tournamentPanel(s,true);
+document.querySelector('#final').onclick=()=>{s.tournament.complete=true;s.tournament.champion=0;s.tournament.wins[0]=3;host.innerHTML=resultScreen(s,'online',characters[s.fighters[0].characterId].displayName,()=> '');host.querySelector('dialog').showModal();};
+</script></body></html>

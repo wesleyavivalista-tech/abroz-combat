@@ -1,0 +1,16 @@
+{
+  "combat-1": "a8047ed7-ff20-416e-9198-7af6c1a4483c",
+  "combat-2": "e52b2cdf-64b0-46d1-a4f7-500339c47511",
+  "walk-1": "92f487c5-f585-4452-9ff4-12a60925bb53",
+  "walk-2": "7754e1c8-be9a-42d1-baed-8ae3e488805e",
+  "portrait-1": "a2ef868c-da99-4c86-be52-352f1b11ea10",
+  "portrait-2": "0ade7f8c-078b-4369-9c3a-a9beb830b44d",
+  "victory": "0539a502-fb30-4977-93ad-504a8f41415b",
+  "mounted": "c5caa238-ed45-4633-9a50-526172fec42d",
+  "actions-v2-1": "a23087a4-6cc8-417a-ae22-34b3250ffa9e",
+  "actions-v2-2": "8d89a1bc-3d32-4e24-86df-330326b856bb",
+  "carry-v2-1": "f64706b8-e6ce-46c0-8f05-ef682db56f4f",
+  "carry-v2-2": "16a85af0-ffeb-4c09-ba47-96b8ab2f57b0",
+  "movement-v3-1": "6149f22b-4e5b-4c28-98e4-4a568ed8cec6",
+  "movement-v3-2": "32e7ad68-b393-4c22-91fc-350ffe5904ff"
+}

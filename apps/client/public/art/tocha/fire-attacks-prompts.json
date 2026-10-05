@@ -1,0 +1,13 @@
+{
+  "tool": "built-in image_gen",
+  "generationPrompt": "Use case: stylized-concept. Production transparent pixel-art FIRE ATTACK sprite sheet of Tocha, using attached atlas as exact identity, clothes and pixel-rendering reference. Exactly 8 full-body isolated poses in FOUR columns and TWO rows, equal 384x512 cells on a 1536x1024 canvas. Facing RIGHT. Body height for standing poses about 340 pixels; same body scale across every pose. Generous empty transparent gutters, every figure and its flames entirely within its own cell. Crisp outlined detailed pixel art, matching reference. Paint integrated vivid orange/red flames with bright yellow-white cores DIRECTLY wrapping attacking fists/feet, curled flame tongues and short directional trails that follow each limb. Flames must look part of the illustration, not detached floating blobs. Keep face readable. Row1: straight jab with extended forward fist ablaze; rear-hand cross with extended fist ablaze; waist-height finishing kick with extended foot ablaze; powerful higher side kick with foot ablaze. Row2: BOTH fists thrust forward together engulfed in larger flames (double punch); two open palms thrust forward with fire gathering around palms (fireball cast, no separate projectile); deep crouching low sweep with extended shoe ablaze; airborne side kick with extended foot ablaze and other knee tucked. Preserve Tocha's face, short full beard, medium brown skin, sturdy NATURAL build not bulky bodybuilder, black slim pants and white sneakers. Tattoo only anatomical left upper arm, bare forearms. Genuine transparent PNG alpha, no background, no floor shadows, no labels or text or grid. Do not include idle or walking poses.",
+  "layoutPrompt": "Edit ONLY sprite-sheet layout. Preserve all eight characters and their integrated flames exactly. Make each of the 8 figures plus its flames 20% smaller, centered within its own equal cell in a strict 4-column 2-row grid. 1536x1024 canvas; each cell 384x512. Ensure minimum 35 transparent pixels around ALL sides of each figure/flames inside its cell. No figure, foot, hand or flame may cross cell boundaries. Preserve all poses, clothing, faces, tattoos, colors, pixel-art style and flame details. Genuine transparent PNG alpha background. No grid lines, no text, no shadow, no painted background. This asset will be sliced on exact 384x512 cell boundaries.",
+  "variants": [
+    "Skull tee, normal hair",
+    "Shirtless, buzzcut, winged sun chest tattoo"
+  ],
+  "outputs": [
+    "skin-1-fire-attacks.png",
+    "skin-2-fire-attacks.png"
+  ]
+}

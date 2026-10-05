@@ -1,0 +1,66 @@
+@font-face{font-family:SelectionDisplay;src:url('/fonts/oswald-bold.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:SelectionMono;src:url('/fonts/share-tech-mono.ttf') format('truetype');font-weight:400;font-display:swap}
+/* The scene extends beneath both the transparent navigation and foreground UI. */
+.shell:has(.ac-selection-cinematic){background:#080e19}
+.shell:has(.ac-selection-cinematic) header{background:linear-gradient(90deg,#050b16df,#0b142688,#050b16e8);height:64px;border-bottom:1px solid #a3bcdf15;z-index:10}
+.shell:has(.ac-selection-cinematic) .brand{font:700 22px SelectionDisplay,sans-serif;letter-spacing:3px}
+.shell:has(.ac-selection-cinematic) header button{font:700 14px SelectionDisplay,sans-serif;letter-spacing:2px;color:#a8c6dd}
+.shell:has(.ac-selection-cinematic) .utility-nav{gap:34px}
+.shell:has(.ac-selection-cinematic) .utility-nav [data-action=characters]{position:relative;color:#fff}
+.shell:has(.ac-selection-cinematic) .utility-nav [data-action=characters]::after{content:"";position:absolute;bottom:-9px;left:0;right:0;height:2px;background:#ff8345;box-shadow:0 0 8px #ff6222,0 0 14px #ff6222}
+.ac-selection-cinematic{background:linear-gradient(0deg,#060b13e8 0%,#080f1870 45%,#07101b77),url('/art/rooftop-city-v1.png') center 48%/cover}
+.ac-selection-cinematic::after{background:linear-gradient(90deg,#02071130,transparent 28% 72%,#02071130);z-index:-1}
+.ac-selection-cinematic .ac-faceoff::after{background:linear-gradient(transparent,#080e1966 58%,#080e1900);inset:70% 0 0}
+.ac-selection-cinematic .ac-faceoff{bottom:76px;mask-image:linear-gradient(#000 0%,#000 78%,transparent 100%)}
+.ac-selection-cinematic .ac-fighter-identity h3{font:700 clamp(46px,5.2vw,86px)/1.12 SelectionDisplay,sans-serif;letter-spacing:1px;text-shadow:0 4px 12px #0008}
+.ac-selection-cinematic .ac-fighter-identity>span{font:400 clamp(9px,.86vw,14px) SelectionMono,monospace;letter-spacing:3px;color:#f5f0e7}
+.ac-selection-cinematic .ac-fighter-identity{height:140px;bottom:clamp(145px,22vh,210px)}
+.ac-selection-cinematic .ac-player-flag{top:24px}
+.ac-selection-cinematic .ac-player-flag span{font:700 14px SelectionDisplay,sans-serif;padding:7px 12px;letter-spacing:2px;background:#060c16bb}
+.ac-selection-cinematic .ac-player-flag b{font:400 11px SelectionMono,monospace;letter-spacing:1px;color:#a9d9f7;padding:4px 10px}
+.ac-selection-cinematic .is-selecting .ac-player-flag b{color:#ff9a6b}
+.ac-selection-cinematic .ac-skin-picker{font:400 13px SelectionMono,monospace;gap:12px;color:#f6f2e9;margin-top:9px}
+.ac-selection-cinematic .ac-skin-picker select{appearance:none;font:400 14px SelectionMono,monospace;letter-spacing:.4px;color:#fff;background:linear-gradient(135deg,#14202b,#070f19);border:1px solid #84a6ba;box-shadow:inset 0 0 0 2px #182b38,0 2px 7px #0008;border-radius:2px;padding:6px 30px 6px 12px;min-width:145px;max-width:190px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10'%3E%3Cpath d='m2 2 5 5 5-5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;background-color:#0c1823}
+.ac-selection-cinematic .ac-edit-player{font:400 11px SelectionMono,monospace;letter-spacing:.6px;padding:6px 0;border-bottom:1px solid #fc8d5b;color:#ffb091}
+.ac-selection-cinematic .ac-versus{top:42%;gap:0;filter:drop-shadow(0 4px 9px #0008)}
+.ac-selection-cinematic .ac-versus span{display:block;width:clamp(125px,13vw,215px);height:clamp(145px,16vw,250px);font-size:0;transform:none;background:#f6f3eb;mask:url('/art/selection/vs-brush-mask.png') center/100% 100% no-repeat;mask-mode:luminance}
+.ac-selection-cinematic .ac-versus i{width:80%;height:105%;top:-5%;transform:rotate(0);box-shadow:none;background:linear-gradient(140deg,#218be9aa,transparent 45%,#f5713099);mask:url('/art/selection/vs-brush-mask.png') center/100% 100% no-repeat;mask-mode:luminance;scale:1.18}
+.ac-selection-cinematic .ac-versus small{font:400 11px/1.5 SelectionMono,monospace;letter-spacing:4px;margin-top:12px;color:#a7cee7}
+.ac-selection-cinematic .ac-roster>span{font:400 12px SelectionMono,monospace;letter-spacing:2px;text-shadow:0 2px 6px #000}
+.ac-selection-cinematic .ac-roster>span::before,.ac-selection-cinematic .ac-roster>span::after{width:110px;background:linear-gradient(90deg,#93aec333,#9cb7cc,#ff7437)}
+.ac-selection-cinematic .ac-roster>div{gap:12px;padding:7px 3px;margin-top:12px}
+.ac-selection-cinematic .ac-roster-fighter{height:clamp(95px,14vh,143px);transform:perspective(600px) rotateY(-7deg) rotate(-1deg);border-color:#829db0;box-shadow:inset 0 0 12px #7da9c322,0 4px 9px #0008;background:linear-gradient(140deg,#263c50e8,#071321ed)}
+.ac-selection-cinematic .ac-roster-fighter b{font:700 clamp(10px,.9vw,14px) SelectionDisplay,sans-serif;letter-spacing:1px;padding-bottom:7px}
+.ac-selection-cinematic .ac-roster-fighter.is-active{transform:translateY(-5px) rotate(-1deg) scale(1.035);border-color:#ffb887;box-shadow:0 0 4px #ffb17b,0 0 14px #ff692dc0,inset 0 0 16px #ff642933}
+.ac-selection-cinematic .ac-roster-fighter.is-locked{box-shadow:0 0 5px #9ae7ff,0 0 18px #168cffd9,inset 0 0 15px #007bff44}
+.ac-selection-cinematic .ac-selection-console{bottom:18px;grid-template-columns:1fr 230px;gap:10px 20px}
+.ac-selection-cinematic .ac-lock-panel{position:relative;border:0;background:linear-gradient(120deg,#351710c9,#0c0e17c9);padding:7px 8px 8px;filter:drop-shadow(0 0 7px #ff5d2766);clip-path:polygon(9% 0,100% 0,100% 100%,0 100%,0 23%)}
+.ac-selection-cinematic .ac-lock-panel::before{content:"";position:absolute;inset:0;pointer-events:none;background:#ff8955;clip-path:polygon(9% 0,100% 0,100% 100%,0 100%,0 23%,9% 0,9.4% 1.5%,.7% 23.5%,.7% 98.5%,99.3% 98.5%,99.3% 1.5%,9.4% 1.5%)}
+.ac-selection-cinematic .ac-lock-panel>span{font:400 9px SelectionMono,monospace;letter-spacing:1px}
+.ac-selection-cinematic .ac-lock-panel .ac-cta{background:linear-gradient(115deg,#ff793f,#f6653f);border:1px solid #ffa574;border-radius:2px;padding:10px 20px;font:700 17px/1.2 SelectionDisplay,sans-serif;letter-spacing:1px;min-height:55px;box-shadow:0 0 14px #ff64222b}
+.ac-selection-cinematic .ac-lock-panel .ac-cta span{max-width:105px}
+.ac-selection-cinematic .ac-lock-panel .ac-cta b{font:400 30px sans-serif}
+.ac-selection-cinematic .ac-lock-panel small{font:400 9px SelectionMono,monospace;letter-spacing:1px}
+.ac-selection-cinematic .ac-selection-motto{font:400 10px/1.35 SelectionMono,monospace;letter-spacing:2px;text-shadow:0 2px 5px #000}
+@media(max-height:650px){.ac-selection-cinematic .ac-selection-console{bottom:8px;gap:5px;grid-template-columns:1fr 200px}.ac-selection-cinematic .ac-roster-fighter{height:78px}.ac-selection-cinematic .ac-lock-panel .ac-cta{min-height:40px;padding:6px 15px;font-size:14px}.ac-selection-cinematic .ac-fighter-identity{bottom:130px;height:130px}.ac-selection-cinematic .ac-versus small{display:none}.ac-selection-cinematic .ac-versus span{height:130px}}
+@media(max-width:700px){.shell:has(.ac-selection-cinematic) .brand{font-size:14px;letter-spacing:1px}.shell:has(.ac-selection-cinematic) header{padding:0 3%;height:52px}.shell:has(.ac-selection-cinematic) header button{font-size:10px;letter-spacing:.5px}.shell:has(.ac-selection-cinematic) .utility-nav{gap:10px}.ac-selection-cinematic .ac-selection-console{grid-template-columns:1fr 165px}.ac-selection-cinematic .ac-fighter-identity{height:135px;bottom:150px}.ac-selection-cinematic .ac-fighter-identity h3{font-size:35px}.ac-selection-cinematic .ac-skin-picker{font-size:10px;gap:5px}.ac-selection-cinematic .ac-skin-picker select{min-width:0;width:110px;font-size:11px;padding:6px 23px 6px 6px}.ac-selection-cinematic .ac-versus span{width:90px;height:120px}.ac-selection-cinematic .ac-lock-panel .ac-cta{font-size:14px;padding:8px 12px}.ac-selection-cinematic .ac-roster>span{font-size:9px;letter-spacing:1px}.ac-selection-cinematic .ac-roster>span::before,.ac-selection-cinematic .ac-roster>span::after{width:20px}}
+/* Keep names and skin controls close to the roster, with room for Change Fighter. */
+.ac-selection-cinematic .ac-fighter-identity{bottom:clamp(112px,17vh,170px)}
+@media(max-height:650px){.ac-selection-cinematic .ac-fighter-identity{bottom:110px}}
+@media(max-width:700px){.ac-selection-cinematic .ac-fighter-identity{bottom:140px}}
+
+
+/* Compact confirmation control. */
+.ac-selection-cinematic .ac-lock-panel .ac-cta{min-height:38px;padding:6px 16px;font-size:15px;line-height:1.1}
+.ac-selection-cinematic .ac-lock-panel .ac-cta span{max-width:none;white-space:nowrap}
+.ac-selection-cinematic .ac-lock-panel .ac-cta b{font-size:25px}
+@media(max-width:700px){.ac-selection-cinematic .ac-lock-panel .ac-cta{padding:6px 9px;font-size:12px;gap:8px}}
+
+/* A single compact confirmation button, without the surrounding info panel. */
+.ac-selection-cinematic .ac-lock-panel{padding:0;background:none;box-shadow:none;filter:none;clip-path:none}
+.ac-selection-cinematic .ac-lock-panel::before{content:none}
+.ac-selection-cinematic .ac-lock-panel .ac-cta{margin:0;min-height:36px;justify-content:center}
+
+.ac-selection-cinematic .ac-random-fighter{background:radial-gradient(ellipse at 50% 35%,#3f6275 0%,#172b3e 48%,#09121d 100%);border-color:#bdc6b0}
+.ac-random-fighter>span{position:absolute;inset:0 0 20%;display:grid;place-items:center;font:700 clamp(40px,7vh,76px)/1 SelectionDisplay,sans-serif;color:#f5ebcc;text-shadow:0 3px 0 #111b25,0 0 18px #a5d9f34d;pointer-events:none}
+.ac-selection-cinematic .ac-random-fighter:hover,.ac-selection-cinematic .ac-random-fighter:focus-visible{border-color:#ffb887;box-shadow:0 0 14px #ff692d80,inset 0 0 16px #ff642922}

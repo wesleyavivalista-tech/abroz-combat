@@ -1,0 +1,654 @@
+{
+  "source": "Original offline procedural foley, no external recordings. Not an ear-matched Brawlhalla recreation.",
+  "generator": "scripts/create-combat-foley.py",
+  "assets": [
+    {
+      "file": "fist-light-swing-1.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "fist-light-swing-2.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "fist-light-swing-3.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "fist-light-hit-1.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "fist-light-hit-2.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "fist-light-hit-3.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "fist-heavy-swing-1.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "fist-heavy-swing-2.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "fist-heavy-swing-3.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "fist-heavy-hit-1.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "fist-heavy-hit-2.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "fist-heavy-hit-3.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "fist-charged-swing-1.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "fist-charged-swing-2.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "fist-charged-swing-3.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "fist-charged-hit-1.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "fist-charged-hit-2.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "fist-charged-hit-3.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "foot-light-swing-1.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "foot-light-swing-2.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "foot-light-swing-3.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "foot-light-hit-1.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "foot-light-hit-2.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "foot-light-hit-3.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "foot-heavy-swing-1.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "foot-heavy-swing-2.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "foot-heavy-swing-3.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "foot-heavy-hit-1.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "foot-heavy-hit-2.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "foot-heavy-hit-3.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "foot-charged-swing-1.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "foot-charged-swing-2.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "foot-charged-swing-3.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "foot-charged-hit-1.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "foot-charged-hit-2.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "foot-charged-hit-3.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "body-light-swing-1.wav",
+      "seconds": 0.155
+    },
+    {
+      "file": "body-light-swing-2.wav",
+      "seconds": 0.155
+    },
+    {
+      "file": "body-light-swing-3.wav",
+      "seconds": 0.155
+    },
+    {
+      "file": "body-light-hit-1.wav",
+      "seconds": 0.205
+    },
+    {
+      "file": "body-light-hit-2.wav",
+      "seconds": 0.205
+    },
+    {
+      "file": "body-light-hit-3.wav",
+      "seconds": 0.205
+    },
+    {
+      "file": "body-heavy-swing-1.wav",
+      "seconds": 0.21
+    },
+    {
+      "file": "body-heavy-swing-2.wav",
+      "seconds": 0.21
+    },
+    {
+      "file": "body-heavy-swing-3.wav",
+      "seconds": 0.21
+    },
+    {
+      "file": "body-heavy-hit-1.wav",
+      "seconds": 0.295
+    },
+    {
+      "file": "body-heavy-hit-2.wav",
+      "seconds": 0.295
+    },
+    {
+      "file": "body-heavy-hit-3.wav",
+      "seconds": 0.295
+    },
+    {
+      "file": "body-charged-swing-1.wav",
+      "seconds": 0.265
+    },
+    {
+      "file": "body-charged-swing-2.wav",
+      "seconds": 0.265
+    },
+    {
+      "file": "body-charged-swing-3.wav",
+      "seconds": 0.265
+    },
+    {
+      "file": "body-charged-hit-1.wav",
+      "seconds": 0.385
+    },
+    {
+      "file": "body-charged-hit-2.wav",
+      "seconds": 0.385
+    },
+    {
+      "file": "body-charged-hit-3.wav",
+      "seconds": 0.385
+    },
+    {
+      "file": "blade-light-swing-1.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "blade-light-swing-2.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "blade-light-swing-3.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "blade-light-hit-1.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "blade-light-hit-2.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "blade-light-hit-3.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "blade-heavy-swing-1.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "blade-heavy-swing-2.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "blade-heavy-swing-3.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "blade-heavy-hit-1.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "blade-heavy-hit-2.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "blade-heavy-hit-3.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "blade-charged-swing-1.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "blade-charged-swing-2.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "blade-charged-swing-3.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "blade-charged-hit-1.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "blade-charged-hit-2.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "blade-charged-hit-3.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "axe-light-swing-1.wav",
+      "seconds": 0.155
+    },
+    {
+      "file": "axe-light-swing-2.wav",
+      "seconds": 0.155
+    },
+    {
+      "file": "axe-light-swing-3.wav",
+      "seconds": 0.155
+    },
+    {
+      "file": "axe-light-hit-1.wav",
+      "seconds": 0.205
+    },
+    {
+      "file": "axe-light-hit-2.wav",
+      "seconds": 0.205
+    },
+    {
+      "file": "axe-light-hit-3.wav",
+      "seconds": 0.205
+    },
+    {
+      "file": "axe-heavy-swing-1.wav",
+      "seconds": 0.21
+    },
+    {
+      "file": "axe-heavy-swing-2.wav",
+      "seconds": 0.21
+    },
+    {
+      "file": "axe-heavy-swing-3.wav",
+      "seconds": 0.21
+    },
+    {
+      "file": "axe-heavy-hit-1.wav",
+      "seconds": 0.295
+    },
+    {
+      "file": "axe-heavy-hit-2.wav",
+      "seconds": 0.295
+    },
+    {
+      "file": "axe-heavy-hit-3.wav",
+      "seconds": 0.295
+    },
+    {
+      "file": "axe-charged-swing-1.wav",
+      "seconds": 0.265
+    },
+    {
+      "file": "axe-charged-swing-2.wav",
+      "seconds": 0.265
+    },
+    {
+      "file": "axe-charged-swing-3.wav",
+      "seconds": 0.265
+    },
+    {
+      "file": "axe-charged-hit-1.wav",
+      "seconds": 0.385
+    },
+    {
+      "file": "axe-charged-hit-2.wav",
+      "seconds": 0.385
+    },
+    {
+      "file": "axe-charged-hit-3.wav",
+      "seconds": 0.385
+    },
+    {
+      "file": "shaft-light-swing-1.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "shaft-light-swing-2.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "shaft-light-swing-3.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "shaft-light-hit-1.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "shaft-light-hit-2.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "shaft-light-hit-3.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "shaft-heavy-swing-1.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "shaft-heavy-swing-2.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "shaft-heavy-swing-3.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "shaft-heavy-hit-1.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "shaft-heavy-hit-2.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "shaft-heavy-hit-3.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "shaft-charged-swing-1.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "shaft-charged-swing-2.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "shaft-charged-swing-3.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "shaft-charged-hit-1.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "shaft-charged-hit-2.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "shaft-charged-hit-3.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "guitar-light-swing-1.wav",
+      "seconds": 0.155
+    },
+    {
+      "file": "guitar-light-swing-2.wav",
+      "seconds": 0.155
+    },
+    {
+      "file": "guitar-light-swing-3.wav",
+      "seconds": 0.155
+    },
+    {
+      "file": "guitar-light-hit-1.wav",
+      "seconds": 0.205
+    },
+    {
+      "file": "guitar-light-hit-2.wav",
+      "seconds": 0.205
+    },
+    {
+      "file": "guitar-light-hit-3.wav",
+      "seconds": 0.205
+    },
+    {
+      "file": "guitar-heavy-swing-1.wav",
+      "seconds": 0.21
+    },
+    {
+      "file": "guitar-heavy-swing-2.wav",
+      "seconds": 0.21
+    },
+    {
+      "file": "guitar-heavy-swing-3.wav",
+      "seconds": 0.21
+    },
+    {
+      "file": "guitar-heavy-hit-1.wav",
+      "seconds": 0.295
+    },
+    {
+      "file": "guitar-heavy-hit-2.wav",
+      "seconds": 0.295
+    },
+    {
+      "file": "guitar-heavy-hit-3.wav",
+      "seconds": 0.295
+    },
+    {
+      "file": "guitar-charged-swing-1.wav",
+      "seconds": 0.265
+    },
+    {
+      "file": "guitar-charged-swing-2.wav",
+      "seconds": 0.265
+    },
+    {
+      "file": "guitar-charged-swing-3.wav",
+      "seconds": 0.265
+    },
+    {
+      "file": "guitar-charged-hit-1.wav",
+      "seconds": 0.385
+    },
+    {
+      "file": "guitar-charged-hit-2.wav",
+      "seconds": 0.385
+    },
+    {
+      "file": "guitar-charged-hit-3.wav",
+      "seconds": 0.385
+    },
+    {
+      "file": "whip-light-swing-1.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "whip-light-swing-2.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "whip-light-swing-3.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "whip-light-hit-1.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "whip-light-hit-2.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "whip-light-hit-3.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "whip-heavy-swing-1.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "whip-heavy-swing-2.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "whip-heavy-swing-3.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "whip-heavy-hit-1.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "whip-heavy-hit-2.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "whip-heavy-hit-3.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "whip-charged-swing-1.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "whip-charged-swing-2.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "whip-charged-swing-3.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "whip-charged-hit-1.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "whip-charged-hit-2.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "whip-charged-hit-3.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "flame-light-swing-1.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "flame-light-swing-2.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "flame-light-swing-3.wav",
+      "seconds": 0.13
+    },
+    {
+      "file": "flame-light-hit-1.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "flame-light-hit-2.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "flame-light-hit-3.wav",
+      "seconds": 0.18
+    },
+    {
+      "file": "flame-heavy-swing-1.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "flame-heavy-swing-2.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "flame-heavy-swing-3.wav",
+      "seconds": 0.185
+    },
+    {
+      "file": "flame-heavy-hit-1.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "flame-heavy-hit-2.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "flame-heavy-hit-3.wav",
+      "seconds": 0.27
+    },
+    {
+      "file": "flame-charged-swing-1.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "flame-charged-swing-2.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "flame-charged-swing-3.wav",
+      "seconds": 0.24
+    },
+    {
+      "file": "flame-charged-hit-1.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "flame-charged-hit-2.wav",
+      "seconds": 0.36
+    },
+    {
+      "file": "flame-charged-hit-3.wav",
+      "seconds": 0.36
+    }
+  ]
+}

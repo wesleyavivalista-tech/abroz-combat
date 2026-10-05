@@ -1,0 +1,3 @@
+# Match firefighter haircut
+
+Edit image 1 hoodie portrait. Change ONLY his scalp hair to exactly match the hairstyle in image 2 firefighter portrait: same hairline, same length, same textured slightly lifted top, same closely trimmed sides, same dark color and subtle gray strands, same silhouette. Image 2 is the sole authoritative haircut reference. Keep the face, facial hair, glasses, expression and head angle of image 1 unchanged; preserve hoodie, body, axe, hands, pose, framing, cinematic lighting and actual transparent alpha. Strict hair-only edit. Do not shorten into a buzzcut; copy firefighter image 2 hair faithfully.

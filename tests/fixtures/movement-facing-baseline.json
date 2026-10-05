@@ -1,0 +1,702 @@
+{
+  "drupa:swing1": [
+    "2fe5b15a",
+    "30cafb5a",
+    "561c5474",
+    "c3927a02",
+    "721264d3"
+  ],
+  "drupa:swing2": [
+    "15b61d21",
+    "1f7e6e0",
+    "75f54252",
+    "43fdd364",
+    "47fdea3a"
+  ],
+  "drupa:bellyFinish": [
+    "61b6a5df",
+    "28c6b0c6",
+    "ebcc37dc",
+    "398a487f",
+    "d189aa8e"
+  ],
+  "drupa:belly": [
+    "dee8facf",
+    "20be2ca5",
+    "3f6138e0",
+    "f1d76447",
+    "3cc6cc74"
+  ],
+  "drupa:wide": [
+    "f3811e0b",
+    "abc6d844",
+    "af57526b",
+    "bf9a2a6d",
+    "6c523772"
+  ],
+  "drupa:low": [
+    "90e85d2",
+    "c1c44b41",
+    "d66539b4",
+    "8c1f7e2e",
+    "b9816d4b"
+  ],
+  "drupa:air": [
+    "de5d3c9f",
+    "3df1ee6b",
+    "f46051ef",
+    "75ae5b41",
+    "61e11f55"
+  ],
+  "drupa:bellyDive": [
+    "cabca7f6",
+    "155a91b5",
+    "48653e1e",
+    "ebe90313",
+    "f96995ac"
+  ],
+  "drupa:rolling": [
+    "e83f1b3f",
+    "d99b7a66",
+    "6374b4c0",
+    "9a94180a",
+    "15ab1f06"
+  ],
+  "drupa:bald": [
+    "ebabb63f",
+    "b30cc379",
+    "9b34434e",
+    "a3e3e2f",
+    "e1126de9"
+  ],
+  "drupa:budaBeam": [
+    "2f83fca7",
+    "72c3c312",
+    "111515f6",
+    "b662b862",
+    "b6a40f62"
+  ],
+  "drupa:buda": [
+    "74ef267c",
+    "8fe3e0cf",
+    "1786d0c8",
+    "6303e5ab",
+    "248113f9"
+  ],
+  "drupa:budaSwing1": [
+    "df5053b7",
+    "6a19fa32",
+    "b7555265",
+    "1bb3d546",
+    "e591a7eb"
+  ],
+  "drupa:budaSwing2": [
+    "95754662",
+    "ec3f26b9",
+    "24c7a3ea",
+    "f34bcbf1",
+    "a2492974"
+  ],
+  "drupa:budaFinish": [
+    "787b9995",
+    "cf0939f8",
+    "6c616466",
+    "789b5f59",
+    "f727ff94"
+  ],
+  "drupa:budaForward": [
+    "b92728fc",
+    "6bb9e843",
+    "5b14f902",
+    "43d9c7ad",
+    "15229970"
+  ],
+  "drupa:budaSky": [
+    "8c20b5ff",
+    "ec96d72a",
+    "19893fe2",
+    "d0149e2f",
+    "613a8cd3"
+  ],
+  "gut:spearThrow": [
+    "bc499ac",
+    "ddfaf27a",
+    "60ace7c",
+    "659fc243",
+    "c898f94c"
+  ],
+  "gut:palm": [
+    "d0407120",
+    "2f7b48e1",
+    "4cd2d2c1",
+    "99f665b7",
+    "459b132f"
+  ],
+  "gut:cross": [
+    "b271e57f",
+    "5c35e49e",
+    "da9fff",
+    "d9276fa5",
+    "9a476352"
+  ],
+  "gut:finish": [
+    "ff8709ba",
+    "28d6a3fa",
+    "47cd684b",
+    "ac9d7476",
+    "887b2948"
+  ],
+  "gut:axe": [
+    "21e3acf2",
+    "fbf1c300",
+    "8c5ba426",
+    "fd2f9a92",
+    "d050a5c3"
+  ],
+  "gut:swing": [
+    "854b2c92",
+    "95856e14",
+    "a1b658a6",
+    "bc442310",
+    "436762c5"
+  ],
+  "gut:crouch": [
+    "2e85a9ee",
+    "7513e87e",
+    "a1b664cf",
+    "efed205",
+    "e0f81426"
+  ],
+  "gut:air": [
+    "f286c009",
+    "b500c78",
+    "10800813",
+    "4c23cad5",
+    "cfc4b140"
+  ],
+  "gut:hug": [
+    "1cc66c65",
+    "2c96257e",
+    "679ab6d5",
+    "1f5309b3",
+    "646f31df"
+  ],
+  "gut:meditation": [
+    "6480c346",
+    "701c741c",
+    "6fba9d12",
+    "e7b95bdf",
+    "9c20d9af"
+  ],
+  "gut:immortal": [
+    "2587cece",
+    "59766513",
+    "5b218480",
+    "e3f4c3cf",
+    "ca3b693e"
+  ],
+  "gut:panda": [
+    "79c80dfd",
+    "9e7dc64b",
+    "c890b3e0",
+    "7a9baaa1",
+    "477f3a28"
+  ],
+  "gut:thrust": [
+    "57c7783f",
+    "1d7938f1",
+    "662fcd01",
+    "f36023d4",
+    "af55017a"
+  ],
+  "gut:sweep": [
+    "b500c733",
+    "250e01a4",
+    "ba4eaffb",
+    "4fe38d86",
+    "3a3a4d5e"
+  ],
+  "gut:spearFinish": [
+    "fc50fca1",
+    "c149f2eb",
+    "a34abcb4",
+    "44c03b15",
+    "ced27ff5"
+  ],
+  "gut:spearHeavy": [
+    "af4bdcf9",
+    "d2144c7",
+    "9c54b692",
+    "1730a097",
+    "97f60891"
+  ],
+  "gut:spearSwing": [
+    "fd977414",
+    "971aded6",
+    "dfa7ab46",
+    "5326269f",
+    "4b4a5179"
+  ],
+  "gut:spearLow": [
+    "836a073e",
+    "1f7e6fc5",
+    "c357628",
+    "caca2d41",
+    "1a0597e3"
+  ],
+  "gut:spearDive": [
+    "c0a127f8",
+    "6a529bfe",
+    "7f29e656",
+    "a3b40b7c",
+    "30d4afd8"
+  ],
+  "gut:spearAir": [
+    "f4e0e9ae",
+    "87f0362",
+    "e8805918",
+    "e258f8d7",
+    "9c66e8a3"
+  ],
+  "tocha:jab": [
+    "d3cf8bd3",
+    "3a5bc26b",
+    "c3e7ebeb",
+    "ecdb0a68",
+    "4841256c"
+  ],
+  "tocha:cross": [
+    "99dfc089",
+    "925fa83e",
+    "9587b0f5",
+    "1bc3bf6",
+    "262059ed"
+  ],
+  "tocha:finisher": [
+    "3e3dd645",
+    "ce048e49",
+    "81607eee",
+    "e6f73944",
+    "df083d1b"
+  ],
+  "tocha:heavy": [
+    "e8948114",
+    "26ea26df",
+    "665b44b3",
+    "7d0773a8",
+    "fb76a0d4"
+  ],
+  "tocha:double": [
+    "56347d15",
+    "22100dbf",
+    "90bfcf01",
+    "c21ad021",
+    "ac050cad"
+  ],
+  "tocha:crouch": [
+    "a5dac072",
+    "d1fc627d",
+    "7d2fff06",
+    "fb7c7d65",
+    "459ff8f0"
+  ],
+  "tocha:air": [
+    "ae149fcf",
+    "5e37c01e",
+    "8a253675",
+    "dd71833e",
+    "a83314e8"
+  ],
+  "tocha:fireball": [
+    "28810910",
+    "1c33a6c3",
+    "fbe53e1a",
+    "cbb8373f",
+    "1074ed0c"
+  ],
+  "tocha:pentagram": [
+    "c58c515c",
+    "4a938867",
+    "22566db0",
+    "d7331171",
+    "e86ec228"
+  ],
+  "tocha:ignite": [
+    "eaef918b",
+    "f2b9b2db",
+    "af1bce3e",
+    "d893ecb7",
+    "46718221"
+  ],
+  "tocha:satan": [
+    "7b532d14",
+    "147f12b9",
+    "9bf472c5",
+    "9008569c",
+    "d751b95a"
+  ],
+  "bozo:jab": [
+    "a3128847",
+    "aad9408b",
+    "e6c3b4dc",
+    "111a68cc",
+    "63968ed2"
+  ],
+  "bozo:cross": [
+    "c4ad3479",
+    "ea4e00a6",
+    "62e6969e",
+    "faa7ff7e",
+    "95421e73"
+  ],
+  "bozo:beard": [
+    "cf36fa4b",
+    "6e2079fd",
+    "63c964c8",
+    "98c0df6b",
+    "12171e51"
+  ],
+  "bozo:heavy": [
+    "d7de13e7",
+    "5e3b4a5d",
+    "b6fe53ae",
+    "16667dac",
+    "29399bed"
+  ],
+  "bozo:kick": [
+    "293b0b48",
+    "f56f6e12",
+    "ea40a0d1",
+    "b6f30ac9",
+    "99deecd6"
+  ],
+  "bozo:crouch": [
+    "c6c6722a",
+    "6c6258e1",
+    "82e91df1",
+    "142e9e21",
+    "5fa6a08b"
+  ],
+  "bozo:air": [
+    "74a318d3",
+    "2a1018f0",
+    "3ab453bb",
+    "6cb1f393",
+    "2da023e8"
+  ],
+  "bozo:spear": [
+    "af3c895e",
+    "ad629fbb",
+    "1d6530ef",
+    "3eee47c4",
+    "823e1164"
+  ],
+  "bozo:grip": [
+    "f4024041",
+    "43524f7a",
+    "68ce8bf",
+    "a040759a",
+    "b580f747"
+  ],
+  "bozo:armor": [
+    "87afc464",
+    "1f2306fd",
+    "1f3fc04f",
+    "52868960",
+    "5ef857a5"
+  ],
+  "bozo:clones": [
+    "af7e27d3",
+    "c947a00",
+    "dcf19746",
+    "43cfa74e",
+    "1ce96310"
+  ],
+  "caio:crouch": [
+    "c8422772",
+    "4bca95c0",
+    "1555a808",
+    "8485159d",
+    "ad21601b"
+  ],
+  "caio:air": [
+    "afaa5228",
+    "55273b43",
+    "53b08b1",
+    "93dc3e34",
+    "90320810"
+  ],
+  "caio:light": [
+    "306cf003",
+    "a7387a78",
+    "83e36642",
+    "800476af",
+    "82107151"
+  ],
+  "caio:chain2": [
+    "bdd9ce29",
+    "b4d80f79",
+    "25a5f308",
+    "f228170d",
+    "92ad88ec"
+  ],
+  "caio:chain3": [
+    "ba828e04",
+    "ab971f3f",
+    "bcdda0e8",
+    "93d221f1",
+    "5acb240f"
+  ],
+  "caio:vanish": [
+    "f467ef56",
+    "9bbec33c",
+    "5b4701cf",
+    "df689b6e",
+    "7981614d"
+  ],
+  "caio:heavy": [
+    "362b8b7c",
+    "e4e39181",
+    "4304b8",
+    "6b1355e9",
+    "5dd0f7f3"
+  ],
+  "caio:pool": [
+    "2c6fb644",
+    "38a254e6",
+    "b4d4258a",
+    "5174ac65",
+    "8961df71"
+  ],
+  "caio:dart": [
+    "6c812997",
+    "b91aebda",
+    "62fd8c7a",
+    "3ed3ddc7",
+    "8b6f8316"
+  ],
+  "caio:flood": [
+    "8e987aae",
+    "98af7155",
+    "43bc0afd",
+    "453d2324",
+    "dc679d11"
+  ],
+  "caio:master": [
+    "3aeed14c",
+    "a13aebff",
+    "eea5a90c",
+    "995257c2",
+    "471ee862"
+  ],
+  "roms:chop": [
+    "9dedf2b8",
+    "e960dee6",
+    "87144cfd",
+    "342e7fb6",
+    "b3f9612a"
+  ],
+  "roms:backhand": [
+    "4903096d",
+    "be8e6cc9",
+    "c2292c2e",
+    "f30a5181",
+    "fa8d61f1"
+  ],
+  "roms:cleave": [
+    "b8094a39",
+    "eed172db",
+    "bf6f0394",
+    "51418827",
+    "3c0b0710"
+  ],
+  "roms:heavy": [
+    "7ad2a1d0",
+    "59552a41",
+    "a16dc74a",
+    "37431f67",
+    "e404910d"
+  ],
+  "roms:toss": [
+    "428854c5",
+    "3486d2e",
+    "399635ec",
+    "a38abe75",
+    "3e5b7140"
+  ],
+  "roms:low": [
+    "50fa8a28",
+    "f2538bbf",
+    "973d10e8",
+    "38daa2a7",
+    "f329203a"
+  ],
+  "roms:air": [
+    "ad34724b",
+    "c83d6660",
+    "6eeb6153",
+    "5715668e",
+    "ccde0569"
+  ],
+  "roms:gear": [
+    "596d23cf",
+    "8b9fcc77",
+    "be8c69bb",
+    "a44ce417",
+    "832bddce"
+  ],
+  "roms:spin": [
+    "e5279d59",
+    "9deec9cd",
+    "398b789b",
+    "38b78908",
+    "99fee656"
+  ],
+  "roms:juggle": [
+    "64274674",
+    "15b557fa",
+    "4503e7ac",
+    "59f42271",
+    "7c27828c"
+  ],
+  "roms:straight": [
+    "59714690",
+    "481b424c",
+    "1136f3d9",
+    "2feafc9c",
+    "36247527"
+  ],
+  "roms:straight2": [
+    "756d906a",
+    "b153c482",
+    "cafdc72f",
+    "96334566",
+    "7cabdb6f"
+  ],
+  "roms:straight3": [
+    "4ce5acdd",
+    "534afd39",
+    "2d17370e",
+    "b2244647",
+    "7ffa58f4"
+  ],
+  "roms:up": [
+    "ebf69737",
+    "a2f93f2",
+    "c0fa10ed",
+    "c2931bd6",
+    "b3d4ae4f"
+  ],
+  "roms:bounce": [
+    "8852b11e",
+    "6b13cbb8",
+    "5d5b2cd8",
+    "78bb901c",
+    "9b9a7fab"
+  ],
+  "roms:finale": [
+    "5a3f2135",
+    "1d19b16b",
+    "660b6e2a",
+    "1271bad",
+    "db33168e"
+  ],
+  "roms:water": [
+    "52a344df",
+    "b9cdf4cc",
+    "44d17780",
+    "e7eaa9eb",
+    "a8263f2d"
+  ],
+  "luizinho:jab": [
+    "9886cd1c",
+    "6a5c6926",
+    "3f059afb",
+    "ef023b12",
+    "7b7e2782"
+  ],
+  "luizinho:cross": [
+    "771e60d9",
+    "b30c56c1",
+    "9a420c4e",
+    "9e8c1a5d",
+    "61e7c804"
+  ],
+  "luizinho:comboKick": [
+    "e27b6ed7",
+    "bfbe801a",
+    "a3f53d8e",
+    "56072f7d",
+    "b54de962"
+  ],
+  "luizinho:heavyKick": [
+    "a8b33673",
+    "bfb6f521",
+    "b8a4d1d0",
+    "1c388c9d",
+    "764f1a61"
+  ],
+  "luizinho:punch": [
+    "9eac5d95",
+    "f17947a3",
+    "133e27f4",
+    "8a1a6383",
+    "f2184f5f"
+  ],
+  "luizinho:low": [
+    "42bf0d8c",
+    "9695afe7",
+    "c448e80b",
+    "2bc78f70",
+    "4c2e901f"
+  ],
+  "luizinho:air": [
+    "4fd866fb",
+    "9be6ce6",
+    "ef020d90",
+    "f93c2ad",
+    "741b8d9c"
+  ],
+  "luizinho:seller": [
+    "1511ede3",
+    "378ecbd9",
+    "cabca69d",
+    "559a6492",
+    "71be46bc"
+  ],
+  "luizinho:wall": [
+    "b609e798",
+    "ad161a62",
+    "5ca8ce7c",
+    "cb683a6a",
+    "5696e2b"
+  ],
+  "luizinho:turret": [
+    "3b77054e",
+    "5c4169c1",
+    "6ed2c66b",
+    "385e8eb1",
+    "4061da80"
+  ],
+  "luizinho:cannon": [
+    "6c5a754b",
+    "ae6803d1",
+    "f835eaf1",
+    "8c4bb3be",
+    "ec2dbded"
+  ],
+  "luizinho:home": [
+    "b4efe233",
+    "e58e3e91",
+    "376d4dc3",
+    "3db393c8",
+    "606ee4c1"
+  ],
+  "luizinho:build": [
+    "4b88b5f0",
+    "acaebacf",
+    "8a6a9bf0",
+    "eb1757ef",
+    "5a2147c6"
+  ]
+}

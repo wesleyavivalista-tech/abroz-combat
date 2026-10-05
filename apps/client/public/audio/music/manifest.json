@@ -1,0 +1,123 @@
+{
+  "authoring": "Original deterministic synthesis and composition; no third-party samples.",
+  "generator": "scripts/create-soundtrack.py",
+  "tracks": [
+    {
+      "id": "menu_01",
+      "bpm": 108,
+      "style": "lounge",
+      "loop": true,
+      "seconds": 35.556,
+      "peak": 0.82,
+      "rms": 0.1587
+    },
+    {
+      "id": "selection_01",
+      "bpm": 120,
+      "style": "select",
+      "loop": true,
+      "seconds": 32.0,
+      "peak": 0.82,
+      "rms": 0.1394
+    },
+    {
+      "id": "rooftop_01",
+      "bpm": 128,
+      "style": "break",
+      "loop": true,
+      "seconds": 30.0,
+      "peak": 0.82,
+      "rms": 0.1596
+    },
+    {
+      "id": "rooftop_02",
+      "bpm": 124,
+      "style": "break",
+      "loop": true,
+      "seconds": 30.968,
+      "peak": 0.82,
+      "rms": 0.1387
+    },
+    {
+      "id": "court_01",
+      "bpm": 98,
+      "style": "hiphop",
+      "loop": true,
+      "seconds": 39.184,
+      "peak": 0.82,
+      "rms": 0.1339
+    },
+    {
+      "id": "mall_01",
+      "bpm": 116,
+      "style": "house",
+      "loop": true,
+      "seconds": 33.103,
+      "peak": 0.82,
+      "rms": 0.1148
+    },
+    {
+      "id": "church_01",
+      "bpm": 106,
+      "style": "keys",
+      "loop": true,
+      "seconds": 36.226,
+      "peak": 0.82,
+      "rms": 0.1492
+    },
+    {
+      "id": "party_01",
+      "bpm": 118,
+      "style": "funk",
+      "loop": true,
+      "seconds": 32.542,
+      "peak": 0.82,
+      "rms": 0.1446
+    },
+    {
+      "id": "championship_01",
+      "bpm": 132,
+      "style": "event",
+      "loop": true,
+      "seconds": 29.091,
+      "peak": 0.82,
+      "rms": 0.1582
+    },
+    {
+      "id": "championship_final_01",
+      "bpm": 144,
+      "style": "final",
+      "loop": true,
+      "seconds": 26.667,
+      "peak": 0.82,
+      "rms": 0.1705
+    },
+    {
+      "id": "sudden_01",
+      "bpm": 156,
+      "style": "final",
+      "loop": true,
+      "seconds": 24.615,
+      "peak": 0.82,
+      "rms": 0.166
+    },
+    {
+      "id": "victory_01",
+      "bpm": 120,
+      "style": "win",
+      "loop": false,
+      "seconds": 8.0,
+      "peak": 0.82,
+      "rms": 0.1767
+    },
+    {
+      "id": "defeat_01",
+      "bpm": 90,
+      "style": "lose",
+      "loop": false,
+      "seconds": 10.667,
+      "peak": 0.82,
+      "rms": 0.1973
+    }
+  ]
+}

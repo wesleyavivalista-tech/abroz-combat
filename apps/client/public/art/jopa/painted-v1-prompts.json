@@ -1,0 +1,13 @@
+{
+  "mode": "built-in imagegen",
+  "skinOrder": [
+    "Santos jersey",
+    "White tee"
+  ],
+  "prompt": "Background extraction only. Remove pale background and ground shadow. Preserve approved full-body fighter, face, pose, clothes, sneakers, both held chess pieces, proportions, colors and painterly style unchanged. Genuine transparent PNG. No redesign. Keep head, pieces and shoes entirely visible.",
+  "assets": {
+    "exec-d2587d8a-4473-4043-87ca-fd26f35aa06d.png": "portrait-painted-1-v1.png",
+    "exec-8d09447d-8cef-440e-ae41-2f8e067a47ef.png": "portrait-painted-2-v1.png",
+    "exec-cd408612-0433-4f6e-b1a7-b618d2df38c7.png": "victory-painted-v1.png"
+  }
+}

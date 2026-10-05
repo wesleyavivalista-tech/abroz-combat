@@ -1,0 +1,47 @@
+ANIMATION FLUIDITY AUDIT — 2026-10-01
+
+Outcome
+Implemented a shared, presentation-only position interpolator for all 13 fighters and fighter-based summons. No sprite files, slicing, frame indices, scales, pivots, gameplay data or network protocol changed.
+
+Architecture and findings
+1. GameSimulation advances at a fixed 60 Hz. Previously main.ts passed each completed simulation position directly to SceneRenderer at display refresh rate. Between simulation ticks, high-refresh screens repeated identical positions. This is a global source of visible stepping, independent of the number of sprite poses.
+2. Sprite poses predominantly use stateFrame/moveFrame. Attack definitions supply startup/active/recovery durations; collision and damage run in game-core rather than the renderer. Hit-stop freezes those counters. Retiming these globally would undermine existing authored impact holds and move readability.
+3. TextureCache shares loaded textures; individual renderers, authored walk/fall/dash/mount wrappers, and SpriteIsolation own crop and pivot conventions. They are not interchangeable uniform grids. Changing frame coordinates, scaling or automatic slicing globally would be unsafe.
+4. Walk cadence varies intentionally (for example Jomp's longer walk sequence versus Napa's shorter base walk). Several characters already have anticipation/recoil poses or authored movement expansions. Extra copies or crossfades would not add useful motion and could ghost weapons and silhouettes.
+5. State entry resets counters; transient combat states and transformations depend on exact state and move boundaries. These transitions remain immediate. Existing cosmetic effects sometimes use wall-clock time; gameplay poses remain tick-driven. No new wall-clock pose timers were introduced.
+6. Rollback restores whole snapshots and replays ticks. Interpolation must discard samples from the previous snapshot object, including corrections arriving between display frames.
+
+Roster review (all receive the shared improvement)
+Astolfo: bespoke atlas/personality poses; shared fall/mount integration. Preserve personality walk cadence and mode holds.
+Fausto: flash/origami/angry poses; authored dash wrapper. Preserve teleport and special thresholds.
+Napa: base and cookie-monster/boss sequences; authored movement wrappers. Preserve mode-specific timing.
+Jomp: eight-step movement and bodybuilding/perfection states. Preserve rep and transformation thresholds.
+Dodo: authored connected-region frames, companion variants and shared movement wrappers. Preserve foot/hip pivots.
+Drupa: authored bounds, defensive and alternate-mode poses. Preserve atlas selection and attack phases.
+Gut: shared action phases and authored walk, spear attachments. Preserve weapon dimensions and impact poses.
+Tocha: expanded walking/action presentation, fire modes. Preserve existing expansion and flame timing.
+Bozo: shared movement/action presentation, hair clones/tentacles. Preserve clone pose cadence and effect ownership.
+Caio: authored poses, blood and hidden movement states. Preserve vanish/attack timing.
+Roms: pose selection and shared sprite renderer. Preserve state/move-driven frame selection.
+Luizinho: character presentation pose mapping and shared sprite renderer. Preserve move-specific phase selection.
+Jopa: authored walk, piece-placement, tree and knight/mounted poses. Preserve placement/mount frames and summon gameplay.
+
+Changes
+- apps/client/src/rendering/RenderInterpolation.ts: capture compact pre-tick samples; interpolate x/y only using fixed-step accumulator remainder. Summons are keyed by stable ID, not array order. Unchanged fighters retain their original object.
+- apps/client/src/main.ts: capture before every tick, including catch-up steps; pass the derived snapshot only to drawing. Clear history outside active unpaused combat. Debug hitbox display uses exact authoritative positions.
+- Snap on active attacks, new hits, health/life changes, facing/state/move changes, mount/tree changes, respawns, skin changes, large position jumps, hit-stop, phase changes, missing samples, skipped frames and snapshot replacement. This deliberately prioritizes combat readability over smoothing every transition.
+- tests/render-interpolation.test.ts: 17 tests covering interpolation, immutability, guards, restore, stable summon identity and 600 simulation steps for each fighter compared against an unsmoothed baseline, including event equality.
+- tests/network.test.ts: exercise rendering samples at multiple display fractions during peer convergence tests with 0–200 ms latency and jitter. Authoritative hashes must remain identical.
+- tests/audit-regressions.test.ts: corrected an existing UI expectation for the previously removed fighter-description text; no production UI change.
+
+Verification
+- Full test suite: 505 passed, 0 failed. Includes existing attack timing, hitboxes, facing, dashes, falls, art/pose, transformation, team, tournament, interruption and network regressions.
+- TypeScript check and lint of changed files passed.
+- Production client build passed; existing large-bundle warning remains.
+- Network latency/jitter convergence tests and real WebSocket room lifecycle test passed.
+- Live browser smoke test: Jopa versus Astolfo training loaded, accepted movement/jump/attack input, rendered fighters and reported no captured console warnings/errors.
+
+Limits and tradeoffs
+This smooths movement between simulation ticks; it does not invent poses. Idle/attack pose counts and intentional frame holds remain as authored, so these animations can still look stepped. Active attacks deliberately use exact positions to preserve attack/hitbox alignment. During interpolated movement only, displayed coordinates trail simulation by at most one 60-Hz tick (16.7 ms); damage, collisions, input handling and network state never use that view. Debug mode disables the interpolation to expose exact boxes.
+
+All existing automated regressions were run, but this is not a claim that every skin and every ultimate was visually played through in a browser. The live smoke test covered two fighters; high-refresh perceptual improvement and every individual visual mode still benefit from human playtesting. No performance benchmark or live two-browser online match was performed; multiplayer validation used the deterministic latency harness plus the real WebSocket lifecycle test. Per-frame interpolation work is linear in fighters and summons, with no timers, listeners, textures or persistent effects added.

@@ -1,0 +1,20 @@
+{
+  "status": "approved",
+  "gameplay": "implemented by user request",
+  "skins": {
+    "original": [
+      "menu-skin-1.png",
+      "fighter-skin-1.png"
+    ],
+    "black": [
+      "menu-skin-2-black-v3.png",
+      "fighter-skin-2-black-v3.png"
+    ]
+  },
+  "sha256": {
+    "menu-skin-1.png": "8bbee6d729b26ad1fced87953991d9c68929c3c16fdbce19a99ec3ad08e27849",
+    "fighter-skin-1.png": "613a5ef98fb284557d67f8022891d41f57201031e16ead80e638ed56c8b06cbc",
+    "menu-skin-2-black-v3.png": "81a015493ad842f2c6d7763690cd17921348e410e168a5bc6d8313d4b2ed6adf",
+    "fighter-skin-2-black-v3.png": "5885def6cdb584e2d59f9d9f67b9251afbc2185a0d102ba119c12128a79449cb"
+  }
+}

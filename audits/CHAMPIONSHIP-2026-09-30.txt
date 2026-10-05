@@ -1,0 +1,51 @@
+1v1 CHAMPIONSHIP — 30 September 2026
+
+PLAY
+Main menu > Local > Championship.
+Local: choose 2–16 entrants, names, fighters and skins. Generate bracket, then
+Play next match. The handoff names which entrant uses Player 1 / Player 2
+controls. The confirmed winner advances and the bracket reopens after each duel.
+Online: Main menu > Online, choose your fighter, then create a room with
+mode 1v1 Championship and 2–16 players. Friends join using the five-letter code.
+The bracket starts when the chosen number of players joins. Each assigned pair
+confirms Ready for match. Other entrants remain on the bracket. Matches in a
+round can run concurrently. The next round opens after every match finishes.
+
+RULES
+Single elimination, balanced seeded byes, fixed fighter/skin per entrant.
+Registration order is seed order. Normal three-life 1v1 rules are preserved.
+Draws replay the same pairing. Winners, eliminations, live/upcoming matches,
+byes, forfeits and the champion are shown in the bracket.
+Online disconnects withdraw that entrant and award their opponent a forfeit.
+Unready entrants have two minutes to confirm. Stalled active players have the
+existing loading/input grace periods (120 / 60 seconds). Waiting spectators
+are not subject to gameplay inactivity timeouts. Refreshing/leaving forfeits;
+rejoining an already started championship is not supported.
+
+IMPLEMENTATION
+packages/game-core/tournament/Championship.ts:
+Shared bracket state and transitions, 2–16 entrants, round barrier and byes.
+apps/server/src/championship.ts:
+Independent server-confirmed simulation per duel. Results come from simulation,
+not player-reported winners. Match-attempt IDs isolate inputs/hashes across
+rounds and draw replays. Queues are bounded by the existing 120-frame lead limit.
+apps/server/src/rooms.ts + index.ts:
+Room integration, 16-player championship capacity, readiness, routing, forfeits.
+packages/shared/protocol.ts:
+Protocol v40, championship messages and match-scoped input/hash messages.
+apps/client/src/ui/Championship.ts + championship.css:
+Setup, bracket, local handoff, online readiness and champion screens.
+apps/client/src/main.ts + ui/MenuScreens.ts:
+Entry points, fresh simulation per duel, confirmed local results and online
+server bracket updates. Existing FFA series and other modes remain available.
+
+VALIDATION
+485 automated tests pass, including 25 new championship tests covering every
+entrant count 2–16, byes, round barriers, draws, results validation, concurrent
+duels, simulation parity, stale packets, spectator isolation, disconnects,
+readiness expiry, capacity boundaries, cleanup and escaped display names.
+Typecheck, ESLint, client production build and server compilation pass.
+Browser: five-player local bracket and handoff into assigned duel; two distinct
+online browser clients created/joined, confirmed readiness and played a duel;
+opponent exit returned the survivor to the bracket with Tournament Champion.
+No combat damage, movement speed, cooldowns or ability timings changed.

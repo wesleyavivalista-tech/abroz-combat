@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Jomp gameplay review</title>
+<style>body{margin:0;background:#10151b;color:#eee;font:15px system-ui}header{padding:16px;display:flex;gap:15px;align-items:center;flex-wrap:wrap}button,select{padding:8px;background:#293342;color:white;border:1px solid #667080;border-radius:5px}a{color:#edc77e}canvas{width:100%;height:65vh;display:block}#status{padding:16px;white-space:pre-wrap}.portraits{display:flex;gap:20px;padding:20px}.portraits img{height:240px;object-fit:contain;max-width:30%}</style>
+<header><b>JOMP · Gameplay review</b><a href="/">Game</a><a href="/fighter-lineup.html">Fighter lineup</a><label>Skin <select id="skin"><option value="original">Shirtless</option><option value="charcoal">Charcoal shirt</option></select></label><label>Action <select id="action"><option value="Idle">Ready</option><option value="WalkForward">Walk</option><option value="jab">Punch combo</option><option value="heavyKick">Heavy kick</option><option value="heavyPunch">Heavy punch</option><option value="coolMuscles">Cool Muscles</option><option value="investida">Investida</option><option value="gymBro">Gym Bro</option><option value="perfection">Body Perfections</option></select></label><button id="replay">Replay</button><button id="pause">Pause</button><button id="step">Step</button><button id="second">Advance 1 second</button></header><canvas id="arena"></canvas><div id="status">Loading…</div><div class="portraits"><img src="/art/jomp/portrait-1.png"><img src="/art/jomp/portrait-2.png"><img src="/art/jomp/victory.png"></div>
+<script type="module">
+import {jompStatus} from "/src/ui/JompStatus.ts";
+import './src/ui/dodo-portraits.css';
+import {SceneRenderer} from './src/rendering/SceneRenderer.ts';
+import {GameSimulation} from '../../packages/game-core/simulation/GameSimulation.ts';
+import {Button} from '../../packages/game-core/types.ts';
+const view=new SceneRenderer(document.querySelector('canvas'));await view.prepareFighters(['jomp','tocha']);
+let sim,paused=false,tick=0,last=0,acc=0;
+function reset(){sim=new GameSimulation(['jomp','tocha'],false,undefined,undefined,[document.querySelector('#skin').value,'shirtless']);sim.state.phase='fight';sim.state.fighters.forEach((f,i)=>{f.state='Idle';f.meter=100;f.lives=3;f.x=i?1300:1050;});tick=0;}
+reset();
+function step(){const action=document.querySelector('#action').value;let input=0;if(action==='WalkForward'){input=tick%160<80?Button.Right:Button.Left;}
+else if(action==='coolMuscles'&&tick<240)input=Button.Special;
+else if(tick===0)input=({jab:Button.Light,heavyKick:Button.Medium,heavyPunch:Button.Heavy,investida:Button.Special2,gymBro:Button.Super1,perfection:Button.Super2})[action]??0;
+else if(action==='jab'&&[7,24].includes(tick))input=Button.Light;
+sim.step([input,0]);view.consume(sim.events);tick++;
+const [a,b]=sim.state.fighters;document.querySelector('#status').textContent=jompStatus(sim.state,a)+'\nJomp: '+a.state+' / '+(a.move??'Ready')+' · Energy '+a.meter+' · Health '+a.health+'\nTocha: '+b.state+' · Health '+b.health+' · Stun '+b.stun+' frames'+(a.weaponUntil?'\nPERFECT MODE '+Math.max(0,Math.ceil((a.weaponUntil-sim.state.frame)/60))+'s':'');}
+document.querySelector('#replay').onclick=reset;document.querySelector('#action').onchange=reset;document.querySelector('#skin').onchange=reset;
+document.querySelector('#pause').onclick=e=>{paused=!paused;e.target.textContent=paused?'Play':'Pause';};
+document.querySelector('#step').onclick=()=>{paused=true;document.querySelector('#pause').textContent='Play';step();};
+document.querySelector('#second').onclick=()=>{paused=true;document.querySelector('#pause').textContent='Play';for(let n=0;n<60;n++)step();};
+function draw(t){const dt=Math.min(.05,(t-last)/1000||0);last=t;if(!paused){acc+=dt;while(acc>=1/60){step();acc-=1/60;}}view.draw(sim.state,dt,sim.state.frame/60);requestAnimationFrame(draw);}requestAnimationFrame(draw);
+</script></html>

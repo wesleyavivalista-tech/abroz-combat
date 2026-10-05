@@ -1,0 +1,112 @@
+{
+  "mode": "built-in image_gen",
+  "basePrompt": "Use case: stylized-concept. Create a transparent pixel-art fighting game sprite sheet matching the provided character references EXACTLY in identity, body, costume and pixel-art style. TWO COLUMNS, one outfit per ROW, generous transparent gutters, same pixel scale for all poses. Column1 is ordinary STANDING IDLE GUARD as height calibration. Column2 is a distinct FALLING/DESCENDING neutral pose: torso upright, both feet LOWERED below hips, legs partly extended DOWNWARD with knees softly bent ready to land, one foot slightly lower, arms near chest for balance. Feet must NOT be tucked up to buttocks/chest: that would be a rising jump. No kicks, punches, attack or hit reaction. All face RIGHT in three-quarter side view. Every figure fully contained in its cell. No motion lines, text, grid, shadows, ground or background. Actual transparent background. ",
+  "jobs": [
+    {
+      "id": "fausto",
+      "rows": "THREE ROWS: black suit and tie; oversized black T-shirt, blue jeans, white sneakers; navy samurai outfit/black armor holding sword safely near body pointing diagonally up, never slashing. Preserve short silver hair and silver beard.",
+      "refs": [
+        "fausto/neutral-poses-v1"
+      ],
+      "prompt": "Use case: stylized-concept. Create a transparent pixel-art fighting game sprite sheet matching the provided character references EXACTLY in identity, body, costume and pixel-art style. TWO COLUMNS, one outfit per ROW, generous transparent gutters, same pixel scale for all poses. Column1 is ordinary STANDING IDLE GUARD as height calibration. Column2 is a distinct FALLING/DESCENDING neutral pose: torso upright, both feet LOWERED below hips, legs partly extended DOWNWARD with knees softly bent ready to land, one foot slightly lower, arms near chest for balance. Feet must NOT be tucked up to buttocks/chest: that would be a rising jump. No kicks, punches, attack or hit reaction. All face RIGHT in three-quarter side view. Every figure fully contained in its cell. No motion lines, text, grid, shadows, ground or background. Actual transparent background. THREE ROWS: black suit and tie; oversized black T-shirt, blue jeans, white sneakers; navy samurai outfit/black armor holding sword safely near body pointing diagonally up, never slashing. Preserve short silver hair and silver beard."
+    },
+    {
+      "id": "napa",
+      "rows": "TWO ROWS: brown T-shirt, beige shorts, black sneakers; burgundy gym tank, black shorts with white stripe, black sneakers. Preserve dark cropped hair, beard, arm tattoos.",
+      "refs": [
+        "napa/neutral-poses-v1"
+      ],
+      "prompt": "Use case: stylized-concept. Create a transparent pixel-art fighting game sprite sheet matching the provided character references EXACTLY in identity, body, costume and pixel-art style. TWO COLUMNS, one outfit per ROW, generous transparent gutters, same pixel scale for all poses. Column1 is ordinary STANDING IDLE GUARD as height calibration. Column2 is a distinct FALLING/DESCENDING neutral pose: torso upright, both feet LOWERED below hips, legs partly extended DOWNWARD with knees softly bent ready to land, one foot slightly lower, arms near chest for balance. Feet must NOT be tucked up to buttocks/chest: that would be a rising jump. No kicks, punches, attack or hit reaction. All face RIGHT in three-quarter side view. Every figure fully contained in its cell. No motion lines, text, grid, shadows, ground or background. Actual transparent background. TWO ROWS: brown T-shirt, beige shorts, black sneakers; burgundy gym tank, black shorts with white stripe, black sneakers. Preserve dark cropped hair, beard, arm tattoos."
+    },
+    {
+      "id": "dodo",
+      "rows": "TWO ROWS: gold leaf-print black shirt, black shorts; plain black T-shirt, beige shorts. Both have black high-top sneakers and white guitar strapped on BACK throughout, never in hands. Preserve gray hair and beard.",
+      "refs": [
+        "dodo/neutral-poses-v1"
+      ],
+      "prompt": "Use case: stylized-concept. Create a transparent pixel-art fighting game sprite sheet matching the provided character references EXACTLY in identity, body, costume and pixel-art style. TWO COLUMNS, one outfit per ROW, generous transparent gutters, same pixel scale for all poses. Column1 is ordinary STANDING IDLE GUARD as height calibration. Column2 is a distinct FALLING/DESCENDING neutral pose: torso upright, both feet LOWERED below hips, legs partly extended DOWNWARD with knees softly bent ready to land, one foot slightly lower, arms near chest for balance. Feet must NOT be tucked up to buttocks/chest: that would be a rising jump. No kicks, punches, attack or hit reaction. All face RIGHT in three-quarter side view. Every figure fully contained in its cell. No motion lines, text, grid, shadows, ground or background. Actual transparent background. TWO ROWS: gold leaf-print black shirt, black shorts; plain black T-shirt, beige shorts. Both have black high-top sneakers and white guitar strapped on BACK throughout, never in hands. Preserve gray hair and beard."
+    },
+    {
+      "id": "bozo",
+      "rows": 3,
+      "refs": [
+        "bozo/atlas-1",
+        "bozo/atlas-2",
+        "bozo/clones"
+      ],
+      "prompt": "3 rows: row1 navy polo beige trousers brown shoes; row2 burgundy basketball outfit white trim burgundy sneakers, longer beard; row3 entire body covered in thick dark-brown braided hair with glasses. Preserve curly hair beard glasses stout build."
+    },
+    {
+      "id": "drupa",
+      "rows": 3,
+      "refs": [
+        "drupa/motion-v8",
+        "drupa/buda-complete-v4"
+      ],
+      "prompt": "3 rows: row1 bald heavyset bearded man red-white varsity jacket black trousers red sneakers; row2 purple polo black shorts white sneakers; row3 same heavy bald man spiritual white-and-blue Buda form in flowing white robe bare feet. Same scale each row."
+    },
+    {
+      "id": "caio",
+      "rows": 3,
+      "refs": [
+        "caio/atlas-1",
+        "caio/atlas-2",
+        "caio/master-1"
+      ],
+      "prompt": "3 rows: row1 teal T-shirt dark trousers white sneakers gold necklace tattoos trimmed mustache/goatee shaved line in short dark hair; row2 black T-shirt dark trousers white sneakers SUNGLASSES gold chain; row3 red glossy liquid metallic transformed man like third reference, short-sleeve shirt/trousers/red shoes, no gun, no sunglasses."
+    },
+    {
+      "id": "roms",
+      "rows": 3,
+      "refs": [
+        "roms/movement",
+        "roms/gear"
+      ],
+      "prompt": "3 rows: row1 glasses clean-shaven man red firefighter T-shirt dark cargo trousers black boots; row2 charcoal hoodie blue jeans white sneakers; row3 full navy firefighter protective suit yellow reflective bands helmet boots gloves. In ALL cells hold red axe defensively diagonally across chest, not swinging."
+    },
+    {
+      "id": "luizinho",
+      "rows": 2,
+      "refs": [
+        "luizinho/movement-1",
+        "luizinho/movement-2"
+      ],
+      "prompt": "2 rows: row1 short-haired dark bearded bespectacled stocky man white polo blue jeans black shoes; row2 black long-sleeve dress shirt charcoal trousers black shoes. Match face/glasses exactly."
+    },
+    {
+      "id": "jomp",
+      "rows": 2,
+      "refs": [
+        "jomp/combat-1-tocha-v2",
+        "jomp/combat-2-tocha-v2"
+      ],
+      "prompt": "2 rows: row1 shirtless athletic short brown-haired clean-shaven man, beige shorts black sneakers. Row2 same man open charcoal short-sleeve shirt charcoal trousers white sneakers."
+    },
+    {
+      "id": "tocha",
+      "rows": 2,
+      "refs": [
+        "tocha/skin-1-atlas",
+        "tocha/skin-2-atlas"
+      ],
+      "prompt": "2 rows: row1 spiky dark hair dark beard black skull T-shirt dark trousers white sneakers. Row2 same man buzzcut shirtless with chest/arm tattoos dark trousers white sneakers."
+    },
+    {
+      "id": "gut",
+      "rows": 2,
+      "refs": [
+        "gut/atlas-1",
+        "gut/atlas-2"
+      ],
+      "prompt": "2 rows: row1 dark curly-haired bearded bespectacled man white rolled-sleeve shirt navy trousers black shoes. Row2 same man black sleeveless kungfu outfit red trim red sash black trousers black shoes. Empty hands raised in guard."
+    },
+    {
+      "id": "gut-spear",
+      "rows": 2,
+      "refs": [
+        "gut/spear-bodies-v3"
+      ],
+      "prompt": "2 rows: row1 white rolled-sleeve shirt navy trousers black shoes; row2 sleeveless black kungfu red sash outfit. Both same curly-haired beard glasses. All four figures holding long wooden spear with silver blade horizontally across chest in BOTH hands, weapon in defensive carry position not attacking. Spear fully inside cell. Standing and falling figures identical body scale."
+    }
+  ]
+}

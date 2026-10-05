@@ -1,0 +1,180 @@
+ABROZ COMBAT — CONTROLLER SUPPORT REPORT
+3 October 2026
+
+1. ARCHITECTURE BEFORE
+Gameplay already consumed the shared Button bitmask through InputBuffer. The keyboard had two independent key layouts and pending presses so short taps survived until the next simulation tick. Controller polling lived in InputManager, but browser indices implicitly determined player ownership. Its mapping changed for matches with more than two fighters. There was no controller menu navigation, joining, assignment management, or disconnect recovery.
+
+2. ARCHITECTURE IMPLEMENTED
+Physical keyboard / Gamepad API → InputManager + GamepadManager → explicitly assigned local player → existing Button mask → unchanged simulation/InputBuffer.
+GamepadManager owns session device records, separate player slots, mappings, deadzone, edges, pending presses, joining, capture for assignment/identification, and diagnostic state. MenuNavigation adapts logical menu actions to the existing DOM controls. main.ts handles screen policy and local/online disconnect behavior.
+No fighter, combat, damage, movement, animation, networking protocol, rollback, or authoritative state code was changed for this task.
+
+3. FILES
+Added:
+  apps/client/src/input/GamepadManager.ts
+  apps/client/src/input/MenuNavigation.ts
+  apps/client/src/ui/Controllers.ts
+  apps/client/src/ui/controllers.css
+  tests/gamepad-manager.test.ts
+  tests/controller-menu.test.ts
+  apps/client/controller-review.html
+  apps/client/src/controller-review.ts
+  docs/controller-support-report.txt
+  docs/controllers-eight-player-review.png
+Modified:
+  apps/client/src/input/InputManager.ts
+  apps/client/src/main.ts
+  apps/client/src/ui/MenuScreens.ts
+  apps/client/src/ui/LocalMatchSetup.ts
+  apps/client/src/ui/Elimination.ts
+  tests/input-client.test.ts
+Build outputs were regenerated. The controller review harness is development-only and is not a production build entry.
+
+4. DETECTION
+Connection events discover device metadata without consuming the first press. Disconnection events release input immediately. Fresh navigator.getGamepads() samples are read each animation frame and before fixed simulation steps. Polling also discovers preconnected devices and missing disconnect events. Null entries and high indices are supported; no array position is a player number. If the API is unavailable or blocked, controller state clears and keyboard input remains available.
+
+5. ASSIGNMENT
+A session key identifies each observed device connection. Player slots store these keys. Browser index, raw ID, presentation name, brand hint, mapping, connection status, assigned slot, current/previous axes and buttons, activity time, logical masks, and pending presses are tracked separately.
+One gamepad can occupy exactly one slot. Reassignment frees its previous slot and the prior device in its destination, without moving unrelated players. Disconnected slots remain reserved. No assignments or browser indices are persisted across refreshes.
+
+6. COMPLETE DEFAULT MAPPING
+Gameplay:
+  Left stick / D-pad       Move left/right/up/down
+  Up                      Jump (existing game behavior)
+  Double-tap left/right   Dash (existing game behavior)
+  A / Cross               Combo attack / Attack 1       standard button 0
+  X / Square              Heavy attack / Attack 2       standard button 2
+  B / Circle              Attack 3                      standard button 1
+  Y / Triangle            Special 1                     standard button 3
+  RB / R1                 Special 2                     standard button 5
+  LT / L2                 Ultimate 1                    standard button 6
+  RT / R2                 Ultimate 2                    standard button 7
+  Menu / Options          Local pause / online menu     standard button 9
+Menu:
+  D-pad / left stick      Navigate; 350ms initial repeat delay, then 110ms
+  Up / Down               Move focus between controls
+  Left / Right            Move focus; change selected dropdown/range value
+  A / Cross               Activate focused button / checkbox
+  B / Circle              Back
+  LB / RB (L1 / R1)       Previous / next skin during fighter selection
+Diagnostics:
+  Every exposed button, trigger value and axis is displayed, including right
+  stick, both stick clicks, D-pad, Menu/Options, and View/Share/Create.
+  Menu + View/Back together exits controller testing or cancels input capture.
+  The visible Finish test button and keyboard Escape also provide exit paths.
+Unused stick clicks, right stick, View and Home have no new combat actions.
+Existing attack-button rebinding remains in Settings and is saved as before.
+
+7. KEYBOARD COEXISTENCE
+Both original keyboard layouts remain active for P1 and P2, including when those slots also have a gamepad. Every original action and saved binding is retained. Short taps remain pending until consumed; held/released masks feed the same gameplay buffer as before. Pause, debug, and training reset are now logical system actions from InputManager. Raw key capture remains only where necessary to rebind keys.
+Using a layout reserves its seat from ordinary automatic joining; the Controllers page also has explicit Keyboard 1 / Keyboard 2 buttons. With no reserved keyboards, the first pad joins P1. With Keyboard 1 reserved, it joins P2. With both reserved, pads start at P3. Manual Change device can replace a keyboard reservation. Keyboard fallback remains usable for the first two seats.
+
+8. CAPACITY
+MAX_LOCAL_GAMEPADS defaults to 8; GamepadManager accepts a configurable cap. All browser-exposed devices are discovered, including devices beyond the active-slot limit. Up to eight pads can occupy eight slots. Keyboard seats use the same local slot capacity. Current match modes retain their original fighter counts; championship entrants are not incorrectly treated as simultaneous input slots.
+
+9. PRESS ANY BUTTON TO JOIN
+Menus show a compact join message. A fresh button on an unassigned standard-mapped controller claims an eligible slot, prioritizing a disconnected reserved slot, then the next free seat. Setup screens restrict new joins to their player count. Joining produces a player/device confirmation. The joining press is consumed and the pad must return to neutral before menu/gameplay input resumes. Movement alone does not join.
+
+10. CONTROLLER MANAGEMENT
+Open Settings → Controllers, the Controllers button in local setup, or Controllers from local pause. The panel shows all eight slots, connection labels, keyboard alternatives, Change device, Identify, Test, and Release slot where applicable. The device list includes unassigned and disconnected records, raw IDs, browser indices, and mapping diagnostics. A saved deadzone selector ranges from 10% to 40%, default 20%. Returning closes the panel without discarding assignments or the paused match.
+
+11. IDENTIFICATION
+Choose Identify for an assigned slot and press that controller. Activity highlights its player card and shows the recognized player/name. The capture completes only for the requested device. Identical controller names do not determine ownership. Haptics are deliberately not required or enabled.
+
+12. MANUAL REASSIGNMENT
+Choose Change device on the destination seat, then press the intended controller. Already-assigned controllers may be moved this way. Inputs are cleared and suppressed until neutral. Disconnected assignments may also be released or replaced. P1/P2 can revert to their keyboard layout.
+
+13. TESTING VIEW
+Test displays numeric pressure and branded labels for exposed buttons and all axes, including whether an axis is inside the deadzone. An unassigned device can also be tested from the device list. Input testing suppresses menu/gameplay commands while still recording raw diagnostic values. There is no continuous high-level full-screen rerender: diagnostic/label updates are throttled to about 7Hz; per-frame sampling stays in the input layer.
+
+14. DISCONNECT / RECONNECT AND MENU OWNERSHIP
+Disconnect releases held and queued pad actions without shifting seats. During local combat, a relevant disconnect pauses the match and displays the missing player. A fresh press from an unassigned standard pad reclaims a missing slot. It does not also resume or attack. P3+ must have connected inputs to resume; the first two seats retain keyboard fallback. Multiple missing seats are recovered in seat order, or explicitly through Change device.
+Identical controller IDs are not treated as reliable physical serial numbers: reconnect is an explicit press-based claim, not silent reassignment based on the model name. In menus, press-to-join likewise prioritizes a missing seat.
+Online disconnect does not pause the shared simulation: only local input releases, with a reconnect notice. The controller's online Menu opens Return/Leave controls while the match continues. Keyboard Escape retains its previous leave-online behavior.
+General menus use a 500ms ownership lease to arbitrate simultaneous pads. In sequential local 1v1 selection, only the current player's pad can select; training/online selection uses local slot 1. Local multiplayer cards restrict each pad to its own card, with P1 owning global setup/start controls. A controller that pauses initially owns the pause menu; keyboard/mouse remain available.
+
+15. BROWSER / PLATFORM LIMITATIONS
+Real device support depends on the browser, OS, driver, connection method, and Gamepad API exposure. Some browsers expose a preconnected pad only after interaction. The application supports eight slots, but cannot force the platform to expose eight physical devices. IDs and indices are not stable hardware identities. Secure-context and embedding permissions can affect Gamepad API access.
+Reference: MDN, Using the Gamepad API
+https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API
+
+16. SPECIAL HANDLING
+Only mapping === 'standard' controls gameplay. Nonstandard devices remain visible and testable with an explicit unsupported-mapping message; they cannot accidentally feed incorrect attacks. Use a browser/driver that exposes standard mapping. Brand detection affects labels only. Haptics and a full custom nonstandard mapping editor are left for later. Text entry such as online room codes and tournament names still uses the existing keyboard text fields.
+
+17. VALIDATION
+Full baseline before changes: 633 tests, 628 passed, 5 failed.
+Full suite after integration: 669 tests, 664 passed, the same 5 failures.
+Final focused input/menu/lifecycle suite after the Escape-repeat safeguard:
+40 tests passed (includes one additional test added after the full-suite run).
+Typecheck passed. Client production build and server TypeScript build passed.
+Changed-file lint passed. Full-project lint reports 2 pre-existing errors:
+  animation-review.ts:45 prefer-const
+  tests/nikalz-animation.test.ts:22 no-explicit-any
+The production bundle retains the existing large-chunk advisory.
+
+The same five baseline test failures remain:
+  all moves preserve approved movement-facing gameplay across timing and hitstop
+  shared simulation and combat stay independent of fighter identities and browser APIs
+  football travels inside house and uses shared collapse effects at the wall
+  unselected assets do not block a match; failed loads retry without recreating successful textures
+  held meditation charges once, and a new activation needs new energy
+These were present before controller edits; unrelated gameplay changes were not made to hide them.
+
+Requested scenario coverage (A = automated model/DOM boundary tests; B = live
+browser with simulated Gamepad API; R = implementation/regression audit):
+  01 Keyboard only                       A: all 11 actions, both layouts, held/taps
+  02 One controller                      A+B: first-pad join and navigation
+  03 Keyboard + one controller           A: reserved keyboard, independent masks
+  04 Two controllers                     A+B: independent Xbox/DualSense selection
+  05 Same-model controllers              A+B: separate session identities
+  06 Mixed controller types              A+B: Xbox, PlayStation, generic
+  07 Preconnected controllers            A: polling discovery, event-first press
+  08 Hot connection                      A+B: join after loading
+  09 Disconnect in menus                 A: reserved ownership, labels
+  10 Disconnect in match                 B: local match pauses and names player
+  11 Reconnect                           A+B: explicit reclaim, press consumed
+  12 D-pad                               A+B: gameplay bits and menu navigation
+  13 Analog navigation                   A: shared logical direction/repeat path
+  14 Deadzone/drift                      A+B: 0.1 axis shown inside 0.2 deadzone
+  15 Held buttons                        A: no repeated pressed edge
+  16 Rapid taps                          A: pending press consumed once
+  17 Simultaneous inputs                 A: combined logical masks
+  18 Simultaneous players' attacks       A: no cross-slot leakage
+  19 Menu navigation                     A+B: main, modes, selection, stage, pause
+  20 Multi-controller fighter selection  A+B: separate selection and P8 own card
+  21 Results/rematch                     A+R: same dialog adapter, click/back routing
+  22 Stable assignment after disconnect  A+B: unrelated player unchanged
+  23 Null/gapped gamepad array           A+B: browser indices 4,7,10…25
+  24 Eight controllers                   A+B: eight joined cards, independent masks
+  25 Press any button to join            A+B: confirmation and swallowed join press
+  26 Controller management               B: open from settings and paused match
+  27 Manual reassignment                 A+B: P1 pad moved to P3
+  28 Identify                            A+B: matching device, activity highlight
+  29 Test controller                     A+B: buttons/axes, gameplay suppression
+  30 Several identical devices           A+B: distinguish by assigned seat/activity
+  31 Reassign between occupied seats     A: source/destination only
+  32 Unassigned devices                  A+B: detection and diagnostic list
+  33 Settings disconnect                 B: label changes to Disconnected
+  34 Settings reconnect                  B: new connection explicitly assigned
+  35 Device labels                       A+B: keyboard/connected/disconnected/join
+  36 Brand prompts                       A+B: presentation-only names and labels
+  37 Menu conflicts                      A: ownership lease and scoped navigation
+  38 Pause ownership                     B: P2 pauses; P1 cannot steal pause menu
+  39 Return from settings                B: same paused match/assignments preserved
+  40 Refresh/restart                     A+B: fresh slots; no persisted stale index
+
+The browser walkthrough used controller-review.html, which runs the real app
+inside an iframe and substitutes only the physical Gamepad API boundary.
+Eight-device setup screenshot: docs/controllers-eight-player-review.png.
+No browser console errors were observed in the tested flows.
+
+18. REMAINING RISKS / FOLLOW-UP
+Real wired/Bluetooth Xbox, DualSense/DualShock and generic hardware were not
+available for this session. Perform a hands-on acceptance pass on the target
+browsers, particularly eight-device OS limits, trigger mapping and reconnects.
+Online behavior was audited and covered by the existing simulation/network
+regression suite; a live two-computer controller disconnect match was not run.
+Results/rematch routing has DOM-boundary coverage, not a complete hardware
+match-to-KO walkthrough. Nonstandard controllers need standard mapping support
+or a future explicit calibration editor. Existing unrelated test/lint failures
+remain visible above. No claim is made that physical hardware was validated.

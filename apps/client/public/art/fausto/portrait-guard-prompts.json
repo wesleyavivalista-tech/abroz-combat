@@ -1,0 +1,9 @@
+{
+  "mode": "built-in image_gen",
+  "suit": "Use case: precise-object-edit. Edit this approved game character portrait. Remove the white origami crane completely. Change ONLY the hand that held the crane into a naturally closed clenched fist in a boxing guard at roughly the same position, with realistic fingers/thumb. Keep EVERYTHING else exactly unchanged: same face and expression, youthful facial detail, silver hair and trimmed beard, narrow neck and slim-average build, black suit white shirt navy tie wristwatch, body stance, other fist, legs, shoes, framing, scale, orange/blue cinematic rim lighting and polished realistic fighting-game artwork. Do not add props, paper, effects, muscles, wrinkles, scars or text. Full body with feet in frame. True transparent background.",
+  "casual": "Use case: identity-preserve. Image1 is the EDIT TARGET and must remain the exact same portrait, face, expression, silver hair/beard, narrow neck, body shape, closed-fist boxing pose, hands, wristwatch, full body framing, scale, lighting and art style. Change ONLY CLOTHES to image2 outfit: oversized loose black T-shirt with dropped shoulder and loose elbow-length sleeves, blue jeans, white sneakers. Image2 is clothing reference ONLY: do NOT copy its origami or hand pose. Keep BOTH FISTS CLOSED exactly like image1. No origami, paper, props or new objects. Preserve youthful approved face and average slim body, no added muscles or age lines. True transparent background. Orange and blue cinematic rim lighting unchanged. Same image, different clothes.",
+  "outputs": [
+    "portrait-guard-1.png",
+    "portrait-guard-2.png"
+  ]
+}

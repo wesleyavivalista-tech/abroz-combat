@@ -1,0 +1,39 @@
+{
+  "tool": "image_gen.imagegen",
+  "prompts": [
+    {
+      "name": "blonde-a-v2",
+      "look": "Match the existing woman: shoulder-length golden blonde hair, pale blue blouse with rolled sleeves, blue jeans and white sneakers.",
+      "prompt": "Production arcade NPC sprite sheet. Use reference for outlined cel-shaded game art style. Match the existing woman: shoulder-length golden blonde hair, pale blue blouse with rolled sleeves, blue jeans and white sneakers. Exactly FOUR columns THREE rows, 12 isolated full-body sprites, equal cells, consistent character scale, all face RIGHT. Row1: idle relaxed; idle breathing; idle weight shift; recoiling from hit. Row2: kneeling defeat; seated defeated; WALK near leg forward heel contact far leg behind; WALK far leg passing forward under hips. Row3: WALK far leg forward heel contact with NEAR leg extending BACK LEFT (opposite legs from row2column3); WALK near leg passing while far foot planted; jump up knees bent; landing knees slightly bent. Walk must alternate both legs visibly; opposite arm swing. Entire feet inside cells, generous spacing. Completely transparent background alpha ZERO between ALL figures, no gradient no glow no haze, no text or labels, no floor. Preserve clear dark outlines."
+    },
+    {
+      "name": "blonde-b-v2",
+      "look": "Create a clearly DIFFERENT adult woman: platinum blonde high ponytail with bangs, a different slightly rounder face, burgundy short-sleeved T-shirt, charcoal jeans, black ankle boots. Keep her fully clothed, casual and modest.",
+      "prompt": "Production arcade NPC sprite sheet. Use reference for outlined cel-shaded game art style. Create a clearly DIFFERENT adult woman: platinum blonde high ponytail with bangs, a different slightly rounder face, burgundy short-sleeved T-shirt, charcoal jeans, black ankle boots. Keep her fully clothed, casual and modest. Exactly FOUR columns THREE rows, 12 isolated full-body sprites, equal cells, consistent character scale, all face RIGHT. Row1: idle relaxed; idle breathing; idle weight shift; recoiling from hit. Row2: kneeling defeat; seated defeated; WALK near leg forward heel contact far leg behind; WALK far leg passing forward under hips. Row3: WALK far leg forward heel contact with NEAR leg extending BACK LEFT (opposite legs from row2column3); WALK near leg passing while far foot planted; jump up knees bent; landing knees slightly bent. Walk must alternate both legs visibly; opposite arm swing. Entire feet inside cells, generous spacing. Completely transparent background alpha ZERO between ALL figures, no gradient no glow no haze, no text or labels, no floor. Preserve clear dark outlines."
+    },
+    {
+      "name": "blonde-b-v2-clean",
+      "refs": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/eide/blonde-b-v2.png"
+      ],
+      "prompt": "Remove ALL background from this 12 sprite sheet. Absolutely transparent alpha=0 in every corner, between all figures and all spaces between limbs. Remove brown and black gradients entirely. Preserve every sprite exactly unchanged with full dark outline, same layout. No glow, no haze, no background."
+    },
+    {
+      "name": "blonde-opposite-v2",
+      "refs": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/biel/walk-opposite-v2.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/eide/blonde-a-v2.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/eide/blonde-b-v2.png"
+      ],
+      "prompt": "Create FOUR adult female walking sprites, exact 2columns2rows. Copy EXACT leg poses and overlap from reference1 Biel opposite-foot walk: NEAR leg extends BACK LEFT and FAR leg planted AHEAD RIGHT. Right column NEAR knee backLEFT foot lifted BEHIND, far foot plantedright. Top row woman from reference2 blue blouse golden shoulder-length hair jeans white sneakers. Bottom row woman from reference3 burgundy tee high blonde ponytail charcoal jeans blackboots. Same women faces/clothes/style as respective refs. Arms naturally swing while walking, no fighting guard. Crucial use Biel reference1 LEG POSES not women's source legs. Foreground trouser seam from NEAR hip connects to shoe BEHIND ON LEFT. Full body allfeet included generous cell spacing. Truly completely transparent background alpha zero no halo no glow no gradient no floor no text."
+    },
+    {
+      "name": "blonde-a-opposite",
+      "prompt": "Edit reference1 Biel sheet into the blonde woman from reference2. Keep all FOUR exact leg poses and their crossing overlap from reference1 unchanged. Replace every man with SAME adult blonde woman wearing pale blue blouse rolled sleeves blue jeans white sneakers with shoulder length golden blonde hair from reference2. Female natural body, relaxed swinging arms. 2x2 layout, both rows repeat same two poses. LEFT COLUMN near foreground leg from near left hip extends down LEFT behind body; far leg stands ahead RIGHT. RIGHT COLUMN foreground near thigh slopes left, knee is LEFT of planted far knee and near heel lifted BACK LEFT. This exact anatomy is already correct in ref1; preserve it. Do not copy woman's original leg pose. Full body, transparent alpha0 background, no text no glow no haze, crisp arcade pixel-edged style."
+    },
+    {
+      "name": "blonde-a-opposite-final",
+      "prompt": "Edit ONLY arms in these 4 walking sprites. Lower BOTH arms into natural relaxed walking swing with open relaxed hands, one arm forward slightly and one behind. No fists raised, no fighting stance. Keep ALL LEG POSES AND OVERLAPS EXACTLY UNCHANGED. Same face blonde hair blue blouse jeans sneakers same 2x2 layout and true transparent alpha0 background. Preserve every pixel of legs; foreground near leg remains behind left exactly as shown. No background."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "tool": "built-in imagegen",
+  "assets": [
+    "menu-skin-2-black-v3.png",
+    "fighter-skin-2-black-v3.png"
+  ],
+  "menu": "Clothing and eyewear edit ONLY to image 1. Preserve EXACT same Caio face, head shape, haircut with shaved stripe, mustache/goatee, body build, skin tone, pose, fists, arm tattoo, camera, framing, gold chain, dark pants and white sneakers where visible. Replace teal T-shirt with a plain OVERSIZED BLACK heavyweight cotton T-shirt: dropped shoulders, loose boxy drape, roomy sleeves approaching elbow, naturally hanging hem. Add the sunglasses worn in image 2: thick matte-black rounded rectangular/wrap-style frame, dark reflective lenses, small red accents on temples. Fit glasses naturally to same face angle; do not copy photo pose or change identity. Preserve original sharp semi-realistic fighting-game portrait style and lighting. Genuine transparent alpha background, same dimensions. No headdress, beads, feathers or Indigenous costume. No text.",
+  "fighter": "Clothing and eyewear edit ONLY to image 1. Preserve EXACT same Caio face, head shape, haircut with shaved stripe, mustache/goatee, body build, skin tone, pose, fists, arm tattoo, camera, framing, gold chain, dark pants and white sneakers where visible. Replace teal T-shirt with a plain OVERSIZED BLACK heavyweight cotton T-shirt: dropped shoulders, loose boxy drape, roomy sleeves approaching elbow, naturally hanging hem. Add the sunglasses worn in image 2: thick matte-black rounded rectangular/wrap-style frame, dark reflective lenses, small red accents on temples. Fit glasses naturally to same face angle; do not copy photo pose or change identity. Preserve original crisp detailed 2D pixel-art sprite style, full body hair to shoes and lighting. Genuine transparent alpha background, same dimensions. No headdress, beads, feathers or Indigenous costume. No text."
+}

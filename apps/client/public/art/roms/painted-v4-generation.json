@@ -1,0 +1,8 @@
+{
+  "tool": "built-in image_gen",
+  "files": [
+    "portrait-painted-1-v4.png",
+    "portrait-painted-2-v4.png"
+  ],
+  "prompt": "Reverse only the axe metal head around the shaft mount: broad silver cutting edge faces image left toward opponent, pointed poll right. Preserve character, pose, both hands, shaft angle, outfits, style and transparent alpha."
+}

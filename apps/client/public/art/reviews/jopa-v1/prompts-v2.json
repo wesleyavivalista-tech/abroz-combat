@@ -1,0 +1,25 @@
+{
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "name": "portrait-1-v2.png",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-f9c8a61d-7c0f-4bb3-9bd7-e9a4de618773.png",
+      "prompt": "Create a fresh full-body fighting game portrait of the SPECIFIC adult man in photos 1-4, Jopa. Likeness is the highest priority: closely reproduce his actual face, not a generic handsome hero. Photo1 gym selfie is primary frontal identity; photo2 wedding is sharp facial structure/hair reference; photo3 pool selfie man on right provides nose/lips/jaw; photo4 peach-shirt smile corroborates identity. Oval slightly long face, soft tapered jaw and rounded chin, full natural lips with prominent lower lip, relaxed almond-shaped dark eyes with heavy upper eyelids, straight dark eyebrows, natural broad rounded nose tip. Short dark hair lies relatively flat and side-swept with small curved fringe on forehead, short sides; NOT tall curled quiff. Very faint chin stubble only, no beard. Natural light-medium warm skin, no exaggerated cheekbones or square jaw. Mild closed-mouth confident expression so facial structure remains accurate. Slim normal athletic body, narrow natural neck, 1.76m, not bulky. Full body in relaxed fighting guard, both fists raised, turned slightly right with face mostly toward viewer, shoes entirely visible. White crewneck short-sleeve T-shirt with tiny dark chest tag and beige above-knee shorts, white low-top sneakers. Art style is polished realistically painted game portrait like reference5 Bozo, orange and blue rim light, clean high-quality surfaces. Reference5 is STYLE ONLY, not identity or proportions; no beard/glasses/powers copied. Genuinely transparent background. No scenery, text, props, no repetitive geometric skin texture. New image based on real photos, not previous rejected illustration."
+    },
+    {
+      "name": "portrait-2-v2.png",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-3b8f721d-9b1f-477d-9d34-027a4c1802e4.png",
+      "prompt": "Edit image1 to make Jopa's second skin. Keep EXACT same identity, face, eyes, nose, lips, faint chin stubble, short flatter dark hair with curved fringe, neutral expression, lean body, pose, framing and lighting. Change ONLY white tee to Santos black-and-white vertical striped jersey matching image2 (yellow collar detail, patterned white sleeve trim, club crest, yellow Umbro logo), and beige shorts to plain black football shorts. Keep white sneakers. Genuine transparent background. Same realistic illustrated game portrait. No facial changes, no broad grin, no hair quiff."
+    },
+    {
+      "name": "model-1-v2.png",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-0f6bd150-230a-4a04-ac47-196757440627.png",
+      "prompt": "Create a single full-body Jopa game sprite. Image1 is corrected identity and outfit portrait. Image2 real gym selfie is primary FACE reference. Image3 Gut atlas is sprite ART STYLE ONLY. Match Jopa's distinctive oval slightly long face, relaxed heavy-lidded eyes, straight eyebrows, rounded nose, full lips, soft tapered jaw, small chin, faint chin stubble, short flat side-swept dark hair with curved forehead fringe. Neutral calm expression, NOT broad grin. Normal lean build/narrow neck. White crewneck tee with tiny dark chest tag, beige above-knee shorts, white low-top sneakers, 1.76m. Standing three-quarter side view facing right, fists guarding chin/chest, knees gently bent, feet apart and both fully visible. Gut-style detailed 2D arcade sprite, dark crisp outlines, shaded pixel clusters, grounded human proportions. Not chibi, not bulky, not 3D. One character one pose with transparent margins. Genuine transparent background. No text/props. Prioritize recognizable real person's face even at sprite size."
+    },
+    {
+      "name": "model-2-v2.png",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-26feadc9-04d5-4991-8f0c-c6109b95a41f.png",
+      "prompt": "Edit image1 Jopa fighter sprite into the Santos alternate outfit from image2. Change only clothing: black/white vertically striped Santos jersey with yellow collar accent, small crest and patterned white sleeve edging; black football shorts. Preserve white sneakers. EXACTLY preserve image1 face and body, relaxed eyelids, full lips, oval tapered jaw, short flatter side-swept hair with curved fringe, faint chin stubble, neutral expression, lean proportions, two-fist guard stance, crisp detailed arcade pixel-art style, same framing and scale. No broad grin. Single full body character on genuinely transparent background. No scenery/text/props."
+    }
+  ]
+}

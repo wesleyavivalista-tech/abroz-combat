@@ -1,0 +1,72 @@
+AUDIT FIX FOLLOW-UP — 2026-09-30
+
+All 12 numbered findings in GAME-AUDIT-2026-09-30.txt are addressed.
+The original report/evidence/probe describe the pre-fix snapshot; the original
+reproduction script deliberately asserts some old failures and is historical.
+Use tests/audit-20260930-fixes.test.ts and audits/verify-fixes-2026-09-30.ts now.
+
+EXACT CHANGES
+H1: Jopa strike now consults consecutiveHitstun for escape immunity and stance/grab
+    armor. Eligible hits keep their configured full stun durations; a shorter hit
+    does not shorten an existing longer stun. Shared reactions clear the private
+    chess stun clock so it cannot undo a later escape/reaction. No damage values changed.
+H2: Gym Bro uses mount/tree-aware invulnerability when selecting a target and while
+    approaching it. Protection acquired during startup releases the reservation.
+H3: Jopa projectiles use structureSurfaces for contact geometry and damageStructure
+    for destruction, including existing house collapse effects. Ricochet and existing
+    friendly structure damage eligibility are preserved. No collapse damage changed.
+H4: Default server allowlist explicitly includes localhost/127.0.0.1 port 5174 as
+    well as 5173. Vite strictPort prevents future silent drift to another port.
+    Explicit ALLOWED_ORIGINS remains authoritative. Unrelated origins remain rejected.
+H5: controlJopa rejects companion-origin rider commands; only the seat's own Fighter
+    can mount. Mount eligibility also excludes an active grapple/trap.
+M1: Defeat clears jopaStunUntil. Timer processing ignores inactive actors and stops
+    owning reactions once a grapple/trap/other state takes over.
+M2: Tentacle gravity and landing run independently of AI target availability.
+    Existing movement -> gravity -> attack ordering is preserved when a target exists.
+M3: Fire and blood ground-dependent updates receive the same effective support stage
+    as movement, including built roofs. Other base-stage abilities were not rewritten.
+M4: Rollback exposes a bounded hash-frame window. Client rejects out-of-window hashes
+    on receipt and evicts pending hashes as history advances. Expected near-future
+    hashes can still wait for confirmation; unavailable old hashes are not accepted
+    as proof of agreement.
+M5: Roster validation now requires a turret's shot move to contain a projectile.
+L1: In-game Jopa guide and primary ability documentation now state the 70-second
+    Crying Tree lifetime instead of promising no timeout.
+L2: Atlas validation rejects negative starts and ends beyond image dimensions.
+    The full-roster loader was exercised in the browser successfully after tightening.
+
+PRODUCTION FILES
+packages/game-core/simulation/JopaSystem.ts
+packages/game-core/simulation/JompSystem.ts
+packages/game-core/simulation/LifeSystem.ts
+packages/game-core/simulation/StructureSystem.ts
+packages/game-core/simulation/GameSimulation.ts
+packages/game-core/combat/HitstunSystem.ts
+packages/game-core/characters/registry.ts
+packages/networking/RollbackManager.ts
+packages/shared/simulationRevision.ts (generated compatibility revision)
+apps/server/src/index.ts
+apps/client/src/main.ts
+apps/client/src/rendering/AnimationContract.ts
+apps/client/src/ui/FighterGuide.ts
+apps/client/vite.config.ts
+docs/JOPA.md
+
+VALIDATION
+- Added 12 regression tests in tests/audit-20260930-fixes.test.ts.
+- Full existing + new test suite: 460 tests.
+- TypeScript, ESLint, client production build and server compilation checked.
+- Post-fix stress/replay: audits/fix-stress-2026-09-30.txt.
+- Full test output: audits/fix-tests-2026-09-30.txt.
+- Browser full-roster mounted preview loaded successfully, exercising all 13 fighter
+  loaders and the stricter atlas contract; no browser errors reported.
+- Actual room server: localhost:5173 accepted; localhost:5174 accepted;
+  https://unrelated.example rejected with HTTP 401.
+- Client build retains the pre-existing large-bundle warning; not a build failure.
+
+LIMITS / DEFERRED WORK
+Broader F1-F7 architectural recommendations remain guidance, not a broad refactor.
+No balance constants were adjusted. These fixes intentionally change only the faulty
+interaction/validation behavior described above. A fresh cross-engine replay matrix
+and GPU heap profiling were not performed.

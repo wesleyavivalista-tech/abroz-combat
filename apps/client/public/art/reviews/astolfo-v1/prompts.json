@@ -1,0 +1,33 @@
+{
+  "mode": "built-in imagegen",
+  "jobs": [
+    {
+      "key": "astPortrait",
+      "prompt": "Use case: stylized-concept. Create Astolfo's full-body fighting game menu portrait. Images 1 and 2 are identity/outfit references, image 3 is ONLY rendering/lighting style (Bozo). Match the real man closely: short 1.60m proportions, naturally stocky ordinary build with slight belly, not muscular; receding short dark hair with pronounced widow's peak, rounded face, full neatly trimmed dark beard, brown eyes, thin rectangular metal glasses. Young adult, natural smooth skin without invented wrinkles. Skin 1: charcoal gray suit jacket and matching formal dark trousers, white shirt, silver gray tie, black leather dress shoes. Relaxed confident fighting-ready stance, both closed fists visible near chest, slight three-quarter turn facing right; approachable confident expression. Head to shoes completely visible, centered, no text, no props. Polished realistic 3D fighting-game key art matching Bozo with orange left and blue right rim light, clean natural fabric shading, no weird swirls or engraved texture. Transparent background. Do NOT copy Bozo's body, hair, beard tentacles or clothing.",
+      "refs": [
+        "/Users/nicol/Desktop/Abroz fight/Astolfo/Screenshot 2026-09-29 at 15.12.45.png",
+        "/Users/nicol/Desktop/Abroz fight/Astolfo/Screenshot 2026-09-29 at 15.14.39.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-1-hair-v2.png"
+      ]
+    },
+    {
+      "key": "astModel",
+      "prompt": "Use case: stylized-concept. Create a SINGLE full-body idle fighter sprite of Astolfo, facing right in three-quarter side view, both closed fists raised in a relaxed fighting guard, feet separated with BOTH legs clearly visible. Image 1 is the exact target pixel-art model style from Gut's game sprite sheet: crisp dark outline, hand-pixelled shaded forms, readable compact fighter sprite, not photorealism. Images 2 and 3 are Astolfo's identity and outfit. Astolfo is 1.60m, short naturally stocky build, slight belly, ordinary arms, not muscular. Receding short black hair with widow's peak, dark trimmed full beard, thin rectangular glasses, rounded friendly face. Charcoal gray suit, white shirt, silver gray tie, matching dark suit trousers and black leather dress shoes. One isolated figure, no sheet, no extra frames, no floor or shadow, transparent background. Preserve likeness and short proportions. Full body with margin around all edges.",
+      "refs": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/gut/atlas-1.png",
+        "/Users/nicol/Desktop/Abroz fight/Astolfo/Screenshot 2026-09-29 at 15.12.45.png",
+        "/Users/nicol/Desktop/Abroz fight/Astolfo/Screenshot 2026-09-29 at 15.14.39.png"
+      ]
+    },
+    {
+      "key": "astPortrait2",
+      "source": "astPortrait",
+      "prompt": "Use case: identity-preserve. Image 1 is the edit target; image 2 is outfit reference only. Make Astolfo skin 2 by changing ONLY clothing: pale ice-blue long-sleeved button-up shirt, untucked hem, light beige slim straight trousers, black leather shoes, as in reference 2. Preserve EXACT same face, beard, receding short hair, thin glasses, expression, head, stocky normal body, both closed fists, pose, full-body framing and clean realistic Bozo-style lighting of image 1. No suit jacket, no tie. Natural clean cloth shading, no swirling patterns, no invented skin wrinkles. Transparent background."
+    },
+    {
+      "key": "astModel2",
+      "source": "astModel",
+      "prompt": "Use case: identity-preserve. Image 1 is edit target and exact pixel-art style. Image 2 is outfit reference. Change ONLY the sprite's clothes into pale blue long-sleeved button-up shirt untucked, light beige trousers and black shoes. Keep identical head, dark receding hair, beard, rectangular glasses, short stocky proportions, closed fists fighting stance, feet spacing, outline and pixel-art shading. Single complete full body figure facing right, transparent background, identical framing. No suit jacket or tie. Both legs clearly separated."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "tool": "built-in image_gen",
+  "outputs": {
+    "portrait-painted-1-v2.png": "f636dba3-bb25-4c1a-b86c-2d8adb590a9e",
+    "portrait-painted-2-v2.png": "c6389a87-b205-4b05-84b7-b62ee20f9167",
+    "victory-painted-v2.png": "61ea2e18-e251-46a5-ba92-159c6f2806a1"
+  },
+  "prompt": "Restyle existing Roms portraits using /Users/nicol/Desktop/reference.png as Tocha painterly style reference. Preserve identity, slim build, glasses, outfits, poses and expressions. Firefighter and victory clean shaven; hoodie moustache and goatee. Broad paint planes, restrained texture, simplified folds and transparent alpha background."
+}

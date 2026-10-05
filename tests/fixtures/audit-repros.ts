@@ -1,0 +1,24 @@
+/** Read-only state fixtures for the September 25 audit; not balance assertions. */
+import {GameSimulation} from '../../packages/game-core/simulation/GameSimulation.js';
+import {RollbackManager} from '../../packages/networking/RollbackManager.js';
+import {advanceContinuousAttacks} from '../../packages/game-core/simulation/ContinuousAttackSystem.js';
+import {characters} from '../../packages/game-core/characters/registry.js';
+const stale=new GameSimulation(['roms','gut'],true);
+stale.state.frame=100;
+Object.assign(stale.state.fighters[0],{move:'spin',moveFrame:20,state:'SpecialMove',actionUntil:105});
+stale.hit(1,characters.gut.moves.palm,0,false,0);
+Object.assign(stale.state.fighters[0],{stun:0,move:'water',moveFrame:0,state:'SpecialMove'});stale.state.hitstop=0;
+for(let i=0;i<5;i++)stale.step([0,0]);
+console.log('H1: old spin deadline advances new water startup to',stale.state.fighters[0].moveFrame,'(water startup:',characters.roms.moves.water.startupFrames,')');
+const spin=new GameSimulation(['roms','roms'],true);spin.state.frame=20;
+spin.state.fighters.forEach((f,i)=>Object.assign(f,{x:1000+i*100,move:'spin',moveFrame:16,state:'SpecialMove'}));
+advanceContinuousAttacks(spin.state);
+console.log('H2: simultaneous spins:',spin.state.fighters.map(f=>({health:f.health,move:f.move})));
+const down=new GameSimulation(['roms','gut'],true);down.state.frame=20;
+Object.assign(down.state.fighters[0],{x:1000,move:'spin',moveFrame:16});Object.assign(down.state.fighters[1],{x:1100,state:'GetUp'});
+console.log('H3: ordinary hit accepts GetUp:',down.hurts(down.state.fighters[1],{x:1000,y:0,w:200,h:200}));advanceContinuousAttacks(down.state);
+console.log('H3: spin changes GetUp to',down.state.fighters[1].state,'health',down.state.fighters[1].health);
+const peer=new RollbackManager(new GameSimulation(),0);peer.simulation.state.frame=200;
+peer.receive(0,0,1);const frame=peer.simulation.state.frame;
+peer.confirmed=200;
+console.log('C1: failed rollback',peer.desync,'tick advances:',peer.tick(),'frame change:',peer.simulation.state.frame-frame);

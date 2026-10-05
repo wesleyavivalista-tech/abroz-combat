@@ -1,0 +1,11 @@
+{
+  "mode": "built-in imagegen",
+  "prompts": [
+    "Use case: identity-preserve. Completely repaint this character as clean high-end 3D fighting game promotional art on a TRANSPARENT background. Match the person's face, short silver hair and beard, slim average body with narrow neck, full body framing, both raised closed fists, black suit white shirt navy tie black shoes and silver watch. Keep pose and orange left / blue right rim lighting. Rebuild ALL surface shading from scratch: flawless plain matte black cloth with simple broad folds, natural smooth skin, realistic hair strands. The source has a severe swirly texture artifact over every surface: absolutely DO NOT copy its texture or brush strokes. No engraving, marbling, stippling, embossed patterns, noise, or oily paint. No props, no origami. Clean digital realism like a polished game character render. Remove the background and all background glow; retain only rim lighting on the figure. Genuine alpha transparency.",
+    "Use case: identity-preserve. Edit only the clothes of this exact character portrait into skin 2: oversized plain matte black T-shirt with loose sleeves to elbows, plain smooth blue jeans with NO patterns and white sneakers. Keep exact same face, hair, beard, expression, slim-average body, fists, pose, watch, camera, framing and lighting. Smooth clean game promotional 3D rendering with broad simple fabric folds. Natural smooth skin, no wavy or swirling surface texture. Plain cotton, plain denim. No origami or other props. Transparent background."
+  ],
+  "outputs": [
+    "portrait-clean-1-v2.png",
+    "portrait-clean-2-v2.png"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "status": "approved",
+  "date": "2026-09-25",
+  "skins": [
+    {
+      "id": 1,
+      "name": "Leaf-print shirt",
+      "portrait": "skin-1-menu.png",
+      "model": "skin-1-model.png"
+    },
+    {
+      "id": 2,
+      "name": "Black T-shirt",
+      "portrait": "skin-2-menu.png",
+      "model": "skin-2-model.png"
+    }
+  ],
+  "sourceAssets": {
+    "skin-1-menu.png": "menu-leaf-upright-v12.png",
+    "skin-1-model.png": "model-skin-2-leaf.png",
+    "skin-2-menu.png": "menu-black-matched-v15.png",
+    "skin-2-model.png": "model-skin-1-shorts.png"
+  }
+}

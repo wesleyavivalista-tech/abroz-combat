@@ -1,0 +1,9 @@
+Mode: built-in imagegen edit; transparent_background=true.
+Edit target: portrait-tone-off-duty-v9.png
+Facial hair references: user supplied Roms photos dated 2026-09-23 at 16.57.35 and 18.03.02.
+Output: portrait-off-duty-beard-v10.png
+
+Use case: precise-object-edit. Image 1 is the EDIT TARGET: full-body painted Roms off-duty game portrait. Images 2 and 3 are FACIAL HAIR REFERENCES ONLY. Add his reference facial hair to image 1: clearly visible dark trimmed mustache above upper lip, small dark soul patch immediately below lower lip, short dark goatee around chin extending modestly along lower jaw, light sparse stubble on cheeks. Match reference shape and density, adapted to target head angle. Render the new facial hair using same broad angular painterly brushwork as target, not photographic individual hairs. Preserve EXACT existing face likeness and expression, clear black rectangular eyeglasses (NOT sunglasses), haircut, warm peach/copper skin color, strong saturation and contrast, lighting, hoodie, jeans, shoes, bare hands, axe, stance, orientation, scale, full-body framing. Only facial hair changes. Output one full-body portrait at target 1024x1536 composition with genuine transparent alpha background; no background glow or scenery. Keep all body parts and axe intact.
+
+Refinement:
+Edit target image 1 only. Make the chin beard clearly match photo reference 2: a short DARK goatee covering the front and underside of chin, small dark soul patch below lower lip, and a narrow dark trimmed beard along bottom of jaw. Current chin is too faint/clean shaven. Keep the existing dark mustache. No full cheek beard. Use angular painterly brush shapes, not realistic fine hair. Preserve all other pixels/composition as closely as possible: warm skin, clear glasses, facial identity, expression, hoodie, axe, jeans, pose and framing unchanged. Maintain genuine transparent alpha, no background. Full body.

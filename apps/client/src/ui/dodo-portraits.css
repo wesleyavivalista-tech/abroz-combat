@@ -1,0 +1,65 @@
+/* Preserve the approved portrait pixels; generated cutouts supply alpha only. */
+img[src$="/art/dodo/victory-playing-v5.png"] {
+  mask-image: url('/art/dodo/victory-playing-mask-v5.png');
+  mask-mode: alpha;
+  mask-size: contain;
+  mask-position: center bottom;
+  mask-repeat: no-repeat;
+}
+.portraits img[src$="/art/dodo/victory-playing-v5.png"] { mask-position: center; }
+img[src$="/art/dodo/portrait-approved-leaf-v5.png"] { --dodo-mask: url('/art/dodo/portrait-leaf-mask-v5.png'); }
+img[src$="/art/dodo/portrait-approved-black-v5.png"] { --dodo-mask: url('/art/dodo/portrait-black-mask-v5.png'); }
+img[src*="/art/dodo/portrait-approved-"][src$="-v5.png"] {
+  mask-image: var(--dodo-mask);
+  mask-mode: alpha;
+  mask-size: cover;
+  mask-position: 50% 0;
+  mask-repeat: no-repeat;
+}
+.ac-faceoff-art[src*="portrait-approved-"][src$="-v5.png"],
+.fg-portrait img[src*="portrait-approved-"][src$="-v5.png"],
+.ac-home-cast img[src*="portrait-approved-"][src$="-v5.png"],
+.portraits img[src*="portrait-approved-"][src$="-v5.png"] { mask-size: contain; }
+.portraits img[src*="portrait-approved-"][src$="-v5.png"] { mask-position: center; }
+.hud-portrait[src*="portrait-approved-"][src$="-v5.png"] { mask-position: 50% 20%; }
+
+img[src$="/art/jomp/portrait-1.png"] {mask-image:url('/art/jomp/portrait-1-mask.png');mask-mode:alpha;mask-size:cover;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-faceoff-art[src$="/art/jomp/portrait-1.png"],.fg-portrait img[src$="/art/jomp/portrait-1.png"],.ac-home-cast img[src$="/art/jomp/portrait-1.png"] {mask-size:contain;}
+.hud-portrait[src$="/art/jomp/portrait-1.png"] {mask-position:50% 20%;}
+
+img[src$="/art/jomp/portrait-2.png"] {mask-image:url('/art/jomp/portrait-2-mask.png');mask-mode:alpha;mask-size:cover;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-faceoff-art[src$="/art/jomp/portrait-2.png"],.fg-portrait img[src$="/art/jomp/portrait-2.png"],.ac-home-cast img[src$="/art/jomp/portrait-2.png"] {mask-size:contain;}
+.hud-portrait[src$="/art/jomp/portrait-2.png"] {mask-position:50% 20%;}
+
+img[src$="/art/jomp/portrait-bozo-style-v2.png"],.ac-home-cast img[src$="/art/jomp/portrait-bozo-style-v2.png"] {mask-image:url('/art/jomp/portrait-bozo-style-mask-v2.png');mask-mode:luminance;mask-size:cover;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-faceoff-art[src$="/art/jomp/portrait-bozo-style-v2.png"],.fg-portrait img[src$="/art/jomp/portrait-bozo-style-v2.png"],.ac-home-cast img[src$="/art/jomp/portrait-bozo-style-v2.png"] {mask-size:contain;}
+.hud-portrait[src$="/art/jomp/portrait-bozo-style-v2.png"] {mask-position:50% 20%;}
+
+img[src$="/art/jomp/portrait-charcoal-v2.png"],.ac-home-cast img[src$="/art/jomp/portrait-charcoal-v2.png"] {mask-image:url('/art/jomp/portrait-charcoal-mask-v2.png');mask-mode:luminance;mask-size:cover;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-faceoff-art[src$="/art/jomp/portrait-charcoal-v2.png"],.fg-portrait img[src$="/art/jomp/portrait-charcoal-v2.png"],.ac-home-cast img[src$="/art/jomp/portrait-charcoal-v2.png"] {mask-size:contain;}
+.hud-portrait[src$="/art/jomp/portrait-charcoal-v2.png"] {mask-position:50% 20%;}
+
+img[src$="/art/luizinho/portrait-bozo-1-v3.png"],.ac-home-cast img[src$="/art/luizinho/portrait-bozo-1-v3.png"] {mask-image:url("/art/luizinho/portrait-bozo-1-mask-v3.png");mask-mode:luminance;mask-size:cover;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-faceoff-art[src$="/portrait-bozo-1-v3.png"],.fg-portrait img[src$="/portrait-bozo-1-v3.png"],.ac-home-cast img[src$="/portrait-bozo-1-v3.png"] {mask-size:contain;}
+.hud-portrait[src$="/portrait-bozo-1-v3.png"] {mask-position:50% 20%;}
+
+img[src$="/art/luizinho/portrait-bozo-2-v3.png"],.ac-home-cast img[src$="/art/luizinho/portrait-bozo-2-v3.png"] {mask-image:url("/art/luizinho/portrait-bozo-2-mask-v3.png");mask-mode:luminance;mask-size:cover;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-faceoff-art[src$="/portrait-bozo-2-v3.png"],.fg-portrait img[src$="/portrait-bozo-2-v3.png"],.ac-home-cast img[src$="/portrait-bozo-2-v3.png"] {mask-size:contain;}
+.hud-portrait[src$="/portrait-bozo-2-v3.png"] {mask-position:50% 20%;}
+
+img[src$="/art/caio/portrait-bozo-1-v3.png"] {mask-image:url("/art/caio/portrait-bozo-1-mask-v3.png");mask-mode:luminance;mask-size:cover;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-faceoff-art[src$="/portrait-bozo-1-v3.png"],.fg-portrait img[src$="/portrait-bozo-1-v3.png"],.ac-home-cast img[src$="/portrait-bozo-1-v3.png"] {mask-size:contain;}
+.hud-portrait[src$="/portrait-bozo-1-v3.png"] {mask-position:50% 20%;}
+
+img[src$="/art/caio/portrait-bozo-2-v3.png"] {mask-image:url("/art/caio/portrait-bozo-2-mask-v3.png");mask-mode:luminance;mask-size:cover;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-faceoff-art[src$="/portrait-bozo-2-v3.png"],.fg-portrait img[src$="/portrait-bozo-2-v3.png"],.ac-home-cast img[src$="/portrait-bozo-2-v3.png"] {mask-size:contain;}
+.hud-portrait[src$="/portrait-bozo-2-v3.png"] {mask-position:50% 20%;}
+
+/* Preserve Astolfo's portrait artwork; remove only its baked-in studio backdrop. */
+img[src$="/art/astolfo/portrait-bozo-clean-1-v6.png"] {--astolfo-mask:url('/art/astolfo/portrait-bozo-clean-1-mask-v6.png');}
+img[src$="/art/astolfo/portrait-bozo-clean-2-v6.png"] {--astolfo-mask:url('/art/astolfo/portrait-bozo-clean-2-mask-v6.png');}
+img[src*="/art/astolfo/portrait-bozo-clean-"] {mask-image:var(--astolfo-mask);mask-mode:luminance;mask-size:cover;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-faceoff-art[src*="/art/astolfo/portrait-bozo-clean-"],.fg-portrait img[src*="/art/astolfo/portrait-bozo-clean-"],.ac-home-cast img[src*="/art/astolfo/portrait-bozo-clean-"] {mask-image:var(--astolfo-mask);mask-size:contain;}
+.hud-portrait[src*="/art/astolfo/portrait-bozo-clean-"] {mask-position:50% 20%;}
+.ac-home-cast img[src$="/art/biel/portrait-1.png"] {mask-image:url('/art/biel/portrait-1-mask.png');mask-mode:luminance;mask-size:contain;mask-position:50% 0;mask-repeat:no-repeat;}
+.ac-home-cast img[src$="/art/biel/portrait-2.png"] {mask-image:url('/art/biel/portrait-2-mask.png');mask-mode:luminance;mask-size:contain;mask-position:50% 0;mask-repeat:no-repeat;}

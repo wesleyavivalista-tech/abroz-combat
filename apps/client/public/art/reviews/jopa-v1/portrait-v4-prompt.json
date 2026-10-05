@@ -1,0 +1,5 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Precise clothing-only edit of the supplied approved Jopa portrait. Preserve EVERYTHING except shirt and shorts: exact identical face, eyes, nose, lips, hair, expression, head position, skin tone, arms, hands, guard pose, legs, body proportions, white sneakers, lighting, framing and art style. Replace the Santos striped jersey with a plain white short-sleeve crewneck T-shirt with a tiny dark rectangular tag on the chest. Replace black shorts with light beige casual shorts of the same length and silhouette. No other changes. Do not redraw or reinterpret the face. Preserve transparent background and existing edge lighting. This must be the SAME picture with different clothes.",
+  "approvedSantosSource": "exec-a955980b-750e-4ae3-b264-c3e5a57fae2e.png"
+}

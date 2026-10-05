@@ -1,0 +1,11 @@
+# Fighting stance portrait revision
+
+Built-in image generation tool. Current portraits: menu-skin-1-fight-v5.png and menu-skin-2-fight-v5.png.
+
+## White polo
+
+Create a fresh Abroz Combat fighting-game character-select portrait of Luizinho. Input1 is the game's ORIGINAL Luizinho portrait: match its fighting stance, cinematic illustrated realism, orange viewer-left and blue viewer-right edge lighting, head-to-knee framing and facial identity. Inputs2-3 are original photos for accurate likeness. Crucial composition: READY TO FIGHT, three-quarter torso turned toward screen right, knees visibly bent and feet implied apart, weight forward, serious confident expression, one clenched fist raised beside chin in boxing guard. OTHER hand grips a partly rolled blue architectural blueprint with thin white floorplan lines, held diagonally across lower torso like an architect carrying plans; compact paper so it does not cover face or fighting posture. This is an action fighter portrait, not a salesman standing straight displaying a poster. White short-sleeve polo with pocket, blue jeans. Same short receding dark hair, black rectangular prescription glasses, full dark beard and natural slightly stocky physique as photos. Clean high-quality rendering like other roster portraits: natural smooth cotton and skin, no crunchy embossed textures or patterned noise. Single person, transparent alpha background, no glow/gradient/haze outside silhouette, lighting highlights only ON figure and blueprint. No text, labels or other props.
+
+## Black shirt
+
+Edit ONLY clothes in this Luizinho fighting-game portrait: replace white polo with black long-sleeved dress shirt, open collar, sleeves at wrists; blue jeans become dark charcoal jeans. Preserve EXACT face, glasses, beard, hair, ready-to-fight stance, serious expression, raised fist at chin, other hand gripping rolled blueprint, body build, orange left and blue right lighting, composition and framing. Match original clean natural skin and fabric rendering, no extra textures, no rough embossed/wormlike patterns. Actual transparent background outside character and blueprint: no atmospheric glow or gradients outside silhouette; retain vivid orange and blue highlights ON figure. One person, no text. Do not change anything else.

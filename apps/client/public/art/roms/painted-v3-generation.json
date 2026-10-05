@@ -1,0 +1,8 @@
+{
+  "tool": "built-in image_gen",
+  "files": [
+    "portrait-painted-1-v3.png",
+    "portrait-painted-2-v3.png"
+  ],
+  "prompt": "Preserve Roms identity, outfits and painterly style. Replace neutral axe hold with a threatening two-handed raised diagonal axe grip, ready to chop; bent knees, wide planted stance, closed-mouth serious confidence. Transparent full body portrait."
+}

@@ -1,0 +1,16 @@
+gymTargetsProtectedTreeOwner 0
+deadBefore KO 0
+deadAfter Idle 0
+immuneChessHit 119 121 1000
+mountedGrappled 0 330 Grappled
+stressFrames 30000
+footballHouseCollapse collapsed victimDamage 0
+tentacleWithoutTarget 100 -5
+fireTrailOnWallRoof 0
+sixPeerDelayedReplay 5a2066b1
+companionInputMountsOwner 0
+invalidTurretDefinitionAcceptedThenThrows true
+partialAtlasOverflowAccepted true
+
+Separate actual localhost server handshake check: Origin http://localhost:5173 accepted; Origin http://localhost:5174 HTTP 401.
+Validation: 448/448 existing tests; TypeScript and whole-project ESLint passed.

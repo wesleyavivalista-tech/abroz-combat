@@ -1,0 +1,336 @@
+GAME CODEBASE AUDIT — 4 October 2026
+====================================
+Audit first; only confirmed CRITICAL defects are authorized for fixes in this pass.
+The findings below were recorded before changing production code.
+
+Scope and evidence
+------------------
+Reviewed the simulation orchestrator; every character-specific simulation system;
+shared movement, damage, contact, grapple, stun, projectile, status and structure
+systems; fighter definitions and validation; life, tournament and elimination
+transitions; rollback/history/hash handling; room/championship transport and
+timeouts; client loading/navigation/input and frame loop; rendering pools,
+interpolation, asset ownership, audio lifecycle and existing regression coverage.
+This is a code/test audit, not a claim that every visual asset was inspected.
+
+Baseline: 690 tests, 684 passed, 6 failed. Added an all-roster replay/invariant test:
+256 ordered fighter pairings, 240 forward frames plus a 120-frame replay each.
+All 256 passed finite-state and exact same-runtime snapshot replay checks.
+This does not prove cross-browser floating-point equivalence, exhaust every
+ability interaction, or replace long multiplayer soak tests on real devices.
+
+Findings: 1 CRITICAL, 1 HIGH, 6 MEDIUM, 2 LOW.
+Locations below are repository-relative paths and named functions, which remain
+usable after edits. Reproductions using state setup isolate reachable conditions;
+they are not claims that every issue was manually reproduced through the UI.
+
+CRITICAL
+========
+C1 — Bozo clone-growth renderer crashes in player slots 7 and 8
+Problem: a valid 7/8-player match can stop rendering and advancing entirely.
+Where: apps/client/src/rendering/HairCloneGrowth.ts, bundles field and update(),
+       indexing this.bundles[owner*3+i]; apps/client/src/main.ts, loop().
+Reproduce: start a 7- or 8-player FFA, put Bozo in slot 7 or 8, obtain full energy,
+           activate his clone super. At growth frame 4 onward the renderer throws.
+           Headless reproduction with slot 7 at move='clones', moveFrame=5 gives
+           TypeError: Cannot set properties of undefined (setting 'visible').
+Cause: only 18 strand bundles exist (6 players × 3), while gameplay permits 8.
+       The exception escapes rendering before requestAnimationFrame(loop) runs.
+       Online peers can subsequently stall while waiting for the affected client.
+Safest fix: provision the three bundles for every supported seat, preserving
+            the existing animation math, indices, timing and companion gameplay.
+Regression risk: LOW. Six additional visual meshes; no simulation/network changes.
+                 Test all 2–8 roster sizes and all seats, including simultaneous
+                 casters and disappearance when interrupted.
+Status at audit completion: confirmed, queued for the critical-only fix below.
+
+HIGH
+====
+H1 — Nikalz shock/meteor waves bypass recovery and escape protection
+Problem: waves damage knocked-down/getting-up targets and force a full new stun
+         even when the shared anti-combo system grants escape immunity.
+Where: packages/game-core/simulation/NikalzSystem.ts, advanceNikalz() wave loop;
+       packages/game-core/combat/PeriodicHit.ts and HitstunSystem.ts.
+Reproduce: put an enemy inside a forehead wave with state GetUp or Knockdown.
+           It loses 125 health and becomes AirHitStun with stun=120. Give an Idle
+           enemy hitstunImmuneUntil=100 at frame 0: the same wave still sets 120
+           stun. These outcomes were reproduced directly. Repeated wave contacts
+           can therefore defeat the intended escape protection.
+Cause: the wave eligibility check uses isActive/isInvulnerable, omitting the
+       shared direct-hit recovery policy. After periodicHit() respects immunity,
+       the caller unconditionally writes nikalzStunUntil/stun/move/velocity/state.
+Safest fix: use the common eligibility rule and apply Nikalz's private stun clock
+            only when the common reaction decision allows stun. Keep current
+            damage, wave range and approved full-stun duration for eligible hits.
+            Test fifth-hit escape, existing immunity, armor, Gym Bro, recovery,
+            airborne targets and multiple waves before shipping.
+Regression risk: MEDIUM. Several reaction policies meet here; do not simply
+                 remove the private deadline or change stun durations globally.
+Status: NOT changed; outside the critical-only repair scope.
+
+MEDIUM
+======
+M1 — Bee entities have no lifetime or population limit
+Problem: missed swarms accumulate for as long as their owner stays alive. This
+         grows collision work and every retained rollback snapshot.
+Where: packages/game-core/simulation/NikalzSystem.ts, spawnBees()/advanceNikalz().
+Reproduce: cast Bees repeatedly away from the opponent in infinite-energy
+           training. Swarms disappear only on contact or owner inactivity.
+           A probe kept all 200 swarms alive at frame 100000.
+Cause: unlike pooled projectiles, BeeSwarm has no expiry or capacity check.
+       Limiting each house to 10 productions does not bound direct special casts.
+Safest fix: establish an explicit approved lifetime/cap policy, then implement it
+            in snapshot state with deterministic eviction or cast rejection.
+Regression risk: MEDIUM; despawning/capping swarms changes move persistence, so
+                 obtain the intended policy rather than invent a balance value.
+
+M2 — Simultaneous lethal Dodo music pulses favor earlier seats
+Problem: a later caster's due pulse is suppressed when an earlier pulse kills it
+         in the same frame; other simultaneous attacks use collected contacts.
+Where: packages/game-core/simulation/DodoSystem.ts, advanceDodo().
+Reproduce: two Dodos 20 units apart, health=20 each, weaponUntil=1000, frame=1,
+           pulses due. advanceDodo() leaves health [20, 0], not a mutual hit.
+Cause: the loop applies damage immediately, then checks isActive for the next
+       source after its health was changed by the earlier source.
+Safest fix: decide/document simultaneous-pulse policy; if mutual contacts are
+            intended, collect eligible pulses before committing damage, as the
+            shared continuous-attack system already does.
+Regression risk: MEDIUM. Changes only same-frame trades but can change winners.
+
+M3 — Match-end cleanup omits Nikalz entities
+Problem: bees and forehead waves remain in result-state snapshots. They no
+         longer deal damage, but stale entities remain retained after the match.
+Where: packages/game-core/simulation/LifeSystem.ts, resolveKnockouts();
+       GameSimulation.ts, advanceFrame() early result return; also review
+       TournamentSystem.ts/EliminationSystem.ts finalization paths together.
+Reproduce: have active bees, end the opponent's last life, then step result.
+           Probe still contained 200 bees after the result step.
+Cause: life cleanup clears ordinary projectiles/hazards/clones/structures but
+       not these arrays. advanceNikalz's non-fight cleanup is unreachable after
+       advanceFrame's result return. resetPositions does clear them next round.
+Safest fix: explicitly clear these transient arrays at terminal match finalization
+            and add end-state tests across normal/tournament/elimination modes.
+Regression risk: LOW–MEDIUM. Preserve deliberate result-screen visual effects.
+
+M4 — Clone-growth visual ownership is missed during renderer teardown
+Problem: cloned textures/resources belonging to preview fighter visuals do not
+         receive their owner-specific dispose calls on renderer teardown.
+Where: apps/client/src/rendering/SceneRenderer.ts, dispose();
+       apps/client/src/rendering/HairCloneGrowth.ts, dispose().
+Reproduce: create Bozo clone previews, then tear down/recreate the scene (e.g.
+           development hot reload). HairCloneGrowth.dispose is never invoked.
+Cause: SceneRenderer traverses mesh geometry/materials, but omits cloneGrowth's
+       explicit cleanup; material disposal does not dispose owned textures.
+Safest fix: invoke the owned component's disposal and test texture disposal
+            counters; avoid disposing globally shared source textures twice.
+Regression risk: LOW, with ownership tests. This is not a per-frame leak claim.
+
+M5 — Regression suite has six unresolved failures
+Problem: the default suite is red, making a genuine new regression harder to
+         distinguish from accepted changes and incomplete test mocks.
+Where/reproduce: run tests/*.test.ts. Failures:
+  - architecture-baseline.test.ts: stored movement-facing hashes differ.
+  - architecture-contracts.test.ts: HairSystem hard-codes characterId==='bozo'.
+  - audit-20260930-fixes.test.ts: football/house test expects a 65-health house to
+    collapse after one hit, but football currently deals the approved 52.
+  - audit-loading.test.ts: texture mock returns an image-less THREE.Texture for
+    new air art; framesFrom reads null.width. This is not a proven production
+    loading crash because actual successful texture loading supplies an image.
+  - jopa.test.ts: expects old White tee, current requested skin is Black polo.
+  - special-energy.test.ts: expects +110 health, current meditation definition
+    heals 85 per 120 frames, hence +170 after 240 frames.
+Cause: balance/art/architecture changes were not reconciled with fixtures/mocks.
+Safest fix: update clearly stale expectations against approved values, complete
+            the loading mock, and review each changed behavioral trace before
+            accepting a new baseline. Never blindly regenerate all golden hashes.
+Regression risk: MEDIUM; careless baseline updates can bless unintended changes.
+Status: left visible; no balance values changed to make tests green.
+
+M6 — Shared systems retain character identities and duplicate lifecycle policy
+Problem: adding a fighter/ability requires coordinated edits in multiple central
+         places; missed cleanup and divergent stun rules are already observable.
+Where: GameSimulation.updateFighter/activation chain; LifeSystem manual cleanup;
+       HairSystem.summonClones (Bozo-specific health offset); JopaSystem hard-coded
+       registry references; JompSystem and NikalzSystem private reaction clocks.
+Reproduce: architectural guard test fails on HairSystem's Bozo identity branch.
+           Add a new optional transient field: respawn reconstructs it safely,
+           but terminal cleanup still needs a separate manual decision.
+Cause: behavior flags, character IDs, move IDs, state strings and several timer
+       implementations coexist without a single lifecycle/interrupt contract.
+Safest fix: first add lifecycle contract tests per mechanic; migrate one narrowly
+            scoped behavior at a time only when a real fix/addition needs it.
+Regression risk: HIGH for a wholesale refactor, LOW–MEDIUM for tested extraction.
+Status: working-but-fragile architecture, not justification to rewrite combat.
+
+LOW
+===
+L1 — Generic hazard audio damage attribution uses the victim's burn owner
+Problem: a generic damaging hazard can report source=-1 or an unrelated attacker
+         and move='@burn', despite its real owner/move being known.
+Where: packages/game-core/simulation/StatusSystem.ts, damage() and hazard loop.
+Reproduce: an unburned opponent takes a generic hazard tick; inspect DamageApplied
+           metadata. The helper takes f.burnOwner rather than h.owner/h.move.
+Cause: burn and generic hazard damage reuse a helper with burn-specific metadata.
+Safest fix: pass damage source metadata explicitly from each caller; keep damage
+            arithmetic and eligibility unchanged. Add an event-attribution test.
+Regression risk: LOW; presentation metadata only.
+
+L2 — Finished-room timeout exemption trusts unverified client claims
+Problem: all clients can claim the same finished frame and keep a started room
+         exempt from inactivity expiry while sockets continue answering pings.
+Where: apps/server/src/rooms.ts, finished()/expireInactive().
+Reproduce: ready a room; send input frame 2 and finished frame 2 from each peer,
+           then send no more inputs. Existing audit-timeouts.test.ts confirms
+           membership survives 300 seconds even though frame 2 is still intro.
+Cause: ordinary rooms relay simulation rather than authoritatively verifying a
+       result; the exemption has no separate result-room retention deadline.
+Safest fix: define a generous result-room retention/close policy independent of
+            gameplay input timeout. Do not forfeit legitimate result spectators.
+Regression risk: LOW–MEDIUM. Primarily resource/abuse hardening; does not let one
+                 honest-match opponent alone disable everyone's timeout.
+
+Additional working-but-fragile areas
+-----------------------------------
+- Rendering capacities are independent constants (18/32/64/8). C1 demonstrates
+  why all roster sizes and companion counts need coverage when limits change.
+- State is represented by a state string plus move, stun, grapple, trap and many
+  absolute deadlines. Several systems can overwrite reactions in one frame.
+  Keep interaction tests around these priorities before adding another status.
+- Simulation order is policy: some systems collect contacts, others mutate actors
+  sequentially; hitstop pauses some clocks while absolute deadlines continue.
+  Both are deterministic locally, but not automatically equivalent or fair.
+- contentVersion fingerprints core/networking/protocol and definition data. The
+  generated revision and Vite watcher are useful safeguards; future authoritative
+  server-rule changes need a compatibility policy too. Same-runtime replay alone
+  is not evidence of cross-engine determinism.
+- AssetManager retains raw bytes while TextureCache retains decoded source
+  textures. Both have teardown paths, but there is no session memory budget for
+  visiting every skin. Measure actual browser/GPU memory before changing caching.
+
+Systems with useful existing safeguards (no new critical defect established)
+---------------------------------------------------------------------------
+- Projectile slots reset optional fields on reuse; returning weapons have expiry
+  and owner-death cancellation. Room send queues have a hard buffer budget.
+- History/input maps are pruned; hash checks use settled history; terminal rollback
+  errors stop simulation/input scheduling rather than continuing a divergent match.
+- Room input validation enforces sequential frames and bounded peer lead;
+  disconnects preserve seat indices, and championship packets use match tokens.
+- Frame-based ability timers live in snapshots; gameplay does not use wall-clock
+  callbacks. Input/socket/audio teardown removes listeners or cancels timers.
+- Respawn reconstructs fighter fields while preserving selected life contracts;
+  loading uses a navigation revision to avoid late completion reopening a match.
+- Rejoining an already-started room is rejected. There is no seamless reconnect
+  feature to certify; controller reconnection and socket forfeits are separate.
+
+Critical repair and final validation
+-----------------------------------
+Pending at report creation. Results are appended after the minimal C1 repair.
+
+FINAL UPDATE — critical repair complete
+---------------------------------------
+C1 FIXED. HairCloneGrowth.ts now allocates 8*3 bundles instead of 18. No other
+production file was changed in this audit. Existing geometry, growth math,
+animation timing and gameplay remain unchanged. Regression risk remains low.
+
+Added tests/audit-codebase-20261004.test.ts:
+- The Bozo test reproduced the original exception with seven simultaneous casters
+  before the fix. After the fix it covers every roster size from 2 through 8,
+  all seats simultaneously, interruption hiding and menu hiding.
+- The all-roster test covers all 256 ordered pairings, validates finite combat
+  state and valid active moves, and compares exact hashes after snapshot replay.
+
+Post-fix validation:
+- 76/76 related tests passed: new audit tests, Bozo, eight-player FFA, multiplayer,
+  networking failures, lifecycle, tournaments, elimination and championship.
+- TypeScript --noEmit: passed.
+- ESLint on both changed TypeScript files: passed.
+- Full-suite baseline remains recorded as 684/690 with six existing failures;
+  the entire suite was not rerun after this rendering-only fix. The 76-test
+  post-fix run is the verified result, not a claim of a green full suite.
+- The rendering regression is headless; no new manual GPU/browser soak test was
+  performed. The real throwing update path is exercised with lightweight preview
+  fighter visuals, retaining the actual strand geometry and seat indexing.
+
+Stop point: all confirmed CRITICAL issues from this audit are resolved.
+Remaining: H1, M1–M6, L1–L2. No damage, movement speed, cooldown, recovery timing,
+move behavior, sound mapping, or noncritical architecture was changed.
+
+FOLLOW-UP — all-severity repairs authorized and completed
+=========================================================
+The user's subsequent “fix it all” request supersedes the critical-only stop.
+All concrete findings above now have targeted repairs. The general architecture
+risk notes remain maintenance guidance, not a claim that every future interaction
+has been proven safe.
+
+H1: PeriodicHit now returns whether it applied a reaction. Nikalz waves use shared
+    direct-hit eligibility and write their private stun/launch state only when
+    that reaction is allowed. Damage and eligible 120/360-frame stun durations
+    remain unchanged. Tests cover recovery, escape immunity, fifth-hit escape,
+    stance armor, Gym Bro victims and protected landing stun.
+M1: Missed swarms retain their existing lifetime. A deterministic limit of 100
+    swarms per owner replaces the oldest owned swarm on overflow; other owners
+    are untouched. This is a resource-safety policy chosen for this repair, not
+    a previously approved balance value. No new expiry timer was introduced.
+    Hive production remains 10 swarms per house at its existing interval.
+    Tests cover owner isolation, persistence and exact replay at the limit.
+M2: Dodo music contacts are collected before applying damage, allowing same-frame
+    lethal trades without seat-order suppression. Damage/radius/interval unchanged.
+M3: New CombatLifecycle.clearCombatEntities is shared by normal knockout endings,
+    tournament forfeits and elimination endings/breaks. It clears bees/waves as
+    well as the existing entity groups. Owner death also removes owned bees/waves
+    immediately. Tests cover ordinary endings, competition forfeits and life loss.
+M4: SceneRenderer calls cloneGrowth.dispose and detaches its root before generic
+    traversal. A real texture disposal-counter test verifies all 24 preview
+    textures are disposed exactly once in an eight-player case.
+M5: All six formerly failing tests have been reconciled:
+    - Football-house fixture uses current football damage (52).
+    - Jopa skin expectation uses Black polo.
+    - Meditation expects the existing 85-per-120-frame definition (+170/240).
+    - Loading mock supplies image data to fall/air raster decoders, while keeping
+      unrelated atlas mocks out of raster validation. Retry behavior still tested.
+    - Shared companion health no longer branches on Bozo's identity.
+    - Only the 19 stale movement-facing baseline entries were updated. All 100
+      current traces were compared to the original audit's captured actual traces:
+      ZERO trace changes resulted from this repair. Existing focused tests for
+      dives, grapples, mode expiration, burns, returning weapons, beams and turrets
+      remained green. No runtime values were changed to fit a golden fixture.
+M6: Narrow architectural repair, preserving intended behavior: terminal entity
+    cleanup is shared; reaction eligibility is returned by the shared hit system;
+    companion health ratio/offset live in validated character definitions.
+    Renamed-character tests prove health no longer depends on a hard-coded ID.
+    Bozo retains floor(maxHealth/3)-60; Dodo retains floor(maxHealth*.4)-120.
+    Character-specific controllers still exist; wholesale replacement was avoided.
+L1: Generic hazard damage events now carry the hazard's owner and move. Burn ticks
+    retain burn metadata. A regression test verifies pentagram attribution/damage.
+L2: Finished rooms retain the existing short-term timeout exemption, but expire
+    after 15 minutes from the latest connected peer's first finish claim. Repeating
+    a claim cannot extend retention. This is room retention, not a combat timer.
+    Tests verify five-minute survival and closure at the retention deadline.
+
+Stale behavior fixtures reconciled (19 of 100):
+  drupa:bellyDive; gut:hug,panda;
+  tocha:finisher,double,fireball,pentagram,ignite,satan;
+  bozo:grip,clones; caio:pool,flood,master;
+  roms:spin,juggle,water; luizinho:turret,cannon.
+
+Additional check cleanup:
+- animation-review.ts uses const for its unchanged interpolation instance.
+- nikalz-animation.test.ts replaces an explicit any with the correct CanvasTexture
+  test-fixture type. These fixes resolve the repository's two lint errors.
+- Generated simulationRevision was refreshed during the build so incompatible
+  simulation versions cannot silently join the same room.
+
+FINAL VERIFICATION
+------------------
+Full test suite: 702 passed, 0 failed.
+Client/core TypeScript check: passed.
+Repository-wide ESLint: passed after the two small lint corrections.
+Client production build: passed; existing >500 kB bundle-size warning remains.
+Server TypeScript production build: passed.
+No browser/GPU soak or real multi-device network session was performed in this pass.
+The replay, lifecycle, network and renderer-resource assertions are automated.
+
+No character damage, speed, cooldown or authored move timing was rebalanced.
+Behavior changes are the intended bug fixes: shared recovery protection,
+simultaneous pulse trades, terminal cleanup, and the explicitly documented bee
+population/finished-room resource limits.

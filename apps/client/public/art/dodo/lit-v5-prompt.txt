@@ -1,0 +1,5 @@
+Tool: built-in imagegen
+Outputs: portrait-lit-leaf-v5.png, portrait-lit-black-v5.png, victory-lit-v5.png
+Targets: portrait-tan-leaf-v4.png, portrait-tan-black-v4.png, victory-tan-v4.png
+Reference: ../nikalz/portrait-1.png
+Prompt: Use case: style-transfer. Localized facial lighting edit. Image 1 is Dodo, EDIT TARGET; image 2 is Nikalz, STYLE reference only. Add a restrained amount of painterly light and shade to Dodo's currently flat face. Gentle broad warm highlights across forehead, bridge of nose and cheekbones, slightly deeper painted shadows around eye sockets, side of nose and beneath jaw. Match the subtle facial depth of Nikalz with matte organic painted shapes. Preserve Dodo's existing darker warm tan complexion, identity, smile, beard and gray hair. Do not make his skin pale or glossy. No realistic fine wrinkles, skin pores, photographic gradients, shiny highlights or detailed individual hairs. Keep body artwork, clothes, white guitar, hands, pose, framing, scale, silhouette and canvas proportions unchanged. Full-body output with genuinely transparent background and clean alpha edges. No background, no glow, no text. Edit only facial shading.

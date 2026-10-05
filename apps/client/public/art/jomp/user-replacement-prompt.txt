@@ -1,0 +1,2 @@
+Built-in imagegen background extraction. Outputs: portrait-user-shirtless-v4.png, portrait-user-charcoal-v4.png, victory-user-v4.png.
+Use case: background-extraction. Remove ONLY the solid black background from this supplied Jomp game illustration. Output genuine transparent alpha. Preserve exact artwork: face identity, smile, skin tone, existing painted shading, musculature, pose, clothing, shoes and all contours. Keep full-body composition and proportions unchanged. Do not restyle, relight or redesign. No glow, halo, backdrop, ground or shadow.

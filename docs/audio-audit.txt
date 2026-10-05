@@ -1,0 +1,103 @@
+ABROZ COMBAT — AUDIO AUDIT AND IMPLEMENTATION
+2026-10-03
+
+1. BEFORE
+AudioManager owned one AudioContext, a permanent three-oscillator drone, and short oscillator tones. Each sound connected straight to the destination. Master/SFX values were baked into each new note, so volume changes did not affect already-playing notes. Settings did not persist. There were no sample/music files, sound registry, priorities, concurrency limits, spatial positioning, music states or arena track selection. Every UI action used the same tone. Combat effects were passed through fighter sound aliases, without meaningful intensity classification.
+
+The asset loader is an ArrayBuffer cache used for fighter art. It is kept unchanged: music must not be held as large decoded PCM or make visual loading fail. Audio has its own small decoded sample cache and streamed music lifecycle.
+
+There is exactly ONE registered playable stage: id the-foundry, display name The Rooftop. The historical music:'foundry' field was unused and misleading for the sunset urban art. No beach, factory, dojo, snow, forest, castle or nightclub stages currently exist.
+
+2. ARCHITECTURE NOW
+Same browser Web Audio API, no new dependency, one context per application instance.
+Master -> gentle compressor -> destination.
+Music and Voice feed Master; SFX contains Combat, UI and Ambience.
+Critical combat (KO/ultimate activation) has a separate path under SFX, so combat ducking does not duck the KO itself.
+Master, Music, SFX, UI, Mute All and Mute When Unfocused persist under abroz-audio-v1, with clamped values and graceful failure when storage is unavailable. All gains update live with short ramps.
+Audio never gates gameplay or sends network messages.
+
+Files:
+apps/client/src/audio/AudioManager.ts — buses, settings, context lifecycle, samples, streaming/crossfades, gain ramps, ducking, cleanup, diagnostics.
+apps/client/src/audio/AudioPolicy.ts — pure voice admission, priorities, cooldown, bounded duplicate history.
+apps/client/src/audio/SoundRegistry.ts — typed sound data and optional character overrides.
+apps/client/src/audio/MusicRegistry.ts — tracks, arena mappings, theme profiles, state selection and variant fallback.
+apps/client/src/audio/GameAudio.ts — read-only simulation presentation adapter and UI-action mapping.
+apps/client/src/main.ts — event integration, settings, trusted-input unlock, focus handling, game states, controller notices.
+apps/client/audio-review.html + src/audio-review.ts — development-only cue audition and eight-fighter flood test; not a production build entry.
+tests/audio.test.ts — audio policy/lifecycle/selection/regression tests.
+
+3. IMPLEMENTED BEHAVIOR
+- Attacks emit movement cues on AttackStarted. Misses never get an impact merely because an attack started.
+- Actual DamageApplied events choose light, heavy or ground-slam intensity; special effect events provide a special accent. Block events replace the damage cue for a blocking recipient that frame.
+- Subtle 3% pitch/playback-rate variation, mild +/-0.55 panning for spatial effects, centered announcements/UI/KO.
+- Distinct fallback envelopes for light/heavy attacks, impacts, special/ultimate activation, block, projectile, Dodo metal, jump/dash/land, KO, and stun.
+- Reuses the old oscillator approach as a fallback; these are not a replacement for professionally designed recorded SFX. No artificial placeholder soundtrack was generated.
+- Selection, back, confirmation, focus/hover, skin changes, ready, controller assignment/disconnect, online start/error/departure cues. Invalid local setup has an error cue.
+- Local-player special/ultimate readiness only on threshold crossings, based on actual move costs. Low-health crossing and status onset are observed, not played every frame.
+- Global cue cooldowns limit simultaneous local-player notifications.
+- Poison, slow, armor, mode-ending hooks are connected but deliberately silent until samples are supplied. Armor-ending currently means the armor timer ended, not proof it was broken by a hit; use a distinct recorded expiry cue until a dedicated break event exists.
+- 24 active SFX maximum, per-sound limits, shared cooldowns, old low-priority voice replacement, 2,048-entry duplicate history. History resets for a new match.
+- Ultimate lowers music by 30% briefly. KO lowers background combat while preserving the critical cue. Pause reduces music/ambience and clears transient effects. Result fades combat effects and plays victory/defeat feedback.
+- Context unlock attempted on pointer, keyboard and controller activity. Browser policy can still require a pointer/keyboard gesture on controller-only startup.
+- No queued SFX when locked/paused/unfocused. Returning to a tab does not replay missed events. Mute When Unfocused defaults on.
+- Core samples preload after unlock; combat/selected-character samples preload during loading, asynchronously and without blocking the match. No decoding in play().
+- Sample cache bounded to 64 entries / 24 MiB decoded; samples over 10 seconds rejected in favor of streaming. Failed sample requests are not retried every frame/match. Reload to retry.
+- Relevant arena music begins streaming during match loading without gating the match. Music uses media streaming, at most four old/new music/ambience loops during crossfade. Stale asynchronous playback is cleaned up; failed tracks fall through to compatible available alternatives. HMR/disposal closes the context, clears timers, disconnects nodes and aborts loads.
+
+4. MUSIC ROUTING
+States: menu, selection, intro, match, final, sudden-death, victory, defeat, championship, party.
+Selection priority: arena exact-state override, global state/mode track, arena pool, theme-profile pool, default battle track. Only configured URLs are candidates. Immediate prior track is avoided when alternatives exist.
+The Rooftop maps to urban, with rooftop_01 and rooftop_02. No URLs are set because no files exist. It intentionally has no music yet; the old unchanging drone is removed.
+A normal fight preserves its arena song through intro/match/final transitions. Optional finalVersion/suddenDeathVersion/introVersion select explicitly authored related pieces; missing variants retain the base song. Crossfades use gain ramps, not arbitrary tempo guesses.
+Final intensity is entered when at most two fighters remain and each has one life. Training does not enter final intensity.
+Championship and elimination-party matches select their mode state. There is no sudden-death mechanic in the simulation today: the state is an available hook, not a fabricated gameplay timer.
+No stem synchronization or tempo-changing DSP is implemented. Do not claim arbitrary MP3s will become beat-synchronous through this architecture.
+
+5. ADDING MUSIC / AMBIENCE
+1) Supply an original/licensed, mastered compressed loop (MP3 or supported Ogg/AAC), e.g. apps/client/public/audio/music/rooftop-01.mp3.
+2) Set tracks.rooftop_01.url='/audio/music/rooftop-01.mp3' in MusicRegistry.ts; adjust gain and loop. Add duration/BPM notes to your production asset manifest as needed; bpm is optional metadata, not a scheduling promise.
+3) Add a second track record and list its id in the arena's tracks array for non-repeating selection.
+4) For a new theme, add musicProfiles.<theme> with its compatible track ids and art direction; map the actual stage id in arenaAudio to that profile. No AudioManager edit needed.
+5) For an authored final or sudden-death mix, add its record and reference it via finalVersion or suddenDeathVersion. Optional introVersion is for a composed intro only; the simulation's fight transition initiates the main track.
+6) Supply a subtle rooftop city-bed file and set ambience.rooftop_ambience.url. Its gain is independent and routes through Ambience under SFX.
+Use assets with authored seamless boundaries. Native media-element looping cannot repair encoder padding or bad loop points. No source audio files were destructively converted.
+
+6. ADDING SFX / VOICE
+Put short recordings under public/audio/sfx and add assets:['/audio/sfx/...wav', ...] to a SoundRegistry entry. Multiple variants are selected locally. Tune gain, priority, cooldown, maxInstances, variation and spatial. Keep URL paths here rather than in gameplay. Use bus:'voice' for character voice clips. Add a custom sound entry and map characterSounds.eide.attack_special='eide_seller' (for example). Preload occurs for selected-character overrides and combat/core groups. Longer loops belong in the streamed music/ambience registry.
+Existing fighter sound maps remain untouched; the new presentation adapter uses characterSounds overrides to avoid flattening heavy and special impacts back into the old universal 'impact' alias.
+
+7. MISSING ASSET REPORT
+CRITICAL TO FINISHED AUDIO QUALITY
+- The Rooftop: two original urban/breakbeat battle tracks; menu and character-select tracks.
+- Recorded punch/impact/whoosh/block/slam/KO sounds. Current tuned oscillators are functional fallbacks, not final production sound design.
+- Designed special/ultimate activation and impact accents for each fighter.
+RECOMMENDED
+- Rooftop ambience; victory/defeat stingers; championship and party tracks.
+- Readiness/low-health/status notification samples; recorded UI kit.
+- Final-round and sudden-death variants for each supplied track.
+OPTIONAL
+- Character attack/hurt/KO/victory voice recordings.
+- Trap, reflect, armor-break and summon event-specific recordings and explicit presentation events where absent.
+- Authored intro/drop timing and synchronized soundtrack stems.
+Future theme hooks exist for tropical, industrial, neon, dojo, organic, ice, orchestral, dark, club, funk and cinematic. These are not claims that those arenas or soundtracks exist.
+
+8. MULTIPLAYER / REGRESSION
+RollbackManager re-simulates internally and clears presentation events after replay. GameAudio is invoked only at the existing client presentation boundary after normal tick(), never inside replay. It adds bounded event-id suppression on top. No network protocol, simulation, hitboxes, animation timing, balance or controls changed.
+Predicted sound already heard cannot be undone if an online prediction later changes. Confirmed-only playback would add latency; this implementation retains responsive presentation and prevents replay bursts. Confirmed result gating remains in place.
+Eight-fighter simulation comparison over 720 ticks gives identical state hashes with and without the audio observer.
+
+9. VALIDATION
+Nine focused tests pass: limits/priority, dedup/cooldown, music profile/variant/fallback, context/settings/focus/disposal, read-only state/threshold notifications, hit/miss/block separation, rapid crossfades/stale async cleanup/fallback, failed sample preload, eight-fighter deterministic integration.
+TypeScript check and changed-file lint pass. Production client build passes (existing large-bundle warning).
+Full suite during audit: 676 tests, 670 pass, six failures. Five are the previously recorded animation/movement-facing, core identity separation, Jopa football wall, unselected visual asset retry, and held-meditation tests. Sixth is the older Jopa test expecting 'White tee' after the earlier user-approved Black polo change. These areas were not modified for audio. Three additional audio tests were added afterward and all nine focused tests pass.
+Browser: home -> settings -> refresh persistence -> selection -> arena -> training -> pause/resume -> menu/settings works without console errors. Master change and mute survive refresh; defaults restored after testing.
+Real Web Audio stress harness: 8,032 attempted events in four seconds, peak 13 of 24 active voices, 7,744 suppressed, worst observed dispatch batch 5.10ms. After expiry: zero active voices, zero loops, zero failures. This measures audio dispatch on this machine, not worst-case total game frame cost or hardware listening quality.
+Real music decoding, seamless loop quality, mastering/loudness and subjective mixing cannot be evaluated without music/sample files. Crossfade lifecycle is covered with mock media objects. No physical gamepad audio-unlock or live multi-browser online auditory test was performed; controller events and unchanged rollback architecture were inspected. Do not call these manually verified.
+
+10. NEXT STEPS / LIMITATIONS
+First supply the critical recordings and rooftop/menu tracks; audition using /audio-review.html and listen on speakers/headphones. Then check mastering, overlap and loop seams by ear in an eight-player match. Tune registry gains before applying destructive normalization.
+One arena means visual-theme transitions can only be tested through configuration/unit tests today. Add profiles as real arenas are introduced.
+Exact trap/reflection/summon-specific sound events and voice recordings remain extension work. Present hook entries are silent; this avoids random generic tones for every ability.
+Distance attenuation is intentionally omitted for shared-screen local multiplayer (there is no single listener). Mild arena-based stereo positioning is implemented.
+Compressor and voice budgets reduce overload but do not certify all future assets against clipping; asset-level loudness checks are still necessary.
+Development diagnostics: Settings -> Audio diagnostics; /audio-review.html for cue audition and stress test. These are not production controls. Read-only developer console helper: abrozAudioDebug().

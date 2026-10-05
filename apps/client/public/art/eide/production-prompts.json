@@ -1,0 +1,126 @@
+{
+  "tool": "image_gen.imagegen (built-in)",
+  "date": "2026-10-01",
+  "prompts": [
+    {
+      "name": "combat-1",
+      "prompt": "Create production sprite sheet for approved Eide fighting-game model. Reference1 contains both approved skins: use ONLY LEFT navy-shirt navy-trouser brown-shoe messenger-bag employee-lanyard skin. Preserve exact face, build, outfit, no redesign. Reference2 Gut atlas is rendering style only. EXACT 6 columns x4 rows =24 evenly spaced full-body sprites, each inside own equal cell with generous margin and same character scale. Transparent background, no text, no glow, no shadows. All face RIGHT at three-quarter side camera. Row1: ready guard; extended lead punch; extended cross punch; extended finishing hook punch; high heavy kick; heavy straight punch. Row2: crouching punch; airborne kick; blocking guard; recoiling hit; lying knocked down; celebrating arms raised. Row3: jump crouch anticipation; ascending jump knees bent; descending fall; landing crouch; forward dash lean; backward dash retreat. Row4: holding washing machine at chest; arms extended releasing heavy object forward; lifting washing machine above head; releasing heavy object diagonally upward; crouch guard; rising from floor. Crisp dark outlines, limited cel shading and pixel-edged arcade sprite exactly like approved model. Never omit leg, never duplicate figures within cell."
+    },
+    {
+      "name": "combat-2",
+      "prompt": "Create production sprite sheet for approved Eide fighting-game model. Reference1 contains both approved skins: use ONLY RIGHT tan-cap tan-tank charcoal-shorts black-socks black-trainers tattooed gym skin. Preserve exact face, build, outfit, no redesign. Reference2 Gut atlas is rendering style only. EXACT 6 columns x4 rows =24 evenly spaced full-body sprites, each inside own equal cell with generous margin and same character scale. Transparent background, no text, no glow, no shadows. All face RIGHT at three-quarter side camera. Row1: ready guard; extended lead punch; extended cross punch; extended finishing hook punch; high heavy kick; heavy straight punch. Row2: crouching punch; airborne kick; blocking guard; recoiling hit; lying knocked down; celebrating arms raised. Row3: jump crouch anticipation; ascending jump knees bent; descending fall; landing crouch; forward dash lean; backward dash retreat. Row4: holding washing machine at chest; arms extended releasing heavy object forward; lifting washing machine above head; releasing heavy object diagonally upward; crouch guard; rising from floor. Crisp dark outlines, limited cel shading and pixel-edged arcade sprite exactly like approved model. Never omit leg, never duplicate figures within cell."
+    },
+    {
+      "name": "walk-1",
+      "prompt": "Eide approved fighter walking animation sprite sheet. Reference contains two skins use ONLY LEFT navy work uniform, messenger bag and badge. Same exact person and crisp outlined arcade game sprite style. Exactly FOUR columns TWO rows, eight frames, uniform equal cells. Side view facing RIGHT. Natural complete TWO-LEG WALK CYCLE. Top row frames1-4: LEFT/near leg heel forward contact with RIGHT/far leg back toe push; near leg lowers taking weight; far/right foot lifts passing underneath hip; far/right knee swings forward. Bottom row frames5-8: RIGHT/far leg heel FORWARD contact with LEFT/near leg BACK toe push, near/left foot lifts and passes beneath hip, left knee swings FORWARD, ready to return to first contact. Frame5 MUST swap which leg is in front compared with frame1. Far leg darker for clear distinction. Feet alternate stepping, no sliding, no repeated one-leg shuffle. Arms remain relaxed in fighting guard with gentle opposing swing. Same head height and body proportions all frames, full body shoes included with margins, soles baseline consistent, no extra people no text no grid lines, transparent background."
+    },
+    {
+      "name": "walk-2",
+      "prompt": "Eide approved fighter walking animation sprite sheet. Reference contains two skins use ONLY RIGHT tan cap and tank, black shorts, socks, sneakers, tattoo sleeves. Same exact person and crisp outlined arcade game sprite style. Exactly FOUR columns TWO rows, eight frames, uniform equal cells. Side view facing RIGHT. Natural complete TWO-LEG WALK CYCLE. Top row frames1-4: LEFT/near leg heel forward contact with RIGHT/far leg back toe push; near leg lowers taking weight; far/right foot lifts passing underneath hip; far/right knee swings forward. Bottom row frames5-8: RIGHT/far leg heel FORWARD contact with LEFT/near leg BACK toe push, near/left foot lifts and passes beneath hip, left knee swings FORWARD, ready to return to first contact. Frame5 MUST swap which leg is in front compared with frame1. Far leg darker for clear distinction. Feet alternate stepping, no sliding, no repeated one-leg shuffle. Arms remain relaxed in fighting guard with gentle opposing swing. Same head height and body proportions all frames, full body shoes included with margins, soles baseline consistent, no extra people no text no grid lines, transparent background."
+    },
+    {
+      "name": "mutant",
+      "prompt": "Eide giant mutant transformation sprite atlas in identical crisp outlined arcade fighter style to reference, recognizable short black hair and short beard and tan face, twice normal size massively exaggerated bulging muscles and veins, aggressive posture, several small medical syringes visibly sticking out shoulders and arms, NO blood/gore, bare muscular torso and torn charcoal shorts covering hips fully. Exactly 4 columns x 4 rows, 16 full-body sprites, uniform cells and scale, full silhouette all feet inside margins, face RIGHT three-quarter. Row1: aggressive idle guard; left leg forward walking contact; passing step with right knee advancing; RIGHT leg forward contact with left leg clearly behind. Row2: passing left leg advancing; jump knees lifted; fall legs lowered; landing crouch. Row3: giant punch windup; giant punch fully extended; shoulder charge leaned forward; flying kick fully extended. Row4: blocking; recoiling from hit; knocked down lying; roaring victory flex. Transparent background no text no labels no environment. Both legs must alternate walking, far leg shaded darker."
+    },
+    {
+      "name": "blondes",
+      "prompt": "Game NPC sprite sheet in exact crisp outlined cel-shaded arcade model style of reference. Generic fictional ADULT blonde woman, shoulder-length golden hair, modest pale blue blouse and dark jeans with sneakers, fully clothed everyday style. Stationary noncombatant summoned game character. Exactly 3 columns x2 rows six full-body equal-sized frames side three-quarter view, ample margin in each cell. Row1 standing relaxed idle hands at sides; same stance subtle breathing shoulders lift; same stance subtle weight settling. Row2 brief recoiling hit arms raised defensively; knees buckling defeat; fallen seated/slumped defeat. No gore no injuries no nudity no text no props, transparent background. Same face/outfit/size all cells."
+    },
+    {
+      "name": "appliances",
+      "prompt": "Arcade fighting game projectile sprite sheet, crisp dark outline and cel shading matching reference style. Exactly 5 columns x2 rows, ten isolated recognizable household objects, one centered per equal cell, generous empty margins. Row1 left to right washing machine, sofa, flat-screen TV, open laptop, refrigerator. Row2 microwave, wheeled office chair, upright vacuum cleaner, pedestal fan, coffee machine. Three-quarter side view. No humans, no text, no price labels, no environmental backdrop, genuinely transparent background. Objects distinct silhouettes with attractive restrained colors."
+    },
+    {
+      "name": "walk-opposite",
+      "prompt": "Create transparent sprite sheet EXACTLY 2 columns 2 rows four FULL BODY frames. Use reference1 navy skin for top row, reference2 tan gym skin for bottom row. Match character and style. Both characters face RIGHT. Change ONLY leg poses: column1 far darker RIGHT leg reaches FORWARD to the RIGHT, near LEFT leg stretches BACK to the LEFT. Near leg must overlap far leg at hips and angle BACKWARD, visibly opposite to reference initial pose. Column2 near leg bends passing forward behind planted far leg. No backdrop, no text, equal cells full body including shoes, margins."
+    },
+    {
+      "name": "forms",
+      "prompt": "Create transparent arcade sprite sheet EXACTLY4columns2rows eight full body poses. Reference1 navy work skin top row; reference2 tan cap gym skin bottom row. Exact same man/build/clothes/style. Face RIGHT. Each row poses: holding three medical syringes ready; injecting upper arm non-graphic no blood; flexing before transformation with syringes in shoulders; seated riding pose leaning forward with arms extended holding invisible reins, knees bent sharply and feet tucked back, far leg concealed BEHIND near leg like side-on horse rider. All full body equal scale generous cell margins no text no environment."
+    },
+    {
+      "name": "love-1",
+      "prompt": "Edit this exact 6column4row24pose sprite sheet. Keep layout, every pose, outfit, body proportions and scale IDENTICAL. ONLY change facial expressions in every frame to goofy lovestruck: red heart-shaped eyes, smiling with small tongue sticking out. No sexual features or clothing changes. TRUE TRANSPARENT background, no grid no text."
+    },
+    {
+      "name": "love-2",
+      "prompt": "Edit this exact 6column4row24pose sprite sheet. Keep layout, every pose, outfit, body proportions and scale IDENTICAL. ONLY change facial expressions in every frame to goofy lovestruck: red heart-shaped eyes, smiling with small tongue sticking out. No sexual features or clothing changes. TRUE TRANSPARENT background, no grid no text."
+    },
+    {
+      "name": "love-walk-2",
+      "prompt": "Edit this 4columns2rows8frame walking sheet, keep same Eide skin and pixel arcade style. Change faces to goofy lovestruck red HEART eyes and tongue-out smile. Correct leg alternation: bottom row FAR darker leg forward and near leg behind opposite to top row. Preserve full bodies within equal cells. TRUE transparent background. No text, no background glow, no grid."
+    },
+    {
+      "name": "victory",
+      "prompt": "Create Eide victory portrait art in two equal vertical panels on true transparent background. Left navy work outfit with brown messenger bag and badge, right tan cap and tank with tattoo arms and charcoal gym shorts. SAME man same exact approved likeness from sprites, short black hair neat short beard tan skin muscular. Premium semi realistic dramatic fighting game menu art with orange left rim blue right rim lighting, from head to upper thighs, fists raised triumphantly smiling confidently. Two isolated separate characters centered in halves no background no text no props."
+    },
+    {
+      "name": "love-walk-1",
+      "prompt": "Edit this 4columns2rows8frame walking sheet, keep same Eide skin and pixel arcade style. Change faces to goofy lovestruck red HEART eyes and tongue-out smile. Correct leg alternation: bottom row FAR darker leg forward and near leg behind opposite to top row. Preserve full bodies within equal cells. TRUE transparent background. No text, no background glow, no grid."
+    },
+    {
+      "name": "love-walk-1-clean",
+      "prompt": "REMOVE BACKGROUND entirely from sprite sheet. Every space BETWEEN and AROUND characters must be absolutely clear transparent alpha=0. NO dark backdrop, NO colored gradient, NO halo or haze. Keep every character exact layout and poses and lovestruck face. Do not add anything. "
+    },
+    {
+      "name": "love-2-clean",
+      "prompt": "REMOVE BACKGROUND entirely from sprite sheet. Every space BETWEEN and AROUND characters must be absolutely clear transparent alpha=0. NO dark backdrop, NO colored gradient, NO halo or haze. Keep every character exact layout and poses and lovestruck face. Do not add anything. Remove the washing machine objects from last-row throwing poses; leave hands in same pose but empty."
+    },
+    {
+      "name": "love-1-clean",
+      "prompt": "REMOVE BACKGROUND entirely from sprite sheet. Every space BETWEEN and AROUND characters must be absolutely clear transparent alpha=0. NO dark backdrop, NO colored gradient, NO halo or haze. Keep every character exact layout and poses and lovestruck face. Do not add anything. Remove the washing machine objects from last-row throwing poses; leave hands in same pose but empty."
+    },
+    {
+      "name": "love-walk-2-clean",
+      "prompt": "REMOVE BACKGROUND entirely from sprite sheet. Every space BETWEEN and AROUND characters must be absolutely clear transparent alpha=0. NO dark backdrop, NO colored gradient, NO halo or haze. Keep every character exact layout and poses and lovestruck face. Do not add anything. "
+    },
+    {
+      "name": "walk-opposite-v3",
+      "prompt": "Redraw a new opposite-foot walk pose, NOT a trace of source legs. Four full-body arcade sprites in 2columns2rows. Navy employee Eide top row, tan gym Eide bottom row matching reference face and clothes. Column1: SIDE VIEW torso faces RIGHT, foreground LEFT THIGH runs steeply BACK to LEFT from hips, foreground knee is left of crotch, foreground shin angles down right so shoe is directly under hip on TOE. Background RIGHT THIGH runs forward RIGHT from hip, background knee is right of crotch, right shin extends forward right heel on ground. Foreground leg crosses OVER and conceals upper part of forward background leg. Column2: same pose with foreground knee lifting forward, background foot planted. IMPORTANT do not reuse source near-leg-forward pose: tattoo-side/foreground leg is trailing BACKWARDS. Make knee overlaps anatomically different and clearly readable. True transparent background, no haze no gradient no text, isolated full-body sprites."
+    },
+    {
+      "name": "walk-opposite-final",
+      "prompt": "Take the EXACT four leg silhouettes and poses from REFERENCE1 (Biel): NEAR leg behind left, FAR leg forward right, crossing at hip. Preserve these poses precisely. Replace Biel with EIDE from reference2: top row navy work shirt/trousers,brown shoes,messenger bag,badge,short black hair and beard; bottom row tan cap/tank,charcoal shorts,black socks/trainers,tattooed arm. Same 2columns2rows four fullbody sprites and guard arms. Do NOT use Eide source leg poses. Use Biel reference1 leg poses. Keep head level, crisp arcade sprite style. True transparent background alpha zero no text no haze."
+    },
+    {
+      "name": "love-opposite",
+      "prompt": "Edit ONLY faces in these exact four Eide walking sprites to red heart eyes and happy tongue-out goofy expression. Keep exact leg poses, clothing, silhouette, 2column2row layout, true transparent alpha zero background. Nothing else changes."
+    },
+    {
+      "name": "mutant-opposite",
+      "prompt": "Create TWO full-body sprites side by side 2columns1row. EXACT leg poses from TOP ROW of reference1: left image NEAR leg behind LEFT, FAR leg ahead RIGHT; right image NEAR leg bends backLEFT with raised foot and far leg planted RIGHT. Use exact leg overlaps. Change character to giant muscular mutant Eide in reference2 with same face shorthair beard, gigantic muscles, bare chest, torn shorts, barefeet, syringes stuck in arms, veins. Guard arms. Keep mutant style and mass reference2 but leg poses reference1. True transparent alpha zero background no text no haze."
+    },
+    {
+      "name": "combat-1-clean",
+      "prompt": "Remove ALL background pixels from this sprite sheet, preserving every sprite exactly in its position and size. Background must have alpha ZERO throughout ALL gaps and corners, no gradient, no glow, no haze, no residual semi-transparent dark rectangles. Do not repaint or rearrange the sprites. Preserve outlines. Each sprite must be a disconnected isolated silhouette on completely transparent background. Also remove the washing machines from the last row four throw poses, retaining their hands in holding/releasing poses, empty hands."
+    },
+    {
+      "name": "combat-2-clean",
+      "prompt": "Remove ALL background pixels from this sprite sheet, preserving every sprite exactly in its position and size. Background must have alpha ZERO throughout ALL gaps and corners, no gradient, no glow, no haze, no residual semi-transparent dark rectangles. Do not repaint or rearrange the sprites. Preserve outlines. Each sprite must be a disconnected isolated silhouette on completely transparent background. Also remove the washing machines from the last row four throw poses, retaining their hands in holding/releasing poses, empty hands."
+    },
+    {
+      "name": "walk-1-clean",
+      "prompt": "Remove ALL background pixels from this sprite sheet, preserving every sprite exactly in its position and size. Background must have alpha ZERO throughout ALL gaps and corners, no gradient, no glow, no haze, no residual semi-transparent dark rectangles. Do not repaint or rearrange the sprites. Preserve outlines. Each sprite must be a disconnected isolated silhouette on completely transparent background. "
+    },
+    {
+      "name": "walk-2-clean",
+      "prompt": "Remove ALL background pixels from this sprite sheet, preserving every sprite exactly in its position and size. Background must have alpha ZERO throughout ALL gaps and corners, no gradient, no glow, no haze, no residual semi-transparent dark rectangles. Do not repaint or rearrange the sprites. Preserve outlines. Each sprite must be a disconnected isolated silhouette on completely transparent background. "
+    },
+    {
+      "name": "mutant-clean",
+      "prompt": "Remove ALL background pixels from this sprite sheet, preserving every sprite exactly in its position and size. Background must have alpha ZERO throughout ALL gaps and corners, no gradient, no glow, no haze, no residual semi-transparent dark rectangles. Do not repaint or rearrange the sprites. Preserve outlines. Each sprite must be a disconnected isolated silhouette on completely transparent background. "
+    },
+    {
+      "name": "blondes-clean",
+      "prompt": "Remove ALL background pixels from this sprite sheet, preserving every sprite exactly in its position and size. Background must have alpha ZERO throughout ALL gaps and corners, no gradient, no glow, no haze, no residual semi-transparent dark rectangles. Do not repaint or rearrange the sprites. Preserve outlines. Each sprite must be a disconnected isolated silhouette on completely transparent background. "
+    },
+    {
+      "name": "appliances-clean",
+      "prompt": "Remove ALL background pixels from this sprite sheet, preserving every sprite exactly in its position and size. Background must have alpha ZERO throughout ALL gaps and corners, no gradient, no glow, no haze, no residual semi-transparent dark rectangles. Do not repaint or rearrange the sprites. Preserve outlines. Each sprite must be a disconnected isolated silhouette on completely transparent background. "
+    },
+    {
+      "name": "mutant-opposite-clean",
+      "prompt": "Remove ALL background from these two sprite poses. Absolutely transparent alpha=0 in every corner and space between limbs and around silhouettes. Remove brown and black gradients entirely. Preserve the two sprites exactly unchanged with full outline. No glow, no haze, no background."
+    }
+  ]
+}

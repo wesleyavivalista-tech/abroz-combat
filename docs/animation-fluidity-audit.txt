@@ -1,0 +1,65 @@
+FIGHTER ANIMATION FLUIDITY AUDIT — 2026-10-03
+
+Scope: all 16 playable fighters, both skins, mode/summon artwork and shared rendering adapters.
+
+ARCHITECTURE AND FINDINGS
+- GameSimulation advances at a fixed 60 Hz. Attack startup, active/recovery ticks, hit detection, movement, cooldowns, damage and mode durations belong to game-core, not sprite playback.
+- main.ts captures presentation samples before each step, including rollback ticks, and draws at requestAnimationFrame cadence. The original RenderInterpolation stopped at every state change and throughout every attack. That produced unnecessary discontinuities at the jump apex, locomotion changes and moving attack windup/recovery.
+- VisualRegistry loads per-character sprite factories, with common crouch/air/dash/fall/mount adapters. Those five adapters were not forwarding the optional simulationFrame. Nikalz's meteor therefore fell back to a state-relative age despite the scene supplying its authoritative age.
+- TextureCache caches source textures. Some fighters use explicit atlas rectangles/pivots and SpriteIsolation; others use connected silhouette extraction via framesFrom. Neither source assets nor slicing, UVs, frame indexing, filters, pivots or scales were changed.
+- Most pose selection already follows integer stateFrame/moveFrame. Procedural weight shifts also used integer ticks and visibly stepped at high display rates. Some cosmetic motion (Dodo's playing loop, Astolfo's breathing/mouth, Jomp's aura and Fausto's aura) received wall-clock time and could keep advancing while simulation was paused or in hit-stop.
+- CombatSystem/CollisionSystem use authoritative move definitions and positions. Sprite texture frame indices do not determine damage or collision.
+- RollbackManager restores/replays deterministic snapshots. Presentation views are never sent into the simulation, state history, state hashing or networking.
+
+NORMAL WALK TIMING REVIEW (60 simulation ticks/second)
+Nikalz: 4 poses, 7 ticks/pose; carrying has its own matching cycle.
+Jopa: 4 poses, 7 ticks/pose; summon/mount artwork remains separate.
+Biel: 6 poses, 6 ticks/pose; loan movement uses its own sequence.
+Eide: 4 selected poses, 8 ticks/pose; love/mutant/NPC sequences remain separate.
+Astolfo: 4 poses, 7 ticks/pose, modified by existing personality playback rate.
+Fausto: 4 poses, 7 ticks/pose; rage and samurai sheets remain separate.
+Napa: 8 poses, 6 ticks/pose; monster walk retains its slower 12-tick holds.
+Jomp: 8 poses, 5 ticks/pose; Gym Bro sequence retains its own timing.
+Dodo: authored walking 7 ticks/pose; companions 6; playing remains 10 FPS.
+Drupa: normal unified walk 8 ticks/pose; Buda walk 7.
+Gut: authored walk 7 forward / 8 backward, including spear mode.
+Tocha: authored walk 7 forward / 8 backward; idle keeps 24-tick holds.
+Bozo: authored walk 7 forward / 8 backward, including hair clones.
+Caio: 4 poses, 7 ticks/pose; Blood Master uses its own artwork.
+Roms: 4 poses, 7 ticks/pose; armored/juggling variants remain separate.
+Luizinho: 4 poses, 7 ticks/pose.
+
+These rates already differ intentionally. Blanket FPS increases would rush heavy poses without adding actual artwork. Existing frame rates and combat anticipation/impact/recovery selections were preserved.
+
+IMPLEMENTED
+1. RenderInterpolation now preserves continuous root motion across safe idle/walk/jump/fall transitions. Landing and discrete combat reactions still switch immediately.
+2. Same-move melee windup and late recovery can interpolate positions. Startup entry, combo changes, impact (including two early and three late hold ticks), beams, dives, grapples and continuous area attacks remain position-exact. Special state machines retain their current pose timing.
+3. Optional fractional clocks live in a WeakMap keyed only by disposable display copies. Integer simulation clocks and sprite pose selection remain unchanged. Existing subtle weight shifts/breathing can render between simulation ticks without extra art, blending or deformation.
+4. SceneRenderer supplies simulation-based cosmetic time to fighters and summons, so their cosmetic motion stops during pause/hit-stop. Stage and unrelated environmental effects keep their own clock.
+5. All five visual adapters forward simulationFrame, fixing meteor-age delivery.
+6. Generic SpriteClip supports optional per-frame holds, validates them once and uses shared playbackFrame. Existing uniform timings are unchanged. No global retiming of attacks was applied.
+7. AuthoredWalk caches frame-isolation lookup arrays at construction instead of allocating/filtering them on every animation update.
+
+SAFETY
+No game-core or networking behavior changed. No sprite/image edits, reslicing, renamed assets, frame duplication, interpolation-generated artwork, crossfades, new squash/stretch or character scaling.
+Skin/mode changes, hit reactions, facing flips, teleport-sized corrections, mount transitions, attached actors, respawns and rollback restores invalidate smoothing. Local debug hitbox mode continues to draw authoritative positions.
+Normal motion interpolation is bounded between adjacent simulation positions (at most one existing 60 Hz tick of presentation delay). Active attack positions and hit poses remain exact.
+
+VERIFICATION
+- TypeScript check: passed.
+- Production Vite build: passed; normal bundle-size advisory remains.
+- 62 playback/interpolation/authored-walk/rollback/network/multiplayer tests: passed.
+- 90 additional animation, atlas isolation, dash, airborne/crouch, attachment, meteor and architecture tests: passed.
+- 275 roster combat, mode, movement, teams, eight-player and hitstun regression tests: passed.
+  Some tests overlap across runs; counts describe executed groups, not a deduplicated total.
+- New tests cover every fighter's move definitions at timing boundaries, unchanged authoritative clocks/hashes, impact alignment, safe transitions, pause/hit-stop, optional holds and simulationFrame forwarding.
+- Existing deterministic trace tests compare rendered versus non-rendered simulations for every fighter across 600 ticks.
+- Online tests include 0–200 ms delayed/jittered inputs, six independent peers, and a real local WebSocket room create/join/input/hash/disconnect test. Peers converged. This is automated local verification, not a remote human internet playtest.
+- Browser asset/pose sweep: 245,091 updates across all 16 fighters, both skins, selected transformation combinations and registered summons; zero missing textures, invalid frame access or non-finite transforms.
+- Live browser rendering exercised all 16 fighters; no console errors/warnings observed.
+- Presentation-only stress microbenchmark: 8 fighters + 64 summons, 5,000 captures and 10,000 display views in 566 ms (~0.113 ms per tick plus two views). This measures interpolation overhead only, not total GPU frame rate.
+
+REVIEW / LIMITS
+Open http://localhost:5174/animation-review.html for the developer review page. It runs the asset sweep, then lets you select a fighter, skin and action and toggle position smoothing. Its action preview is synthetic; combat correctness is covered by simulation tests, not this preview.
+The review page is development-only and is not added to the production menu or bundle.
+Low-frame sprite silhouettes still change discretely by design. These changes improve motion continuity and clock consistency; they cannot create genuinely new limb poses. Subjective feel should be judged in play, especially on 120/144 Hz displays. No claim of a full remote human playtest or measured end-to-end frame-rate improvement is made.

@@ -1,0 +1,173 @@
+ROSTER FOLLOW-UP — 4 October 2026
+
+AUDIT RESULT
+The previous pass missed audible content throughout the roster, beyond Nikalz. This pass
+replaced the silent material slots with locally generated original PCM effects. All 225
+moves across 16 fighters now resolve to playable start/active/impact/end assets. Short
+ordinary moves still do not play unnecessary loops. Physical movement retains synthesized
+cues. These are stylized effects; they are not studio-recorded foley or a new music score.
+
+PER-FIGHTER CORRECTIONS
+Nikalz — retained ground-contact thumps and bee sounds; hive placement/breakup now audible.
+Jopa — football/chess contacts, tree/mount presence and expiration now audible; wall ricochet,
+friendly ball rebound and chess floor contacts now emit audio events.
+Biel — wine/glass, coins, stamps, angel/feathers/sword/beam have playable material effects.
+Eide — appliance impacts, romance and mutant phases now audible.
+Astolfo — chatter, spider and personality effects now audible.
+Fausto — paper/cloud, sword and anger/transformation phases now audible.
+Napa — cookie/suction/sneeze/monster effects now audible; monster ground slam has a cue
+on its active frame even without a victim; barrage projectiles have separate audio identities.
+Jomp — flex, charge, gym repetitions and transformation effects now audible.
+Dodo — guitar/string, chord, stealth, companions and basketball effects now audible.
+Drupa — belly/rolling, divine beams and transformation phases now audible; dive ground
+contact uses the shared GroundImpact event added with Nikalz's fix.
+Gut — hug, meditation, restoration, transformation and spear effects now audible.
+Tocha — ignition/crackle/extinguish and original distorted musical effects now audible.
+Bozo — hair swishes, grip, plush armor and clone phases now audible.
+Caio — shadow, dart and liquid pool/flood/master effects now audible.
+Roms — axe, gear, juggling and water phases now audible; returning ball floor bounces
+now emit a contact sound. No generic energy beep substituted for the water material.
+Luizinho — product, masonry and turret effects now audible; marked-to-built structures
+now produce completion feedback and structures retain damage/collapse cues.
+
+OTHER FIXES
+Slow detection was inverted: normal areaSlow=1 used to count as slowed. It now tests <1.
+Status onset cues now cover opponents as well as local seats.
+Channels and modes no longer replay their activation just because sustained audio begins.
+Projectile audio keys include pool slot, owner, serial and move; a burst sharing one attack
+serial no longer collapses into one lifetime. Invalid entity mappings cannot overwrite a
+previous entity's health/bounce observation.
+Preload now accommodates the real library: 512 buffers / 64 MiB bounded cache, selected
+fighters only during game startup; shared URLs deduplicate. Default UI unlock does not
+load every fighter victory sound. The original 24 voices / 6 ability loops remain bounded.
+
+VALIDATION
+20 focused audio tests pass, including all 225 activation/impact mappings, actual simulation
+inputs for every fighter special/ultimate, non-silent PCM and cache budget checks, Nikalz
+missed slams, bee lifetime, status and projectile identity regressions, and hash parity.
+Full suite before the final extra input-coverage test: 689 tests, 683 pass, the same six
+pre-existing failures listed below. Typecheck, affected-file lint and production build pass.
+Browser loaded 382 distinct buffers with zero errors. Eight simultaneous attackers rotated
+through all 16 fighters: 4,000 attempted cues, peak 24/24 voices, 3.60 ms maximum observed
+batch. All voices and loops returned to zero. This validates playback and cleanup; it does
+not substitute for a human listening/mixing pass on every move.
+
+The CSV catalog is current. Earlier statements below that fighter slots have no assets
+are historical. Music files remain missing; this follow-up concerns fighter sound coverage.
+
+FOLLOW-UP — 4 October 2026
+Nikalz now has original procedural PCM WAVs for Testada/forehead-dive ground impacts,
+Meteor impact variants, swarm release, continuous wing buzz, sting and end. Hive boxes
+have a quiet buzz loop. These are generated locally without external samples by
+scripts/create-nikalz-audio.py. GroundImpact journal events fire on actual ground contact,
+including misses; they do not alter damage or movement. All 28 audio/Nikalz tests pass.
+The no-recordings statements below describe the initial audit; other fighters/music still
+need assets. The CSV catalog reflects the current configured Nikalz files.
+
+AUDIO PERSONALITY AUDIT — 3 October 2026
+
+STATUS
+Implemented a move-level routing and lifecycle pass, not a finished recorded soundtrack.
+All 16 selectable fighters and all 225 registered moves were inspected. The accompanying
+audio-asset-catalog.csv lists their phase slots, material, asset brief and actual status.
+It also includes movement, status, victory and shared layer slots. Slots can reuse compatible
+recordings; this is not a request for a thousand unique recordings.
+No recorded SFX or music files exist in this project. Physical attacks/movement retain tuned
+synthesized placeholders. Themed effects intentionally remain silent until suitable original
+or licensed recordings are supplied, as requested. No commercial audio was downloaded.
+
+FIGHTER FINDINGS / DIRECTIONS
+Nikalz: blunt forehead impacts and meteor debris; natural bees and wooden hive boxes.
+Jopa: athletic punch/kick chain, hollow leather football, wooden chess pieces, creaking tree
+and wooden mounted knight. These are not energy projectiles.
+Biel: glass/wine splash, coins and office stamp; angel wings, blade and divine beam.
+Eide: rattling heavy appliances, original romantic sting and heavy mutant body impacts.
+Astolfo: small physical strikes, nonverbal chatter, spider skitters/bites, contrasting clone motifs.
+Fausto: paper and cloud, ceremonial sword transformation, blade cuts and anger tension.
+Napa: brittle cookies/crumbs, suction, sneeze, dough creature, chomp and heavy dough slam.
+Jomp: heavy exertion, flexing, gym repetitions and sports transformation.
+Dodo: guitar wood/string rattle, ORIGINAL chord/wave, band companions, basketball rubber.
+Drupa: deep body/belly impacts, rolling, huge landing, transformation and celestial beam.
+Gut: palm/kicks, cloth squeeze, controlled meditation breath, panda and pointed spear.
+Tocha: ignition/fire contact/extinguish, original distorted guitar/infernal motif.
+Bozo: hair whips and bristles, fluffy armor and fibrous clones. His “spear” is body hair.
+Caio: shadow movement, darts/poison and thick liquid pool/flood/master mode.
+Roms: axe chopping, firefighter buckles, juggling balls and PRESSURIZED WATER.
+Luizinho: packaged products, brick walls, mechanical turret/cannon and structural collapse.
+
+IMPLEMENTED
+- Central move profiles: start, active, impact, end. Every registered move has valid slots.
+- Actual damage source/move/block metadata in the existing presentation-only journal.
+  Includes beams, periodic axe attacks, bees, forehead waves, building collapse, returning
+  projectiles, Jopa's ball/chess/mount/tree, grapples, gym repetitions, poison and burn.
+  This metadata is outside snapshots and never read by game rules.
+- No longer turn generic “projectile”/“metal” visual particles into universal sound effects.
+- A simultaneous block no longer suppresses an independently sourced hit on that victim.
+- Zero-damage contacts may have material feedback (e.g. hair trap or loan stamp).
+- Observe companion attack starts and repeated attack serials, not just move-name changes.
+- Reconcile channel, projectile, swarm, hazard, structure, summon and timed-mode presence.
+  Start/loop/end follow active state; disappearance does not pretend an impact happened.
+  Structure health loss/collapse and football bounce counts have separate feedback triggers.
+- Loops stop on disappearance, cancellation, KO for fighter channels, pause, focus loss,
+  match reset and leaving combat. Independent persistent summons follow their actual lifetime.
+- Six scoped ability loops within the existing 24-source ceiling; per-cue limits and shared
+  cooldowns; an occupied looping cue does not evict/restart an existing loop every frame.
+- Pan follows moving loops. Existing priority, ducking, compressor and settings preserved.
+- Complementary debris/steel/wood/splash/cloth layers use bounded one-level layering and
+  the same admission policy. Missing layers are silent. Recorded variants randomize safely.
+- Selected fighters' sample slots preload outside the combat tick. Short-buffer memory cap
+  and streaming music remain in place.
+- Per-fighter movement/status slots and victory motif hook. Massive fighters use heavier
+  temporary movement thuds. Final recordings still need a listening/mixing pass.
+- Developer audio-review.html now filters by fighter, shows unavailable cues disabled with
+  sound briefs, and stress-tests the new physical profiles.
+
+PHASE LIMITS / AUTHORING NOTES
+Normal short punches do not need an active loop or end sound: those slots are reserved and
+not automatically played just because a short move exists. Channel loops start after startup.
+Active modes, objects and sustained effects receive presence transitions. Hazards with the
+same owner/move/kind/birth are coalesced for audio to reduce clutter.
+Generic phase assets should describe only that phase; do not put launch and impact in the
+same file. Impact is emitted by damage/contact, not on a miss. Composite recording layers
+may be shared across compatible materials. Use 3–5 compatible impact variants.
+Footsteps/running, distinct wall-body collisions, and mount hoof cadence currently have no
+separate confirmed contact/step events; their identity is documented, but these detailed
+foley triggers remain future work. There is no invented footstep clock.
+Armor expiry is currently the armor-end hook; it does not prove armor was physically broken.
+Structure collapse uses the move's end slot; use structural debris, not a generic explosion.
+No subjective final-mix approval is claimed for audio that has no recordings.
+
+MUSIC AUDIT
+The only registered arena is historical id “the-foundry”, displayed as The Rooftop: warm
+breakbeat / hip-hop drums / electronic bass, with two authored tracks and subtle city ambience.
+Other profile entries are reusable directions, NOT implemented arenas.
+Menu: menu theme. Selection/stage/roster/local setup/lobby/loading: selection theme.
+Championship screens/matches: event theme. Actual final bracket round and potentially deciding
+first-to-three tournament round: dedicated championship_final_01, with event fallback.
+Party elimination: playful funk. Ordinary matches: actual arena pool. Last-life final moments:
+optional authored final variant. No timed sudden-death mechanic exists; its hook is reserved.
+Victory/defeat: separate stings plus optional winner motif. Pause/blur: existing mixer handling.
+Crossfades, stale-load cleanup and track fallbacks preserved. ALL these music slots need files.
+Suggested recordings: original 90–120 BPM menu groove, 110–130 BPM selection tension,
+120–150 BPM rooftop combat, more dramatic championship final, short non-looping result stings.
+Configure result tracks' loop=false when inserting the recordings; keep long music streamed.
+
+VALIDATION
+13 focused audio tests pass: full roster references, literal materials, source-aware hits,
+miss/block distinction, loop lifecycle, settings/focus/disposal, media failures/transitions,
+priority limits and eight-fighter simulation hash parity with/without audio observation.
+Full suite: 683 tests, 677 pass, same six pre-existing failures as the previous audit:
+movement-facing timing; architectural identity separation; Jopa football/house wall;
+asset retry; stale Jopa skin expectation; held meditation energy expectation.
+Typecheck and affected-file lint pass; production build passes (existing large-bundle warning).
+Browser stress run: 8,000 attempted events, peak 12/24 sources, 1.50 ms maximum observed
+batch, 7,825 suppressed, returned to zero active sources, zero loops and zero load failures.
+These metrics cover available synthesized cues, not unprovided recordings or live network play.
+
+ASSET HANDOFF
+Add licensed/original short recordings to public audio assets; point SoundDefinition.assets
+at real URLs (arrays are alternative takes, layers are complementary sounds). Keep loops short,
+seamless and quiet. Configure music track URLs only after files and rights are available.
+Regenerate the catalog with scripts/audio-catalog.ts after authoring changes.
+The catalog and preview make remaining silent/placeholder audio visible instead of claiming
+that infrastructure alone has completed the game's musical identity.

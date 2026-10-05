@@ -1,0 +1,3 @@
+Mode: built-in image generation
+
+Edit this exact production game sprite sheet. Make this companion a Black adult man with rich dark brown skin across face, neck, arms, hands and legs, short tightly curled black hair and a neatly trimmed beard. Preserve glasses. Maintain the same detailed arcade pixel art style, natural athletic body proportions and readable shaded skin. Keep every pose, exact six-frame 3-column 2-row layout, uniform, burgundy chevrons, PAINKILLERS text, gold outlined number 11 in every frame, shoes and ball. All six poses depict the same Black companion consistently. Preserve true transparent background and separated connected silhouettes with generous gutters. No other changes.

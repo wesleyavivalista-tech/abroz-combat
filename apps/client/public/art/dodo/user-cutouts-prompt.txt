@@ -1,0 +1,2 @@
+Built-in imagegen background removal. Outputs: portrait-user-leaf-v2.png, portrait-user-black-v2.png, victory-user-v2.png.
+Use case: background-extraction. Remove ONLY the black background from this Dodo game character artwork, output genuine transparent alpha. Preserve exact character likeness, facial features, pose, painted brushwork, clothing, white electric guitar, strings, hands, full body and shoes. Preserve original portrait framing and proportions. Keep dark clothing intact. No redesign, no new lighting, no glow, no backdrop, no shadow, no text.

@@ -1,0 +1,21 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Jomp & Painkillers animation check</title><style>body{background:#151a22;color:#eee;font:16px system-ui;margin:24px}h1{font-size:24px}canvas{width:100%;display:block}.names{display:flex;justify-content:space-around}p{color:#b8c2ce}a{color:#e9c274}button{padding:8px}</style><h1>Jomp & Painkillers</h1><p>Live game models · Investida running cycle · Muscle shimmer · Painkillers uniforms 77 / 23 / 11</p><button id="pause">Pause animation</button> <a href="/">Back to game</a><p id="status">Loading…</p><div id="rows"></div><script type="module">
+import * as THREE from 'three';
+import {characters} from '../../packages/game-core/characters/registry.ts';
+import {createFighter} from '../../packages/game-core/simulation/Fighter.ts';
+import {loadFighterSprites,createFighterVisual} from './src/rendering/VisualRegistry.ts';
+let paused=false;document.querySelector('#pause').onclick=e=>{paused=!paused;e.target.textContent=paused?'Play animation':'Pause animation';};
+try{
+await loadFighterSprites(['jomp','dodo','gut']);
+const groups=[['Jomp — Shirtless','original'],['Jomp — Charcoal shirt','charcoal'],['Painkillers — Gut style reference','companions']];let rows=[];
+for(const [title,skin] of groups){
+ const box=document.createElement('section');box.innerHTML='<h2>'+title+'</h2>';document.querySelector('#rows').append(box);
+ const renderer=new THREE.WebGLRenderer({alpha:true,antialias:false});renderer.setPixelRatio(devicePixelRatio);renderer.setSize(1100,280);box.append(renderer.domElement);
+ const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-1.4,10.4,2.1,-.2,.1,50);camera.position.z=10;
+ const entries=skin==='companions'?[['dodo','pain-killer-0','77'],['dodo','pain-killer-1','23'],['dodo','pain-killer-2','11'],['gut','original','Gut reference']]:[['jomp',skin,'Investida'],['jomp',skin,'Cool Muscles'],['jomp',skin,'Perfect Mode'],['gut','original','Gut reference']];
+ const models=entries.map(([id,variant,label],i)=>{const f=createFighter(id,1200,1),visual=createFighterVisual(characters[id],variant);const slot=new THREE.Group();slot.position.x=i*3;slot.add(visual.root);scene.add(slot);return {f,visual,label};});
+ const names=document.createElement('div');names.className='names';names.innerHTML=entries.map(e=>'<b>'+e[2]+'</b>').join('');box.append(names);rows.push({renderer,scene,camera,models});
+}
+document.querySelector('#status').textContent='Loaded all models';let tick=0,last=0;
+function draw(now){if(now-last>1000/60){last=now;if(!paused)tick++;for(const row of rows){for(const {f,visual,label} of row.models){f.stateFrame=tick;f.move=null;f.state='Idle';f.weaponUntil=0;if(label==='Investida'){f.move='investida';f.moveFrame=14;f.state='SpecialMove';}if(label==='Cool Muscles'){f.move='coolMuscles';f.moveFrame=tick;f.state='SpecialMove';}if(label==='Perfect Mode')f.weaponUntil=999999;if(['77','23','11'].includes(label))f.state='WalkForward';visual.update(f,tick/60);}row.renderer.render(row.scene,row.camera);}}requestAnimationFrame(draw);}requestAnimationFrame(draw);
+}catch(e){document.querySelector('#status').textContent=e.message;console.error(e);}
+</script></html>

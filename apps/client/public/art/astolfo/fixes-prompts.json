@@ -1,0 +1,11 @@
+{
+  "mode": "built-in image generation",
+  "movement": {
+    "path": "movement-v2.png",
+    "prompt": "Use case: stylized-concept. Create a transparent pixel-art fighting game animation sprite sheet of exactly the same short stocky bearded man with rectangular glasses and receding black hair as the provided Astolfo sprite references. Preserve the clean hand-pixelled 2D Gut-style art, likeness, body proportions and clothing. A uniform 4 column by 2 row grid, exactly 8 isolated full-body sprites, generous transparent gutters. Every sprite faces RIGHT in three-quarter side view. Same pixel scale throughout. Row 1 charcoal suit, white shirt, gray tie, black shoes. Row 2 identical poses with pale blue long sleeve shirt, beige trousers, black shoes. Each row columns: 1 forward DASH contact pose, torso leaning forward strongly, arms tucked bent for running, near leg forward and far leg behind; 2 DASH opposite contact pose, torso same lean, far leg forward near leg behind, visibly different leg positions. 3 neutral JUMP rising pose, BOTH KNEES BENT naturally underneath torso, hands close in defensive guard, no limb extended toward opponent. 4 neutral FALL descending pose, knees relaxed, both feet below body, hands in guard. No punching or kicking in any frame. No motion streaks, no floor, no shadows, no text, no grid lines. Actual transparent background. Keep every sprite completely contained in its own cell."
+  },
+  "spider": {
+    "path": "spider-crawl-v2.png",
+    "prompt": "Use case: stylized-concept. Transparent pixel-art sprite sheet, 4 columns x 1 row, four successive crawling animation frames of the SAME tiny black/dark brown hairy tarantula that Astolfo places on the ground in the supplied reference (row3 column4 near his hand). Match that creature exactly: chunky dark abdomen, smaller dark head, thick bent hairy legs, restrained brown highlights, natural tiny dark eyes, no big glowing eyes. All four tarantulas face right, side/three-quarter game camera, same size, alternating eight legs in a crawling gait. No man or hand. No text, floor, grid, shadows or effects. Each spider fully inside its own cell with wide transparent gaps. Actual transparent background. Match reference retro pixel-art style."
+  }
+}

@@ -1,0 +1,3 @@
+Tool: image_gen
+Precise color-only edit of this pixel-art fighter: darken ONLY scalp hair to almost BLACK, deep neutral black-brown with subtle charcoal highlights. Remove the light brown/copper highlights from scalp. Keep exact same short low-volume slightly wavy haircut, hairline, texture and silhouette. Preserve EVERYTHING else unchanged: face, beard, glasses, skin, clothing, pose, proportions, pixel style, full-body framing and transparent alpha. Do not make hair curlier or taller. One figure same canvas.
+Skin 2 addition: Edit the first image only. Use second image's scalp color as exact reference.

@@ -1,0 +1,4 @@
+Tool: built-in imagegen
+Outputs: portrait-user-white-v3.png, portrait-user-black-v3.png, victory-user-v3.png
+Sources respectively: /Users/nicol/Downloads/ChatGPT Image Oct 3, 2026 at 06_59_39 PM.png; /Users/nicol/Downloads/ChatGPT Image Oct 3, 2026 at 06_59_47 PM.png; /Users/nicol/Downloads/ChatGPT Image Oct 3, 2026 at 06_59_57 PM.png
+Prompt: Use case: background-extraction. Remove only the black background from this supplied Luizinho character artwork. Output a genuine transparent PNG with clean alpha edges. Preserve the exact original painted artwork, face, glasses, beard, skin, clothing, blue blueprint and its fine white markings, hands, pose, full figure, framing and canvas aspect ratio. Do not restyle or redraw. Preserve all dark clothing and hair, do not mistake black subject areas for background. Remove background between limbs and around the paper. No added glow, halo, shadows, scenery or text.

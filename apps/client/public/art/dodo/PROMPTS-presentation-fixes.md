@@ -1,0 +1,37 @@
+# Dodo presentation fixes
+
+Final second-outfit retouch prompt: Apply strong professional BEAUTY AIRBRUSH RETOUCHING to all human skin in this portrait. Completely airbrush/smooth the forehead, cheeks, neck, both forearms, both hands and both exposed knees. These areas must become smooth featureless color gradients with ZERO texture, ZERO pores, ZERO lines or patterns, ZERO arm hair. Preserve eye details, beard/hair, silhouette, clothing, guitar, fists position, orange and blue rim lighting. The current skin has polygon-like cracks and must be replaced, not sharpened. Strong smoothing explicitly requested, plastic smooth is preferable to the current pattern. Keep true transparent alpha background. ONLY skin surface changes. Keep EXACT original face identity, lowered head tilt, eyebrow shape, expression and facial geometry. Do not change pose or reshape.
+
+Generated with the built-in image generation tool.
+
+The approved first skin remains `portrait-1-clean.png` unchanged. The new second skin is `portrait-black-matched-v2.png`, edited from that approved leaf-print portrait.
+
+## Sprite assets and prompts
+
+### walk-cycle-1.png
+
+Production animation sprite sheet. Reference 1 authoritative fine hand-drawn game style, normal adult anatomy small head about 7-head body. Reference 2 exact Dodo identity wardrobe guitar. Create EIGHT frames in 4 columns 2 rows of ONE coherent WALK CYCLE facing RIGHT. Closed black gold leaf short-sleeve shirt black knee shorts, black canvas high tops, salt pepper hair full beard no eyewear, white guitar secured on BACK. Hands guarding. IMPORTANT actual locomotion: frames in order 1 left-foot forward heel contact/right-foot back toe, 2 down weight transfer left planted/right heel lifting, 3 passing right knee moves forward left support vertical, 4 up right knee forward lifted left heel rising, 5 RIGHT foot forward heel contact left foot BACK toe, 6 down right planted left heel lifting, 7 passing LEFT knee forward right support vertical, 8 up left knee forward right heel rising. The two legs MUST SWAP which is forward halfway through; depict two distinct legs with correctly alternating visible shoes. Not eight copies of same stride. Consistent head size and scale, subtle vertical hip motion, feet share ground line within each row. Whole silhouettes including guitar separated by wide transparent gutters >=40px. True alpha transparent background, no shadows haze labels grid. Fine detailed sprite rendering like Gut, NOT chibi or chunky pixel art.
+
+### walk-cycle-2.png
+
+Production animation sprite sheet. Reference 1 authoritative fine hand-drawn game style, normal adult anatomy small head about 7-head body. Reference 2 exact Dodo identity wardrobe guitar. Create EIGHT frames in 4 columns 2 rows of ONE coherent WALK CYCLE facing RIGHT. Black tshirt beige knee shorts, black canvas high tops, salt pepper hair full beard no eyewear, white guitar secured on BACK. Hands guarding. IMPORTANT actual locomotion: frames in order 1 left-foot forward heel contact/right-foot back toe, 2 down weight transfer left planted/right heel lifting, 3 passing right knee moves forward left support vertical, 4 up right knee forward lifted left heel rising, 5 RIGHT foot forward heel contact left foot BACK toe, 6 down right planted left heel lifting, 7 passing LEFT knee forward right support vertical, 8 up left knee forward right heel rising. The two legs MUST SWAP which is forward halfway through; depict two distinct legs with correctly alternating visible shoes. Not eight copies of same stride. Consistent head size and scale, subtle vertical hip motion, feet share ground line within each row. Whole silhouettes including guitar separated by wide transparent gutters >=40px. True alpha transparent background, no shadows haze labels grid. Fine detailed sprite rendering like Gut, NOT chibi or chunky pixel art.
+
+### companion-roster-0.png
+
+Production fighting-game sprites. Match reference 1 EXACT fine hand-drawn rendering, normal adult proportions SMALL head about 7 heads tall, thin outlines subtle shading. NOT chibi, NOT big head, NOT chunky pixels. Reference2 exact uniform black burgundy chevrons burgundy neck trim white PAINKILLERS text gold-edged77 and yellow emblem, matching shorts white socks basketball sneakers. Adult teammate medium tan skin short black hair trimmed beard. Six full body poses 3columns2rows facing RIGHT: guard; left-foot-forward walking; right-foot-forward walking (opposite leg leading); extended jab; cross punch; throwing basketball still touching throwing hand. All same scale and identity, athletic average build, proportional limbs. Every figure isolated with at least40px transparent gutters. Genuine transparent alpha background, no backdrop shadows labels. No guitar.
+
+### companion-roster-1.png
+
+Production fighting-game sprites. Match reference 1 EXACT fine hand-drawn rendering, normal adult proportions SMALL head about 7 heads tall, thin outlines subtle shading. NOT chibi, NOT big head, NOT chunky pixels. Reference2 exact uniform black burgundy chevrons burgundy neck trim white PAINKILLERS text gold-edged77 and yellow emblem, matching shorts white socks basketball sneakers. Adult teammate dark skin short cropped black hair clean shaven. Six full body poses 3columns2rows facing RIGHT: guard; left-foot-forward walking; right-foot-forward walking (opposite leg leading); extended jab; cross punch; throwing basketball still touching throwing hand. All same scale and identity, athletic average build, proportional limbs. Every figure isolated with at least40px transparent gutters. Genuine transparent alpha background, no backdrop shadows labels. No guitar.
+
+### companion-roster-2.png
+
+Production fighting-game sprites. Match reference 1 EXACT fine hand-drawn rendering, normal adult proportions SMALL head about 7 heads tall, thin outlines subtle shading. NOT chibi, NOT big head, NOT chunky pixels. Reference2 exact uniform black burgundy chevrons burgundy neck trim white PAINKILLERS text gold-edged77 and yellow emblem, matching shorts white socks basketball sneakers. Adult teammate light skin short brown hair full brown beard. Six full body poses 3columns2rows facing RIGHT: guard; left-foot-forward walking; right-foot-forward walking (opposite leg leading); extended jab; cross punch; throwing basketball still touching throwing hand. All same scale and identity, athletic average build, proportional limbs. Every figure isolated with at least40px transparent gutters. Genuine transparent alpha background, no backdrop shadows labels. No guitar.
+
+## Second skin clothing edit
+
+Use case: identity-preserve. Edit the supplied approved leaf-print fighter portrait. ONLY replace his leaf-print button-up shirt with a plain black crew-neck T-shirt, and black shorts with light beige shorts. Preserve the original face EXACTLY: same head tilt, chin lowered, eyebrows, eyes, smirk, face silhouette, hair and beard; no head repositioning or new face. Preserve fists, arms, body proportions, crop, strap, full size upright white guitar behind him, and orange/blue rim lights exactly. Clean the faint artificial polygon/leaf pattern from exposed skin with subtle surface retouch only, preserving facial features and all original anatomy/shading. Do NOT beautify or reshape his face. Output genuine transparent alpha background and retain colored rim lights on the subject. This must look like the identical approved picture with clothes swapped, not a newly posed portrait.
+
+## Skin surface retouch
+
+undefined

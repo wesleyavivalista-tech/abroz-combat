@@ -1,0 +1,27 @@
+CONTROLLER UI PASS — 2026-10-05
+
+Implementation
+- Shared spatial navigation for native buttons, links, summaries, selects, inputs and focusable scrolling regions. Angled cards on one row stay a row; no unexpected edge wrapping.
+- Stable focus tokens per screen/dialog/player restore selection after returning or re-rendering. Default focus prefers selected fighters and primary content over header utilities.
+- Left/right adjusts sliders, number fields and selects; confirm cycles a select without opening a native popup that traps controller input.
+- Controller keyboard supports names and room codes, deletion, clear, Done and Cancel. Keyboard binding buttons have a controller key picker.
+- High-contrast gold focus and contextual Xbox/PlayStation/generic prompts. Pointer/keyboard activity switches prompts; guide mappings refresh with the device.
+- Pause exposes settings and the existing training HUD controls. Input is cleared at pause/resume boundaries. Online options continue network simulation while suppressing the local player's combat input.
+- Result dialogs receive navigation even though their underlying screen remains the fight screen.
+
+Audit scope
+Home, local mode grid, fighter/skin selection, fighter guide, arena selection, local team/FFA setup, elimination/party setup, championship setup/bracket, online room setup, settings, controller dialog, training HUD, pause and result dialogs use the shared controls/navigation path. There is no separate inventory UI.
+
+Verification completed
+- 66 focused tests pass: controller manager, menu navigation, championship and fighter guide.
+- TypeScript and lint pass; Vite production build passes (existing large-chunk warning).
+- Browser with simulated Gamepad API: main menu → training selection → arena → gameplay → pause → settings volume adjustment → back → training dummy adjustment → resume.
+- Browser: local mode grid → championship setup; roster guide navigation/page scrolling; online selection → arena → lobby → on-screen room-code entry and commit, with restored field focus.
+- Xbox and DualSense prompt sets checked in the running UI. Focus and dialog prompt appearance inspected visually.
+- Fullscreen temporarily hid the external test harness; browser Escape was needed to restore the harness. This is not a hardware fullscreen-exit verification.
+
+Not verified
+No physical controller was available. Bluetooth reconnect, operating-system/browser controller differences, actual couch-distance readability, live remote multiplayer, every tournament/elimination round and every result/rematch route were not exercised end-to-end in the browser. Their shared navigation and gamepad behavior have automated coverage, but that is not a substitute for hardware/session testing.
+
+Rules for future UI
+Use native button/input/select/link/summary elements with accessible names. Give repeated controls stable IDs or data attributes. Set data-nav-screen on new screens; use unique IDs and showModal() for dialogs. Keep controls inside the active UI/dialog, never implement an action only on a decorative div. Prefer data-control-index/data-control-player for guide prompts and data-prompt-pause for pause prompts. Preserve input-clear and modal ownership rules. Verify both D-pad and stick, back/cancel, focus restoration and scrolling with the controller harness before shipping a new screen.

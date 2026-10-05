@@ -1,0 +1,8 @@
+Mode: built-in imagegen, image edit, transparent_background=true.
+Sources:
+/Users/nicol/Downloads/ChatGPT Image Oct 3, 2026 at 08_51_59 PM.png
+/Users/nicol/Downloads/ChatGPT Image Oct 3, 2026 at 08_52_09 PM.png
+Outputs: portrait-user-tee-v2.png, portrait-user-gym-v2.png
+
+Prompt applied separately to each source:
+Use case: background-extraction. Remove ONLY the white background of the supplied Napa full-body game portrait, replace it with genuine transparent alpha. Preserve the exact supplied character artwork: face and likeness, skin color and saturation, all painted shading and texture, tattoos, clothing and emblems, cookie, hands, legs and shoes. Do not redraw, restyle or recolor him. Keep original full-body pose, orientation, composition, margins and 1086x1448 aspect ratio. Include complete shoes and cookie. Clean cutout with no white halo, no added background, glow or floor shadow. White portions of clothing and footwear remain opaque.

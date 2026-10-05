@@ -1,0 +1,12 @@
+# Dodo menu portraits — guitar on back, fists in guard
+
+Built-in image generation. Current outfits and fighter models retained.
+
+## Skin 1
+
+Use case: identity-preserve. Edit this Dodo menu portrait. Preserve exact face likeness, gray salt-and-pepper short hair, dark beard, skin tone, longer natural torso proportions, and existing outfit (plain black T-shirt and light beige knee-length shorts). CHANGE POSE: white electric guitar with black pickguard now securely STRAPPED ACROSS HIS BACK, its neck clearly visible above one shoulder and a small portion of white body visible behind the opposite hip. Guitar is not in his hands and not floating. Black strap visibly crosses chest. BOTH HANDS EMPTY and raised as closed fists in an unmistakable boxing guard, one fist near chin, other slightly forward, elbows bent, knees bent in balanced fighting stance, focused confident expression toward opponent. Hands anatomically correct, no extra limbs. Preserve the clean illustrated realistic roster style and orange/blue rim light on figure. Close menu portrait HEAD TO KNEES, large character and face, no feet, no empty full-body padding. Transparent background with no checkerboard baked in, no scenery, no text or background glow cloud. Do not change to a leather jacket or another outfit. Only menu portrait, not sprite model.
+
+## Skin 2
+
+Use case: identity-preserve. Edit this Dodo menu portrait. Preserve exact face likeness, gray salt-and-pepper short hair, dark beard, skin tone, longer natural torso proportions, and existing outfit (dark olive/yellow-green leaf-print short sleeve collared shirt and black knee-length shorts). CHANGE POSE: white electric guitar with black pickguard now securely STRAPPED ACROSS HIS BACK, its neck clearly visible above one shoulder and a small portion of white body visible behind the opposite hip. Guitar is not in his hands and not floating. Black strap visibly crosses chest. BOTH HANDS EMPTY and raised as closed fists in an unmistakable boxing guard, one fist near chin, other slightly forward, elbows bent, knees bent in balanced fighting stance, focused confident expression toward opponent. Hands anatomically correct, no extra limbs. Preserve the clean illustrated realistic roster style and orange/blue rim light on figure. Close menu portrait HEAD TO KNEES, large character and face, no feet, no empty full-body padding. Transparent background with no checkerboard baked in, no scenery, no text or background glow cloud. Do not change to a leather jacket or another outfit. Only menu portrait, not sprite model.
+

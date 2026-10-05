@@ -1,0 +1,25 @@
+{
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "name": "portrait-1.png",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-366b3947-ee30-43e9-a5d8-ff48a75d3d86.png",
+      "prompt": "Create JOPA's full-body fighting-game menu portrait for look approval. References 1-3 are identity and clothes: match this specific adult man's face closely, youthful clean-shaven face, short dark slightly wavy hair, dark thick eyebrows, warm medium tan skin, friendly broad smile, lean normal athletic build, 1.76m tall, narrow natural neck, no exaggerated muscles. Reference 4 is ART STYLE ONLY: polished realistic illustrated fighting-game portrait, warm golden and cool blue rim lighting, crisp clean rendering. Do not copy Bozo's face, beard, glasses or hair powers. Skin 1 outfit: white short-sleeve crewneck tee with subtle vertical knit texture and tiny dark chest tag, light beige above-knee shorts per reference2, simple white low-top sneakers. Pose: natural three-quarter fighting guard facing right, both fists raised, legs staggered, smiling confidence, head and both shoes fully in frame. Isolated on genuine transparent background, no scenery, text, border or props. Clean smooth natural skin, no added aging marks or repeating geometric texture. Strong close likeness to reference1."
+    },
+    {
+      "name": "portrait-2.png",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-946f0515-28b3-43eb-870e-53ea23724d09.png",
+      "prompt": "Use case: identity-preserve. Image1 edit target Jopa full-body game portrait. Keep his exact face, hair, youthful clean-shaven likeness, smile, natural lean physique, proportions, fists-up pose, framing, white sneakers and lighting identical. Change ONLY outfit: Santos FC black-and-white vertically striped jersey matching reference2, with yellow collar accent, patterned white sleeve trim, Santos crest and yellow Umbro detail, paired with plain black football shorts above knee. Image3 is supporting photo of same person wearing jersey. Do not add props. Same polished illustrated realistic art. Genuinely transparent background. No text labels, no added face texture or aging."
+    },
+    {
+      "name": "model-1.png",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-ea8c3c2e-1de8-4469-80d2-e94b81f1235a.png",
+      "prompt": "Create one full-body JOPA 2D fighting-game sprite model for visual approval. Image1 is exact character identity/outfit reference: youthful clean-shaven adult, warm tan skin, short dark wavy hair, friendly smile, lean natural physique 1.76m, white crewneck tee with tiny dark chest tag, beige shorts, white low-top sneakers. Image2 is Gut game sprite sheet STYLE REFERENCE ONLY. Draw Jopa in precisely this grounded retro arcade sprite rendering style: dark pixel outlines, crisp clustered pixels, limited shaded colors, human proportions with subtly enlarged readable head and hands, not photoreal or 3D. SINGLE standing idle fighting guard pose facing right in three-quarter side view, knees gently bent, two closed fists guarding face/chest, both feet firmly grounded and visible, legs separated. Whole figure centered with ample transparent margin. Match reference1 face and outfit, do not copy Gut beard/glasses/body/clothes. No attacks, no props, no text, no multi-pose sheet. Genuine transparent background. Intended to display around 180px tall in game."
+    },
+    {
+      "name": "model-2.png",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-a7a808c3-3e0d-4e33-a42e-7b68c1578a0f.png",
+      "prompt": "Use case: identity-preserve. Image1 is edit target: single Jopa pixel-art fighter model. Image2 is outfit reference only. Make skin2 by changing ONLY clothing: black-and-white striped Santos jersey with yellow neckline and little team crest, black football shorts, retain white sneakers. Preserve exact same pixel-art style, head, face, hair, friendly smile, tan skin, natural lean build, pixel scale, guard stance, arms and legs, framing and overall size from image1. No change to face or pose. Single full-body sprite facing right. Genuine transparent background, no text or props."
+    }
+  ]
+}

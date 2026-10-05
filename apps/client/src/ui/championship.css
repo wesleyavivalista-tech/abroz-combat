@@ -1,0 +1,109 @@
+.ac-home .ac-direct-menu {grid-template-columns:repeat(4,minmax(0,1fr))}
+.ticket-championship {--ticket-accent:#edce77}
+.ticket-championship strong {font-size:clamp(18px,2vw,29px)}
+.championship-page {padding:24px 4%;overflow:auto;flex:1;min-height:0;background:linear-gradient(120deg,#101c26f5,#091118fa);color:#e8eceb}
+.championship-page h2 {font-size:clamp(30px,4vw,52px);margin:8px 0}
+.championship-page p {color:#aebcc6;line-height:1.5;margin:8px 0 18px}
+.championship-tools {display:flex;align-items:center;justify-content:space-between;gap:16px;margin:20px 0;flex-wrap:wrap}
+.championship-page label {display:flex;align-items:center;gap:12px;font:11px monospace;color:#aabac7}
+.championship-page input,.championship-page select {background:#162430;color:#fff;border:1px solid #43515d;border-radius:3px;padding:9px;min-width:0}
+.championship-entrants {display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.championship-entry {position:relative;display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #354754;background:#14212b}
+/* Fade the crop independently from the artwork's existing silhouette mask. */
+.championship-entry-portrait {position:relative;display:block;flex:0 0 82px;height:110px;overflow:hidden;mask-image:linear-gradient(to bottom,#000 0%,#000 72%,transparent 100%),linear-gradient(to right,transparent,#000 9%,#000 91%,transparent);mask-composite:intersect}
+.championship-entry-portrait>img {position:absolute;top:0;left:50%;width:100%;height:auto;max-width:none;transform:translateX(-50%) scale(calc(var(--portrait-scale,1) * 1.35));transform-origin:50% 0}
+.championship-entry .championship-seed {z-index:1}
+.championship-entry>div {display:grid;gap:8px;flex:1;min-width:0}
+.championship-entry label {display:grid;grid-template-columns:65px 1fr;font-size:9px;gap:8px}
+.championship-seed {position:absolute;top:7px;left:8px;color:#edce77;font:12px monospace}
+.championship-next,.championship-champion {display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 24px;border:1px solid #8c794a;background:linear-gradient(110deg,#4c3e1d55,#152633)}
+.championship-next span,.championship-champion span {color:#edce77;font:11px monospace;letter-spacing:2px}
+.championship-next h3,.championship-champion h3 {font-size:28px;margin:8px 0}
+.championship-next i {font-size:16px;color:#8b9aa4;font-style:normal;margin:0 8px}
+.championship-next p {margin:0;max-width:700px;font-size:13px}
+.championship-next button {flex-shrink:0}
+.championship-page button:disabled {opacity:.6;cursor:default}
+.championship-champion {justify-content:flex-start}
+.championship-champion img {width:95px;height:110px;object-fit:cover;object-position:top}
+.championship-rounds {display:flex;gap:20px;overflow-x:auto;padding:22px 0;align-items:stretch}
+.championship-round {min-width:250px;flex:1}
+.championship-round>h3 {font-size:17px;display:flex;justify-content:space-between;border-bottom:2px solid #536678;padding-bottom:12px;margin:0 0 16px}
+.championship-round>h3 small {color:#8a9ba6;font:11px monospace}
+.championship-round>div {display:flex;flex-direction:column;justify-content:space-around;gap:12px;height:calc(100% - 48px)}
+.championship-match {border:1px solid #354957;border-radius:4px;background:#14212c;overflow:hidden}
+.championship-match header {margin:0;position:static;display:flex;justify-content:space-between;padding:8px 10px;height:auto;background:#1c2c39;font:9px monospace;letter-spacing:1px;color:#a8bac6}
+.championship-match.playing {border-color:#edce77}
+.championship-match.playing header b {color:#edce77}
+.championship-contestant {display:flex;gap:8px;align-items:center;padding:9px;min-height:55px;border-top:1px solid #ffffff0a}
+.championship-contestant img {width:33px;height:38px;object-fit:cover;object-position:top}
+.championship-contestant span {flex:1;min-width:0}
+.championship-contestant strong {font-size:13px;overflow-wrap:anywhere}
+.championship-contestant small {display:block;color:#8295a3;font-size:10px;margin-top:3px}
+.championship-contestant>b {font:9px monospace;color:#c0cccd}
+.championship-contestant.winner {background:#b9e08212;color:#cfecaa}
+.championship-contestant.winner>b {color:#cfecaa}
+.championship-contestant.eliminated {opacity:.45}
+.championship-note {padding:12px;border-left:3px solid #edce77}
+.shell:has(.championship-bracket) .utility-nav {display:none}
+@media(max-width:700px){.ac-home .ac-direct-menu{grid-template-columns:repeat(2,minmax(0,1fr))}.ticket-content strong{font-size:20px}.ticket-championship strong{font-size:17px}.championship-next{flex-direction:column;align-items:flex-start}.championship-page{padding:16px}.championship-tools>span{font-size:11px}}
+
+.local-game-page {flex:1;overflow:auto;padding:40px 6%;background:linear-gradient(120deg,#111e28f5,#091017ef)}
+.local-game-page h2 {font-size:56px;margin:10px 0}.local-game-page>p{color:#aebcc6;font-size:18px}
+.local-game-types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:32px 0}
+.local-game-card{display:flex;flex-direction:column;align-items:flex-start;gap:24px;min-height:270px;padding:32px;text-align:left;background:linear-gradient(120deg,#22323e,#111c27);border:1px solid #526473;border-top:3px solid #dfbc72;color:#eef1ec}
+.local-game-card small{color:#dfbc72;font:11px monospace;letter-spacing:1px}.local-game-card strong{font:800 clamp(27px,3.5vw,46px) 'Barlow Condensed',sans-serif}.local-game-card span{line-height:1.7;color:#b8c7d1}.local-game-card b{margin-top:auto;color:#dfbc72;font-size:13px}.local-game-card:hover{background:#2a3b48;border-color:#dfbc72}
+@media(max-width:650px){.local-game-types{grid-template-columns:1fr}.local-game-page{padding:20px}.local-game-card{min-height:210px;padding:24px;gap:16px}}
+/* Four local formats stay visible together on a desktop-height menu. */
+@media(min-width:701px){.local-game-page{padding:22px 6%}.local-game-page h2{font-size:42px;margin:7px 0}.local-game-page>p{margin:8px 0;font-size:16px}.local-game-types{gap:16px;margin:20px 0}.local-game-card{min-height:190px;padding:22px;gap:12px}.local-game-card strong{font-size:34px}.local-game-card span{font-size:14px;line-height:1.45}}
+@media(min-width:1000px){.local-game-types{grid-template-columns:repeat(3,minmax(0,1fr))}.local-game-card{min-height:165px;padding:18px;gap:10px}.local-game-card strong{font-size:30px}}
+
+/* Illustrated arcade mode selection. */
+.local-arcade{min-height:100%;box-sizing:border-box;padding:24px 4% 12px;background:linear-gradient(115deg,#03121eef,#061624db 58%,#020912ef),url('/art/rooftop-city-v1.png') center/cover;color:#edf4f7;position:relative}
+.local-arcade-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:20px}
+.local-arcade-heading h2{font:800 clamp(42px,5vw,68px)/.95 'Barlow Condensed',sans-serif;margin:0;letter-spacing:1px}
+.local-arcade-heading p{font:600 12px monospace;letter-spacing:4px;color:#91adbd;margin:8px 0 0}
+.local-arcade-heading>span{margin-left:auto;border-bottom:2px solid #1484ac;padding-bottom:12px;letter-spacing:3px;font:10px monospace;color:#7896a9}
+.local-arcade-heading>small{font:10px/1.5 monospace;color:#6e9bb8;position:relative;padding-right:22px}.local-arcade-heading>small b{position:absolute;right:0;bottom:0;color:#13bef6;font-size:24px}
+.local-arcade .local-game-types{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 12px}
+.local-arcade .local-game-card{--accent:#16c9fa;position:relative;isolation:isolate;overflow:hidden;min-height:210px;border:1px solid var(--accent);border-radius:3px;padding:0;background:#04121e;text-align:left;color:#ecf4f8;display:block;transition:box-shadow .16s,transform .16s,border-color .16s}
+.local-arcade .mode-versus{--accent:#ffd332}.local-arcade .mode-teams{--accent:#f7a72e}.local-arcade .mode-squads{--accent:#fa4e69}.local-arcade .mode-champion{--accent:#efc343}.local-arcade .mode-elimination{--accent:#b379fc}.local-arcade .mode-party{--accent:#23db9c}
+.local-arcade .local-game-card:hover,.local-arcade .local-game-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px;box-shadow:0 0 22px color-mix(in srgb,var(--accent) 42%,transparent);transform:translateY(-2px)}
+.local-arcade .mode-art{position:absolute;inset:0;display:block;background:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--accent) 65%,#04121e),transparent 75%),repeating-linear-gradient(125deg,transparent 0 24px,#ffffff08 25px 31px);overflow:hidden;z-index:-2}
+.local-arcade .mode-art img{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center top}
+.local-arcade .mode-art:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#030d17 0%,#030d17fa 31%,#030d17b8 48%,transparent 85%);pointer-events:none}
+.local-arcade .mode-card-copy{position:relative;display:flex;flex-direction:column;padding:92px 14px 10px;gap:3px}
+.local-arcade .mode-card-copy small{color:var(--accent);font:700 10px/1.3 'Barlow Condensed',sans-serif;letter-spacing:1.5px}
+.local-arcade .mode-card-copy strong{font:800 clamp(24px,2.35vw,33px)/1 'Barlow Condensed',sans-serif;letter-spacing:.4px}
+.local-arcade .mode-description{font:12px/1.35 'Barlow',sans-serif;color:#c4d1d8;min-height:0;white-space:nowrap}
+.local-arcade .mode-cta{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--accent);color:var(--accent);font:700 14px/1 'Barlow Condensed',sans-serif;padding:6px 11px;margin-top:4px;letter-spacing:.7px}
+.local-arcade .local-game-card:hover .mode-cta,.local-arcade .local-game-card:focus-visible .mode-cta{background:var(--accent);color:#03121e}.mode-cta i{font:20px/.5 sans-serif;font-style:normal}
+.local-arcade .mode-party{grid-column:span 1;min-height:124px}.local-arcade .mode-party .mode-card-copy{padding-top:17px}
+.local-arcade-motto{grid-column:span 2;align-self:center;justify-self:center;font:800 italic clamp(24px,3vw,42px)/.95 'Barlow Condensed',sans-serif;transform:rotate(-5deg);color:#426b82;letter-spacing:1px}.local-arcade-motto span{margin-left:36px}
+.local-arcade-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #30516a;padding-top:10px}.local-arcade-footer>span{font:9px monospace;letter-spacing:2px;color:#63859c}.local-arcade-footer b{color:#1acbfc;margin:0 10px}
+@media(max-width:900px){.local-arcade .local-game-types{grid-template-columns:repeat(2,minmax(0,1fr))}.local-arcade-motto{grid-column:span 1}.local-arcade-heading>span{display:none}}
+@media(max-width:560px){.local-arcade{padding:20px 16px}.local-arcade .local-game-types{grid-template-columns:1fr}.local-arcade .local-game-card{min-height:210px}.local-arcade .mode-card-copy{padding-top:94px}.local-arcade .mode-party .mode-card-copy{padding-top:70px}.local-arcade-motto{padding:20px 0}.local-arcade-footer>span{display:none}}
+.local-arcade-heading{position:static;height:auto;min-height:0;padding:0;background:none;border:0;box-shadow:none}
+@media(min-width:901px) and (max-height:850px){
+ .local-arcade{padding:14px 4% 8px}.local-arcade-heading{margin-bottom:12px}.local-arcade-heading h2{font-size:52px}.local-arcade-heading p{margin-top:5px}
+ .local-arcade .local-game-types{gap:12px}.local-arcade .local-game-card{min-height:190px}.local-arcade .mode-card-copy{padding-top:72px}.local-arcade .mode-party{min-height:108px}.local-arcade .mode-party .mode-card-copy{padding-top:10px}.local-arcade .mode-party .mode-description{min-height:17px}.local-arcade .mode-card-copy strong{font-size:28px}
+}
+
+/* Fit the complete desktop mode menu into the available screen height. */
+@media(min-width:901px){
+ .shell:has(.local-arcade)>header{height:48px;margin:0;padding:0 3%}
+ .shell:has(.local-arcade)>.footer{display:none}
+ .local-arcade{min-height:0;display:flex;flex-direction:column;padding:10px 3% 8px}
+ .local-arcade-heading{flex-shrink:0;margin-bottom:8px;gap:16px}
+ .local-arcade-heading h2{font-size:36px}
+ .local-arcade-heading p{font-size:10px;margin-top:3px;letter-spacing:2px}
+ .local-arcade .local-game-types{flex:1;min-height:0;grid-template-rows:repeat(3,minmax(140px,1fr));gap:10px;margin:0 0 8px}
+ .local-arcade .local-game-card,.local-arcade .mode-party{min-height:0;display:flex;justify-content:flex-end}
+ .local-arcade .mode-card-copy,.local-arcade .mode-party .mode-card-copy{box-sizing:border-box;width:100%;padding:10px 12px;gap:3px}
+ .local-arcade .mode-card-copy strong{font-size:clamp(22px,2.25vw,30px)}
+ .local-arcade .mode-card-copy small{font-size:9px;letter-spacing:1px}
+ .local-arcade .mode-description,.local-arcade .mode-party .mode-description{min-height:0;font-size:11px;line-height:1.3}
+ .local-arcade .mode-cta{padding:5px 10px;margin-top:3px;font-size:13px}
+ .local-arcade-footer{flex-shrink:0;padding-top:5px}
+ .local-arcade-footer .text-button{padding:4px 0}
+ .local-arcade-motto{font-size:clamp(24px,2.8vw,38px)}
+}

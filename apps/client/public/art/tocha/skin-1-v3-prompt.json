@@ -1,0 +1,5 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: shirted Tocha. Image 2 is his approved softer natural physique reference only. Make shirted Tocha a little less muscular to match image 2: reduce oversized shoulder/upper arm and forearm bulk by roughly 15–20%, soften muscle definition and veins, and let the black skull T-shirt hang naturally over a sturdy everyday male torso instead of tightly stretched over a bodybuilder chest. Healthy natural build, neither skinny nor overweight. Preserve EXACT face, expression, normal swept-up hair, beard, tattoos, fists-up pose, white skull shirt graphic, black pants, composition, and Vector-style illustrated painting with warm key light and blue rim. Do not change hairstyle to buzzcut. Preserve anatomical left upper-arm skull tattoo; forearms bare. Same 1024x1536 canvas. Genuine transparent PNG alpha background. No text, no added background, no effects. Change only physique and the shirt drape needed to fit it.",
+  "output": "skin-1-portrait-v3.png"
+}

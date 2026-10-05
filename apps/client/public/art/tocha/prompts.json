@@ -1,0 +1,17 @@
+{
+  "tool": "Built-in image_gen",
+  "atlasPrompt": "Use case: stylized-concept. Production pixel fighting-game sprite animation atlas for TOCHA using reference as exact identity and clothes. Detailed shaded pixel art with strong dark outlines, same face, beard, hair, tattoos and proportions. 6 columns by 4 rows, exactly 24 full-body isolated figures, evenly spaced in equal rectangular cells. Every pose faces RIGHT; every figure remains entirely within its own cell with generous transparent gutters. Same body scale throughout; no scene, text, grid, shadows, flames or weapons. Genuine transparent PNG background, NOT black and NOT checkerboard. Row1: neutral guard; walk left foot forward; walk passing feet; walk right foot forward; walk passing opposite feet; low forward dash stride. Row2: low dash passing stride; low dash extended opposite stride; quick straight jab extended; rear hand cross extended; waist-height finishing kick extended; powerful high side kick extended. Row3: both fists thrust forwards together; two palms forward fireball casting; crouched one hand touching ground summoning; both arms flexed outward ignition; rock horns hand raised head tilted up; rock horns hand raised head banging down. Row4: deep crouching guard; crouching punch fully extended; crouching low kick extended; airborne tuck with bent knees; recoil hit reaction leaning back; knocked out lying horizontally. Preserve identity. Forearms bare, tattoo ONLY left upper arm; black slim pants white sneakers. Make each pose anatomically correct, crisp and game-ready.",
+  "skinSuffixes": [
+    "Skin1: black T-shirt with white skull, normal swept up short hair.",
+    "Skin2: shirtless, buzzcut, exact winged sun chest tattoo from reference."
+  ],
+  "extractionPrompt": "Use case: background-extraction. Remove ONLY the background from this image, preserving every pixel of every character, pose, clothing, face, tattoo and position. Output a clean cutout PNG with genuinely transparent alpha outside the characters and in all gaps between limbs. No backdrop at all: no brown, gray, black, white or checkerboard pixels. Keep original dimensions and exact layout. Do not redesign or redraw characters. Preserve dark outlines and white shoes. Transparent background is essential for direct use as a game asset.",
+  "assets": [
+    "skin-1-atlas.png",
+    "skin-2-atlas.png",
+    "skin-1-portrait.png",
+    "skin-2-portrait.png"
+  ],
+  "references": "../reviews/tocha-v1/ — approved portraits and fighter designs",
+  "notes": "Production files retain the generated alpha channel. Background RGB may remain under transparent pixels; alpha was checked separately. Atlas frame bounds measured from connected alpha components. Later green-key trials were discarded."
+}

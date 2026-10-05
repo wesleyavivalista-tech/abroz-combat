@@ -1,0 +1,40 @@
+PRE-IMPLEMENTATION AUDIT — 2026-10-05
+
+Current architecture
+Plain TypeScript + Vite 7 client; Three.js 0.180 WebGL renderer; DOM/CSS menus. No React or separate native engine. packages/game-core holds fighters, stages, deterministic combat and physics. packages/networking holds rollback. main.ts advances fixed 60 Hz ticks in requestAnimationFrame, capped catch-up, then interpolates rendering. Preserve these systems.
+
+Browser API inventory and desktop disposition
+window/document/events, ResizeObserver, performance.now, requestAnimationFrame: Chromium supports directly.
+WebGL/Canvas2D, image loading, pixel readback and Three TextureLoader: retain. Secure same-origin assets avoid tainted sprite-isolation canvases. DPR cap 2 and existing aspect/scaling remain unchanged.
+fetch: assets/AssetManager, AudioManager, sprite textures and artwork use /art, /audio and other absolute paths. A file:// entry would break this. Serve packaged client from a standard secure abroz://game origin with a constrained protocol handler; no local HTTP server needed.
+Gamepad API/events: unified InputManager/GamepadManager, eight-controller assignments, deadzone, hotplug, neutral suppression and keyboard fallback. Retain. Ordinary keyboard APIs merge physical keyboards; cannot independently identify multiple keyboards. Hardware/backend behavior requires Windows/macOS certification.
+Web Audio: one lazy AudioContext, cached decoded assets, bounded voices, mute/volume persistence, focus/visibility handling. Keep gesture unlock and all scheduling. Electron must not create another context or change timing. Actual output/listening and latency remain device tests.
+Storage: only afterglow-controls and afterglow-audio-v2 localStorage keys in production systems (verify key spelling in source). JSON guards already exist. Add a narrow safe storage service; keep identical keys/schema. Desktop uses Chromium persistent profile under app userData at a fixed origin; separate from browser profile, no automatic migration. No IndexedDB/sessionStorage/game saves/unlocks found.
+Fullscreen: DOM fullscreen call in main.ts; replace only that call with platform helper. Desktop bridge exposes fullscreen toggle only, validates main-frame sender. Native window resize/maximize and OS display management preserve renderer ResizeObserver.
+Fonts: Google CSS import for Barlow/Barlow Condensed is an offline dependency. Bundle licensed same-family font files, retain local existing fonts. No production video, service worker, WebRTC, pointer lock, clipboard or touch-specific input found. Blob CSV download is developer basic-attacks page, not game runtime.
+
+Multiplayer
+WebSocket Node ws relay on 8080; VITE_WS_URL override else webpage host inference. No authentication, WebRTC, NAT traversal, separate matchmaking API or persistent room store. Same existing room codes/messages/rollback for all clients. Keep relay separately deployed; do not embed it in installer. Packaged build needs configured WSS URL, or explicit offline mode with actionable error; never infer ws://game:8080. Server exact ALLOWED_ORIGINS must explicitly include abroz://game for deployed desktop clients. Do not wildcard or bypass origin checks. Existing protocol/content hash + generated simulation source revision already rejects incompatible create/join messages. Keep that mechanism; add release/build identity separately so packaging-only updates do not change compatibility. Disconnect is forfeit; no reconnect/midmatch join.
+
+Build/deployment
+Existing npm dev runs Vite + ws server. npm build builds client dist/ and server dist-server/. Current public tree ~1.5 GiB (includes art review material); shipping all assets is safe for fidelity but large. Do not delete or optimize art during packaging. Build desktop client separately into dist-desktop/ with only index.html entry; package resources once; do not include node_modules/developer source/review HTML. Existing web deployment is static root hosting plus separate TLS ws relay. No deployed production endpoint or signing credentials provided. No Git repository existed before this audit.
+
+Decision
+Electron: bundled Chromium consistency is the safer first desktop target for this WebGL + Canvas readback + eight-controller + Web Audio game. Tauri has a smaller wrapper and may use less memory, but system WebView2/WKWebView/WebKitGTK create additional browser-engine compatibility matrices. Neither performance nor hardware support is assumed tested. Assets dominate download size already. Electron adds runtime size/memory; use one BrowserWindow, no extra libraries at runtime, no updater. Windows NSIS, macOS app/DMG, Linux AppImage via electron-builder, native-host builds recommended. Pin new dependencies, upgrade none unrelated.
+Sources: https://www.electronjs.org/docs/latest/tutorial/security
+https://www.electronjs.org/docs/latest/api/protocol
+https://v2.tauri.app/reference/webview-versions/
+https://www.electron.build/configuration/
+
+Proposed architecture / files
+Shared game remains untouched -> existing web dist and separate desktop dist from same client.
+Create apps/desktop metadata, main/preload, constrained asset-protocol helper, build config, launcher/build script, diagnostic logger. Create client platform storage/fullscreen/endpoint/build-info helpers and startup failure boundary. Create desktop policy/storage/endpoint tests and distribution guide. Modify package scripts/lock, Vite config, AudioManager and InputManager storage calls, network endpoint resolver, fullscreen action and entry bootstrap. Bundle Barlow fonts/license. Add desktop origin to development server allowlist only; document production configuration. Add gitignore build outputs.
+
+Plan / gates
+1. Git init + baseline commit/tag and baseline tests/typecheck/lint/build.
+2. Small storage/network/fullscreen/entry adapters; verify browser build and tests before wrapper.
+3. Secure Electron origin, sandbox/context isolation/no Node in renderer; minimal validated fullscreen IPC; deny navigation/windows/permissions/downloads; bounded local diagnostics. Separate desktop output and metadata. Package current macOS host, prepare Windows/Linux targets.
+4. Browser and native launch/navigation/training/settings/fullscreen smoke checks where tooling allows; automated simulation/input/audio/network regression. Record actual evidence separately from untested physical controllers, sound perception, Windows GPU/installer and live remote interoperability.
+
+Risks
+Do not ship an online desktop build without WSS endpoint/server origin configuration. No browser profile migration. Asset size and first-load work pre-exist. No certificates/accounts: unsigned local builds only. Preserve local gameplay and web default endpoint. Keep security defaults, no remote code or privileged arbitrary IPC. OS-native testing is required before public release; a successful window launch alone is not certification.

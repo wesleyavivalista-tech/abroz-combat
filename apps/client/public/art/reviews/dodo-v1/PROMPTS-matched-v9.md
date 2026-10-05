@@ -1,0 +1,9 @@
+# Matched portraits v9
+
+Method: built-in image generation edits.
+
+## Guitar alignment
+Edit only the guitar geometry in this approved fighting-game portrait. Preserve the man's exact face, hair, likeness, physique, long torso, pose, hands, expression, leaf-print shirt, black shorts, framing, lighting and all character pixels as closely as possible. The current guitar is geometrically bent: its neck above the image-left shoulder does not line up with the body behind image-left hip. Correct it as ONE straight rigid instrument carried on his back. Use a nearly vertical guitar behind his image-left shoulder/hip: neck, strings, pickups and bridge share ONE straight continuous centerline with a slight outward lean at the top. Reposition the neck/headstock to be almost upright above that same hip, rather than extending far diagonally left. Keep guitar mostly occluded by his torso, white body and black pickguard partially visible at image-left hip. Natural back strap. Empty fists remain in guard. No other changes, no new clothing or pose. Preserve genuine transparent alpha background, no colored background or cloud. Same image dimensions and crop.
+
+## Clothes only
+Clothing-only edit of this exact approved character portrait. Replace his leaf-print collared button-up shirt with a plain loose BLACK CREW-NECK T-SHIRT with short sleeves; replace his black shorts with LIGHT BEIGE / OFF-WHITE knee-length chino shorts. Preserve EXACTLY the same face, identity, hair, expression, skin, long torso and body proportions, fists and arm positions, legs, fighting pose, white guitar on back with almost vertical neck, guitar strap, lighting, rendering, framing and crop. Do not mirror or reposition him. All exposed skin and facial details should be unchanged. Only the shirt and shorts change. Preserve genuine transparent alpha background and dimensions. No writing or logos.

@@ -1,0 +1,3 @@
+Mode: built-in image generation
+
+Use case: identity-preserve. Make a SMALL physique adjustment to this exact adult male game portrait: add just a little muscle, approximately 8–10% fuller upper arms and forearms, subtly firmer shoulders and chest. Keep him lean and naturally athletic, not bulky or bodybuilder-like. This is a fine adjustment to the current slim version, NOT a redesign. Preserve exact face, expression, head size, glasses, hair and facial hair, pose, outfit, props, colors, framing, illustrated style and orange/blue rim lighting. Preserve actual transparency. No added background. Do not exaggerate veins or muscle definition.

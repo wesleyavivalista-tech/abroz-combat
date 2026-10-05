@@ -1,0 +1,3 @@
+Tool: image_gen
+Precise local edit: change ONLY the scalp hairstyle of this pixel-art fighter. Replace the large round tightly curled bumps with SHORT close-to-head dark brown hair with subtle loose waves and fine irregular texture, much less curly and much less voluminous. Short tapered sides, low natural hairline, no round ringlet clusters. Match a real short slightly wavy haircut. Keep face, glasses, beard, expression, pixel art style, body, clothing, colors, stance, hands, footwear and canvas placement EXACTLY unchanged. Preserve full body and genuine transparent alpha background. Only hair changes.
+Skin 2 addition: Use the second image as the exact hairstyle reference. Edit only the first image, the black/red kung fu skin.

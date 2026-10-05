@@ -1,0 +1,24 @@
+{
+  "mode": "built-in image_gen",
+  "basePrompt": "Use case: stylized-concept. Create a transparent pixel-art fighting game sprite sheet matching the provided character references EXACTLY in identity, body, costume and pixel-art style. TWO COLUMNS, one outfit per ROW, generous transparent gutters, same pixel scale for all poses. Column1 is ordinary STANDING IDLE GUARD as height calibration. Column2 is a distinct FALLING/DESCENDING neutral pose: torso upright, both feet LOWERED below hips, legs partly extended DOWNWARD with knees softly bent ready to land, one foot slightly lower, arms near chest for balance. Feet must NOT be tucked up to buttocks/chest: that would be a rising jump. No kicks, punches, attack or hit reaction. All face RIGHT in three-quarter side view. Every figure fully contained in its cell. No motion lines, text, grid, shadows, ground or background. Actual transparent background. ",
+  "jobs": [
+    {
+      "id": "drupa-buda",
+      "rows": 1,
+      "refs": [
+        "drupa/buda-complete-v4",
+        "drupa/fall-v1"
+      ],
+      "prompt": "ONE ROW TWO COLUMNS. ONLY spiritual Buda form from first reference: head face hands feet MUST be WHITE/PALE BLUE, not tan human skin, robe white blue shading. Column1 standingguard column2 neutralfall legs lowered like bottomright second reference. Preserve original Buda face/beard/build. No halo background."
+    },
+    {
+      "id": "caio-master-black",
+      "rows": 1,
+      "refs": [
+        "caio/fall-v1",
+        "caio/atlas-2"
+      ],
+      "prompt": "ONE ROW TWO COLUMNS. ONLY red metallic liquid transformed Caio, like bottom row first reference BUT wearing his black sunglasses like second reference. Column1 standingguard column2 neutralfall legs lowered. Entire body/clothes red metallic, keep BLACK SUNGLASSES. No gun."
+    }
+  ]
+}

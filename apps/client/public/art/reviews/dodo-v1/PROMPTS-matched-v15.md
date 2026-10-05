@@ -1,0 +1,5 @@
+# Clothing variant v15
+
+Built-in image generation. Base: first skin menu-leaf-upright-v12.png.
+
+Change ONLY the two clothing items in this exact image. Replace the leaf-pattern collared shirt with a plain BLACK short-sleeve crew-neck T-SHIRT, and recolor the black shorts to LIGHT BEIGE chino shorts. Everything outside these clothing regions must remain IDENTICAL to the input: exact face and expression, head angle and location, hair, beard, skin, arms, hands, legs, body proportions, pose, guitar geometry/size/angle, strap, amber and blue rim lighting, image crop, scale and transparent alpha silhouette. Do not regenerate the person. Do not change his smile or show more teeth. Do not shift or resize anything. This is the same picture with an outfit swap only. Preserve crisp transparent cutout without added haze.

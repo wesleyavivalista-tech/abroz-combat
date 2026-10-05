@@ -1,0 +1,5 @@
+{
+  "mode": "built-in image_gen",
+  "useCase": "identity-preserve",
+  "suit": "Edit image 1 Fausto suit portrait. Correct the face using image 2, the REAL person's reference: he has youthful smooth skin despite gray hair. Remove the added deep forehead creases, crow's feet, cheek grooves, angular age marks and etched/cracked skin texture. Match actual face proportions and apparent age in photo 2 closely, preserve dark eyebrows and salt-and-pepper beard and silver hair. Clean natural facial shading, not waxy. Image 3 is ONLY the game illustration rendering/lighting style reference, not identity. Preserve image1's average non-muscular build, narrow neck, full body pose holding white origami crane, black suit white shirt navy tie silver watch and black dress shoes. Preserve composition and orange/blue rim lighting. Clean polished fighting-game illustration without swirling repeated texture or etched marks. Actual transparent background, no backdrop. Only one full-body Fausto."
+}
