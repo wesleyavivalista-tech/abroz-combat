@@ -1,3 +1,4 @@
+import {toggleFullscreen} from './platform/runtime.js';
 import {arenaSelection} from './ui/ArenaSelection.js';
 import './ui/arena-selection.css';
 import {ControllerHints} from './input/ControllerHints.js';
@@ -903,9 +904,7 @@ ui.onAction((action, element) => {
       else void start(simulation.state.fighters.map(f=>f.characterId),simulation.state.teams,simulation.state.skins);
       break;
     case "fullscreen":
-      if (!document.fullscreenElement)
-        void document.documentElement.requestFullscreen().catch(() => {});
-      else void document.exitFullscreen();
+      void toggleFullscreen().catch(()=>controllerToast("Fullscreen is unavailable. Try maximizing the window."));
       break;
     case "bind": {
       cancelBinding?.();

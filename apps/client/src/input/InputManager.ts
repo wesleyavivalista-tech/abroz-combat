@@ -1,3 +1,4 @@
+import {storage} from '../platform/storage.js';
 import { Button } from "../../../../packages/game-core/types.js";
 import { GamepadManager } from "./GamepadManager.js";
 export const actions = [
@@ -69,7 +70,7 @@ export class InputManager {
   constructor() {
     try {
       const saved = JSON.parse(
-        localStorage.getItem("afterglow-controls") ?? "null",
+        storage.getItem("afterglow-controls") ?? "null",
       );
       if (saved?.bindings?.length === 2)
         this.bindings = this.bindings.map((row, p) =>
@@ -121,7 +122,7 @@ export class InputManager {
     this.controllers.clear();
   }
   save(): void {
-    try { localStorage.setItem(
+    try { storage.setItem(
       "afterglow-controls",
       JSON.stringify({
         bindings: this.bindings,

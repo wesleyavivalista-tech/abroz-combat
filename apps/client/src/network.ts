@@ -1,3 +1,4 @@
+import {desktopBridge,multiplayerEndpoint} from './platform/runtime.js';
 import {contentVersion} from '../../../packages/shared/contentVersion.js';
 import type {
   ClientMessage,
@@ -17,9 +18,7 @@ export class LobbyClient {
     this.disconnect();
     const env = (import.meta as ImportMeta & { env: Record<string, string> })
       .env;
-    const url =
-      env?.VITE_WS_URL ||
-      `${location.protocol === "https:" ? "wss" : "ws"}://${location.hostname}:8080`;
+    const url = multiplayerEndpoint(env?.VITE_WS_URL,!!desktopBridge(),location.protocol,location.hostname);
     await new Promise<void>((resolve, reject) => {
       const socket = new WebSocket(url);
       this.socket = socket;

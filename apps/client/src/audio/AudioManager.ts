@@ -1,3 +1,4 @@
+import {storage} from '../platform/storage.js';
 import {AudioPolicy} from './AudioPolicy.js';
 import {sounds,legacySounds,type AudioBus} from './SoundRegistry.js';
 import {chooseMusic,tracks,arenaAudio,ambience,type MusicState,type MusicTrack} from './MusicRegistry.js';
@@ -35,7 +36,7 @@ export class AudioManager {
   private resumePending=false;
   constructor(){
     try{
-      const value=JSON.parse(localStorage.getItem(storageKey)??'{}');
+      const value=JSON.parse(storage.getItem(storageKey)??'{}');
       for(const k of ['master','music','sound','ui'] as const)if(typeof value[k]==='number'&&Number.isFinite(value[k]))this[k]=Math.max(0,Math.min(1,value[k]));
       for(const k of ['mute','muteOnBlur'] as const)if(typeof value[k]==='boolean')this[k]=value[k];
     }catch{/* Storage disabled or invalid: defaults remain usable. */}
@@ -68,7 +69,7 @@ export class AudioManager {
     this.ramp(this.masterNode,this.mute||this.blurred&&this.muteOnBlur?0:this.master);
     this.ramp(this.sfxNode,this.sound);
     this.mix();
-    if(save)try{localStorage.setItem(storageKey,JSON.stringify({master:this.master,music:this.music,sound:this.sound,ui:this.ui,mute:this.mute,muteOnBlur:this.muteOnBlur}));}catch{/* Optional persistence. */}
+    if(save)try{storage.setItem(storageKey,JSON.stringify({master:this.master,music:this.music,sound:this.sound,ui:this.ui,mute:this.mute,muteOnBlur:this.muteOnBlur}));}catch{/* Optional persistence. */}
   }
   private mix():void{
     const now=performance.now();

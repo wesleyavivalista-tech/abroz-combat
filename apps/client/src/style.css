@@ -1,5 +1,5 @@
 @import "./ui/dodo-portraits.css";
-@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap");
+@import url("/fonts/barlow.css");
 :root {
   font-family: Barlow, Arial, sans-serif;
   color: #ecede4;
