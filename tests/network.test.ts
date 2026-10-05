@@ -85,11 +85,12 @@ for (const latency of [0, 50, 100, 150, 200])
       baseline.step(frame < 2 ? [0, 0] : [mask(0, frame), mask(1, frame)]);
     assert.equal(hashState(a.simulation.state), hashState(baseline.state));
   });
-test("real WebSocket create/join/ready/input/hash/disconnect and validation", async () => {
+for (const peerOrigins of [["http://localhost:5173", "http://localhost:5173"], ["abroz://game", "http://localhost:5173"], ["abroz://game", "abroz://game"]])
+test(`real WebSocket create/join/ready/input/hash/disconnect: ${peerOrigins.join(" ↔ ")}`, async () => {
   const child = spawn(
     process.execPath,
     ["--import", "tsx", "apps/server/src/index.ts"],
-    { env: { ...process.env, PORT: "0" }, stdio: ["ignore", "pipe", "pipe"] },
+    { env: { ...process.env, PORT: "0", ALLOWED_ORIGINS: "http://localhost:5173,abroz://game" }, stdio: ["ignore", "pipe", "pipe"] },
   );
   const sockets: WebSocket[] = [];
   try {
@@ -107,8 +108,8 @@ test("real WebSocket create/join/ready/input/hash/disconnect and validation", as
       });
       child.on("error", reject);
     });
-    const connect = async () => {
-      const socket = new WebSocket(`ws://localhost:${port}`);
+    const connect = async (origin: string) => {
+      const socket = new WebSocket(`ws://localhost:${port}`, {origin});
       sockets.push(socket);
       await new Promise<void>((r, j) => {
         socket.once("open", () => r());
@@ -117,8 +118,8 @@ test("real WebSocket create/join/ready/input/hash/disconnect and validation", as
       return socket;
     };
     const messages = new Map<WebSocket, ServerMessage[]>();
-    const a = await connect(),
-      b = await connect();
+    const a = await connect(peerOrigins[0]),
+      b = await connect(peerOrigins[1]);
     for (const s of [a, b]) {
       messages.set(s, []);
       s.on("message", (d) => messages.get(s)!.push(JSON.parse(d.toString())));

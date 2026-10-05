@@ -1,0 +1,9 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import {assetPath,trustedDocument,safeDevURL,contentPolicy} from '../apps/desktop/policy.mjs';
+test('packaged root paths resolve in the game directory',()=>{const root=path.resolve('fixture');assert.equal(assetPath(root,'abroz://game/'),path.join(root,'index.html'));assert.equal(assetPath(root,'abroz://game/audio/a.wav'),path.join(root,'audio/a.wav'));});
+test('asset policy rejects foreign origins, credentials and encoded traversal',()=>{for(const url of ['file:///etc/passwd','abroz://other/a','abroz://user@game/a','abroz://game/%2e%2e%2fsecret','abroz://game/a%5c..%5csecret','abroz://game/%00'])assert.throws(()=>assetPath('/game',url));});
+test('only the main app document or explicit loopback dev URL is trusted',()=>{assert.ok(trustedDocument('abroz://game/'));assert.ok(trustedDocument('abroz://game/index.html'));assert.ok(!trustedDocument('abroz://game/art/evil.html'));assert.ok(!trustedDocument('https://example.com'));assert.ok(trustedDocument('http://127.0.0.1:5175/','http://127.0.0.1:5175/'));assert.ok(!trustedDocument('http://127.0.0.1:9999/','http://127.0.0.1:5175/'));});
+test('desktop development never loads a remote website',()=>{assert.equal(safeDevURL('http://localhost:5175/'),'http://localhost:5175/');for(const url of ['https://example.com','http://localhost.evil/','http://user@localhost:5175/','file:///a'])assert.throws(()=>safeDevURL(url));});
+test('CSP permits only configured relay and local scripts',()=>{const policy=contentPolicy('wss://relay.example/game');assert.ok(policy.includes('connect-src \'self\' wss://relay.example'));assert.ok(policy.includes("script-src 'self'"));assert.ok(!policy.includes('unsafe-eval'));assert.ok(!contentPolicy('').includes('wss:'));});

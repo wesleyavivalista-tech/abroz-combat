@@ -4,7 +4,7 @@ import { WebSocketServer } from "ws";
 import { RoomService, send } from "./rooms.js";
 const rooms = new RoomService();
 const origins = (
-  process.env.ALLOWED_ORIGINS ?? "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
+  process.env.ALLOWED_ORIGINS ?? "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://127.0.0.1:5175,abroz://game"
 ).split(",");
 const server = createServer((_req, res) => {
   res.writeHead(200, { "Content-Type": "application/json" });

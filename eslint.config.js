@@ -1,7 +1,7 @@
 import js from "@eslint/js";
 import ts from "typescript-eslint";
 export default ts.config(
-  { ignores: ["dist/**", "dist-server/**", "node_modules/**"] },
+  { ignores: ["dist/**", "dist-server/**", "dist-desktop/**", "release/**", "node_modules/**"] },
   js.configs.recommended,
   ...ts.configs.recommended,
   {

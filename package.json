@@ -17,7 +17,13 @@
     "predev:client": "node scripts/simulation-revision.mjs",
     "predev:server": "node scripts/simulation-revision.mjs",
     "prebuild": "node scripts/simulation-revision.mjs",
-    "precheck": "node scripts/simulation-revision.mjs"
+    "precheck": "node scripts/simulation-revision.mjs",
+    "build:web": "node scripts/simulation-revision.mjs && tsc --noEmit && vite build --config apps/client/vite.config.ts",
+    "dev:desktop": "node scripts/desktop.mjs dev",
+    "start:desktop": "node scripts/desktop.mjs run",
+    "build:desktop": "node scripts/desktop.mjs build",
+    "desktop:install-runtime": "node node_modules/electron/install.js",
+    "test:desktop": "node --test tests/desktop-*.test.mjs"
   },
   "dependencies": {
     "three": "^0.180.0",
@@ -29,6 +35,8 @@
     "@types/three": "^0.180.0",
     "@types/ws": "^8.18.1",
     "concurrently": "^9.2.1",
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3",
     "eslint": "^9.36.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
