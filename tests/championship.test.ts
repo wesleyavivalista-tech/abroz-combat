@@ -92,7 +92,7 @@ test('readiness timeout forfeits only unready participants; spectators never exp
 });
 test('championship capacity reaches 16 while existing versus capacity stays 8',()=>{
  const t=room(16);assert.equal(t.session.bracket.entrants.length,16);
- const outsider=client();assert.throws(()=>t.rooms.join(outsider.socket,t.r.code,'jopa'),/full/);
+ const outsider=client();assert.throws(()=>t.rooms.join(outsider.socket,t.r.code,'jopa'),/already started/);
  assert.throws(()=>t.rooms.create(outsider.socket,'jopa',16,'ffa'),/2–8/);
  assert.throws(()=>t.rooms.create(outsider.socket,'jopa',17,'championship'),/2–16/);
  for(const c of t.clients)t.rooms.leave(c.socket);assert.equal(t.rooms.rooms.size,0);assert.equal(t.rooms.membership.size,0);

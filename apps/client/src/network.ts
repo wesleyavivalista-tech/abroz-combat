@@ -1,3 +1,4 @@
+import {diagnostics} from './diagnostics.js';
 import {desktopBridge,multiplayerEndpoint} from './platform/runtime.js';
 import {contentVersion} from '../../../packages/shared/contentVersion.js';
 import type {
@@ -17,6 +18,7 @@ export class LobbyClient {
   private cancelConnect?: () => void;
   async connect(): Promise<void> {
     this.disconnect();
+    diagnostics.record('connection-attempt');
     const env = (import.meta as ImportMeta & { env: Record<string, string> })
       .env;
     const url = multiplayerEndpoint(env?.VITE_WS_URL,!!desktopBridge(),location.protocol,location.hostname);
@@ -26,21 +28,24 @@ export class LobbyClient {
       let opened = false;
       this.cancelConnect = () => { clearTimeout(timeout); reject(new Error("Connection cancelled")); };
       const timeout = setTimeout(() => {
+        diagnostics.record('connection-timeout');
         socket.close();
         reject(new Error("Room server did not respond"));
       }, 5000);
       socket.onopen = () => {
         if (this.socket !== socket) return;
-        opened = true;
+        opened = true;diagnostics.record('connection-open');
         this.cancelConnect = undefined;
         clearTimeout(timeout);
         resolve();
       };
       socket.onerror = () => {
+        diagnostics.record('connection-error');
         clearTimeout(timeout);
         reject(new Error("Cannot connect to room server on " + url));
       };
-      socket.onclose = () => {
+      socket.onclose = (event) => {
+        diagnostics.record('connection-close',undefined,event?.code);
         clearTimeout(timeout);
         if (!opened) reject(new Error("Room server closed the connection"));
         if (this.socket !== socket) return;
@@ -57,6 +62,7 @@ export class LobbyClient {
           this.ping = Math.round(performance.now() - message.sent);
           return;
         }
+        if(['room','start','championship-start','left','error'].includes(message.type))diagnostics.record('network-'+message.type);
         this.onMessage(message);
       };
     });
@@ -94,6 +100,7 @@ export class LobbyClient {
     this.lastDelivery = 0;
     this.pendingInputs=[];
     if (this.socket) {
+      diagnostics.record('connection-leave');
       this.socket.onclose = null;
       this.socket.onopen = null;
       this.socket.onmessage = null;

@@ -1,6 +1,7 @@
+import {createDesktopLogger} from './diagnostics.mjs';
 /* global Response, Headers */
 import {app,BrowserWindow,Menu,dialog,ipcMain,net,protocol,session} from 'electron';
-import {readFileSync,appendFileSync,mkdirSync,statSync,renameSync,realpathSync} from 'node:fs';
+import {readFileSync,realpathSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import process from 'node:process';
@@ -13,21 +14,17 @@ const devURL=!app.isPackaged?safeDevURL(process.env.ABROZ_DESKTOP_URL):undefined
 if(devURL)app.setPath('userData',path.join(app.getPath('appData'),'Abroz Combat Development'));
 protocol.registerSchemesAsPrivileged([{scheme:'abroz',privileges:{standard:true,secure:true,supportFetchAPI:true,stream:true,corsEnabled:true}}]);
 let window;
-let logged=0;
-function log(event){
- if(logged++>200)return;
- try{const dir=path.join(app.getPath('userData'),'logs');mkdirSync(dir,{recursive:true});const file=path.join(dir,'desktop.log');
- try{if(statSync(file).size>256*1024)renameSync(file,file+'.previous');}catch{/* first log */}
- appendFileSync(file,`${new Date().toISOString()} ${event}\n`);
- }catch{/* Logging must never prevent play. */}
-}
-function failure(message){log('startup-failure');dialog.showErrorBox(metadata.productName,message);}
+let buildVersion=app.getVersion();
+const log=createDesktopLogger(path.join(app.getPath('userData'),'logs'),()=>({version:app.getVersion(),build:buildVersion,platform:process.platform,arch:process.arch}));
+function failure(message,details={}){log('startup-failure',details);dialog.showErrorBox(metadata.productName,message);}
+process.on('uncaughtExceptionMonitor',error=>log('main-process-error',{error:error?.name}));
 if(!app.requestSingleInstanceLock())app.quit();
 else {
  app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.focus();}});
  app.whenReady().then(async()=>{
   const root=app.isPackaged?path.join(process.resourcesPath,'game'):path.resolve(here,'../../dist-desktop');
   const config=devURL?{wsURL:''}:JSON.parse(readFileSync(path.join(root,'desktop-config.json'),'utf8'));
+  buildVersion=String(config.buildVersion??app.getVersion()).replace(/[^a-zA-Z0-9._+-]/g,'').slice(0,100);
   const csp=contentPolicy(config.wsURL);
   const title=desktopTitle(metadata.productName,app.getVersion(),config.buildVersion);
   protocol.handle('abroz',async request=>{
@@ -53,15 +50,15 @@ else {
    window.webContents.on('will-navigate',(event,url)=>{if(!trustedDocument(url,devURL))event.preventDefault();});
    window.webContents.on('will-redirect',(event,url)=>{if(!trustedDocument(url,devURL))event.preventDefault();});
    window.webContents.on('will-attach-webview',event=>event.preventDefault());
-   window.webContents.on('render-process-gone',()=>{log('renderer-process-gone');dialog.showErrorBox(metadata.productName,'The game stopped unexpectedly. Please restart it. Your saved settings are kept.');});
+   window.webContents.on('render-process-gone',(_event,details)=>{log('renderer-process-gone',{reason:details.reason,exitCode:details.exitCode});dialog.showErrorBox(metadata.productName,'The game stopped unexpectedly. Please restart it. Your saved settings are kept.');});
    window.webContents.on('unresponsive',()=>log('renderer-unresponsive'));
-   window.webContents.on('did-fail-load',(_e,code,_description,_url,isMainFrame)=>{if(isMainFrame&&code!==-3)failure('The game could not load. Restart it or reinstall the application.');});
+   window.webContents.on('did-fail-load',(_e,code,_description,_url,isMainFrame)=>{if(isMainFrame&&code!==-3)failure('The game could not load. Restart it or reinstall the application.',{code});});
    window.once('ready-to-show',()=>window.show());
    window.on('closed',()=>{window=undefined;});
    await window.loadURL(devURL||`${APP_ORIGIN}/`);
   };
-  log(`start version=${app.getVersion()} build=${String(config.buildVersion??app.getVersion()).replace(/[\r\n]/g,' ').slice(0,100)} platform=${process.platform} arch=${process.arch}`);
-  await create();app.on('activate',()=>{if(!window)void create().catch(()=>failure('Unable to open the game window.'));});
- }).catch(()=>{failure('Unable to initialize Abroz Combat. Check that the application files are intact.');app.quit();});
+  log('start');
+  await create();app.on('activate',()=>{if(!window)void create().catch(error=>failure('Unable to open the game window.',{error:error?.name}));});
+ }).catch(error=>{failure('Unable to initialize Abroz Combat. Check that the application files are intact.',{error:error?.name});app.quit();});
 }
 app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});

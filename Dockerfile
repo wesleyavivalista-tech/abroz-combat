@@ -14,7 +14,8 @@ RUN node scripts/simulation-revision.mjs && pnpm exec tsc -p apps/server/tsconfi
 RUN mkdir /runtime && node --input-type=module -e "import fs from 'node:fs';import{createRequire}from'node:module';const r=createRequire(import.meta.url);fs.writeFileSync('/runtime/package.json',JSON.stringify({private:true,type:'module',dependencies:{ws:r('ws/package.json').version}}))" \
  && cd /runtime && npm install --omit=dev --ignore-scripts --no-audit --no-fund
 FROM node:22-bookworm-slim
-ENV NODE_ENV=production PORT=8080
+ARG ABROZ_BUILD_VERSION=unknown
+ENV NODE_ENV=production PORT=8080 ABROZ_BUILD_VERSION=$ABROZ_BUILD_VERSION
 WORKDIR /app
 COPY --from=build --chown=node:node /runtime/package.json ./package.json
 COPY --from=build --chown=node:node /runtime/node_modules ./node_modules

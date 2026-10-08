@@ -14,7 +14,7 @@ test('eight-player FFA waits for everyone, relays seat eight, rejects a ninth, a
  rooms.create(clients[0].socket,ids[0],8);const code=[...rooms.rooms.keys()][0];rooms.ready(clients[0].socket);
  for(let i=1;i<8;i++){assert.ok(!clients[0].messages.some(m=>m.type==='start'));rooms.join(clients[i].socket,code,ids[i]);rooms.ready(clients[i].socket);}
  for(const c of clients.slice(0,8)){const start=c.messages.find(m=>m.type==='start');assert.ok(start?.type==='start');assert.deepEqual(start.characters,ids);assert.deepEqual(start.teams,[0,1,2,3,4,5,6,7]);}
- assert.throws(()=>rooms.join(clients[8].socket,code,ids[0]),/full/);
+ assert.throws(()=>rooms.join(clients[8].socket,code,ids[0]),/already started/);
  rooms.input(clients[7].socket,2,Button.Light);assert.deepEqual(clients[0].messages.at(-1),{type:'input',seat:7,frame:2,mask:Button.Light});
  rooms.leave(clients[7].socket);assert.equal(rooms.membership.size,7);assert.equal(clients[0].messages.at(-1)?.type,'left');
 });

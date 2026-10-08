@@ -1,3 +1,4 @@
+import {createLogger,diagnosticId,errorFields} from './observability.js';
 import {allowedOrigins,clientAddress} from './deployment.js';
 import {contentVersion} from '../../../packages/shared/contentVersion.js';
 import {monitorEventLoopDelay} from 'node:perf_hooks';
@@ -6,7 +7,8 @@ import {assertCompatibleContent} from '../../../packages/shared/contentVersion.j
 import { createServer, type IncomingMessage } from "node:http";
 import { WebSocketServer } from "ws";
 import { RoomService, send } from "./rooms.js";
-const rooms = new RoomService();
+const log=createLogger();
+const rooms = new RoomService(log);
 const admission=new Admission(positiveLimit(process.env.MAX_CONNECTIONS,256),positiveLimit(process.env.MAX_CONNECTIONS_PER_ADDRESS,32),positiveLimit(process.env.MAX_UPGRADES_PER_MINUTE,120));
 const production=process.env.NODE_ENV==='production';
 const origins=allowedOrigins(process.env.ALLOWED_ORIGINS,production);
@@ -25,17 +27,27 @@ const server = createServer((req, res) => {
 const wss = new WebSocketServer({
   server,
   maxPayload: 1024,
-  verifyClient: (info: {origin:string;req:IncomingMessage}) =>
-    !draining && (!info.origin || origins.includes(info.origin)) && (()=>{const address=clientAddress(info.req,trustFly);return address!==undefined&&admission.allow(address);})(),
+  verifyClient: (info: {origin:string;req:IncomingMessage}) => {
+    let reason:string|undefined;
+    if(draining)reason='maintenance';
+    else if(info.origin&&!origins.includes(info.origin))reason='origin-rejected';
+    else {const address=clientAddress(info.req,trustFly);if(address===undefined)reason='address-unavailable';else if(!admission.allow(address))reason='admission-limit';}
+    if(reason)log('connection-rejected',{reason});
+    return !reason;
+  },
 });
 wss.on("connection", (socket,request) => {
   const release=admission.connect(clientAddress(request,trustFly)!);
+  const connectionId=diagnosticId();
+  let closeReason='peer-closed';
+  log('connection-open',{connectionId});
   let alive = true;
   let budget = 0;
   let window = Date.now();
   socket.on("pong", () => (alive = true));
   const timer = setInterval(() => {
     if (!alive) {
+      closeReason='heartbeat-timeout';
       socket.terminate();
       return;
     }
@@ -43,14 +55,16 @@ wss.on("connection", (socket,request) => {
     socket.ping();
   }, 30000);
   socket.on("message", (data) => {
+    let operation='parse';
     try {
       if (Date.now() - window > 1000) {
         window = Date.now();
         budget = 0;
       }
-      if (++budget > 240) { socket.terminate(); return; }
+      if (++budget > 240) { closeReason='message-rate-limit';socket.terminate(); return; }
       const m = JSON.parse(data.toString());
       if (!m || typeof m !== "object" || Array.isArray(m) || typeof m.type !== "string") throw new Error("Invalid message");
+      operation=['create','join','ready','championship-ready','finished','input','hash','ping'].includes(m.type)?m.type:'unknown';
       switch (m.type) {
         case "create":
         case "join":
@@ -88,37 +102,42 @@ wss.on("connection", (socket,request) => {
           throw new Error("Unknown message");
       }
     } catch (error) {
+      log('message-failed',{connectionId,roomId:rooms.diagnosticRoomId(socket),operation,...errorFields(error)});
       send(socket, {
         type: "error",
         message: error instanceof Error ? error.message : "Invalid message",
       });
     }
   });
-  socket.on("close", () => {
+  socket.on("close", (code) => {
+    log('connection-close',{connectionId,roomId:rooms.diagnosticRoomId(socket),code,reason:closeReason});
     release();
     clearInterval(timer);
-    rooms.leave(socket);
+    rooms.leave(socket,closeReason);
   });
-  socket.on("error", () => socket.close());
+  socket.on("error", (error) => {closeReason='socket-error';log('socket-error',{connectionId,...errorFields(error)});socket.close();});
 });
 const delay=monitorEventLoopDelay({resolution:20});
 if(production)delay.enable();
 const metrics=production?setInterval(()=>{
- console.log(JSON.stringify({event:'server-health',rooms:rooms.rooms.size,connections:wss.clients.size,rssMiB:Math.round(process.memoryUsage().rss/1048576),eventLoopP95Ms:Math.round(delay.percentile(95)/1e6),draining}));delay.reset();
+ log('server-health',{rooms:rooms.rooms.size,connections:wss.clients.size,rssMiB:Math.round(process.memoryUsage().rss/1048576),eventLoopP95Ms:Math.round(delay.percentile(95)/1e6),draining});delay.reset();
 },60000):undefined;
 // Maintenance rejects new connections/rooms; existing matches continue normally.
-process.on('SIGUSR2',()=>{draining=true;console.log(JSON.stringify({event:'draining',rooms:rooms.rooms.size}));});
+process.on('SIGUSR2',()=>{draining=true;log('draining',{rooms:rooms.rooms.size});});
 const progressExpiry=setInterval(()=>rooms.expireInactive(),1000);
 const expiry = setInterval(() => rooms.expire(), 60000);
-server.listen(Number(process.env.PORT ?? 8080), "0.0.0.0", () =>
+server.listen(Number(process.env.PORT ?? 8080), "0.0.0.0", () => {
+  log('server-start',{port:(server.address() as {port:number}).port});
   console.log(
     "ABROZ COMBAT room server listening on port " +
       (server.address() as { port: number }).port,
-  ),
-);
+  );
+});
+process.on('uncaughtExceptionMonitor',error=>log('fatal-error',errorFields(error)));
 let stopping=false;
 function stop() {
   if(stopping)return;stopping=true;draining=true;
+  log('server-stop',{rooms:rooms.rooms.size,connections:wss.clients.size});
   if(metrics)clearInterval(metrics);delay.disable();
   const deadline=setTimeout(()=>{wss.clients.forEach(s=>s.terminate());server.closeAllConnections();},5000);deadline.unref();
   clearInterval(expiry);

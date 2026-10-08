@@ -1,3 +1,4 @@
+import {diagnosticId,type DiagnosticSink} from './observability.js';
 import {VerifiedMatch} from './verifiedMatch.js';
 import {GameSimulation} from '../../../packages/game-core/simulation/GameSimulation.js';
 import {stages, trainingRoom} from "../../../packages/game-core/stages/registry.js";
@@ -24,6 +25,8 @@ interface Peer {
   window: number;
 }
 interface Room {
+  diagnosticId:string;
+  completedLogged?:boolean;
   stage: string;
   championship?: ChampionshipSession;
   verification?: VerifiedMatch;
@@ -43,6 +46,16 @@ export function send(socket: WebSocket, message: ServerMessage): void {
   socket.send(JSON.stringify(message));
 }
 export class RoomService {
+  constructor(private diagnostic:DiagnosticSink=()=>{}){}
+  private record(event:string,room:Room,reason?:string):void{
+    try{this.diagnostic(event,{roomId:room.diagnosticId,mode:room.mode,participants:room.peers.filter(p=>p.connected).length,reason});}catch{/* Never affect match behavior. */}
+  }
+  diagnosticRoomId(socket:WebSocket):string|undefined{return this.membership.get(socket)?.diagnosticId;}
+  private recordCompletion(room:Room):void{
+    if(!room.completedLogged&&(room.verification?.simulation.state.phase==='result'||room.championship?.completedAt!==undefined)){
+      room.completedLogged=true;this.record('match-completed',room);
+    }
+  }
   rooms = new Map<string, Room>();
   membership = new Map<WebSocket, Room>();
   create(socket: WebSocket, character: string, capacity = 2, mode: OnlineMode = "ffa", team?: number, skin?: string, stage = trainingRoom.id): void {
@@ -65,6 +78,7 @@ export class RoomService {
       ).join("");
     } while (this.rooms.has(code));
     const room: Room = {
+      diagnosticId:diagnosticId(),
       code,
       stage,
       mode,
@@ -74,6 +88,7 @@ export class RoomService {
       created: Date.now(),
     };
     this.rooms.set(code, room);
+    this.record('room-created',room);
     this.membership.set(socket, room);
     send(socket, { type: "room", code, seat: 0 });
     this.roster(room);
@@ -99,6 +114,7 @@ export class RoomService {
     this.leave(socket);
     room.peers.push(this.peer(socket, character, team, selectedSkin));
     this.membership.set(socket, room);
+    this.record('room-joined',room);
     send(socket, {
       type: "room",
       code: room.code,
@@ -119,6 +135,7 @@ export class RoomService {
       !room.started
     ) {
       room.started = true;
+      this.record('match-started',room);
       if (room.mode === "championship") { room.championship = new ChampionshipSession(room.peers, send, stages[room.stage]); return; }
       room.peers.forEach(p=>{p.lastProgress=Date.now();p.warned=false;});
       const chars = room.peers.map((p) => p.character);
@@ -143,7 +160,7 @@ export class RoomService {
   input(socket: WebSocket, frame: number, mask: number, matchId?: string): void {
     const room = this.membership.get(socket);
     if (!room?.started) throw new Error("Match has not started");
-    if (room.championship) { room.championship.input(socket, matchId, frame, mask); return; }
+    if (room.championship) { room.championship.input(socket, matchId, frame, mask); this.recordCompletion(room); return; }
     const peer = room.peers.find((p) => p.socket === socket)!;
     if (
       !Number.isInteger(frame) ||
@@ -175,6 +192,7 @@ export class RoomService {
       }),
     );
     room.verification!.receive(room.peers.indexOf(peer),frame,mask);
+    this.recordCompletion(room);
   }
   relayHash(socket: WebSocket, frame: number, hash: string, matchId?: string): void {
     const room = this.membership.get(socket);
@@ -196,13 +214,14 @@ export class RoomService {
     // emits hashes; forwarding a false claim would let a peer abort other clients.
   }
 
-  leave(socket: WebSocket): void {
+  leave(socket: WebSocket,reason='leave'): void {
     const room = this.membership.get(socket);
     if (!room) return;
     const seat = room.peers.findIndex((p) => p.socket === socket);
     const peer = room.peers[seat];
     this.membership.delete(socket);
     peer.connected = false;
+    this.record('room-left',room,reason);
     if (room.championship) { room.championship.leave(socket); } else if (room.started) {
       // Keep seats stable; the first missing input is the deterministic forfeit frame.
       room.peers
@@ -219,14 +238,15 @@ export class RoomService {
       );
       this.roster(room);
     }
-    if (!room.peers.some((p) => p.connected)) this.rooms.delete(room.code);
+    this.recordCompletion(room);
+    if (!room.peers.some((p) => p.connected)) {this.record('room-closed',room,room.started&&!room.completedLogged?'abandoned':reason);this.rooms.delete(room.code);}
   }
   expire(): void {
     for (const room of this.rooms.values())
       if (!room.started && Date.now() - room.created > 15 * 60_000)
         for (const peer of [...room.peers]) {
           send(peer.socket, { type: "error", message: "Waiting room expired" });
-          this.leave(peer.socket);
+          this.leave(peer.socket,'waiting-expired');
         }
   }
   championshipReady(socket: WebSocket, matchId: string): void {
@@ -242,19 +262,19 @@ export class RoomService {
       if(!room.started)continue;
       if (room.championship) {
         if(room.championship.completedAt!==undefined&&now-room.championship.completedAt>=RESULT_RETENTION_MS){
-          for(const peer of room.peers.filter(p=>p.connected)){send(peer.socket,{type:'error',message:'Finished tournament closed after 15 minutes. Return to the menu to play again.'});this.leave(peer.socket);peer.socket.close();}
+          for(const peer of room.peers.filter(p=>p.connected)){send(peer.socket,{type:'error',message:'Finished tournament closed after 15 minutes. Return to the menu to play again.'});this.leave(peer.socket,'results-expired');peer.socket.close();}
           continue;
         }
         for (const socket of room.championship.expired(now)) {
           send(socket, { type: "error", message: "Tournament match forfeited after inactivity." });
-          this.leave(socket); socket.close();
+          this.leave(socket,'inactivity'); socket.close();
         }
         continue;
       }
       const connected=room.peers.filter(p=>p.connected);
       if(connected.length&&connected.every(p=>p.finishedFrame!==undefined&&p.finishedFrame===connected[0].finishedFrame)){
         if(now-Math.max(...connected.map(p=>p.finishedAt??now))>=RESULT_RETENTION_MS){
-          for(const p of connected){send(p.socket,{type:'error',message:'Finished room closed after 15 minutes. Return to the menu to play again.'});this.leave(p.socket);p.socket.close();}
+          for(const p of connected){send(p.socket,{type:'error',message:'Finished room closed after 15 minutes. Return to the menu to play again.'});this.leave(p.socket,'results-expired');p.socket.close();}
         }
         continue;
       }
@@ -271,7 +291,7 @@ export class RoomService {
       }
       for(const p of expired){
         send(p.socket,{type:'error',message:'No gameplay input received before the inactivity deadline. Return to the menu to play again.'});
-        this.leave(p.socket);
+        this.leave(p.socket,'inactivity');
         p.socket.close();
       }
       // Peers previously blocked by an expired player need time to resume after the departure.

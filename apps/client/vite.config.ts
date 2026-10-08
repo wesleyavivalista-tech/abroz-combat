@@ -7,6 +7,7 @@ const revisionScript=fileURLToPath(new URL('../../scripts/simulation-revision.mj
 const updateRevision=()=>execFileSync(process.execPath,[revisionScript]);
 import { defineConfig } from "vite";
 export default defineConfig(({mode})=>({
+  define:{'import.meta.env.VITE_BUILD_VERSION':JSON.stringify(process.env.ABROZ_BUILD_VERSION??'development')},
   plugins:[{
     name:'exclude-authoring-assets',apply:'build',
     writeBundle(options){

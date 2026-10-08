@@ -5,7 +5,7 @@ module.exports={
  appId:metadata.appId,productName:metadata.productName,executableName:metadata.executableName,
  extraMetadata:{main:'apps/desktop/main.mjs',description:metadata.description,...(metadata.publisher?{author:metadata.publisher}:{})},
  directories:{output:'release'},
- files:['apps/desktop/main.mjs','apps/desktop/preload.cjs','apps/desktop/policy.mjs','apps/desktop/metadata.json','package.json','!node_modules/**/*'],
+ files:['apps/desktop/main.mjs','apps/desktop/preload.cjs','apps/desktop/policy.mjs','apps/desktop/diagnostics.mjs','apps/desktop/metadata.json','package.json','!node_modules/**/*'],
  extraResources:[{from:'dist-desktop',to:'game'}],asar:true,npmRebuild:false,
  ...(metadata.icon?{icon:metadata.icon}:{}),
  win:{target:[{target:'nsis',arch:['x64']}]},

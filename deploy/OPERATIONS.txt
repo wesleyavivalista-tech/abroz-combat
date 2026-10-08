@@ -139,3 +139,32 @@ FINAL DOWNLOAD PUBLICATION (2026-10-08)
 - All three public installer bodies re-downloaded and SHA-256 matched originals.
 - Public SHA256SUMS.txt and README.txt match reviewed local files.
 - Temporary local R2 upload credentials removed; token expires after 24 hours.
+
+OBSERVABILITY UPDATE (2026-10-08)
+- Server JSON events: timestamp, service, build, contentVersion; anonymous diagnostic
+  room/connection IDs (not invitation codes). Records connection rejection/close,
+  failed operations, room creation/join/leave, authoritative match completion,
+  abandoned room closure, inactivity expiry, startup/shutdown and fatal errors.
+- Ordinary log events are capped at 120/minute per process; a later event reports
+  suppressed counts. Health/fatal events bypass this budget. This is diagnostic
+  evidence, not a complete analytics ledger or a reliable disconnect-rate metric.
+- Fatal logging uses uncaughtExceptionMonitor and preserves Node's normal exit.
+- Pass --build-arg ABROZ_BUILD_VERSION=<reviewed-commit> when building the Fly image.
+  No gameplay protocol or simulation revision changes are required.
+- Browser/desktop Settings has Copy diagnostics (English/PT-BR), including a
+  selectable fallback if clipboard access fails. Startup failure UI also offers it.
+  Reports contain build/platform and at most 40 recent event groups. Repeated
+  adjacent events are counted. No automatic upload, room codes, raw payloads,
+  exception messages, URL queries, IP addresses or full local paths are included.
+- Browser startup errors remain in the local console. Copied exception details
+  intentionally keep error type and source locations only; users should describe
+  the failure alongside the report. Reload clears this in-memory report.
+- Desktop JSON logs include build/platform per record, renderer exit reason/code,
+  load failure code and error type. 30 events/minute, renewed each minute, with
+  suppressed counts reported later; rotation retains desktop.log and .previous.
+- Desktop changes require a new installer; already downloaded apps do not update
+  automatically. Do not claim old published installers contain these diagnostics.
+- Alerts are NOT active merely because these logs exist. Cloudflare zone currently
+  uses Free Website (no active Health Checks). Uptime setup requires the owner's
+  chosen external service or paid Cloudflare plan plus notification destination.
+  Do not silently upgrade billing. Fly CPU/RAM metrics alone do not send alerts.
