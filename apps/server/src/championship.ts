@@ -1,6 +1,6 @@
 import {trainingRoom} from "../../../packages/game-core/stages/registry.js";
 import type { WebSocket } from 'ws';
-import { GameSimulation } from '../../../packages/game-core/simulation/GameSimulation.js';
+import { GameSimulation, hashState } from '../../../packages/game-core/simulation/GameSimulation.js';
 import { createChampionship, currentMatches, finishBracketMatch, findMatch, matchToken, startBracketMatch, withdrawEntrant, type Entrant } from '../../../packages/game-core/tournament/Championship.js';
 import type { ServerMessage } from '../../../packages/shared/protocol.js';
 interface Participant { socket: WebSocket; character: string; skin: string; connected: boolean }
@@ -48,6 +48,7 @@ export class ChampionshipSession {
       const f = duel.simulation.state.frame;
       duel.simulation.step(duel.inputs.map(queue => queue.get(f)!));
       duel.inputs.forEach(queue => queue.delete(f));
+      if(duel.simulation.state.frame%60===0){const frame=duel.simulation.state.frame,hash=hashState(duel.simulation.state);duel.players.forEach(id=>this.send(this.peers[id].socket,{type:'hash',matchId:token,seat:-1,frame,hash}));}
       if (duel.simulation.state.phase === 'result') {
         const winner = duel.simulation.state.winner;
         finishBracketMatch(this.bracket, id, winner < 0 ? null : duel.players[winner]);
@@ -59,7 +60,7 @@ export class ChampionshipSession {
     const found = this.duelFor(socket, token);
     if (!found || !Number.isInteger(frame) || frame < 0 || frame > found.duel.last[found.seat] || frame <= found.duel.lastHash[found.seat] || frame % 60 !== 0 || !/^[a-f0-9]{1,8}$/.test(hash)) return;
     found.duel.lastHash[found.seat] = frame;
-    this.send(this.peers[found.duel.players[1 - found.seat]].socket, { type: 'hash', matchId: token, seat: found.seat, frame, hash });
+    // Never forward peer checksum claims; server-settled hashes are sent above.
   }
   leave(socket: WebSocket): void {
     const id = this.peers.findIndex(p => p.socket === socket);

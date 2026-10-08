@@ -1,3 +1,4 @@
+import {th} from '../i18n/index.js';
 export class UI {
   private lifetime=new AbortController();
   dispose():void{this.lifetime.abort();}
@@ -6,9 +7,9 @@ export class UI {
     this.root.innerHTML = html;
   }
   shell(body: string, footer = "ABROZ ARENAS / VOL. 01", back = true): void {
-    const header = back ? `<header><div class="brand"><span class="brand-symbol"></span> ABROZ COMBAT </div><div class="build"><button class="text-button" data-action="home">← MAIN MENU</button><nav class="utility-nav"><button data-action="characters">FIGHTERS</button><button data-action="settings">SETTINGS</button></nav></div></header>` : "";
+    const header = back ? `<header><div class="brand"><span class="brand-symbol"></span> ABROZ COMBAT </div><div class="build"><button class="text-button" data-action="home">← ${th('nav.menu')}</button><nav class="utility-nav"><button data-action="characters">${th('nav.fighters')}</button><button data-action="settings">${th('nav.settings')}</button></nav></div></header>` : "";
     this.render(
-      `<div class="shell">${header}${body}<div class="footer"><span>${footer}</span><span>ORIGINAL FIGHTERS. INFINITE POSSIBILITIES.</span><nav class="footer-actions" aria-label="Display and settings">${back ? "" : '<button class="text-button" data-action="settings">SETTINGS</button>'}<button class="text-button" data-action="fullscreen">⛶ FULLSCREEN</button></nav></div></div>`,
+      `<div class="shell">${header}${body}<div class="footer"><span>${footer}</span><span>${th('shell.motto')}</span><nav class="footer-actions" aria-label="${th('nav.displaySettings')}">${back ? "" : `<button class="text-button" data-action="settings">${th('nav.settings')}</button>`}<button class="text-button" data-action="fullscreen">${th('nav.fullscreen')}</button></nav></div></div>`,
     );
   }
   onAction(callback: (action: string, element: HTMLElement) => void): void {

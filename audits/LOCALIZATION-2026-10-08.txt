@@ -1,0 +1,60 @@
+PT-BR localization — implementation inventory and verification log
+
+Baseline / checkpoint
+  f9d2243 (checkpoint-before-localization-2026-10-08).
+  Existing macOS audit artifacts preserved. Working tree clean at start.
+
+Architecture audit
+  Vanilla TypeScript HTML renderers in apps/client/src/ui plus main.ts.
+  No existing localization system. UI.shell and UI.text render presentation;
+  several HUD components update on frames. Settings use platform/storage.ts.
+  MenuNavigation already supports select controls via controller left/right/A.
+  Browser and Electron use the same Vite bundle and local storage abstraction.
+  Shared character, stage and tournament definitions also supply visible text.
+  Localize at presentation boundaries; do not modify shared definitions, IDs,
+  network messages, simulation hashes, input bitmasks or saved control schemas.
+
+Inventory / batches (pending unless explicitly recorded as verified below)
+  Foundation: locale detection, persistence, typed resources, fallback,
+    interpolation, plurals, number formatting; settings language control.
+  Menus: UI shell, MenuScreens, ArenaSelection, LocalMatchSetup.
+  Fighters: FighterGuide prose, descriptions, skins, generic action labels.
+  Controllers: Controllers, ControllerHints, ControllerTextEntry,
+    GamepadManager display labels, main.ts assignment notices.
+  Modes: Championship, Elimination, TournamentPanel, ResultScreen.
+  Gameplay: main.ts HUD, pause, loading, result/disconnect dialogs,
+    EnergyMeter, JompStatus, MatchCountdown; rendering text/canvas labels.
+  Online: lobby, ready/ownership/reconnect notices, client error presentation.
+    Translate at receipt/display only; preserve transport data verbatim.
+  Startup/desktop: bootstrap, runtime errors, desktop native errors and menus.
+  Audio: voice asset fallback only; English recordings and music unchanged.
+  Final: remaining literal inventory; resource parity and interpolation;
+    English/PT-BR switching/layout/navigation; mixed-language multiplayer;
+    web and available desktop builds; full tests, lint and final diff review.
+
+Terminology policy
+  Preserve fighter names, unique ability names and personality-driven jokes.
+  Translate surrounding instructions/descriptions naturally, retaining named
+  abilities inside prose. Flag ambiguous humor instead of guessing.
+  Never derive translations by changing shared identifiers or replacing text
+  globally in the DOM. Resources use stable presentation keys.
+
+Terminology batch verification
+  Checked all 16 fighter guides against their original move names and card
+  visibility. Preserved Bunda de Pelucia, Suco lover and other named abilities
+  in prose. Corrected the Portuguese HUD's On fire cue to retain ON FIRE.
+  Added regression coverage for named HUD cues as well as guide move names.
+  Localization + menu lifecycle checks: 13 passed. TypeScript check passed.
+  git diff --check passed. These are batch results, not final release sign-off.
+  Full localization, online, desktop and final visual checks remain pending.
+
+Risks / checks
+  Never call navigation functions on locale change when they reset matches,
+    disconnect rooms, change music or clear pending gameplay state.
+  Re-rendered settings must preserve scroll/focus and replace old dialogs.
+  Update underlying pause/HUD/result text without changing simulation.
+  Escape user-provided interpolations at HTML boundaries.
+  Avoid new per-frame formatting allocations; cache number formatters.
+  No language-specific assets downloaded, no dependency additions.
+  Physical controllers and Windows need explicit manual verification when
+    unavailable here; do not infer those results from browser builds.

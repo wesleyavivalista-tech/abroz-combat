@@ -118,6 +118,14 @@ export class GamepadManager {
   for(const d of this.devices.values())if(d.connected&&!seen.has(d.key)){
    d.connected=false;this.suppress(d);d.buttons=[];d.axes=[];this.revision++;this.events.push({kind:'disconnect',device:d.key,player:d.player});
   }
+  // Retain recent diagnostics, but not every historical Bluetooth identity.
+  // Reserved seats, open diagnostics and queued notifications still own their records.
+  if(this.devices.size>this.cap){
+   const pending=new Set(this.events.map(e=>e.device));
+   const obsolete=Array.from(this.devices.values()).filter(d=>!d.connected&&d.player===null&&
+    d.key!==this.testing&&!(this.capture&&'identify' in this.capture&&this.capture.identify===d.key)&&!pending.has(d.key));
+   for(const d of obsolete.slice(0,Math.max(0,obsolete.length-this.cap))){this.devices.delete(d.key);this.revision++;}
+  }
  }
 }
 

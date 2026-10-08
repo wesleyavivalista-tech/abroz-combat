@@ -2,8 +2,8 @@
   "productName": "Abroz Combat",
   "appId": "com.abrozcombat.game",
   "executableName": "abroz-combat",
-  "publisher": "",
-  "icon": null,
-  "description": "Abroz Combat — local and online arena fighting",
+  "publisher": "Nikalz",
+  "icon": "apps/desktop/icons/abroz-combat",
+  "description": "Abroz Combat \u2014 local and online arena fighting",
   "category": "public.app-category.action-games"
 }

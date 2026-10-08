@@ -1,3 +1,4 @@
+import {t} from '../i18n/index.js';
 import {controllerButtonName,type ControllerDevice} from './GamepadManager.js';
 export class ControllerHints {
  active=false;brand:ControllerDevice['brand']='generic';
@@ -14,9 +15,9 @@ export class ControllerHints {
   this.bar.hidden=!this.active;
   const current=document.activeElement;
   const adjust=current instanceof HTMLSelectElement||current instanceof HTMLInputElement&&['range','number'].includes(current.type);
-  const text=gameplay?`${this.button(9)}  Pause / options`:`D-pad / stick  Navigate   ${adjust?'← →  Adjust   ':''}${this.button(0)}  ${current instanceof HTMLInputElement&&current.type==='text'?'Enter text':'Confirm'}   ${this.button(1)}  Back / cancel   ${this.button(4)} / ${this.button(5)}  ${selection?'Skin':'Scroll'}`;
+  const text=gameplay?`${this.button(9)}  ${t('hints.pause')}`:`${t('hints.navigate')}   ${adjust?t('hints.adjust'):''}${this.button(0)}  ${current instanceof HTMLInputElement&&current.type==='text'?t('hints.enter'):t('hints.confirm')}   ${this.button(1)}  ${t('hints.back')}   ${this.button(4)} / ${this.button(5)}  ${selection?t('hints.skin'):t('hints.scroll')}`;
   if(this.bar.textContent!==text)this.bar.textContent=text;
-  document.querySelectorAll<HTMLOptionElement>('[data-pad] option').forEach(el=>{const label=this.active?this.button(Number(el.value)):`Button ${el.value}`;if(el.textContent!==label)el.textContent=label;});
+  document.querySelectorAll<HTMLOptionElement>('[data-pad] option').forEach(el=>{const label=this.active?this.button(Number(el.value)):t('settings.button',{button:el.value});if(el.textContent!==label)el.textContent=label;});
   document.querySelectorAll<HTMLElement>('[data-prompt-pause]').forEach(el=>{el.textContent=this.active?this.button(9):'ESC';});
  }
  dispose(){this.abort.abort();this.bar.remove();}

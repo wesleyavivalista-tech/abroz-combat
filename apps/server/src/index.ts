@@ -1,8 +1,10 @@
+import {Admission,positiveLimit} from './admission.js';
 import {assertCompatibleContent} from '../../../packages/shared/contentVersion.js';
-import { createServer } from "node:http";
+import { createServer, type IncomingMessage } from "node:http";
 import { WebSocketServer } from "ws";
 import { RoomService, send } from "./rooms.js";
 const rooms = new RoomService();
+const admission=new Admission(positiveLimit(process.env.MAX_CONNECTIONS,256),positiveLimit(process.env.MAX_CONNECTIONS_PER_ADDRESS,32),positiveLimit(process.env.MAX_UPGRADES_PER_MINUTE,120));
 const origins = (
   process.env.ALLOWED_ORIGINS ?? "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://127.0.0.1:5175,abroz://game"
 ).split(",");
@@ -13,10 +15,11 @@ const server = createServer((_req, res) => {
 const wss = new WebSocketServer({
   server,
   maxPayload: 1024,
-  verifyClient: (info: { origin: string }) =>
-    !info.origin || origins.includes(info.origin),
+  verifyClient: (info: {origin:string;req:IncomingMessage}) =>
+    (!info.origin || origins.includes(info.origin)) && admission.allow(info.req.socket.remoteAddress ?? "unknown"),
 });
-wss.on("connection", (socket) => {
+wss.on("connection", (socket,request) => {
+  const release=admission.connect(request.socket.remoteAddress ?? "unknown");
   let alive = true;
   let budget = 0;
   let window = Date.now();
@@ -81,6 +84,7 @@ wss.on("connection", (socket) => {
     }
   });
   socket.on("close", () => {
+    release();
     clearInterval(timer);
     rooms.leave(socket);
   });

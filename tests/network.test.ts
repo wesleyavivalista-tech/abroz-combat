@@ -164,12 +164,8 @@ test(`real WebSocket create/join/ready/input/hash/disconnect: ${peerOrigins.join
     const error = await next(a, "error");
     assert.equal(error.type, "error");
     a.send(JSON.stringify({ type: "hash", frame: 0, hash: "abc123" }));
-    assert.deepEqual(await next(b, "hash"), {
-      type: "hash",
-      seat: 0,
-      frame: 0,
-      hash: "abc123",
-    });
+    a.send(JSON.stringify({type:'ping',sent:321}));
+    assert.deepEqual(await next(a,'pong'),{type:'pong',sent:321});
     b.close();
     await next(a, "left");
   } finally {

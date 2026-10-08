@@ -8,7 +8,7 @@ module.exports={
  files:['apps/desktop/main.mjs','apps/desktop/preload.cjs','apps/desktop/policy.mjs','apps/desktop/metadata.json','package.json','!node_modules/**/*'],
  extraResources:[{from:'dist-desktop',to:'game'}],asar:true,npmRebuild:false,
  ...(metadata.icon?{icon:metadata.icon}:{}),
- win:{target:[{target:'nsis',arch:['x64']}],...(metadata.publisher?{publisherName:metadata.publisher}:{})},
+ win:{target:[{target:'nsis',arch:['x64']}]},
  nsis:{oneClick:false,allowToChangeInstallationDirectory:true,deleteAppDataOnUninstall:false},
  mac:{target:['dmg'],category:metadata.category,hardenedRuntime:true},
  linux:{target:['AppImage'],category:'Game'},

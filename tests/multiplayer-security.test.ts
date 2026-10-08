@@ -39,10 +39,10 @@ test('invalid input cannot mutate progress or claim a different seat',()=>{
 });
 test('duplicate and stale hashes do not amplify traffic',()=>{
  const {service,a,b}=pair();service.ready(a.socket);service.ready(b.socket);
- service.relayHash(a.socket,0,'deadbeef');const before=b.messages.length;
+ const before=b.messages.length;service.relayHash(a.socket,0,'deadbeef');assert.equal(b.messages.length,before);
  for(let i=0;i<100;i++)service.relayHash(a.socket,0,'deadbeef');assert.equal(b.messages.length,before);
  for(let f=2;f<=60;f++){service.input(a.socket,f,0);service.input(b.socket,f,0);}
- service.relayHash(a.socket,60,'123');assert.equal(b.messages.at(-1)?.type,'hash');const after=b.messages.length;
+ const settled=b.messages.filter(m=>m.type==='hash');assert.ok(settled.some(m=>m.type==='hash'&&m.seat===-1&&m.frame===60));const after=b.messages.length;service.relayHash(a.socket,60,'123');assert.equal(b.messages.length,after);
  service.relayHash(a.socket,0,'bad');assert.equal(b.messages.length,after);
 });
 
@@ -53,7 +53,7 @@ test('championship hashes and inputs are scoped to socket ownership and attempt'
  const duel=[...session.duels.values()][0],before=duel.simulation.snapshot(),count=b.messages.length;
  service.input(a.socket,2,0,'wrong-attempt');service.relayHash(a.socket,0,'123','wrong-attempt');
  service.finished(a.socket,0);assert.deepEqual(duel.simulation.snapshot(),before);assert.equal(b.messages.length,count);
- service.relayHash(a.socket,0,'123',token);const hashed=b.messages.length;service.relayHash(a.socket,0,'456',token);assert.equal(b.messages.length,hashed);
+ const hashed=b.messages.length;service.relayHash(a.socket,0,'123',token);assert.equal(b.messages.length,hashed);service.relayHash(a.socket,0,'456',token);assert.equal(b.messages.length,hashed);
  for(const value of [NaN,Infinity,-1,2048])assert.throws(()=>service.input(a.socket,2,value,token));
  service.input(a.socket,2,0,token);assert.deepEqual(duel.last,[2,1]);
 });

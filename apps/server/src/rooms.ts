@@ -1,3 +1,5 @@
+import {VerifiedMatch} from './verifiedMatch.js';
+import {GameSimulation} from '../../../packages/game-core/simulation/GameSimulation.js';
 import {stages, trainingRoom} from "../../../packages/game-core/stages/registry.js";
 import { ChampionshipSession } from "./championship.js";
 import { resolveSkin } from "../../../packages/game-core/characters/skins.js";
@@ -24,6 +26,7 @@ interface Peer {
 interface Room {
   stage: string;
   championship?: ChampionshipSession;
+  verification?: VerifiedMatch;
   mode: OnlineMode;
   code: string;
   peers: Peer[];
@@ -118,6 +121,8 @@ export class RoomService {
       room.peers.forEach(p=>{p.lastProgress=Date.now();p.warned=false;});
       const chars = room.peers.map((p) => p.character);
       const seed=randomInt(0x100000000);
+      room.verification=new VerifiedMatch(new GameSimulation(chars,false,stages[room.stage],room.peers.map(p=>p.team),room.peers.map(p=>p.skin),room.mode==='elimination'||room.mode==='elimination-party'?room.mode:room.mode==='ffa-tournament',seed),
+        (frame,hash)=>room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:'hash',seat:-1,frame,hash})));
       room.peers.forEach((p) =>
         send(p.socket, {
           type: "start",
@@ -167,6 +172,7 @@ export class RoomService {
         mask,
       }),
     );
+    room.verification!.receive(room.peers.indexOf(peer),frame,mask);
   }
   relayHash(socket: WebSocket, frame: number, hash: string, matchId?: string): void {
     const room = this.membership.get(socket);
@@ -184,17 +190,10 @@ export class RoomService {
     )
       return;
     peer.lastHashFrame = frame;
-    room.peers
-      .filter((p) => p !== peer && p.connected)
-      .forEach((p) =>
-        send(p.socket, {
-          type: "hash",
-          seat: room.peers.indexOf(peer),
-          frame,
-          hash,
-        }),
-      );
+    // Client checksums are untrusted diagnostics. Only settled server simulation
+    // emits hashes; forwarding a false claim would let a peer abort other clients.
   }
+
   leave(socket: WebSocket): void {
     const room = this.membership.get(socket);
     if (!room) return;
@@ -209,6 +208,7 @@ export class RoomService {
         .forEach((p) =>
           send(p.socket, { type: "left", seat, frame: peer.lastFrame + 1 }),
         );
+      room.verification!.leave(seat,peer.lastFrame+1);
     } else {
       room.peers.splice(seat, 1);
       if ((room.mode === "ffa" || room.mode === "ffa-tournament" || room.mode.startsWith("elimination"))) room.peers.forEach((p, i) => p.team = i);

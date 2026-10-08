@@ -1,3 +1,6 @@
+import {errorMessage} from './i18n/errors.js';
+import {arenaName, skinName} from './i18n/content.js';
+import {getLocale, formatNumber, setLocale, languageOptions, t, th, inputLabelKeys} from './i18n/index.js';
 import {finalDeathActive,matchTimeScale} from '../../../packages/game-core/simulation/UndeadSystem.js';
 import {matchCountdown} from './ui/MatchCountdown.js';
 import {toggleFullscreen} from './platform/runtime.js';
@@ -37,7 +40,7 @@ import { trainingRoom, stages } from "../../../packages/game-core/stages/registr
 import { GameSimulation } from "../../../packages/game-core/simulation/GameSimulation.js";
 import { characters } from "../../../packages/game-core/characters/registry.js";
 import { RollbackManager } from "../../../packages/networking/RollbackManager.js";
-import { InputManager, actions } from "./input/InputManager.js";
+import { InputManager } from "./input/InputManager.js";
 import { AudioManager } from "./audio/AudioManager.js";
 import {sounds,characterSounds} from "./audio/SoundRegistry.js";
 import {GameAudio,screenMusic,actionSound} from "./audio/GameAudio.js";
@@ -45,6 +48,7 @@ import { AssetManager } from "./assets/AssetManager.js";
 import { SceneRenderer } from "./rendering/SceneRenderer.js";
 import { LobbyClient } from "./network.js";
 import { UI, updateMarkup } from "./ui/UI.js";
+document.documentElement.lang=getLocale();
 const ui = new UI(),
   input = new InputManager(),
   audio = new AudioManager(),
@@ -124,18 +128,21 @@ function openControllers(){
  dialog.querySelector<HTMLElement>('[data-action="controller-assign"]')?.focus();
 }
 function closeControllers(){controllerPanel=false;input.controllers.capture=null;input.controllers.testing=null;document.getElementById('controllers-dialog')?.remove();input.clear();menuNavigation.reset();}
+function onlineMenuContent():string {
+ return `<h2>${th('pause.onlineTitle')}</h2><p>${th('pause.onlineHelp')}</p><button data-action="online-controller-resume">${th('pause.return')}</button><button data-action="pause-settings">${th('pause.settings')}</button><button data-action="home">${th('pause.leave')}</button>`;
+}
 function toggleOnlineControllerMenu(){
  if(document.getElementById('disconnect'))return;
  onlineControllerMenu=!onlineControllerMenu;input.clear();input.enabled=!onlineControllerMenu;menuNavigation.reset();
  if(!onlineControllerMenu){document.getElementById('online-controller-menu')?.remove();return;}
  const dialog=document.createElement('dialog');dialog.id='online-controller-menu';dialog.className='controller-dialog';
- dialog.innerHTML='<h2>ONLINE MATCH</h2><p>The match continues while this menu is open.</p><button data-action="online-controller-resume">Return to fight</button><button data-action="pause-settings">Settings</button><button data-action="home">Leave match</button>';
+ dialog.innerHTML=onlineMenuContent();
  ui.root.append(dialog);dialog.showModal();dialog.addEventListener('cancel',e=>{e.preventDefault();toggleOnlineControllerMenu();});
 }
 function controllerBack(){
  if(document.getElementById('disconnect')){home();return;}
  const editor=document.getElementById('controller-text-entry');if(editor){editor.dispatchEvent(new Event('cancel',{cancelable:true}));return;}
- if(controllerPanel){if(input.controllers.capture||input.controllers.testing!==null){input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message','Cancelled.');}else closeControllers();return;}
+ if(controllerPanel){if(input.controllers.capture||input.controllers.testing!==null){input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message',t('controller.cancelled'));}else closeControllers();return;}
  const settingsDialog=document.getElementById('settings-dialog');if(settingsDialog){closeSettings();return;}
  if(cancelBinding){cancelBinding();return;}
 
@@ -161,16 +168,16 @@ function updateControllers(now:number){
   if(event.kind==='join'||event.kind==='assigned')audio.play("joined");
   if(event.kind==='disconnect')audio.play("disconnected");
   if(event.kind==='assigned'||event.kind==='join'){
-   const message=`Player ${event.player!+1} — ${pads.devices.get(event.device)!.name} connected`;
+   const message=t('controller.assigned',{player:event.player!+1,name:pads.devices.get(event.device)!.name});
    controllerToast(message);ui.text('controller-message',message);
   }
   if(event.kind==='activity'&&controllerPanel){
    const d=pads.devices.get(event.device)!;
-   if(d.player!==null)ui.text('controller-message',`Player ${d.player+1} controller identified: ${d.name}`);
+   if(d.player!==null)ui.text('controller-message',t('controller.identified',{player:d.player+1,name:d.name}));
   }
   if(event.kind==='disconnect'&&event.player!==null&&screen==='fight'&&event.player<activeInputSlots()){
    if(mode!=='online'&&!paused){pauseOwner=null;pause();}
-   controllerToast(`Player ${event.player+1} controller disconnected. Press a button on an unassigned controller to reconnect.`);
+   controllerToast(t('controller.lost',{player:event.player+1}));
   }
   if(event.kind!=='menu'||event.player===null||!event.action)continue;
   const player=event.player,action=event.action;
@@ -218,16 +225,16 @@ function updateControllers(now:number){
    const replacement=Array.from(pads.devices.values()).find(d=>d.connected&&d.player===null&&d.mapping==='standard'&&now-d.lastActivity<80);
    if(replacement)pads.assign(replacement.key,p);
   }
-  ui.root.querySelectorAll<HTMLElement>('[data-controller-disconnect]').forEach(el=>el.textContent=`Player ${p+1} controller disconnected. Press any button on an unassigned controller, or open Controllers. Keyboard 1 / 2 remain available.`);
+  ui.root.querySelectorAll<HTMLElement>('[data-controller-disconnect]').forEach(el=>el.textContent=t('controller.lostHelp',{player:p+1}));
  }else ui.root.querySelectorAll<HTMLElement>('[data-controller-disconnect]').forEach(el=>el.textContent='');
- if(controllerPanel&&pads.capture&&Array.from(pads.devices.values()).some(d=>d.connected&&d.buttons[STANDARD.pause]>.5&&d.buttons[STANDARD.view]>.5)){pads.capture=null;input.clear();ui.text('controller-message','Cancelled.');}
- if(controllerPanel&&pads.testing!==null){const d=pads.devices.get(pads.testing);if(d&&d.buttons[STANDARD.pause]>.5&&d.buttons[STANDARD.view]>.5){pads.testing=null;input.clear();ui.text('controller-message','Test finished.');}}
+ if(controllerPanel&&pads.capture&&Array.from(pads.devices.values()).some(d=>d.connected&&d.buttons[STANDARD.pause]>.5&&d.buttons[STANDARD.view]>.5)){pads.capture=null;input.clear();ui.text('controller-message',t('controller.cancelled'));}
+ if(controllerPanel&&pads.testing!==null){const d=pads.devices.get(pads.testing);if(d&&d.buttons[STANDARD.pause]>.5&&d.buttons[STANDARD.view]>.5){pads.testing=null;input.clear();ui.text('controller-message',t('controller.finished'));}}
  if(controllerPanelRevision!==pads.revision||now-controllerLastPaint>150){
   refreshControllerLabels(ui.root,pads);
   if(controllerPanel)controllerDiagnostics(ui.root,pads,now);
   controllerPanelRevision=pads.revision;controllerLastPaint=now;
  }
- const notice=disconnected.length&&screen==='fight'?`Player ${disconnected[0]+1} controller disconnected — press a button on an unassigned controller to reconnect${mode==='online'?' · Online match continues':''}`:now<controllerMessageUntil?controllerMessage:joinAllowed?'Controllers: press any button to join · Settings → Controllers':'';
+ const notice=disconnected.length&&screen==='fight'?t('controller.lostNotice',{player:disconnected[0]+1,online:mode==='online'?t('controller.onlineContinues'):''}):now<controllerMessageUntil?controllerMessage:joinAllowed?t('controller.joinHint'):'';
  if(controllerNotice.textContent!==notice)controllerNotice.textContent=notice;
  controllerNotice.hidden=!notice;
 }
@@ -306,7 +313,7 @@ function home() {
 let homeStartedAt=0,homeCastStep=0;
 function renderHome() {
   homeStartedAt=performance.now();homeCastStep=0;
-  ui.shell(homeScreen(), "PICK YOUR MODE. MAKE YOUR MARK.", false);
+  ui.shell(homeScreen(), t("home.footer"), false);
   updateHomeCast(ui.root,0);
 }
 
@@ -314,7 +321,7 @@ function selection(roster = false) {
   navigate(roster ? "roster" : "select");
   input.enabled = false;
   ui.shell(roster ? fighterGuideScreen(archiveId, archiveSkin, displayBindings(guidePlayer), guidePlayer) : selectionScreen(mode, selected, selectSeat, roster, archiveId, selectedSkins, archiveSkin),
-    `TWO SPECIALS · TWO ULTIMATES · THREE LIVES`);
+    t("selection.footer"));
   document.getElementById("guide-controls")?.addEventListener("change", event => {
     const scroll = document.querySelector('.fg-scroll')?.scrollTop ?? 0;
     guidePlayer = Number((event.target as HTMLSelectElement).value);
@@ -339,7 +346,7 @@ function randomizeArena(): void {
   if(ids.length)selectedArena=ids[Math.floor(Math.random()*ids.length)];
 }
 function arenaPicker(): string {
-  return `<label class="arena-picker">ARENA <select id="arena-choice">${Object.values(stages).map(a=>`<option value="${a.id}" ${a.id===selectedArena?'selected':''}>${a.name} · ${a.platforms?.length??0} platform${a.platforms?.length===1?'':'s'}</option>`).join('')}<option value="random">Random arena</option></select></label>`;
+  return `<label class="arena-picker">${th("arena.label")} <select id="arena-choice">${Object.values(stages).map(a=>`<option value="${a.id}" ${a.id===selectedArena?'selected':''}>${escapeMarkup(arenaName(a))} · ${th("arena.platforms",{count:a.platforms?.length??0})}</option>`).join('')}<option value="random">${th("arena.randomOption")}</option></select></label>`;
 }
 function bindArenaPicker(refresh?:()=>void): void {
   const el=document.getElementById('arena-choice') as HTMLSelectElement|null;
@@ -370,7 +377,7 @@ async function start(ids: string[] = selected, teams?: number[], skins: string[]
   recentGameplayEvents.length=0;
   input.enabled = false;
   ui.shell(
-    `<main class="page"><div class="eyebrow">GETTING READY</div><h2>ENTERING ${stages[selectedArena].name.toUpperCase()}</h2><div class="loading-bar"><i id="load-progress" style="width:0%"></i></div></main>`,
+    `<main class="page"><div class="eyebrow">${th('match.loading')}</div><h2>${th('match.entering',{arena:arenaName(stages[selectedArena]).toUpperCase()})}</h2><div class="loading-bar"><i id="load-progress" style="width:0%"></i></div></main>`,
   );
   simulation = new GameSimulation(ids, mode === "training", stages[selectedArena], teams, skins, tournament, seed);
   gameAudio.reset();
@@ -395,7 +402,7 @@ async function start(ids: string[] = selected, teams?: number[], skins: string[]
   );
   } catch (error) {
     if (revision !== viewRevision) return;
-    disconnectMessage(error instanceof Error ? error.message : "Could not load fighter assets.");
+    disconnectMessage(error instanceof Error ? error.message : t('match.assetError'));
     return;
   }
   if (revision !== viewRevision || screen !== "loading") return;
@@ -409,7 +416,7 @@ async function start(ids: string[] = selected, teams?: number[], skins: string[]
 function hud() {
   hudEliminationFight=simulation.state.elimination?.fight??0;
   ui.render(
-    `<div style="--fighter-count:${simulation.state.fighters.length}" class="hud ${simulation.state.teamMatch ? "team-hud" : ""} ${simulation.state.fighters.length > 2 ? `multi-hud ${simulation.state.fighters.length > 6 ? "large-ffa-hud" : ""}` : ""}">${simulation.state.fighters.length > 2 ? simulation.state.fighters.map((_, i) => fighterHud(i)).join("") : `${fighterHud(0)}<div class="timer"><span id="match-symbol">VS</span><small id="match-mode">SURVIVAL</small></div>${fighterHud(1)}`}</div><div id="player-tags"></div><div class="announcement" id="announcement"></div><div class="combo" id="combo0"></div><div class="combo right" id="combo1"></div><pre class="debug" id="debug" hidden></pre>${mode === "training" ? `<div class="training"><span class="pill">TRAINING</span><label>DUMMY <select id="dummy"><option value="stand" ${simulation.trainingOptions.dummy === "stand" ? "selected" : ""}>Stand</option><option value="crouch" ${simulation.trainingOptions.dummy === "crouch" ? "selected" : ""}>Crouch</option><option value="jump" ${simulation.trainingOptions.dummy === "jump" ? "selected" : ""}>Jump</option><option value="block" ${simulation.trainingOptions.dummy === "block" ? "selected" : ""}>Block all low / mid</option><option value="afterHit" ${simulation.trainingOptions.dummy === "afterHit" ? "selected" : ""}>Block after hit</option></select></label><label><input id="infinite" type="checkbox" ${simulation.trainingOptions.infiniteMeter ? "checked" : ""}> ∞ METER</label><button data-action="reset">RESET [R]</button><button data-action="debug">BOXES [F1]</button><span id="damage">DAMAGE 0 / COMBO 0</span></div>` : ""}<div class="combat-actions"><button class="text-button" data-action="pause">${mode === "online" ? "OPTIONS" : "PAUSE"} [<span data-prompt-pause>ESC</span>]</button></div>`,
+    `<div style="--fighter-count:${simulation.state.fighters.length}" class="hud ${simulation.state.teamMatch ? "team-hud" : ""} ${simulation.state.fighters.length > 2 ? `multi-hud ${simulation.state.fighters.length > 6 ? "large-ffa-hud" : ""}` : ""}">${simulation.state.fighters.length > 2 ? simulation.state.fighters.map((_, i) => fighterHud(i)).join("") : `${fighterHud(0)}<div class="timer"><span id="match-symbol">VS</span><small id="match-mode">${th("hud.survival")}</small></div>${fighterHud(1)}`}</div><div id="player-tags"></div><div class="announcement" id="announcement"></div><div class="combo" id="combo0"></div><div class="combo right" id="combo1"></div><pre class="debug" id="debug" hidden></pre>${mode === "training" ? `<div class="training"><span class="pill">${th("home.training.name")}</span><label>${th("hud.dummy")} <select id="dummy"><option value="stand" ${simulation.trainingOptions.dummy === "stand" ? "selected" : ""}>${th("hud.stand")}</option><option value="crouch" ${simulation.trainingOptions.dummy === "crouch" ? "selected" : ""}>${th("hud.crouch")}</option><option value="jump" ${simulation.trainingOptions.dummy === "jump" ? "selected" : ""}>${th("hud.jump")}</option><option value="block" ${simulation.trainingOptions.dummy === "block" ? "selected" : ""}>${th("hud.block")}</option><option value="afterHit" ${simulation.trainingOptions.dummy === "afterHit" ? "selected" : ""}>${th("hud.afterHit")}</option></select></label><label><input id="infinite" type="checkbox" ${simulation.trainingOptions.infiniteMeter ? "checked" : ""}> ${th("hud.infiniteMeter")}</label><button data-action="reset">${th("hud.reset")}</button><button data-action="debug">${th("hud.boxes")}</button><span id="damage">${th('hud.damage',{damage:0,combo:0})}</span></div>` : ""}<div class="combat-actions"><button class="text-button" data-action="pause">${th(mode==='online'?'hud.options':'hud.pause')} [<span data-prompt-pause>ESC</span>]</button></div>`,
   );
   document
     .getElementById("dummy")
@@ -429,20 +436,20 @@ function hud() {
         ).checked),
     );
 }
-const teamNames = ["BLUE", "RED"];
+const teamName=(team:number)=>t(team===0?'team.blueShort':'team.redShort');
 const teamColors = ["#7adfff", "#ff8575"];
 function fighterColor(i: number) { return simulation.state.teamMatch ? (teamColors[simulation.state.teams[i]]??playerColors[i]) : playerColors[i]; }
-function teamLabel(i: number) { return simulation.state.teamMatch && simulation.state.teams[i]<2 ? ` · ${teamNames[simulation.state.teams[i]]}` : ""; }
+function teamLabel(i: number) { return simulation.state.teamMatch && simulation.state.teams[i]<2 ? ` · ${teamName(simulation.state.teams[i])}` : ""; }
 function fighterHud(i: number) {
   const match = championship?.rounds.flat().find(m => matchToken(m) === championshipMatch);
   const entrant = match && championship!.entrants.find(e => e.id === match.slots[i]);
-  return `<div class="p${i + 1} ${mode === "online" && i === seat ? "you" : ""}" style="--player-color:${fighterColor(i)};order:${simulation.state.teamMatch ? simulation.state.teams[i] * 10 + i : i}"><div class="fighter-name"><img class="hud-portrait" src="${fighterPresentation(simulation.state.fighters[i].characterId, simulation.state.skins[i]).portrait}" alt=""><b>${entrant ? escapeMarkup(entrant.name) : characters[simulation.state.fighters[i].characterId].displayName}</b><span>P${i + 1}${teamLabel(i)}${mode === "online" && i === seat ? " · YOU" : ""}</span></div><div class="health"><i id="health${i}"></i></div>${energyMeter(characters[simulation.state.fighters[i].characterId],i)}<div class="super-slots" id="supers${i}"></div><div class="lives" id="lives${i}"></div><div class="life-status" id="life-status${i}"></div></div>`;
+  return `<div class="p${i + 1} ${mode === "online" && i === seat ? "you" : ""}" style="--player-color:${fighterColor(i)};order:${simulation.state.teamMatch ? simulation.state.teams[i] * 10 + i : i}"><div class="fighter-name"><img class="hud-portrait" src="${fighterPresentation(simulation.state.fighters[i].characterId, simulation.state.skins[i]).portrait}" alt=""><b>${entrant ? escapeMarkup(entrant.name) : characters[simulation.state.fighters[i].characterId].displayName}</b><span>P${i + 1}${teamLabel(i)}${mode === "online" && i === seat ? t('championship.you') : ""}</span></div><div class="health"><i id="health${i}"></i></div>${energyMeter(characters[simulation.state.fighters[i].characterId],i)}<div class="super-slots" id="supers${i}"></div><div class="lives" id="lives${i}"></div><div class="life-status" id="life-status${i}"></div></div>`;
 }
-function updateHUD() {
+function updateHUD(presentationOnly=false) {
   const s = simulation.state;
   if((s.elimination?.fight??0)!==hudEliminationFight)hud();
   ui.text("match-symbol", s.training ? "∞" : "VS");
-  ui.text("match-mode", s.training ? "TRAINING" : s.elimination ? "ELIMINATION" : championship ? "CHAMPIONSHIP" : "SURVIVAL");
+  ui.text("match-mode", t(s.training?'home.training.name':s.elimination?'local.elimination.title':championship?'local.champion.title':'hud.survival'));
   s.fighters.forEach((f, i) => {
     document.getElementById("health" + i)!.style.width =
       `${(f.health / characters[f.characterId].stats.maxHealth) * 100}%`;
@@ -456,7 +463,7 @@ function updateHUD() {
     energy.querySelectorAll<HTMLElement>(".energy-threshold").forEach(marker=>{
       const cost=Number(marker.dataset.cost),ready=f.meter>=cost&&!formLocked;
       marker.classList.toggle("is-ready",ready);
-      marker.title=`${marker.dataset.label} · ${cost} energy · ${loanLocked?"LOAN · Energy locked":formLocked?"Unavailable during transformation":ready?"Enough energy":`${Math.ceil(cost-f.meter)} more energy needed`}`;
+      marker.title=t('energy.state',{name:marker.dataset.label??'',cost,status:loanLocked?t('energy.loan'):formLocked?t('energy.form'):ready?t('energy.ready'):t('energy.need',{count:Math.ceil(cost-f.meter)})});
       marker.setAttribute("aria-label",marker.title);
     });
     updateMarkup(document.getElementById("supers" + i)!, characters[
@@ -469,7 +476,7 @@ function updateHUD() {
         const key = mode === "online" && i !== seat ? "" : (displayBindings(mode === "online" ? 0 : i)?.[9 + n]??"")
           .replace("Key", "")
           .replace("Digit", "");
-        return `<span class="super-slot ${spent ? "spent" : ready ? "ready" : ""}" title="${characters[f.characterId].moves[id].displayName ?? id} · ${marked ? "Press again to build. No additional energy required." : "Full energy required. Once per match."}">${key ? `<b>${escapeMarkup(key)}</b>` : ""} ${s.fighters.length > 2 ? `U${n + 1}` : (characters[f.characterId].moves[id].displayName ?? id)} <em>${loanLocked ? "LOAN" : spent ? "USED" : formLocked ? "LOCKED" : marked ? "BUILD" : ready ? "READY" : "CHARGE"}</em></span>`;
+        return `<span class="super-slot ${spent ? "spent" : ready ? "ready" : ""}" title="${characters[f.characterId].moves[id].displayName ?? id} · ${marked ? th('ultimate.buildHelp') : th('ultimate.help')}">${key ? `<b>${escapeMarkup(key)}</b>` : ""} ${s.fighters.length > 2 ? `U${n + 1}` : (characters[f.characterId].moves[id].displayName ?? id)} <em>${loanLocked ? "LOAN" : spent ? th('ultimate.used') : formLocked ? th('ultimate.locked') : marked ? th('ultimate.build') : ready ? th('ultimate.ready') : th('ultimate.charge')}</em></span>`;
       })
       .join(""));
     const lives = document.getElementById("lives" + i)!;
@@ -477,28 +484,28 @@ function updateHUD() {
       Array.from({length:Math.max(3,f.lives)},(_,n)=>n)
         .map((n) => `<i class="${n < f.lives ? "remaining" : ""}"></i>`)
         .join("") +
-      `<span>${s.training ? "∞ LIVES" : f.lives + " " + (f.lives === 1 ? "LIFE" : "LIVES")}</span>`);
+      `<span>${s.training ? th('lives.infinite') : th('lives.count',{count:f.lives})}</span>`);
     lives.setAttribute(
       "aria-label",
-      s.training ? "Unlimited lives" : `${f.lives} lives remaining`,
+      s.training ? t('lives.unlimited') : t('lives.remaining',{count:f.lives}),
     );
     ui.text(
       "life-status" + i,
       s.elimination && (s.elimination.saved.includes(i)||s.elimination.eliminated.includes(i)) ? eliminationStatus(s,i) : f.respawnAt > 0
-        ? `RESPAWNING IN ${((f.respawnAt - s.frame) / 60).toFixed(1)}s`
+        ? t('status.respawning',{seconds:formatNumber((f.respawnAt-s.frame)/60,getLocale(),1)})
         : f.invulnerableUntil > s.frame
-          ? `PROTECTED · ${((f.invulnerableUntil - s.frame) / 60).toFixed(1)}s`
+          ? t('status.protected',{seconds:formatNumber((f.invulnerableUntil-s.frame)/60,getLocale(),1)})
           : f.lives === 0
             ? rollback?.departures.has(i)
-              ? "DISCONNECTED"
-              : "ELIMINATED"
-            : [(f.talkUntil??0)>s.frame ? `A GREAT IDEA · ${Math.ceil((f.talkUntil!-s.frame)/60)}s` : "",(f.angerUntil??0)>s.frame ? `BRAVINHO · ${Math.ceil((f.angerUntil!-s.frame)/60)}s · ${f.angerStacks??0} HITS · +${20+5*(f.angerStacks??0)}%` : "",jompStatus(s,f),f.weaponUntil>s.frame ? `${characters[f.characterId].weaponModifiers?.label??"SPEAR"} · ${Math.ceil((f.weaponUntil-s.frame)/60)}s` : "", f.grappleUntil>s.frame ? `GRABBED · ${Math.ceil((f.grappleUntil-s.frame)/60)}s` : "", f.onFireUntil > s.frame ? `ON FIRE · ${Math.ceil((f.onFireUntil - s.frame) / 60)}s · +50% SPEED` : "", f.burnUntil >= s.frame && f.burnUntil > 0 ? `${f.burnKind === "purple" ? "PURPLE FIRE" : "BURN"} · ${Math.ceil((f.burnUntil - s.frame) / 60)}s` : ""].filter(Boolean).join(" / "),
+              ? t('status.disconnected')
+              : t('status.eliminated')
+            : [(f.talkUntil??0)>s.frame ? `A GREAT IDEA · ${Math.ceil((f.talkUntil!-s.frame)/60)}s` : "",(f.angerUntil??0)>s.frame ? t('status.bravinho',{seconds:Math.ceil((f.angerUntil!-s.frame)/60),hits:f.angerStacks??0,bonus:20+5*(f.angerStacks??0)}) : "",jompStatus(s,f),f.weaponUntil>s.frame ? `${characters[f.characterId].weaponModifiers?.label??"SPEAR"} · ${Math.ceil((f.weaponUntil-s.frame)/60)}s` : "", f.grappleUntil>s.frame ? t('status.grabbed',{seconds:Math.ceil((f.grappleUntil-s.frame)/60)}) : "", f.onFireUntil > s.frame ? t('status.onFire',{seconds:Math.ceil((f.onFireUntil-s.frame)/60)}) : "", f.burnUntil >= s.frame && f.burnUntil > 0 ? `${f.burnKind === "purple" ? t('status.purpleFire') : t('status.burn')} · ${Math.ceil((f.burnUntil - s.frame) / 60)}s` : ""].filter(Boolean).join(" / "),
     );
     const combo = document.getElementById("combo" + (1 - i));
     if (s.fighters.length === 2 && combo)
       combo.innerHTML =
         f.combo > 1
-          ? `${f.combo} HITS<small>${f.comboDamage} DAMAGE</small>`
+          ? `${th('combo.hits',{count:f.combo})}<small>${th('combo.damage',{damage:f.comboDamage})}</small>`
           : "";
   });
   const announcement = document.getElementById("announcement")!;
@@ -506,7 +513,7 @@ function updateHUD() {
   const finalDeath=finalDeathActive(s);
   announcement.classList.toggle("final-death",finalDeath);
   announcement.classList.toggle("match-countdown",!!countdown);
-  announcement.classList.toggle("match-fight",countdown === "FIGHT!");
+  announcement.classList.toggle("match-fight",!!countdown && s.phase === "fight");
   if (countdown) {
     if(announcement.textContent!==countdown){
       const word=document.createElement("span");
@@ -515,16 +522,16 @@ function updateHUD() {
     }
   }
   else
-    announcement.textContent = finalDeath ? "DEAD." : rollback?.stalled
-      ? "WAITING FOR INPUT"
+    announcement.textContent = finalDeath ? t('match.dead') : rollback?.stalled
+      ? t('match.waitInput')
       : s.phase === "result" && rollback && rollback.confirmed < s.endedAt-1
-        ? "CONFIRMING RESULT…"
+        ? t('match.confirm')
         : mode === "online" && s.fighters[seat].lives === 0
-          ? s.elimination?.saved.includes(seat) ? "SAFE · WATCHING THE FIGHT" : "ELIMINATED · WATCHING THE FIGHT"
+          ? s.elimination?.saved.includes(seat) ? t('match.safeWatching') : t('match.outWatching')
           : "";
   ui.text(
     "damage",
-    `DAMAGE ${s.fighters[1].lastDamage} / COMBO ${s.fighters[1].comboDamage}`,
+    t('hud.damage',{damage:s.fighters[1].lastDamage,combo:s.fighters[1].comboDamage}),
   );
   const panel = document.getElementById("debug")!;
   panel.hidden = !debug;
@@ -547,6 +554,7 @@ function updateHUD() {
   let tournamentHost=document.getElementById("tournament-panel-host");
   if((s.tournament||s.elimination)&&!tournamentHost){tournamentHost=document.createElement("div");tournamentHost.id="tournament-panel-host";ui.root.append(tournamentHost);}
   if(tournamentHost)tournamentHost.innerHTML=s.elimination?eliminationPanel(s,!rollback||rollback.confirmed>=s.endedAt-1):tournamentPanel(s,!rollback||rollback.confirmed>=s.endedAt-1);
+  if(presentationOnly)return;
   if (
     s.phase === "result" && !finalDeathActive(s) &&
     (!s.tournament || s.tournament.complete) &&
@@ -559,7 +567,7 @@ function updateHUD() {
         const match = championship.rounds.flat().find(m => matchToken(m) === championshipMatch)!;
         const winner = s.winner < 0 ? null : match.slots[s.winner];
         finishBracketMatch(championship, match.id, winner);
-        showChampionship(winner === null ? 'Draw. Replay the match to decide who advances.' : `${championship.entrants.find(e => e.id === winner)!.name} advances.`);
+        showChampionship(winner === null ? t('championship.replay') : t('championship.advances',{name:championship.entrants.find(e=>e.id===winner)!.name}));
       }
       // Online results are decided by the server's confirmed simulation.
       return;
@@ -571,10 +579,10 @@ function updateHUD() {
     if(rollback)network.send({type:"finished",frame:s.endedAt});
     input.enabled = false;
     const winner = s.winner < 0 ? null : s.fighters[s.winner];
-    const winnerName = winner ? (s.teamMatch ? `${teamNames[s.teams[s.winner]]} TEAM` : characters[winner.characterId].displayName) : "DRAW";
+    const winnerName = winner ? (s.teamMatch ? t(s.teams[s.winner]===0?'team.blueWinner':'team.redWinner') : characters[winner.characterId].displayName) : t('result.draw');
     ui.root.insertAdjacentHTML(
       "beforeend",
-      resultScreen(s, mode, winnerName, teamLabel, simulation.stage.name),
+      resultScreen(s, mode, winnerName, teamLabel, arenaName(simulation.stage)),
     );
     const resultDialog = document.getElementById("match-result") as HTMLDialogElement;
     resultDialog.showModal();
@@ -591,14 +599,41 @@ function refreshBindings(){
     button.textContent=input.bindings[Number(button.dataset.player)][Number(button.dataset.index)];
   });
 }
-function settings(overlay=false) {
-  if(!overlay)navigate("settings");
-  input.enabled = false;
-  const html=`<main class="page"><div class="eyebrow">MAKE IT YOURS</div><h2>SETTINGS</h2><button class="primary" data-action="controllers">CONTROLLERS →</button><div class="settings-grid"><section><span class="tag">VISUAL QUALITY</span><label class="setting">Graphics<select id="visual-quality">${(['low','medium','high'] as const).map(q=>`<option value="${q}" ${renderer.environment.quality===q?'selected':''}>${q.toUpperCase()}</option>`).join('')}</select></label><p>Low: lighter effects. Medium: balanced lighting. High: soft shadows, rim lighting and bloom.</p><span class="tag">AUDIO & NETWORK</span>${(import.meta as ImportMeta & {env:{DEV:boolean}}).env.DEV?'<details><summary>Audio diagnostics</summary><pre id="audio-debug"></pre></details>':''}${(["master", "music", "sound", "ui", "voice"] as const).map((k) => `<label class="setting">${k === "sound" ? "SFX" : k.toUpperCase()} VOLUME<input type="range" min="0" max="1" step=".01" value="${audio[k]}" data-volume="${k}"></label>`).join("")}<label class="setting">Mute all<input id="audio-mute" type="checkbox" ${audio.mute?"checked":""}></label><label class="setting">Mute when unfocused<input id="audio-focus" type="checkbox" ${audio.muteOnBlur?"checked":""}></label>${developmentBuild?`<label class="setting">Diagnostics<input id="diagnostics" type="checkbox" ${debug ? "checked" : ""}></label><label class="setting">Simulated outbound delay<select id="latency">${[0, 50, 100, 150, 200].map((n) => `<option ${network.latency === n ? "selected" : ""} value="${n}">${n} ms</option>`).join("")}</select></label><label class="setting">Add 0–20ms jitter<input id="jitter" type="checkbox" ${network.jitter ? "checked" : ""}></label><p>At high latency, the 8-frame prediction limit may pause combat until input arrives.</p>`:""}<span class="tag">GAMEPAD ATTACK BUTTONS</span>${["Combo attack", "Heavy attack", "Attack 3", "Special 1", "Special 2", "Ultimate 1", "Ultimate 2"].map((a, i) => `<label class="setting">${a}<select data-pad="${i}">${Array.from({ length: 16 }, (_, n) => `<option value="${n}" ${input.gamepadButtons[i] === n ? "selected" : ""}>Button ${n}</option>`).join("")}</select></label>`).join("")}</section><section><span class="tag">KEYBOARD · CLICK A KEY TO REBIND</span>${actions.map((a, i) => `<div class="setting"><span>${a}</span><button class="bind" data-action="bind" data-player="0" data-index="${i}">${input.bindings[0][i]}</button><button class="bind" data-action="bind" data-player="1" data-index="${i}">${input.bindings[1][i]}</button></div>`).join("")}<p>Columns: Player 1 / Player 2.<br>Gamepads use left stick or D-pad. A jumps. Basic attacks: X / Y / B. Specials: RB / RT. Ultimates: LB / LT. Up to 8 controllers; press a button to join. Manage assignments under Controllers.</p></section></div></main>`
+/** Refresh presentation in place: never navigate, reset the match, or re-open a modal. */
+function refreshMatchLanguage(){
+  if(screen!=='fight')return;
+  const hudElement=ui.root.querySelector('.hud');
+  if(hudElement)hudElement.innerHTML=simulation.state.fighters.length>2
+    ?simulation.state.fighters.map((_,i)=>fighterHud(i)).join('')
+    :`${fighterHud(0)}<div class="timer"><span id="match-symbol">VS</span><small id="match-mode">${th('hud.survival')}</small></div>${fighterHud(1)}`;
+  const training=ui.root.querySelector('.training');
+  const pauseDialog=document.getElementById('pause');
+  if(pauseDialog){if(training)ui.root.append(training);pauseDialog.innerHTML=pauseContent();if(training)pauseDialog.querySelector('.pause-drawer')!.append(training);}
+  const onlineMenu=document.getElementById('online-controller-menu');
+  if(onlineMenu)onlineMenu.innerHTML=onlineMenuContent();
+  const pauseButton=ui.root.querySelector('.combat-actions [data-action="pause"]');
+  if(pauseButton)pauseButton.innerHTML=`${th(mode==='online'?'hud.options':'hud.pause')} [<span data-prompt-pause>ESC</span>]`;
+  if(training){
+    training.querySelector('.pill')!.textContent=t('home.training.name');
+    const dummy=training.querySelector<HTMLSelectElement>('#dummy')!;
+    dummy.parentElement!.firstChild!.textContent=t('hud.dummy')+' ';
+    const labels={stand:'hud.stand',crouch:'hud.crouch',jump:'hud.jump',block:'hud.block',afterHit:'hud.afterHit'} as const;
+    Array.from(dummy.options).forEach(option=>{option.textContent=t(labels[option.value as keyof typeof labels]);});
+    training.querySelector('#infinite')!.nextSibling!.textContent=' '+t('hud.infiniteMeter');
+    training.querySelector('[data-action="reset"]')!.textContent=t('hud.reset');
+    training.querySelector('[data-action="debug"]')!.textContent=t('hud.boxes');
+  }
+  updateHUD(true);
+}
+function settings(overlay=false, refresh=false) {
+  if(!overlay&&!refresh)navigate("settings");
+  if(!refresh)input.enabled = false;
+  const html=`<main class="page"><div class="eyebrow">${th('settings.eyebrow')}</div><h2>${th('nav.settings')}</h2><button class="primary" data-action="controllers">${th('settings.controllers')}</button><div class="settings-grid"><section><label class="setting">${th('language.label')}<select id="language-choice">${languageOptions.map(option=>`<option value="${option.value}" ${getLocale()===option.value?'selected':''}>${option.label}</option>`).join('')}</select></label><span class="tag">${th('settings.visual')}</span><label class="setting">${th('settings.graphics')}<select id="visual-quality">${(['low','medium','high'] as const).map(q=>`<option value="${q}" ${renderer.environment.quality===q?'selected':''}>${th(`settings.quality.${q}`)}</option>`).join('')}</select></label><p>${th('settings.quality.help')}</p><span class="tag">${th('settings.audioNetwork')}</span>${(import.meta as ImportMeta & {env:{DEV:boolean}}).env.DEV?`<details><summary>${th('settings.audioDiagnostics')}</summary><pre id="audio-debug"></pre></details>`:''}${(["master", "music", "sound", "ui", "voice"] as const).map((k) => `<label class="setting">${th(`settings.volume.${k}`)}<input type="range" min="0" max="1" step=".01" value="${audio[k]}" data-volume="${k}"></label>`).join("")}<label class="setting">${th('settings.mute')}<input id="audio-mute" type="checkbox" ${audio.mute?"checked":""}></label><label class="setting">${th('settings.muteBlur')}<input id="audio-focus" type="checkbox" ${audio.muteOnBlur?"checked":""}></label>${developmentBuild?`<label class="setting">${th('settings.diagnostics')}<input id="diagnostics" type="checkbox" ${debug ? "checked" : ""}></label><label class="setting">${th('settings.delay')}<select id="latency">${[0, 50, 100, 150, 200].map((n) => `<option ${network.latency === n ? "selected" : ""} value="${n}">${n} ms</option>`).join("")}</select></label><label class="setting">${th('settings.jitter')}<input id="jitter" type="checkbox" ${network.jitter ? "checked" : ""}></label><p>${th('settings.latencyHelp')}</p>`:""}<span class="tag">${th('settings.padAttacks')}</span>${inputLabelKeys.slice(4).map((a, i) => `<label class="setting">${th(a)}<select data-pad="${i}">${Array.from({ length: 16 }, (_, n) => `<option value="${n}" ${input.gamepadButtons[i] === n ? "selected" : ""}>${th('settings.button',{button:n})}</option>`).join("")}</select></label>`).join("")}</section><section><span class="tag">${th('settings.keyboard')}</span>${inputLabelKeys.map((a, i) => `<div class="setting"><span>${th(a)}</span><button class="bind" data-action="bind" data-player="0" data-index="${i}">${input.bindings[0][i]}</button><button class="bind" data-action="bind" data-player="1" data-index="${i}">${input.bindings[1][i]}</button></div>`).join("")}<p>${th('settings.keyboardHelp')}<br>${th('settings.padHelp')}</p></section></div></main>`
 ;
   if(overlay){
+    if(refresh)document.getElementById('settings-dialog')?.remove();
     const dialog=document.createElement('dialog');dialog.id='settings-dialog';dialog.className='controller-dialog';
-    dialog.innerHTML='<button data-action="settings-close">BACK</button>'+html;ui.root.append(dialog);dialog.showModal();
+    dialog.innerHTML=`<button data-action="settings-close">${th('nav.back')}</button>`+html;ui.root.append(dialog);dialog.showModal();
     dialog.addEventListener('cancel',e=>{e.preventDefault();closeSettings();});
   }else ui.shell(html);
   ui.root.querySelectorAll<HTMLInputElement>("[data-volume]").forEach(
@@ -610,6 +645,16 @@ function settings(overlay=false) {
         audio.update();
       }),
   );
+  document.getElementById('language-choice')!.onchange=e=>{
+    const scrollRoot=document.getElementById('settings-dialog')??ui.root;
+    const scrollTop=scrollRoot.scrollTop;
+    if(!setLocale((e.target as HTMLSelectElement).value))return;
+    document.documentElement.lang=getLocale();
+    refreshMatchLanguage();
+    settings(overlay,true);
+    (document.getElementById('settings-dialog')??ui.root).scrollTop=scrollTop;
+    document.getElementById('language-choice')?.focus({preventScroll:true});
+  };
   document.getElementById('visual-quality')!.onchange=e=>renderer.setVisualQuality((e.target as HTMLSelectElement).value as 'low'|'medium'|'high');
   document.getElementById("audio-mute")!.onchange=e=>{audio.mute=(e.target as HTMLInputElement).checked;audio.update();};
   document.getElementById("audio-focus")!.onchange=e=>{audio.muteOnBlur=(e.target as HTMLInputElement).checked;audio.update();};
@@ -632,14 +677,14 @@ function settings(overlay=false) {
 function lobby() {
   navigate("lobby");
   ui.shell(
-    `<main class="page online-lobby"><div class="eyebrow">PRIVATE ONLINE VERSUS</div><h2>GATHER YOUR FIGHTERS</h2><p>1v1 Championship · Free-for-all · Free-for-all Tournament · Elimination · Elimination Party · 2 vs 2 · 3 vs 3<br>Three lives each. Last fighter or team standing wins.<br>Your fighter: ${characters[selected[0]].displayName}</p><div class="network-panel"><div class="room-setup-grid"><section><label class="setting">MATCH MODE<select id="online-mode" aria-label="Match mode"><option value="championship">1v1 Championship · Single elimination</option><option value="ffa" selected>Free-for-all</option><option value="ffa-tournament">Free-for-all Tournament · First to 3 wins</option><option value="elimination">Elimination · Winners become safe</option><option value="elimination-party">Elimination Party · 6 players</option><option value="2v2">2 vs 2 — Teams</option><option value="3v3">3 vs 3 — Teams</option></select></label><label class="setting" id="room-size-setting">FIGHTERS IN ROOM<select id="room-size" aria-label="Fighters in room">${[2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${n} fighters</option>`).join("")}</select></label><p id="team-rules" class="tag">Every fighter for themselves.</p><label class="setting">YOUR TEAM <select id="preferred-team" aria-label="Your team"><option value="auto">Auto balance</option><option value="0">Blue team</option><option value="1">Red team</option></select></label><small>Team choice applies when creating or joining a team room.</small></section><section class="room-connect"><button class="primary" data-action="create">CREATE ROOM ↗</button><p>Or enter your opponent’s five-character code.</p><div class="row"><input id="code" type="text" placeholder="ABX42" maxlength="5" aria-label="Room code" style="width:150px;text-transform:uppercase;letter-spacing:4px"><button class="secondary" data-action="join">JOIN ROOM</button></div><p id="network-status"></p></section></div></div><p class="tag">Team rooms start with 4 or 6 fighters. Friendly fire is off. Each player uses their own device.<br>Disconnected fighters forfeit. Everyone else keeps playing.</p></main>`,
+    `<main class="page online-lobby"><div class="eyebrow">${th("online.eyebrow")}</div><h2>${th("online.title")}</h2><p>${th("online.modes")}<br>${th("online.rules")}<br>${th('online.fighter',{name:characters[selected[0]].displayName})}</p><div class="network-panel"><div class="room-setup-grid"><section><label class="setting">${th("online.mode")}<select id="online-mode" aria-label="${th("online.modeLabel")}"><option value="championship">${th("online.mode.championship")}</option><option value="ffa" selected>${th("online.mode.ffa")}</option><option value="ffa-tournament">${th("online.mode.ffa-tournament")}</option><option value="elimination">${th("online.mode.elimination")}</option><option value="elimination-party">${th("online.mode.elimination-party")}</option><option value="2v2">${th("online.mode.2v2")}</option><option value="3v3">${th("online.mode.3v3")}</option></select></label><label class="setting" id="room-size-setting">${th("online.roomSize")}<select id="room-size" aria-label="${th("online.roomSizeLabel")}">${[2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${th('online.fighters',{count:n})}</option>`).join("")}</select></label><p id="team-rules" class="tag">${th("online.ffaRule")}</p><label class="setting">${th("online.yourTeam")} <select id="preferred-team" aria-label="${th("online.teamLabel")}"><option value="auto">${th("online.auto")}</option><option value="0">${th("team.blue")}</option><option value="1">${th("team.red")}</option></select></label><small>${th("online.teamHelp")}</small></section><section class="room-connect"><button class="primary" data-action="create">${th("online.create")}</button><p>${th("online.codeHelp")}</p><div class="row"><input id="code" type="text" placeholder="ABX42" maxlength="5" aria-label="${th("online.codeLabel")}" style="width:150px;text-transform:uppercase;letter-spacing:4px"><button class="secondary" data-action="join">${th("online.join")}</button></div><p id="network-status"></p></section></div></div><p class="tag">${th("online.footer1")}<br>${th("online.footer2")}</p></main>`,
   );
   const updateMode = () => {
     const matchMode = (document.getElementById("online-mode") as HTMLSelectElement).value;
     document.getElementById("room-size-setting")!.hidden = (matchMode === "2v2" || matchMode === "3v3" || matchMode === "elimination-party");
     (document.getElementById("preferred-team") as HTMLSelectElement).disabled=matchMode!=="2v2"&&matchMode!=="3v3";
-    (document.getElementById('room-size') as HTMLSelectElement).innerHTML = Array.from({length: matchMode === 'championship' ? 15 : 7}, (_,i) => `<option value="${i+2}">${i+2} players</option>`).join('');
-    ui.text("team-rules", matchMode === "elimination" ? "Win to become safe. Last unsaved player is eliminated. Repeat until one champion remains." : matchMode === "elimination-party" ? "Exactly 6 players · Random 3v3, first-out FFA, random 2v2, then survival duels. Losing teams fight to decide who leaves." : matchMode === "championship" ? "2–16 players · 1v1 bracket · Automatic byes · One champion." : matchMode === "ffa-tournament" ? "First to 3 match wins · 8-second breaks · Draws award no win." : matchMode === "ffa" ? "Every fighter for themselves." : `${matchMode === "2v2" ? 4 : 6} fighters · Blue vs Red · No friendly fire · Three lives each`);
+    (document.getElementById('room-size') as HTMLSelectElement).innerHTML = Array.from({length: matchMode === 'championship' ? 15 : 7}, (_,i) => `<option value="${i+2}">${th('common.players',{count:i+2})}</option>`).join('');
+    ui.text("team-rules", matchMode === "elimination" ? t('online.eliminationRule') : matchMode === "elimination-party" ? t('online.partyRule') : matchMode === "championship" ? t('online.championshipRule') : matchMode === "ffa-tournament" ? t('online.tournamentRule') : matchMode === "ffa" ? t('online.ffaRule') : t('online.teamsRule',{count:matchMode==='2v2'?4:6}));
   };
   document.getElementById('online-mode')!.addEventListener('change', updateMode);
   updateMode();
@@ -651,7 +696,7 @@ async function connect(create: boolean) {
     .trim()
     .toUpperCase();
   if (!create && !/^[A-Z0-9]{5}$/.test(code)) {
-    ui.text("network-status", "Enter a five-character room code.");
+    ui.text("network-status", t('online.enterCode'));
     return;
   }
   const revision = viewRevision;
@@ -661,7 +706,7 @@ async function connect(create: boolean) {
   const matchMode = (document.getElementById("online-mode") as HTMLSelectElement).value as OnlineMode;
   const preference = (document.getElementById("preferred-team") as HTMLSelectElement).value;
   const team = preference === "auto" ? undefined : Number(preference);
-  ui.text("network-status", "Connecting to room server…");
+  ui.text("network-status", t('online.connecting'));
   try {
     await network.connect();
     if (attempt !== connectionAttempt || revision !== viewRevision || screen !== "lobby") return;
@@ -682,7 +727,7 @@ async function connect(create: boolean) {
     if (attempt !== connectionAttempt || revision !== viewRevision || screen !== "lobby") return;
     ui.text(
       "network-status",
-      e instanceof Error ? e.message : "Connection failed",
+      e instanceof Error ? errorMessage(e.message) : t('online.failed'),
     );
   }
 }
@@ -703,15 +748,15 @@ network.onMessage = (message) => {
     case "input-wait": {
       const id=`input-wait-${message.seat}`;
       document.getElementById(id)?.remove();
-      if(message.seconds>0){const notice=document.createElement('p');notice.id=id;notice.className='network-wait';notice.textContent=`Waiting for P${message.seat+1}. They will forfeit in ${message.seconds} seconds unless gameplay resumes.`;ui.root.append(notice);}
+      if(message.seconds>0){const notice=document.createElement('p');notice.id=id;notice.className='network-wait';notice.textContent=t('online.waitInput',{player:message.seat+1,seconds:message.seconds});ui.root.append(notice);}
       break;
     }
     case "room":
       if (screen !== "lobby") return;
       seat = message.seat; championshipSeat = message.seat;
-      ui.text("network-status", "Room created. Waiting for an opponent…");
+      ui.text("network-status", t('online.created'));
       document.querySelector(".network-panel")!.innerHTML =
-        `<span class="tag">ROOM CODE / PLAYER ${seat + 1}</span><div class="room-code">${message.code}</div><p>Share this code with your friends.<br>Waiting for fighters…</p><div id="room-roster"></div><p id="network-status"></p>`;
+        `<span class="tag">${th('online.roomCode',{player:seat+1})}</span><div class="room-code">${message.code}</div><p>${th('online.share')}<br>${th('online.waitFighters')}</p><div id="room-roster"></div><p id="network-status"></p>`;
       network.send({ type: "ready" });
       break;
     case "roster":
@@ -719,7 +764,7 @@ network.onMessage = (message) => {
       if(message.stage && Object.hasOwn(stages,message.stage))selectedArena=message.stage;
       ui.text(
         "network-status",
-        `${message.mode === "ffa-tournament" ? "FREE-FOR-ALL TOURNAMENT · FIRST TO 3" : message.mode === "ffa" ? "FREE-FOR-ALL" : message.mode.toUpperCase().replaceAll("-"," ")} · ${message.players.length} / ${message.capacity} fighters joined`,
+        t('online.joined',{mode:message.mode==='ffa-tournament'?t('online.ffaTournamentShort'):message.mode==='ffa'?t('local.ffa.title'):message.mode==='championship'?t('local.champion.title'):message.mode==='elimination'?t('local.elimination.title'):message.mode==='elimination-party'?t('local.party.title'):message.mode.toUpperCase(),count:message.players.length,capacity:message.capacity}),
       );
       {
         const roster = document.getElementById("room-roster");
@@ -727,7 +772,7 @@ network.onMessage = (message) => {
           roster.innerHTML = Array.from(
             { length: message.capacity },
             (_, i) =>
-              `<p style="color:${(message.mode === "2v2" || message.mode === "3v3") && message.players[i] ? teamColors[message.players[i].team] : playerColors[i % playerColors.length]}">P${i + 1}${(message.mode === "2v2" || message.mode === "3v3") && message.players[i] ? ` · ${teamNames[message.players[i].team]}` : ""} · ${message.players[i] ? characters[message.players[i].character].displayName + " / " + escapeMarkup(fighterSkins(characters[message.players[i].character]).find(skin => skin.id === message.players[i].skin)?.name ?? "Original") + (i === seat ? " · YOU" : "") : "Waiting for player…"}</p>`,
+              `<p style="color:${(message.mode === "2v2" || message.mode === "3v3") && message.players[i] ? teamColors[message.players[i].team] : playerColors[i % playerColors.length]}">P${i + 1}${(message.mode === "2v2" || message.mode === "3v3") && message.players[i] ? ` · ${teamName(message.players[i].team)}` : ""} · ${message.players[i] ? characters[message.players[i].character].displayName + " / " + escapeMarkup(skinName(message.players[i].character,fighterSkins(characters[message.players[i].character]).find(skin => skin.id === message.players[i].skin)??{id:"original",name:t("skin.original")})) + (i === seat ? t('championship.you') : "") : t('online.waitPlayer')}</p>`,
           ).join("");
       }
       break;
@@ -742,7 +787,7 @@ network.onMessage = (message) => {
       checkNetworkHealth();
       break;
     case "hash":
-      if (message.matchId !== championshipMatch) break;
+      if (message.seat !== -1 || message.matchId !== championshipMatch) break;
       if(!rollback?.isHashFrameRetained(message.frame))break;
       pendingHashes.set(`${message.seat}:${message.frame}`, {
         frame: message.frame,
@@ -752,7 +797,7 @@ network.onMessage = (message) => {
       break;
     case "error":
       audio.play("invalid");
-      if (screen === "lobby") ui.text("network-status", message.message);
+      if (screen === "lobby") ui.text("network-status", errorMessage(message.message));
       else disconnectMessage(message.message);
       break;
     case "left":
@@ -776,12 +821,12 @@ function checkNetworkHealth(): boolean {
   if (rollback.desync === "OK") return true;
   // No authoritative state is available to repair this match safely.
   document.getElementById("match-result")?.remove();
-  disconnectMessage("The players' game states no longer agree. This match has been stopped. Return to the main menu to start a new match.");
+  disconnectMessage(t('online.desync'));
   return false;
 }
 network.onClose = () => {
   if (mode === "online" && (screen === "fight" || screen === "lobby" || screen === "loading" || screen === "championship-bracket"))
-    disconnectMessage("Connection to the room server was lost.");
+    disconnectMessage(t('online.lost'));
 };
 function disconnectMessage(message: string) {
   viewRevision++;
@@ -800,17 +845,20 @@ function disconnectMessage(message: string) {
   overlay.id = "disconnect";
   const box = document.createElement("div");
   const title = document.createElement("h2");
-  title.textContent = "MATCH INTERRUPTED";
+  title.textContent = t('online.interrupted');
   const p = document.createElement("p");
-  p.textContent = message;
+  p.textContent = errorMessage(message);
   const button = document.createElement("button");
   button.className = "primary";
   button.dataset.action = "home";
-  button.textContent = "MAIN MENU";
+  button.textContent = t("nav.menu");
   box.append(title, p, button);
   overlay.append(box);
   ui.root.append(overlay);
   button.focus();
+}
+function pauseContent():string {
+  return `<div class="pause-match"><span class="overlay-kicker">${arenaName(simulation.stage).toUpperCase()} / ${mode === "training" ? th('home.training.name') : championship ? th('pause.localChampionship') : th('pause.localVersus')}</span><div class="pause-matchup">${simulation.state.fighters.map((f, i) => `<div><span>${th('controller.player',{player:i+1})}</span><strong>${characters[f.characterId].displayName}</strong><small>${mode === "training" ? (i === 1 ? th('pause.trainingPartner') : th('pause.freePractice')) : th('pause.lives',{count:f.lives})}</small></div>`).join('<i aria-hidden="true">/</i>')}</div></div><section class="pause-drawer"><span class="overlay-kicker">${th("pause.kicker")}</span><h2 id="pause-title">${th("pause.title1")}<br>${th("pause.title2")}</h2><p>${th("pause.description1")}<br>${th("pause.description2")}</p><div class="overlay-actions"><button class="overlay-action main-action" data-action="pause"><span>${th("pause.resume")}<small>${th("pause.resumeHelp")}</small></span><b aria-hidden="true">↗</b></button><button class="overlay-action" data-action="home"><span>${th("nav.menu")}<small>${th("pause.leaveHelp")}</small></span><b aria-hidden="true">→</b></button></div><button class="overlay-action" data-action="pause-settings">${th("nav.settings")}</button><button class="overlay-action" data-action="controllers">${th("controller.title")}</button><p data-controller-disconnect role="status"></p><span class="pause-key"><kbd data-prompt-pause>ESC</kbd> ${th("pause.resume")}</span></section>`;
 }
 function pause() {
   if (screen !== "fight" || document.getElementById("disconnect")) return;
@@ -818,7 +866,7 @@ function pause() {
     toggleOnlineControllerMenu();
     return;
   }
-  if(paused&&!idleTestMatch&&simulation.state.fighters.some((_,i)=>i>=2&&!input.controllers.ready(i))){controllerToast("Reconnect missing controllers before resuming, or use Controllers to reassign them.");return;}
+  if(paused&&!idleTestMatch&&simulation.state.fighters.some((_,i)=>i>=2&&!input.controllers.ready(i))){controllerToast(t('pause.reconnect'));return;}
   input.clear();
   paused = !paused;
   audio.setPaused(paused);
@@ -826,7 +874,7 @@ function pause() {
   if (paused) {
     ui.root.insertAdjacentHTML(
       "beforeend",
-      `<dialog class="match-overlay pause-overlay" id="pause" aria-labelledby="pause-title"><div class="pause-match"><span class="overlay-kicker">${simulation.stage.name.toUpperCase()} / ${mode === "training" ? "TRAINING" : championship ? "LOCAL CHAMPIONSHIP" : "LOCAL VERSUS"}</span><div class="pause-matchup">${simulation.state.fighters.map((f, i) => `<div><span>PLAYER ${i + 1}</span><strong>${characters[f.characterId].displayName}</strong><small>${mode === "training" ? (i === 1 ? "TRAINING PARTNER" : "FREE PRACTICE") : `${f.lives} ${f.lives === 1 ? "LIFE" : "LIVES"} REMAINING`}</small></div>`).join('<i aria-hidden="true">/</i>')}</div></div><section class="pause-drawer"><span class="overlay-kicker">ABROZ COMBAT / TIME OUT</span><h2 id="pause-title">TAKE A<br>BREATHER.</h2><p>Your fight is paused.<br>Step back in when you’re ready.</p><div class="overlay-actions"><button class="overlay-action main-action" data-action="pause"><span>RESUME FIGHT<small>Back to the arena</small></span><b aria-hidden="true">↗</b></button><button class="overlay-action" data-action="home"><span>MAIN MENU<small>Leave this match</small></span><b aria-hidden="true">→</b></button></div><button class="overlay-action" data-action="pause-settings">SETTINGS</button><button class="overlay-action" data-action="controllers">CONTROLLERS</button><p data-controller-disconnect role="status"></p><span class="pause-key"><kbd data-prompt-pause>ESC</kbd> RESUME FIGHT</span></section></dialog>`,
+      `<dialog class="match-overlay pause-overlay" id="pause" aria-labelledby="pause-title">${pauseContent()}</dialog>`,
     );
     const pauseDialog = document.getElementById("pause") as HTMLDialogElement;
     const training=ui.root.querySelector('.training');if(training)pauseDialog.querySelector('.pause-drawer')!.append(training);
@@ -848,26 +896,26 @@ ui.onAction((action, element) => {
     case 'online-controller-resume': toggleOnlineControllerMenu();break;
     case 'controllers': openControllers(); break;
     case 'controller-close': closeControllers(); break;
-    case 'controller-cancel': input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message','Ready.');break;
-    case 'controller-assign': input.controllers.capture={player:Number(element.dataset.slot)};input.controllers.testing=null;input.clear();ui.text('controller-message',`Press any button on the controller for Player ${Number(element.dataset.slot)+1}.`);break;
+    case 'controller-cancel': input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message',t('controller.ready'));break;
+    case 'controller-assign': input.controllers.capture={player:Number(element.dataset.slot)};input.controllers.testing=null;input.clear();ui.text('controller-message',t('controller.assignPrompt',{player:Number(element.dataset.slot)+1}));break;
     case 'controller-keyboard': input.controllers.release(Number(element.dataset.slot));input.controllers.keyboardClaimed.add(Number(element.dataset.slot));input.clear();break;
     case 'controller-release': input.controllers.release(Number(element.dataset.slot));input.clear();break;
-    case 'controller-identify': {const d=input.controllers.device(Number(element.dataset.slot));if(d?.connected){input.controllers.capture={identify:d.key};input.clear();ui.text('controller-message',`Press any button on Player ${d.player!+1}'s controller.`);}else ui.text('controller-message','No connected controller in this slot. Choose Change device.');break;}
-    case 'controller-test': case 'controller-device-test': {const d=action==='controller-test'?input.controllers.device(Number(element.dataset.slot)):input.controllers.devices.get(Number(element.dataset.device));if(d?.connected){input.controllers.testing=d.key;input.controllers.capture=null;input.clear();ui.text('controller-message','Testing inputs. Press Menu / Options to finish.');document.getElementById('controller-test')?.scrollIntoView({block:'nearest'});}else ui.text('controller-message','Connect and assign a controller first.');break;}
+    case 'controller-identify': {const d=input.controllers.device(Number(element.dataset.slot));if(d?.connected){input.controllers.capture={identify:d.key};input.clear();ui.text('controller-message',t('controller.identifyPrompt',{player:d.player!+1}));}else ui.text('controller-message',t('controller.emptySlot'));break;}
+    case 'controller-test': case 'controller-device-test': {const d=action==='controller-test'?input.controllers.device(Number(element.dataset.slot)):input.controllers.devices.get(Number(element.dataset.device));if(d?.connected){input.controllers.testing=d.key;input.controllers.capture=null;input.clear();ui.text('controller-message',t('controller.testing'));document.getElementById('controller-test')?.scrollIntoView({block:'nearest'});}else ui.text('controller-message',t('controller.assignFirst'));break;}
 
     case 'local-ffa': case 'local-2v2': case 'local-3v3': showLocalMatchSetup(action.slice(6) as LocalMatchMode); break;
     case 'local-match-idle-test':
     case 'local-match-start': {
       const idleTest=action==='local-match-idle-test';
       if(screen!=='local-match-setup'||mode!=='local'||(idleTest&&!developmentBuild))break;
-      if(localMatchMode!=='ffa'&&localTeams.filter(t=>t===0).length!==localIds.length/2){audio.play('invalid');ui.text('local-match-error',`Choose ${localIds.length/2} players for each team.`);break;}
-      if(!idleTest&&localIds.some((_,i)=>!input.controllers.ready(i))){audio.play('invalid');ui.text('local-match-error','Each player needs a connected device. Press a button to join or open Controllers to assign it.');break;}
+      if(localMatchMode!=='ffa'&&localTeams.filter(t=>t===0).length!==localIds.length/2){audio.play('invalid');ui.text('local-match-error',t('setup.balanceError',{count:localIds.length/2}));break;}
+      if(!idleTest&&localIds.some((_,i)=>!input.controllers.ready(i))){audio.play('invalid');ui.text('local-match-error',t('controller.deviceRequired'));break;}
       void start(localIds,localTeams,localSkins,false,undefined,undefined,idleTest);break;
     }
 
     case 'elimination': case 'elimination-party': showEliminationSetup(action); break;
     case 'elimination-start': {
-      if(eliminationIds.some((_,i)=>!input.controllers.ready(i))){audio.play('invalid');ui.text('elimination-setup-error','Each player needs a connected device. Press a button to join or open Controllers to assign it.');break;}
+      if(eliminationIds.some((_,i)=>!input.controllers.ready(i))){audio.play('invalid');ui.text('elimination-setup-error',t('controller.deviceRequired'));break;}
       void start(eliminationIds,undefined,eliminationSkins,localElimination);break;
     }
     case 'championship': showChampionshipSetup(); break;
@@ -970,7 +1018,7 @@ ui.onAction((action, element) => {
         e.stopImmediatePropagation();
         if (e.repeat) return;
         if (e.code === "Escape") { cancelBinding?.(); return; }
-        if (["F1", "KeyR"].includes(e.code)) { element.textContent = "RESERVED · TRY ANOTHER"; return; }
+        if (["F1", "KeyR"].includes(e.code)) { element.textContent = t("binding.reserved"); return; }
         input.bindings.forEach(row => row.forEach((key, i) => { if (key === e.code) row[i] = original; }));
         input.bindings[player][index] = e.code;
         input.save();

@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createContext,runInContext} from 'node:vm';
 import ts from 'typescript';
+import {t} from '../apps/client/src/i18n/index.js';
+import {errorMessage} from '../apps/client/src/i18n/errors.js';
 
 // Execute the real main.ts handlers, without constructing WebGL/audio or starting
 // its animation loop. Browser checks separately cover native dialog behavior.
@@ -31,6 +33,7 @@ function fixture(){
  const input={enabled:false,bindings:[['KeyA'],['ArrowLeft']],clears:0,saves:0,clear(){this.clears++;},save(){this.saves++;}};
  const ui={root:Object.assign(root,{querySelectorAll:()=>[binding,other]}),render:()=>{root.children=[];},onAction:(fn:unknown)=>{context.action=fn;}};
  const context=createContext({ui,input,window:new BrowserEvents(),document:{getElementById:(id:string)=>find(root,id),createElement:()=>new Element()},audio:{unlock(){},play(){}},actionSound:()=>'',controllerHints:{active:false},menuNavigation:{reset(){}},network:{disconnect(){}},cancelBinding:undefined,controllerPanel:false,onlineControllerMenu:true,paused:true,screen:'fight',mode:'online',viewRevision:0,home:()=>{context.wentHome=true;},settings:()=>{throw new Error('Must not navigate away from the paused match');}});
+ Object.assign(context,{t,errorMessage});
  runInContext(script,context);
  const key=(code:string)=>{const event=new Event('keydown',{cancelable:true});Object.defineProperties(event,{code:{value:code},repeat:{value:false}});context.window.dispatchEvent(event);};
  return {context,input,root,settings,binding,other,key};

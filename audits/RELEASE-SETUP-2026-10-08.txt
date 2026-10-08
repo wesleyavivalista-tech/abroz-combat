@@ -1,0 +1,67 @@
+Release setup — 2026-10-08
+Publisher: Nikalz
+Public web and multiplayer hosting: NOT SET UP (confirmed by owner).
+
+Deployment prerequisites
+- Host the production dist/ files on HTTPS. Use short/no-cache for index.html;
+  hashed assets may be immutable. Keep stable unversioned media revalidated.
+- Deploy the compiled Node multiplayer server behind TLS/WSS, with WebSocket
+  upgrades allowed. Set PORT and ALLOWED_ORIGINS to the exact HTTPS web origin
+  plus abroz://game for desktop. Do not use localhost values in public builds.
+- Set VITE_WS_URL to the actual WSS endpoint before building online web/desktop.
+- Deploy matching client/server versions together. Protocol 46 replaces peer
+  checksum claims with server-computed settled-state checksums. Older clients
+  are rejected by the existing content-version handshake.
+- Rooms remain in memory. Use one server instance initially; multiple instances
+  need sticky routing or an explicit room-routing design. Restart loses rooms.
+- Limits: MAX_CONNECTIONS=256, MAX_CONNECTIONS_PER_ADDRESS=32,
+  MAX_UPGRADES_PER_MINUTE=120 by default. These are safety caps, NOT validated
+  hosting capacity claims. Load-test the actual host before raising them.
+- Source address is the TCP peer, never arbitrary X-Forwarded-For. Behind a
+  reverse proxy, set the per-address cap for the proxy and enforce public-IP
+  connection/rate limits at the proxy. Keep the Node port private.
+- Server now runs settled simulations for normal matches as well as tournament
+  duels. Profile CPU under expected concurrent room counts on the deployment.
+
+Desktop
+- Existing Abroz Combat SVG wordmark is reused in the app icon. SVG/PNG/ICO/ICNS
+  files are in apps/desktop/icons; browser favicon is in client/public.
+- Offline preview is intentional until hosting exists. It is not an online
+  release candidate. Set ABROZ_BUILD_VERSION to a unique release candidate ID.
+- Mac public distribution still needs Developer ID signing, hardened runtime,
+  notarization/stapling and a clean-machine Gatekeeper test.
+- Windows public distribution still needs signing and installation/uninstallation
+  tests on a clean Windows machine. Publisher text alone is not a signature.
+
+Remaining verification / unresolved limitations
+- Physical 6–8-controller tests, real cross-device latency/loss, long sessions,
+  Windows/Safari QA and full audible listening remain manual release checks.
+- A peer slowly drip-feeding valid inputs can still slow the lockstep session.
+  Idle disconnect policy exists; choosing a minimum progress rate needs measured
+  latency/focus behavior before changing the policy for legitimate players.
+- Normal match results are client-rendered; never use them as trusted evidence
+  for prizes/rankings. Championship advancement is server-authoritative.
+- Large distribution size and native error-dialog localization remain follow-up
+  items. Do not describe the current build as fully release-qualified.
+
+Changes and verification completed in this batch
+- Removed untrusted peer checksum forwarding. Normal rooms now compute settled
+  checksums; championship uses its existing authoritative simulation. Client only
+  accepts authority seat -1. Actual divergent client state still fails safely.
+- Added bounded live-connection and upgrade-attempt admission with idempotent
+  cleanup. Existing message size/rate and outbound buffer limits remain.
+- Corrected guide text for Fausto, Jomp and Gut to match existing values; no
+  combat constants or ability behavior changed.
+- Added app/browser icons from the original SVG and publisher Nikalz. Removed
+  obsolete win.publisherName builder option; author metadata provides publisher
+  branding, while signing identity must be configured separately.
+- Full suite: 1,097 passed. Seven additional online mode/teams/seed checksum tests
+  passed afterward. Eight native desktop tests passed. Targeted real-socket
+  regression suite repeated after the final configuration corrections.
+- Typecheck, lint, server compilation, production web build and Mac ARM64 offline
+  directory package passed. Vite retains the known >500kB chunk-size warning.
+- Opened the packaged app via abroz://game and visually checked its main menu.
+  Packaged icon.icns bytes match the new source ICNS. This is an unsigned local
+  preview; it is not a signed/notarized distribution or a Windows runtime test.
+- Reviewed targeted final diffs and ran git diff --check. Existing localization,
+  controller and chaos-audit work retained; no gameplay assets deleted or replaced.

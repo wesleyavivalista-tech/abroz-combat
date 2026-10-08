@@ -1,0 +1,121 @@
+PRE-LAUNCH CHAOS / INTENTIONAL BREAKAGE AUDIT — 2026-10-08
+
+SCOPE AND METHOD
+Inspected simulation ordering, life/terminal cleanup, afterlife, rollback history,
+controller discovery/ownership and existing lifecycle/audio/socket tests first.
+Preserved all pre-existing localization changes. No repository resets, asset
+replacement, dependencies, gameplay changes or networking protocol changes.
+Eight fighters is the simultaneous combat limit; 16 is a tournament participant
+limit, not 16 simultaneous fighters. Tests use the implemented eight-player cap.
+
+CRITICAL
+No new critical failure reproduced in the executed scenarios. This is bounded
+coverage, not proof that all possible timings or hardware combinations are safe.
+
+HIGH
+No new high-priority failure reproduced.
+
+MEDIUM — FIXED: UNBOUNDED CONTROLLER IDENTITY HISTORY
+Location: apps/client/src/input/GamepadManager.ts, discovery/update lifecycle.
+Reproduction: join eight identical simulated Xbox pads, hold right + X, disconnect
+one, reconnect it at a new browser index, reclaim its reserved seat, release all
+inputs, clear between screens, repeat 128 times across all eight seats.
+Before fix: 136 retained device records for eight current controllers.
+Root cause: each reconnect creates a new session identity; obsolete disconnected,
+unassigned records were never retired. The diagnostics panel and polling iterate
+this growing map, so repeated reconnects increase memory and work indefinitely.
+Fix: keep at most cap recent obsolete records. Always retain connected devices,
+reserved player records, open test/identify records and queued event references.
+After fix: <=16 records in the same stress case, with unique eight-seat ownership,
+zero leaked held input and zero leaked join presses.
+Regression risk: low. Very old unassigned disconnected entries disappear from
+history; active/reserved identities and current diagnostics remain untouched.
+
+LOW
+No additional reproduced low-severity behavioral issue. Production build emits
+its >500 kB chunk advisory; no speculative bundling change made during this audit.
+
+CHAOS BUGS FIXED
+Only the controller-history leak above. Production change is eight added lines in
+GamepadManager.ts. Combat, timing, damage, moves, assets and protocols unchanged.
+
+REGRESSION TESTS ADDED
+15 tests across tests/chaos-prelaunch.test.ts and tests/chaos-controller.test.ts:
+- Eight fighters, both roster halves/all 16 fighters, all four arenas: seeded
+  button combinations, simultaneous KOs, next-frame forfeits, snapshot replay,
+  active resets. 2,400 ticks per arena/roster case plus deterministic replay.
+- Eight-player rollback with delayed/duplicated inputs, artificial reordering,
+  simultaneous departure of two seats, duplicate departure notices, convergence
+  against an undelayed baseline, bounded input histories. 900 settled ticks.
+  Artificial reordering is harsher than normal ordered WebSocket delivery.
+- Eight simultaneous Bozo/Napa/Jopa/Dodo casters, 12 resets per scenario, damage
+  plus two departures on one tick, further departures near the end, normal
+  attacks and cleanup. 480 ticks per reset. Summons use actual input/startup.
+- 128 held-input reconnects with eight identical controllers.
+- Obsolete history pruning preserves reserved seats, open diagnostics and notices.
+Controlled health=0 injections test exact life-resolution boundaries; these are
+explicit fixtures, not claimed as exclusively player-input-generated deaths.
+Invariants: finite actor state, valid moves, unique entity IDs, no dead attacking
+or transformed players, no orphan ordinary summons/projectiles, empty result
+combat entities, deterministic replay, exclusive controller ownership.
+
+OBSERVED STRESS COUNTS
+Scenario    Peak companions    Peak active projectiles    Max sampled snapshot characters
+Bozo        24                 1                          98404
+Napa        8                  12                         53857
+Jopa        16                 0                          27297
+Dodo        24                 2                          103274
+Each has eight player fighters in addition to companions. These are observed
+loads, not theoretical entity maxima. Snapshot length is not heap usage or GPU
+memory. No assertion of full projectile-pool saturation or hour-long stability.
+
+TESTS PERFORMED
+Before fix: complete existing suite 1,077/1,077 passed.
+Reproduction: new reconnect test failed, retaining 136 device records.
+After fix: targeted controller/input/menu suite 63/63 passed.
+Final new chaos tests 15/15 passed.
+Final full suite 1,092/1,092 passed, including ordinary gameplay, all fighter
+ability suites, real eight-socket host loss/rejoin checks on localhost, tournament
+and elimination transitions, controller/menu, rollback and mocked audio cleanup
+and overlap limits. Baseline and final wall times differ under concurrent builds;
+these suite times must not be interpreted as gameplay performance measurements.
+TypeScript and lint checks passed. Production Vite build passed with chunk-size
+advisory (main ~550.68 kB minified). Final diff whitespace check passed.
+Browser smoke: in-app browser, localhost:5174, normal training selection/start,
+12 pause/resume cycles, attack/ultimate key presses followed by reset. Returned
+to normal training UI with one training panel, no open dialog, both fighters
+visible. No captured warning/error console entries. Screenshot in evidence/
+chaos-training-2026-10-08.png. This was not a maximum-load visual/audio soak.
+
+MOST DANGEROUS SYSTEM INTERACTIONS
+- Same-frame death/forfeit during ownership-linked summons and grabs.
+- Prediction rollback across departures and terminal round cleanup.
+- Transformation expiry amid hitstun, held attacks and moving platforms.
+- Graves/zombies, destructible roofs, delayed effects and competition resets.
+- Controller reconnect/reassignment while held inputs cross modal boundaries.
+- Music fades/ability loops and rapid match/menu teardown (mock coverage only).
+Existing regression suites exercised these domains, but no exhaustive combination
+claim is made. The new matrix samples simultaneous combinations deterministically.
+
+CHAOS SCENARIOS TO PERSONALLY REPRODUCE
+1. Six to eight physical controllers, including identical Bluetooth models: hold
+   movement + attack, power one off, pause/resume, reconnect and reclaim its seat.
+   Repeat with focus loss and different reconnect ordering.
+2. Eight-person Mall match with Bozo, Napa, Jopa, Dodo and Caio: summon together,
+   overlap area effects, kill casters, break graves and exit during active effects.
+3. Multiple actual computers with unequal latency: two players leave during
+   ultimates; remaining players must agree on survivors/results, then rematch.
+4. Spam ready/selection/rematch while others join/leave around countdown/results.
+5. An hour of repeated summon-heavy matches without refresh; watch rendered FPS,
+   heap/GPU memory and listen for stuck loops, clipping or overlapping music.
+Unverified here: physical eight-pad radio behavior, WAN loss/jitter, multi-machine
+render/audio agreement, maximum-load GPU performance and long-duration heap soak.
+
+FINAL DIFF REVIEW
+Compared working tree against the initial modified-file inventory. Audit changes:
+- apps/client/src/input/GamepadManager.ts (bounded obsolete identity history)
+- tests/chaos-controller.test.ts (two tests)
+- tests/chaos-prelaunch.test.ts (13 tests)
+- this report and one browser evidence screenshot
+All pre-existing localization files/changes preserved. No new combat/shared/server
+edits, no secrets printed, no asset deletion, no balance changes, no broad cleanup.

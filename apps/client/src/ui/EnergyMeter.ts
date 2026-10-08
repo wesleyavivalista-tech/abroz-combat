@@ -1,3 +1,4 @@
+import {th} from '../i18n/index.js';
 import type {CharacterDefinition} from '../../../../packages/game-core/types.js';
 import {escapeMarkup} from './FighterPresentation.js';
 /** Group shared costs so overlapping specials use one readable marker. */
@@ -13,5 +14,5 @@ export function energyThresholds(character:CharacterDefinition){
  return [...groups].sort(([a],[b])=>a-b).map(([cost,names])=>({cost,label:names.join(' / ')}));
 }
 export function energyMeter(character:CharacterDefinition,seat:number):string{
- return `<div class="meter energy-meter" id="energy${seat}" role="meter" aria-label="Player ${seat+1} energy" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="meter${seat}"></i>${energyThresholds(character).map(({cost,label})=>`<span class="energy-threshold" data-cost="${cost}" data-label="${escapeMarkup(label)}" style="--threshold:${cost}%" title="${escapeMarkup(label)} · ${cost} energy"><b aria-hidden="true"></b></span>`).join('')}</div>`;
+ return `<div class="meter energy-meter" id="energy${seat}" role="meter" aria-label="${th('energy.label',{player:seat+1})}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="meter${seat}"></i>${energyThresholds(character).map(({cost,label})=>`<span class="energy-threshold" data-cost="${cost}" data-label="${escapeMarkup(label)}" style="--threshold:${cost}%" title="${th('energy.cost',{name:label,cost})}"><b aria-hidden="true"></b></span>`).join('')}</div>`;
 }
