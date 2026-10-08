@@ -24,7 +24,7 @@ async function launch(url){
 }
 try{
  if(command==='dev'){
-  const url='http://127.0.0.1:5175/';
+  const url='http://127.0.0.1:5175/play.html';
   const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','--config','apps/client/vite.config.ts','--host','127.0.0.1','--port','5175','--strictPort'],{env:{...env,VITE_WS_URL:env.VITE_WS_URL||'ws://localhost:8080'},stdio:'inherit'});children.add(server);
   let exited=false;server.once('exit',()=>{exited=true;});server.once('error',()=>{exited=true;});
   let ready=false;for(let i=0;i<100&&!exited;i++){try{const r=await fetch(url);if(r.ok){ready=true;break;}}catch{/* server booting */}await setTimeout(100);}

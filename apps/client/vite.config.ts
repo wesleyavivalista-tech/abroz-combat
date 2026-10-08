@@ -1,4 +1,4 @@
-import {readdirSync,rmSync} from 'node:fs';
+import {readdirSync,rmSync,renameSync} from 'node:fs';
 import {resolve,relative,join} from 'node:path';
 import {isAuthoringAsset} from './release-assets.js';
 import {execFileSync} from 'node:child_process';
@@ -17,6 +17,7 @@ export default defineConfig(({mode})=>({
         else if(item.isDirectory())prune(path);
       }};
       prune(root);
+      if(mode==='desktop')renameSync(join(root,'play.html'),join(root,'index.html'));
     },
   },{name:'simulation-revision',buildStart(){updateRevision();},configureServer(server){server.watcher.on('change',file=>{if(/packages\/(game-core|networking)\/|packages\/shared\/protocol\.ts$/.test(file))updateRevision();});}}],
   root: "apps/client",
@@ -25,6 +26,6 @@ export default defineConfig(({mode})=>({
     // Stable engine chunks can be cached independently from frequently edited game code.
     if(id.includes('/node_modules/three/'))return id.includes('three.core')?'three-core':'three-renderer';
     if(id.includes('/packages/game-core/'))return 'combat';
-  } }, input: { main:fileURLToPath(new URL("./index.html",import.meta.url)), ...(mode==='desktop'?{}:{basicAttacks:fileURLToPath(new URL("./basic-attacks.html",import.meta.url))}) } } },
+  } }, input: { main:fileURLToPath(new URL(mode==='desktop'?"./play.html":"./index.html",import.meta.url)), ...(mode==='desktop'?{}:{play:fileURLToPath(new URL('./play.html',import.meta.url)),download:fileURLToPath(new URL('./download.html',import.meta.url)),basicAttacks:fileURLToPath(new URL("./basic-attacks.html",import.meta.url))}) } } },
   envDir: "../..",
 }));

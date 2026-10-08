@@ -1,0 +1,11 @@
+{
+  "id": "/",
+  "name": "Abroz Combat",
+  "short_name": "Abroz Combat",
+  "start_url": "/play",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#14191c",
+  "theme_color": "#14191c",
+  "icons": [{"src":"/app-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}]
+}
