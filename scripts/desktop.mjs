@@ -1,6 +1,7 @@
 /* global fetch */
 import {spawn} from 'node:child_process';
 import {releaseEndpoint} from '../apps/desktop/policy.mjs';
+import {desktopBuildArgs} from './desktop-args.mjs';
 import {readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {fileURLToPath,URL} from 'node:url';
@@ -40,6 +41,6 @@ try{
   await run('node_modules/vite/bin/vite.js',['build','--config','apps/client/vite.config.ts','--mode','desktop'],{VITE_WS_URL:wsURL});
   const pkg=JSON.parse(readFileSync('package.json','utf8'));
   writeFileSync('dist-desktop/desktop-config.json',JSON.stringify({version:pkg.version,buildVersion:env.ABROZ_BUILD_VERSION||pkg.version,wsURL,offline},null,2));
-  await run('node_modules/electron-builder/cli.js',['--config','apps/desktop/builder.cjs','--publish','never',...args.filter(a=>a!=='--offline')]);
+  await run('node_modules/electron-builder/cli.js',['--config','apps/desktop/builder.cjs','--publish','never',...desktopBuildArgs(args)]);
  }else throw Error('Usage: node scripts/desktop.mjs dev | run | build [--offline] [--dir | --win | --mac | --linux]');
 }catch(error){stop();process.stderr.write(`${error.message}\n`);process.exitCode=1;}
