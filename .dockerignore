@@ -7,7 +7,9 @@
 !packages/
 !packages/**
 !apps/
+apps/**
 !apps/server/
 !apps/server/**
 !scripts/
+scripts/**
 !scripts/simulation-revision.mjs

@@ -11,6 +11,7 @@ test('release configuration rejects missing, injected and mismatched endpoints',
 });
 test('release output uses one persistent São Paulo performance machine and exact origins',()=>{
  const settings=releaseSettings(env),config=flyConfig(settings,readFileSync('deploy/fly.toml','utf8'));
+ assert.ok(config.includes('dockerfile = "../../Dockerfile"'));
  assert.match(config,/primary_region = "gru"/);assert.match(config,/auto_stop_machines = "off"/);assert.match(config,/MAX_CONNECTIONS = "64"/);
  assert.match(config,/ALLOWED_ORIGINS = "https:\/\/abroz-test.pages.dev,abroz:\/\/game"/);
  const custom=flyConfig({...settings,webOrigin:'https://abrozcombat.com'},readFileSync('deploy/fly.toml','utf8'));

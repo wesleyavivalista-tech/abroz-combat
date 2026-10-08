@@ -16,7 +16,7 @@ export function releaseSettings(env){
  return {flyApp,pagesProject,webOrigin:web.origin,wsURL,buildVersion};
 }
 export function flyConfig(settings,template){
- return `app = ${JSON.stringify(settings.flyApp)}\n`+template.replace('[env]',`[env]\n  ALLOWED_ORIGINS = ${JSON.stringify([...new Set([settings.webOrigin,`https://${settings.pagesProject}.pages.dev`,'abroz://game'])].join(','))}`);
+ return `app = ${JSON.stringify(settings.flyApp)}\n`+template.replace('dockerfile = "Dockerfile"','dockerfile = "../../Dockerfile"').replace('[env]',`[env]\n  ALLOWED_ORIGINS = ${JSON.stringify([...new Set([settings.webOrigin,`https://${settings.pagesProject}.pages.dev`,'abroz://game'])].join(','))}`);
 }
 export function webHeaders(settings){return `/*
   X-Content-Type-Options: nosniff
