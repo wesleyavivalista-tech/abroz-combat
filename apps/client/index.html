@@ -1,1 +1,27 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#14191c"><link rel="icon" href="/app-icon.svg"><link rel="apple-touch-icon" href="/app-icon.png"><link rel="manifest" href="/manifest.webmanifest"><title>Abroz Combat</title><link rel="stylesheet" href="/src/launch.css"></head><body><main><img class="logo" src="/app-icon-512.png" alt="Abroz Combat"><p class="eyebrow">ABROZ COMBAT</p><h1 data-en="Your crew. Your arena." data-pt="Sua galera. Sua arena.">Your crew. Your arena.</h1><p data-en="Original fighters. Local and online battles." data-pt="Lutadores originais. Batalhas locais e online.">Original fighters. Local and online battles.</p><nav class="choices"><a class="primary" href="/play" data-en="Play in Browser" data-pt="Jogar no navegador">Play in Browser</a><a href="/download" data-en="Download" data-pt="Baixar">Download</a></nav><p class="note" data-en="Beta · Keyboard or controller required" data-pt="Beta · Requer teclado ou controle">Beta · Keyboard or controller required</p></main><script type="module" src="/src/launch.ts"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101c30">
+  <link rel="icon" href="/app-icon.svg">
+  <link rel="apple-touch-icon" href="/app-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preload" as="image" href="/art/launch-lantern-lake.webp">
+  <title>Abroz Combat</title>
+  <link rel="stylesheet" href="/src/launch.css">
+</head>
+<body class="launch-home">
+  <main class="launch-scene">
+    <img class="launch-wordmark" src="/art/abroz-combat-wordmark-v2.svg" alt="Abroz Combat" width="620" height="258">
+    <div class="launch-actions">
+      <nav class="choices" aria-label="Abroz Combat">
+        <a class="primary" href="/play"><span data-en="Play in Browser" data-pt="Jogar no navegador">Play in Browser</span><span aria-hidden="true">↗</span></a>
+        <a href="/download"><span data-en="Download" data-pt="Baixar">Download</span><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg></a>
+      </nav>
+      <p class="note" data-en="Beta · Keyboard or controller required" data-pt="Beta · Requer teclado ou controle">Beta · Keyboard or controller required</p>
+    </div>
+  </main>
+  <script type="module" src="/src/launch.ts"></script>
+</body>
+</html>

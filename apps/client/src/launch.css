@@ -1,3 +1,66 @@
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#29383b,#0b1015 75%);color:#fff;font:18px/1.6 system-ui,sans-serif;min-height:100vh}main{max-width:900px;margin:auto;padding:5vh 24px 60px;text-align:center}.logo{width:144px;height:144px}.eyebrow{letter-spacing:.25em;font-weight:800;color:#ff7847}h1{font-size:clamp(32px,6vw,64px);line-height:1.1}h2{font-size:26px}p{color:#d2dce1}.choices{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:30px 0}a,button{display:inline-block;background:#23333e;border:1px solid #657886;color:#fff;padding:16px 30px;text-decoration:none;font:700 20px system-ui;cursor:pointer;border-radius:4px}.primary,button{background:#ff6638;color:#11161b;border-color:#ff6638}a:hover,button:hover{filter:brightness(1.15)}a:focus-visible,button:focus-visible{outline:4px solid #fff;outline-offset:5px}[hidden]{display:none!important}section{text-align:left;border:1px solid #435664;background:#111e27;padding:24px;margin:24px 0;border-radius:8px}.note{font-size:15px}li{margin:12px 0}@media(max-width:500px){.choices>*{width:100%}section{padding:18px}main{padding:24px 18px}}
 
 .file-links a{font-size:15px;padding:8px 16px}
+
+/* The launch chooser has its own composition; download-page styles stay shared above. */
+.launch-home {
+  background: #101c30;
+}
+.launch-home::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #060c1d40, transparent 35%, transparent 60%, #050b15db 100%), url('/art/launch-lantern-lake.webp') center 55% / cover no-repeat;
+  pointer-events: none;
+}
+.launch-scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  max-width: none;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(28px, 5vh, 64px) 24px max(28px, env(safe-area-inset-bottom));
+  gap: 160px;
+}
+.launch-wordmark {
+  display: block;
+  width: clamp(240px, 28vw, 420px);
+  height: auto;
+  filter: drop-shadow(0 6px 18px #040915b3);
+}
+.launch-actions { width: min(100%, 570px); }
+.launch-home .choices { flex-wrap: nowrap; gap: 14px; margin: 0; }
+.launch-home .choices a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex: 1;
+  min-height: 64px;
+  padding: 18px 24px;
+  background: #101e30ed;
+  border-color: #c5d9ed75;
+  border-radius: 3px;
+  font-size: 18px;
+  box-shadow: 0 8px 24px #02081445;
+}
+.launch-home .choices a.primary { background: #ff683e; border-color: #ff8969; color: #111821; }
+.launch-home .choices a:hover { filter: brightness(1.12); border-color: #fff; }
+.launch-home .choices svg { flex-shrink: 0; }
+.launch-home .note { margin: 16px 0 0; color: #e0e7ef; font-size: 13px; text-shadow: 0 1px 4px #000; }
+@media (max-width: 600px) {
+  .launch-scene { padding: 32px 20px max(24px, env(safe-area-inset-bottom)); }
+  .launch-wordmark { width: min(80vw, 330px); }
+  .launch-home .choices { flex-direction: column; gap: 10px; }
+  .launch-home .choices a { min-height: 58px; padding: 16px 22px; }
+  .launch-home .note { font-size: 12px; }
+}
+@media (max-height: 500px) and (min-width: 601px) {
+  .launch-scene { padding: 18px 24px; gap: 60px; }
+  .launch-wordmark { width: 230px; }
+  .launch-home .choices a { min-height: 54px; padding: 12px 22px; }
+  .launch-home .note { margin-top: 10px; }
+}
