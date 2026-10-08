@@ -91,3 +91,24 @@ test('capacity rejection survives close without opening disconnect UI and can be
   finish(new Response(JSON.stringify({reason:'Server full'})));await Promise.resolve();assert.equal(client.socket,fresh);assert.equal(closed,0);
  }finally{client.disconnect();if(ws)Object.defineProperty(globalThis,'WebSocket',ws);else Reflect.deleteProperty(globalThis,'WebSocket');if(location)Object.defineProperty(globalThis,'location',location);else Reflect.deleteProperty(globalThis,'location');}
 });
+
+test('automatic recovery authenticates, suppresses gameplay until resumed, and cancellation stops retry',async()=>{
+ const ws=Object.getOwnPropertyDescriptor(globalThis,'WebSocket'),location=Object.getOwnPropertyDescriptor(globalThis,'location');
+ Object.defineProperty(globalThis,'WebSocket',{value:Socket,configurable:true});
+ Object.defineProperty(globalThis,'location',{value:{protocol:'http:',hostname:'localhost'},configurable:true});
+ const client=new LobbyClient();let recovering=0,resumed=0,closed=0;
+ client.onRecovering=()=>recovering++;client.onClose=()=>closed++;client.onMessage=m=>{if(m.type==='resume')resumed++;};
+ try{
+  const initial=client.connect(),old=Socket.instances.at(-1)!;old.readyState=1;old.onopen!();await initial;
+  old.onmessage!({data:JSON.stringify({type:'resume-token',token:'a'.repeat(64)})});old.close();
+  assert.equal(recovering,1);const fresh=Socket.instances.at(-1)!;assert.notEqual(fresh,old);
+  client.send({type:'input',frame:55,mask:8});assert.equal(fresh.sent.length,0);
+  fresh.readyState=1;fresh.onopen!();await Promise.resolve();await Promise.resolve();
+  const request=fresh.sent.map(s=>JSON.parse(s)).find(m=>m.type==='resume');assert.equal(request.token,'a'.repeat(64));assert.ok(request.contentVersion);
+  fresh.onmessage!({data:JSON.stringify({type:'resume',seat:0,stage:'the-foundry',mode:'ffa'})});await Promise.resolve();
+  assert.equal(resumed,1);assert.equal(closed,0);
+  fresh.close();assert.equal(recovering,2);const pending=Socket.instances.at(-1)!;
+  client.disconnect();await Promise.resolve();await Promise.resolve();
+  assert.equal(client.socket,null);assert.equal(pending.onopen,null);assert.equal(closed,0);
+ }finally{client.disconnect();if(ws)Object.defineProperty(globalThis,'WebSocket',ws);else Reflect.deleteProperty(globalThis,'WebSocket');if(location)Object.defineProperty(globalThis,'location',location);else Reflect.deleteProperty(globalThis,'location');}
+});

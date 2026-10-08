@@ -529,6 +529,8 @@ export const en = {
   "online.ffaTournamentShort": "FREE-FOR-ALL TOURNAMENT · FIRST TO 3",
   "online.waitPlayer": "Waiting for player…",
   "online.desync": "The players' game states no longer agree. This match has been stopped. Return to the main menu to start a new match.",
+  "online.reconnecting": "Reconnecting…",
+  "online.reconnectHelp": "Your fighter remains in the match without input. Trying to restore your seat for up to 30 seconds.",
   "online.lost": "Connection to the room server was lost.",
   "online.interrupted": "MATCH INTERRUPTED",
   "binding.press": "PRESS KEY…",

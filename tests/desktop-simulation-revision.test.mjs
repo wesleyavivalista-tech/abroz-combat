@@ -18,6 +18,7 @@ test('Windows CRLF and LF checkouts retain the existing LF multiplayer revision'
   ['packages/game-core/fighter.ts','export const damage = 10;\n// same gameplay\n'],
   ['packages/networking/rollback.ts','export const delay = 2;\n'],
   ['packages/shared/protocol.ts','export const version = 1;\n'],
+  ['packages/shared/recovery.ts','export const schema = 1;\n'],
  ];
  for(const [file,text] of sources){
   mkdirSync(path.dirname(path.join(root,file)),{recursive:true});
@@ -35,6 +36,9 @@ test('Windows CRLF and LF checkouts retain the existing LF multiplayer revision'
  assert.equal(revision(),lf,'CRLF conversion must not change compatibility');
  writeFileSync(path.join(root,sources[0][0]),sources[0][1]);
  assert.equal(revision(),lf,'mixed line endings must not change compatibility');
+ writeFileSync(path.join(root,sources[3][0]),sources[3][1].replace('1','2'));
+ assert.notEqual(revision(),lf,'snapshot wire format changes must invalidate compatibility');
+ writeFileSync(path.join(root,sources[3][0]),sources[3][1]);
  writeFileSync(path.join(root,sources[0][0]),sources[0][1].replace('10','11'));
  assert.notEqual(revision(),lf,'real gameplay changes must still invalidate compatibility');
 });

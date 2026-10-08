@@ -1,3 +1,4 @@
+import {decodeSnapshot,type RecoveryState} from '../shared/recovery.js';
 import {
   GameSimulation,
   hashState,
@@ -51,9 +52,22 @@ export class RollbackManager {
     }
     this.remoteFrame = this.confirmed = inputDelay - 1;
   }
+  private resumeNextInput?:number;
+  restoreRecovery(state:RecoveryState):void {
+    this.simulation.restore(decodeSnapshot(state.snapshot));
+    this.history=new StateHistory();this.local.clear();this.remotes.forEach(q=>q.clear());this.usedBySeat.forEach(q=>q.clear());
+    state.inputs.forEach((q,i)=>{for(const [frame,mask] of q)(i===this.seat?this.local:this.remotes[i]).set(frame,mask);});
+    this.departures=new Map(state.departures);this.confirmed=this.simulation.state.frame-1;this.remoteFrame=this.confirmed;
+    this.impacts.clear();this.deliveredImpactFrame=this.confirmed;this.desync='OK';this.stalled=false;this.resumeNextInput=state.nextInput;
+    this.updateConfirmed();
+  }
   schedule(mask: number, send: (frame: number, mask: number) => void): void {
     if (this.desync !== "OK") return;
     const frame = this.simulation.state.frame + this.inputDelay;
+    if(this.resumeNextInput!==undefined){
+      while(this.resumeNextInput<=frame){const next=this.resumeNextInput++;if(!this.local.has(next)){this.local.set(next,mask);send(next,mask);}}
+      this.updateConfirmed();return;
+    }
     if (!this.local.has(frame)) {
       this.local.set(frame, mask);
       send(frame, mask);

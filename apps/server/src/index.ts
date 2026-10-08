@@ -1,3 +1,4 @@
+import {RecoveryStore} from './recoveryStore.js';
 import {LobbyBudget,LOBBY_RATE_ERROR,RoomlessDeadline} from './lobbyProtection.js';
 import {stepMetrics} from './capacityMetrics.js';
 import {createLogger,diagnosticId,errorFields} from './observability.js';
@@ -10,7 +11,10 @@ import { createServer, type IncomingMessage } from "node:http";
 import { WebSocketServer } from "ws";
 import { RoomService, send } from "./rooms.js";
 const log=createLogger();
-const rooms = new RoomService(log);
+const rooms = new RoomService(log,process.env.ABROZ_RECOVERY_ENABLED==='1');
+const recoveryStore=process.env.ABROZ_RECOVERY_ENABLED==='1'&&process.env.ABROZ_RECOVERY_PATH?new RecoveryStore(process.env.ABROZ_RECOVERY_PATH):undefined;
+if(recoveryStore){try{const saved=await recoveryStore.load();if(saved)rooms.restoreCheckpoint(saved.data,saved.savedAt);}catch{log('recovery-load-failed',{});throw Error('Recovery checkpoint could not be safely loaded');}}
+const checkpointTimer=recoveryStore?setInterval(()=>{void recoveryStore.save(rooms.checkpoint()).catch(()=>log('recovery-save-failed',{}));},1000):undefined;
 const lobbyBudget=new LobbyBudget();
 const admission=new Admission(positiveLimit(process.env.MAX_CONNECTIONS,256),positiveLimit(process.env.MAX_CONNECTIONS_PER_ADDRESS,32),positiveLimit(process.env.MAX_UPGRADES_PER_MINUTE,120));
 const production=process.env.NODE_ENV==='production';
@@ -85,11 +89,16 @@ wss.on("connection", (socket,request) => {
       if (!m || typeof m !== "object" || Array.isArray(m) || typeof m.type !== "string") throw new Error("Invalid message");
       operation=['create','join','ready','championship-ready','finished','input','hash','ping'].includes(m.type)?m.type:'unknown';
       switch (m.type) {
+        case 'leave': rooms.leave(socket,'intentional-leave');break;
+        case 'resume':
+          if(!lobbyBudget.allow(socket,address))throw new Error(LOBBY_RATE_ERROR);
+          assertCompatibleContent(m.contentVersion);rooms.resume(socket,m.token);break;
         case "create":
         case "join":
           if(!lobbyBudget.allow(socket,address))throw new Error(LOBBY_RATE_ERROR);
           if(draining)throw new Error('Server maintenance: new rooms are temporarily unavailable.');
           assertCompatibleContent(m.contentVersion);
+          rooms.allowRecovery(socket,m.recovery===1);
           if (m.type === "create")
             rooms.create(socket, m.character, m.capacity, m.mode, m.team, m.skin, m.stage);
           else {
@@ -134,7 +143,7 @@ wss.on("connection", (socket,request) => {
     log('connection-close',{connectionId,roomId:rooms.diagnosticRoomId(socket),code,reason:closeReason});
     release();
     clearInterval(timer);
-    rooms.leave(socket,closeReason);
+    if(stopping)rooms.leave(socket,closeReason);else rooms.detach(socket,closeReason);
   });
   socket.on("error", (error) => {closeReason='socket-error';log('socket-error',{connectionId,...errorFields(error)});socket.close();});
 });
@@ -146,6 +155,7 @@ const metrics=production?setInterval(()=>{
 },60000):undefined;
 // Maintenance rejects new connections/rooms; existing matches continue normally.
 process.on('SIGUSR2',()=>{draining=true;log('draining',{rooms:rooms.rooms.size});});
+const recoveryTick=process.env.ABROZ_RECOVERY_ENABLED==='1'?setInterval(()=>rooms.recoveryTick(),16):undefined;
 const progressExpiry=setInterval(()=>rooms.expireInactive(),1000);
 const expiry = setInterval(() => rooms.expire(), 60000);
 server.listen(Number(process.env.PORT ?? 8080), "0.0.0.0", () => {
@@ -160,8 +170,10 @@ let stopping=false;
 function stop() {
   if(stopping)return;stopping=true;draining=true;
   log('server-stop',{rooms:rooms.rooms.size,connections:wss.clients.size});
+  if(checkpointTimer)clearInterval(checkpointTimer);
   if(metrics)clearInterval(metrics);delay.disable();
   const deadline=setTimeout(()=>{wss.clients.forEach(s=>s.terminate());server.closeAllConnections();},5000);deadline.unref();
+  if(recoveryTick)clearInterval(recoveryTick);
   clearInterval(expiry);
   clearInterval(progressExpiry);
   wss.clients.forEach((s) => s.close());

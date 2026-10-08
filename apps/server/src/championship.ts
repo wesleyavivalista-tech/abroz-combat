@@ -1,10 +1,11 @@
+import {encodeSnapshot,decodeSnapshot} from '../../../packages/shared/recovery.js';
 import {stepMetrics} from './capacityMetrics.js';
 import {trainingRoom} from "../../../packages/game-core/stages/registry.js";
 import type { WebSocket } from 'ws';
 import { GameSimulation, hashState } from '../../../packages/game-core/simulation/GameSimulation.js';
 import { createChampionship, currentMatches, finishBracketMatch, findMatch, matchToken, startBracketMatch, withdrawEntrant, type Entrant } from '../../../packages/game-core/tournament/Championship.js';
 import type { ServerMessage } from '../../../packages/shared/protocol.js';
-interface Participant { socket: WebSocket; character: string; skin: string; connected: boolean }
+interface Participant { socket: WebSocket; character: string; skin: string; connected: boolean; reconnectUntil?:number;neutralClock?:number }
 interface Duel {
   simulation: GameSimulation; players: [number, number]; token: string;
   inputs: [Map<number, number>, Map<number, number>]; last: [number, number]; lastHash: [number, number]; progress: [number, number];
@@ -59,6 +60,29 @@ export class ChampionshipSession {
       }
     }
   }
+  checkpoint(){return {bracket:structuredClone(this.bracket),completedAt:this.completedAt,ready:[...this.ready],awaiting:[...this.awaiting],duels:[...this.duels].map(([id,d])=>({id,players:d.players,token:d.token,snapshot:encodeSnapshot(d.simulation.snapshot()),inputs:d.inputs.map(q=>[...q]),last:d.last,lastHash:d.lastHash,progress:d.progress}))};}
+  restoreCheckpoint(data:ReturnType<ChampionshipSession['checkpoint']>):void{
+    this.bracket=data.bracket;this.completedAt=data.completedAt;this.ready=new Set(data.ready);this.awaiting=new Map(data.awaiting);this.duels.clear();
+    for(const d of data.duels){const simulation=new GameSimulation(d.players.map(id=>this.peers[id].character),false,this.stage);simulation.restore(decodeSnapshot(d.snapshot));this.duels.set(d.id,{simulation,players:d.players,token:d.token,inputs:d.inputs.map(q=>new Map(q)) as Duel['inputs'],last:d.last,lastHash:d.lastHash,progress:d.progress});}
+  }
+  recovery(socket:WebSocket){
+    const id=this.peers.findIndex(p=>p.socket===socket);
+    for(const duel of this.duels.values()){
+      const seat=duel.players.indexOf(id);if(seat<0)continue;
+      return {seat,matchId:duel.token,state:{snapshot:encodeSnapshot(duel.simulation.snapshot()),inputs:duel.inputs.map(q=>[...q]),departures:[] as [number,number][],nextInput:duel.last[seat]+1}};
+    }
+    return {seat:id};
+  }
+  neutralDisconnected(now=Date.now()):void{
+    for(const [duelId,duel] of [...this.duels])duel.players.forEach((id,seat)=>{
+      const peer=this.peers[id],other=this.peers[duel.players[1-seat]];
+      if(!peer.reconnectUntil)return;
+      const clock=peer.neutralClock??now,steps=Math.min(120,Math.max(0,Math.floor((now-clock)*60/1000)));
+      const target=other.connected?duel.last[1-seat]:duel.last[seat]+steps;
+      peer.neutralClock=other.connected?now:clock+steps*1000/60;
+      for(let n=0;this.duels.get(duelId)===duel&&duel.last[seat]<target&&n<120;n++)this.input(peer.socket,duel.token,duel.last[seat]+1,0);
+    });
+  }
   hash(socket: WebSocket, token: string | undefined, frame: number, hash: string): void {
     const found = this.duelFor(socket, token);
     if (!found || !Number.isInteger(frame) || frame < 0 || frame > found.duel.last[found.seat] || frame <= found.duel.lastHash[found.seat] || frame % 60 !== 0 || !/^[a-f0-9]{1,8}$/.test(hash)) return;
@@ -74,16 +98,16 @@ export class ChampionshipSession {
   /** Waiting spectators never time out. Only unready or input-stalling contestants forfeit. */
   expired(now: number): WebSocket[] {
     const expired = new Set<number>();
-    for (const [id, since] of this.awaiting) if (!this.ready.has(id) && now - since >= 120_000) expired.add(id);
+    for (const [id, since] of this.awaiting) if (!this.ready.has(id) && !this.peers[id].reconnectUntil && now - since >= 120_000) expired.add(id);
     for (const duel of this.duels.values()) {
       const min = Math.min(...duel.last);
-      duel.players.forEach((id, seat) => { if (duel.last[seat] === min && now - duel.progress[seat] >= (min === 1 ? 120_000 : 60_000)) expired.add(id); });
+      duel.players.forEach((id, seat) => { if (!this.peers[id].reconnectUntil && duel.last[seat] === min && now - duel.progress[seat] >= (min === 1 ? 120_000 : 60_000)) expired.add(id); });
     }
     return [...expired].map(id => this.peers[id].socket);
   }
   private duelFor(socket: WebSocket, token: string | undefined) {
     for (const [id, duel] of this.duels) {
-      const seat = duel.players.findIndex(n => this.peers[n].socket === socket && this.peers[n].connected);
+      const seat = duel.players.findIndex(n => this.peers[n].socket === socket && (this.peers[n].connected||this.peers[n].reconnectUntil!==undefined));
       if (duel.token === token && seat >= 0) return { id, duel, seat };
     }
   }

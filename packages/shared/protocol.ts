@@ -2,6 +2,8 @@ import type { Championship } from "../game-core/tournament/Championship.js";
 export type OnlineMode = "championship" | "ffa" | "ffa-tournament" | "elimination" | "elimination-party" | "2v2" | "3v3";
 export const PROTOCOL_VERSION = 46;
 export type ClientMessage =
+  | {type:"resume";token:string}
+  | {type:"leave"}
   | {type:"finished";frame:number}
   | { type: "create"; stage?: string; character: string; capacity?: number; mode?: OnlineMode; team?: number; skin?: string }
   | { type: "join"; code: string; character: string; team?: number; skin?: string }
@@ -11,6 +13,9 @@ export type ClientMessage =
   | { type: "hash"; matchId?: string; frame: number; hash: string }
   | { type: "ping"; sent: number };
 export type ServerMessage =
+  | {type:"resume-token";token:string}
+  | {type:"resume";seat:number;stage:string;mode:OnlineMode;matchId?:string;bracket?:Championship;ready?:number[];state?:import("./recovery.js").RecoveryState}
+
   | { type: "championship"; bracket: Championship; ready: number[] }
   | { type: "championship-start"; stage?: string; matchId: string; seat: number; characters: string[]; skins: string[] }
   | {type:"input-wait";seat:number;seconds:number}

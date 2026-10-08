@@ -11,6 +11,12 @@ kill_timeout = 10
   MAX_CONNECTIONS_PER_ADDRESS = "16"
   MAX_UPGRADES_PER_MINUTE = "120"
   TRUST_FLY_PROXY = "1"
+  ABROZ_RECOVERY_ENABLED = "1"
+  ABROZ_RECOVERY_PATH = "/data/checkpoints/state.bin"
+# Provision this encrypted 1 GB volume before deploying. One machine owns it.
+[[mounts]]
+  source = "abroz_recovery"
+  destination = "/data"
 [deploy]
   strategy = "rolling"
 [http_service]

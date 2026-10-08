@@ -14,6 +14,9 @@ test('release output uses one persistent São Paulo performance machine and exac
  assert.ok(config.includes('dockerfile = "../../Dockerfile"'));
  assert.match(config,/primary_region = "gru"/);assert.match(config,/auto_stop_machines = "off"/);assert.match(config,/MAX_CONNECTIONS = "64"/);
  assert.match(config,/ALLOWED_ORIGINS = "https:\/\/abroz-test.pages.dev,abroz:\/\/game"/);
+ assert.match(config,/ABROZ_RECOVERY_ENABLED = "1"/);
+ assert.match(config,/ABROZ_RECOVERY_PATH = "\/data\/checkpoints\/state.bin"/);
+ assert.match(config,/source = "abroz_recovery"\n {2}destination = "\/data"/);
  const custom=flyConfig({...settings,webOrigin:'https://abrozcombat.com'},readFileSync('deploy/fly.toml','utf8'));
  assert.ok(custom.includes('https://abrozcombat.com,https://abroz-test.pages.dev,abroz://game'));
  const headers=webHeaders(settings);assert.match(headers,/connect-src 'self' wss:\/\/abroz-test.fly.dev https:\/\/abroz-test.fly.dev;/);assert.match(headers,/\/index.html\n {2}Cache-Control: no-cache/);

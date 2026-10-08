@@ -67,6 +67,9 @@ INITIAL PROVISIONING — AGENT
    cap, not a measured cloud capacity guarantee.
 
 MAINTENANCE — EXISTING INSTANCE
+- Use deploy/RECOVERY.md and scripts/deploy-server-safe.mjs for all planned
+  server updates/rollbacks. The guard requires a drained, empty single machine
+  and an immutable reviewed image. Do not bypass it with direct fly deploy.
 - SIGUSR2 to the Node process enters drain mode: new upgrades and create/join
   commands are rejected; existing matches continue. /readyz becomes 503;
   /healthz stays 200 to keep the instance and existing sockets alive.
@@ -168,3 +171,13 @@ OBSERVABILITY UPDATE (2026-10-08)
   uses Free Website (no active Health Checks). Uptime setup requires the owner's
   chosen external service or paid Cloudflare plan plus notification destination.
   Do not silently upgrade billing. Fly CPU/RAM metrics alone do not send alerts.
+
+RECOVERY SAFEGUARDS (2026-10-08)
+- Planned deploy guard and recovery procedure: deploy/RECOVERY.md.
+- UptimeRobot account activation and login confirmed. Existing backend monitor
+  804217302 now checks /healthz (previously /readyz), every five minutes.
+- Homepage monitor 804217698 added for https://abrozcombat.com/, five minutes.
+  Both have the owner's email enabled. Owner confirmed receiving the backend
+  monitor's provider test notification. No production failure was induced.
+- These free HTTP checks do not supply CPU/RAM/crash-specific alerts or gameplay
+  verification. No new paid plan, server deployment or restart was performed.

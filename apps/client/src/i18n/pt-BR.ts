@@ -530,6 +530,8 @@ export const ptBR = {
   "online.ffaTournamentShort": "TORNEIO TODOS CONTRA TODOS · PRIMEIRO A 3",
   "online.waitPlayer": "Aguardando jogador…",
   "online.desync": "Os jogos dos participantes perderam a sincronização. Esta partida foi interrompida. Volte ao menu principal para começar outra.",
+  "online.reconnecting": "Reconectando…",
+  "online.reconnectHelp": "Seu lutador continua na partida sem comandos. Tentando recuperar sua vaga por até 30 segundos.",
   "online.lost": "A conexão com o servidor de salas foi perdida.",
   "online.interrupted": "PARTIDA INTERROMPIDA",
   "binding.press": "PRESSIONE UMA TECLA…",

@@ -1,3 +1,4 @@
+import {decodeSnapshot,type RecoveryState} from '../../../packages/shared/recovery.js';
 import {bindDiagnosticButton} from './diagnostics.js';
 import {errorMessage} from './i18n/errors.js';
 import {arenaName, skinName} from './i18n/content.js';
@@ -369,7 +370,7 @@ function stage() {
     button.onclick=()=>{const id=button.dataset.arena!;if(!Object.hasOwn(stages,id))return;selectedArena=id;audio.play('menu_confirm');stage();ui.root.querySelector<HTMLButtonElement>(`[data-arena="${id}"]`)?.focus({preventScroll:true});};
   });
 }
-async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = selectedArena, idleTest = false) {
+async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = selectedArena, idleTest = false, recovery?:RecoveryState) {
   if(!developmentBuild && mode!=="training")debug=false;
   idleTestMatch = developmentBuild && mode === "local" && idleTest;
   selectedArena = Object.hasOwn(stages,arenaId) ? arenaId : trainingRoom.id;
@@ -386,6 +387,7 @@ async function start(ids: string[] = selected, teams?: number[], skins: string[]
   void audio.preload([...Object.keys(sounds).filter(id=>!id.includes('.')||id.startsWith('layer.')||ids.some(f=>id.startsWith(`${f}.`))),...ids.flatMap(id=>Object.values(characterSounds[id]??{}).filter((key):key is string=>!!key))]);
   if (mode === "online") {
     rollback = new RollbackManager(simulation, seat, 2, 8);
+    if(recovery)rollback.restoreRecovery(recovery);
     lastHash = -1;
     pendingHashes.clear();
   } else rollback = null;
@@ -735,6 +737,16 @@ async function connect(create: boolean) {
 }
 network.onMessage = (message) => {
   switch (message.type) {
+    case 'resume': {
+      seat=message.seat;championshipMatch=message.matchId;
+      championship=message.bracket??null;championshipReady=message.ready??[];
+      if(message.state){
+        let state;
+        try{state=decodeSnapshot(message.state.snapshot);}catch{disconnectMessage(t('online.lost'));break;}
+        void start(state.fighters.map(f=>f.characterId),state.teams,state.skins,message.mode==='elimination'||message.mode==='elimination-party'?message.mode:message.mode==='ffa-tournament',undefined,message.stage,false,message.state);
+      }else if(message.bracket){championshipSeat=message.seat;showChampionship();}
+      break;
+    }
     case 'championship': {
       if (mode !== 'online' || !['lobby','championship-bracket','loading','fight'].includes(screen)) return;
       championship = message.bracket; championshipReady = message.ready;
@@ -826,6 +838,11 @@ function checkNetworkHealth(): boolean {
   disconnectMessage(t('online.desync'));
   return false;
 }
+network.onRecovering=()=>{
+  if(mode!=='online')return;
+  viewRevision++;paused=true;input.enabled=false;input.clear();menuNavigation.reset();
+  ui.shell(`<main class="page"><h2>${th('online.reconnecting')}</h2><p>${th('online.reconnectHelp')}</p><button class="primary" data-action="home">${th('nav.menu')}</button></main>`);
+};
 network.onClose = () => {
   if (mode === "online" && (screen === "fight" || screen === "lobby" || screen === "loading" || screen === "championship-bracket"))
     disconnectMessage(t('online.lost'));

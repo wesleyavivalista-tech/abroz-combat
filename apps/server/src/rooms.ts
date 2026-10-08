@@ -1,3 +1,4 @@
+import {ReconnectSeats,RECONNECT_GRACE_MS} from './reconnectSeats.js';
 import {diagnosticId,type DiagnosticSink} from './observability.js';
 import {VerifiedMatch} from './verifiedMatch.js';
 import {GameSimulation} from '../../../packages/game-core/simulation/GameSimulation.js';
@@ -9,6 +10,9 @@ import type { WebSocket } from "ws";
 import type { ServerMessage, OnlineMode } from "../../../packages/shared/protocol.js";
 import { characters } from "../../../packages/game-core/characters/registry.js";
 interface Peer {
+  resumable:boolean;
+  reconnectUntil?:number;
+  neutralClock?:number;
   skin: string;
   team: number;
   socket: WebSocket;
@@ -46,7 +50,70 @@ export function send(socket: WebSocket, message: ServerMessage): void {
   socket.send(JSON.stringify(message));
 }
 export class RoomService {
-  constructor(private diagnostic:DiagnosticSink=()=>{}){}
+  constructor(private diagnostic:DiagnosticSink=()=>{},private recoveryEnabled=false){}
+  private seats=new ReconnectSeats();
+  private capabilities=new WeakMap<WebSocket,boolean>();
+  allowRecovery(socket:WebSocket,allowed:boolean):void{this.capabilities.set(socket,allowed);}
+  checkpoint(){return {seats:this.seats.checkpoint(),rooms:[...this.rooms.values()].filter(r=>r.started).map(r=>({code:r.code,diagnosticId:r.diagnosticId,completedLogged:r.completedLogged,stage:r.stage,mode:r.mode,capacity:r.capacity,created:r.created,peers:r.peers.map(({socket: _socket,...p})=>p),verification:r.verification?.recovery(0),championship:r.championship?.checkpoint()}))};}
+  restoreCheckpoint(data:ReturnType<RoomService['checkpoint']>,savedAt:number):void{
+    if(!this.recoveryEnabled||this.rooms.size)throw Error('Cannot restore into an active server');
+    this.seats.restore(data.seats,savedAt);
+    for(const saved of data.rooms){
+      if(!Object.hasOwn(stages,saved.stage))throw Error('Invalid checkpoint stage');
+      const peers=saved.peers.map(p=>({...p,socket:{readyState:3,bufferedAmount:0,send:()=>{},close:()=>{},terminate:()=>{}} as unknown as WebSocket,connected:false,neutralClock:Date.now(),reconnectUntil:p.connected?savedAt+RECONNECT_GRACE_MS:p.reconnectUntil}));
+      const room:Room={...saved,peers,started:true,verification:undefined,championship:undefined};
+      if(saved.championship){room.championship=new ChampionshipSession(peers,send,stages[room.stage]);room.championship.restoreCheckpoint(saved.championship);}
+      if(saved.verification){room.verification=new VerifiedMatch(new GameSimulation(peers.map(p=>p.character),false,stages[room.stage]),(frame,hash)=>room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:'hash',seat:-1,frame,hash})));room.verification.restoreRecovery(saved.verification);}
+      this.rooms.set(room.code,room);
+      for(const peer of [...room.peers])if(!peer.resumable&&peer.reconnectUntil){this.membership.set(peer.socket,room);this.leave(peer.socket,'legacy-client-restart');}
+    }
+  }
+  private issue(room:Room,peer:Peer):void{if(this.recoveryEnabled&&peer.resumable)send(peer.socket,{type:'resume-token',token:this.seats.issue(room.code,room.peers.indexOf(peer))});}
+  detach(socket:WebSocket,reason:string,now=Date.now()):void{
+    const room=this.membership.get(socket),peer=room?.peers.find(p=>p.socket===socket);
+    if(!this.recoveryEnabled||!room?.started||!peer||!peer.resumable||!['peer-closed','heartbeat-timeout','socket-error'].includes(reason)){this.leave(socket,reason);return;}
+    this.membership.delete(socket);peer.connected=false;peer.reconnectUntil=now+RECONNECT_GRACE_MS;peer.neutralClock=now;
+    this.seats.reserve(room.code,room.peers.indexOf(peer),now);this.record('seat-reserved',room);
+  }
+  resume(socket:WebSocket,token:unknown,now=Date.now()):void{
+    if(!this.recoveryEnabled||this.membership.has(socket))throw Error('Reconnect unavailable');
+    const identity=this.seats.identify(token),oldRoom=identity?this.rooms.get(identity.room):undefined,oldPeer=identity?oldRoom?.peers[identity.seat]:undefined;
+    // Possession of the unguessable credential proves ownership. Replace a
+    // half-open transport atomically rather than waiting for TCP timeout.
+    if(oldPeer?.connected){const old=oldPeer.socket;this.detach(old,'peer-closed',now);old.terminate();}
+    const claim=this.seats.claim(token,now);if(!claim)throw Error('Reconnect expired or unavailable. Return to the menu.');
+    const room=this.rooms.get(claim.room),peer=room?.peers[claim.seat];
+    if(!room||!peer||peer.connected||!peer.reconnectUntil||now>=peer.reconnectUntil)throw Error('Reconnect expired or unavailable. Return to the menu.');
+    peer.socket=socket;peer.connected=true;peer.reconnectUntil=undefined;peer.neutralClock=undefined;peer.lastProgress=now;peer.window=now;peer.count=0;peer.warned=false;
+    this.membership.set(socket,room);send(socket,{type:'resume-token',token:claim.token});
+    if(room.championship){const state=room.championship.recovery(socket);send(socket,{type:'resume',stage:room.stage,mode:room.mode,bracket:room.championship.bracket,ready:[...room.championship.ready],...state});}
+    else send(socket,{type:'resume',seat:claim.seat,stage:room.stage,mode:room.mode,state:room.verification!.recovery(peer.lastFrame+1)});
+    this.record('seat-resumed',room);
+  }
+  recoveryTick(now=Date.now()):void{
+    if(!this.recoveryEnabled)return;
+    for(const expired of this.seats.expire(now)){
+      const room=this.rooms.get(expired.room),peer=room?.peers[expired.seat];
+      if(room&&peer&&!peer.connected&&peer.reconnectUntil){this.membership.set(peer.socket,room);this.leave(peer.socket,'reconnect-expired');}
+    }
+    for(const room of this.rooms.values()){
+      if(room.championship){room.championship.neutralDisconnected(now);continue;}
+      if(!room.verification)continue;
+      const live=room.peers.filter(p=>p.connected);
+      const liveTarget=live.length?Math.max(...live.map(p=>p.lastFrame)):undefined;
+      room.peers.forEach((peer,seat)=>{
+        if(!peer.reconnectUntil)return;
+        const clock=peer.neutralClock??now;
+        const steps=Math.min(120,Math.max(0,Math.floor((now-clock)*60/1000)));
+        const target=liveTarget??peer.lastFrame+steps;
+        peer.neutralClock=live.length?now:clock+steps*1000/60;
+        for(let n=0;peer.lastFrame<target&&n<120;n++){
+          const frame=++peer.lastFrame;
+          live.forEach(p=>send(p.socket,{type:'input',seat,frame,mask:0}));room.verification!.receive(seat,frame,0);
+        }
+      });this.recordCompletion(room);
+    }
+  }
   private record(event:string,room:Room,reason?:string):void{
     try{this.diagnostic(event,{roomId:room.diagnosticId,mode:room.mode,participants:room.peers.filter(p=>p.connected).length,reason});}catch{/* Never affect match behavior. */}
   }
@@ -144,6 +211,9 @@ export class RoomService {
       !room.started
     ) {
       room.started = true;
+      // Lobby seats can shift when somebody leaves; mint credentials only once
+      // match seats become stable.
+      room.peers.forEach(p=>this.issue(room,p));
       this.record('match-started',room);
       if (room.mode === "championship") { room.championship = new ChampionshipSession(room.peers, send, stages[room.stage]); return; }
       room.peers.forEach(p=>{p.lastProgress=Date.now();p.warned=false;});
@@ -229,7 +299,7 @@ export class RoomService {
     const seat = room.peers.findIndex((p) => p.socket === socket);
     const peer = room.peers[seat];
     this.membership.delete(socket);
-    peer.connected = false;
+    peer.connected = false;peer.reconnectUntil=undefined;this.seats.revoke(room.code,seat);
     this.record('room-left',room,reason);
     if (room.championship) { room.championship.leave(socket); } else if (room.started) {
       // Keep seats stable; the first missing input is the deterministic forfeit frame.
@@ -248,7 +318,7 @@ export class RoomService {
       this.roster(room);
     }
     this.recordCompletion(room);
-    if (!room.peers.some((p) => p.connected)) {this.record('room-closed',room,room.started&&!room.completedLogged?'abandoned':reason);this.rooms.delete(room.code);}
+    if (!room.peers.some((p) => p.connected||p.reconnectUntil)) {this.record('room-closed',room,room.started&&!room.completedLogged?'abandoned':reason);this.rooms.delete(room.code);}
   }
   expire(): void {
     for (const room of this.rooms.values())
@@ -268,6 +338,7 @@ export class RoomService {
   }
   /** Only the input watermark can stall the room; peers ahead of it are waiting, not idle. */
   expireInactive(now=Date.now()):void{
+    this.recoveryTick(now);
     for(const room of this.rooms.values()){
       if(!room.started)continue;
       if (room.championship) {
@@ -326,6 +397,7 @@ export class RoomService {
   }
   private peer(socket: WebSocket, character: string, team: number, skin: string): Peer {
     return {
+      resumable:this.capabilities.get(socket)??true,
       skin,
       team,
       socket,
