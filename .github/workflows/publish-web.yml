@@ -1,0 +1,36 @@
+name: Publish reviewed browser release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: production-browser-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    environment: production
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      FLY_APP_NAME: ${{ vars.FLY_APP_NAME }}
+      CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+      PUBLIC_WEB_ORIGIN: ${{ vars.PUBLIC_WEB_ORIGIN }}
+      VITE_WS_URL: ${{ vars.VITE_WS_URL }}
+      ABROZ_BUILD_VERSION: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.10.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check && pnpm test:deployment
+      - run: pnpm release:web
+      - name: Upload exact build to Pages
+        run: pnpm dlx wrangler@4.148.0 pages deploy dist --project-name "$CLOUDFLARE_PAGES_PROJECT" --branch main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}

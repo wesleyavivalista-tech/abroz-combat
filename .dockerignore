@@ -1,0 +1,13 @@
+**
+!Dockerfile
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!tsconfig.json
+!packages/
+!packages/**
+!apps/
+!apps/server/
+!apps/server/**
+!scripts/
+!scripts/simulation-revision.mjs

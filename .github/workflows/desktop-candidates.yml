@@ -1,0 +1,49 @@
+name: Build desktop candidates
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    environment: production
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win --x64
+            label: windows-x64
+          - os: macos-latest
+            target: --mac --arm64
+            label: macos-arm64
+          - os: macos-latest
+            target: --mac --x64
+            label: macos-x64
+    runs-on: ${{ matrix.os }}
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      VITE_WS_URL: ${{ vars.VITE_WS_URL }}
+      ABROZ_BUILD_VERSION: ${{ github.sha }}
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.10.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck && pnpm test:desktop
+      - run: pnpm build:desktop -- ${{ matrix.target }}
+      - name: Retain unsigned QA candidates (not public releases)
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-qa-${{ matrix.label }}-${{ github.sha }}
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+          if-no-files-found: error
+          retention-days: 7

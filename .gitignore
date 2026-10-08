@@ -11,3 +11,7 @@ release/
 
 # Local transfer/export archives; source assets are tracked separately.
 *.zip
+
+# Generated deployment configuration (may include account identifiers).
+deploy/local/
+.wrangler/

@@ -23,7 +23,10 @@
     "start:desktop": "node scripts/desktop.mjs run",
     "build:desktop": "node scripts/desktop.mjs build",
     "desktop:install-runtime": "node node_modules/electron/install.js",
-    "test:desktop": "node --test tests/desktop-*.test.mjs"
+    "test:desktop": "node --test tests/desktop-*.test.mjs",
+    "test:deployment": "node --test tests/deployment-config.test.mjs",
+    "release:configure": "node scripts/release-config.mjs",
+    "release:web": "node scripts/build-release-web.mjs"
   },
   "dependencies": {
     "three": "^0.180.0",

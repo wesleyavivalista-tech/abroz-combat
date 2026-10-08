@@ -1,0 +1,36 @@
+name: Release checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.10.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm test:desktop
+      - run: pnpm test:deployment
+      - run: pnpm build
+      - run: docker build -t abroz-server-check .
+      - name: Verify production container health
+        shell: bash
+        run: |
+          docker run -d --name abroz-check -p 127.0.0.1:8080:8080 -e ALLOWED_ORIGINS=https://release-check.invalid,abroz://game abroz-server-check
+          trap 'docker logs abroz-check; docker rm -f abroz-check' EXIT
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8080/readyz; then exit 0; fi
+            sleep 1
+          done
+          exit 1

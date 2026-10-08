@@ -1,0 +1,93 @@
+ABROZ COMBAT — deployment handoff
+
+Status: deployment in progress. Fly app abroz-combat reserved; Cloudflare authenticated.
+Owner confirmed billing and domain abrozcombat.com, currently using GoDaddy DNS.
+Provider addresses will be verified before DNS cutover. Signing identities remain pending.
+The agent handles technical configuration after authorization; these commands are
+an operator runbook, not a request for the owner to edit files or run commands.
+
+CHECKPOINT
+059eb17 preserves the localization, artwork/icon and release-hardening work that
+existed before deployment setup. No earlier changes were discarded.
+
+INITIAL PROVISIONING — AGENT
+1. Authenticate Cloudflare and Fly using provider login, without placing tokens
+   in chat, source files or command-line arguments. Enable R2 after the owner
+   completes any billing/agreement steps. Use minimum scoped credentials.
+2. Reserve one Fly app and one Pages Direct Upload project. Confirm actual names
+   and resource availability before generating configuration. Use temporary
+   pages.dev / fly.dev addresses until a domain is chosen.
+3. Fill ignored environment settings from deploy/release.env.example with actual
+   resource names. VITE_WS_URL must be the Fly app's public WSS root. Do not put
+   an extra Cloudflare proxy in front of multiplayer during this first rollout.
+4. Run release:configure. It produces deploy/local/fly.toml and public settings.
+5. Verify exactly one application Machine, in gru, performance CPU x1, 2GB.
+   Deploy from project root with the generated config and --ha=false. Do not
+   enable automatic replicas, blue/green deployment, or multiple regions:
+   room state is process-local. Never upload the renderer assets in the server image.
+6. Verify TLS, /healthz and /readyz, contentVersion, browser/desktop origins and
+   admission across multiple real public client IPs. In Fly proxy-trust mode the
+   Fly-Client-IP header is accepted ONLY because public ingress is Fly Proxy.
+   The Docker port must NOT be exposed directly or to untrusted private tenants.
+   Local and non-Fly deployments ignore forwarded headers by default.
+7. Create a reviewed, committed candidate and set ABROZ_BUILD_VERSION. Run
+   release:web, then upload dist/ with pinned Wrangler to the provisioned project.
+   The release builder rejects dirty trees, missing endpoints and Pages limits.
+8. Connect custom domain later if chosen; add its exact origin to server config
+   before moving the browser URL. Preserve abroz://game for desktop.
+9. Test public WSS, all six cross-play combinations, rematches and actual devices.
+   Set spending alerts in provider dashboards. 64 players is a conservative beta
+   cap, not a measured cloud capacity guarantee.
+
+MAINTENANCE — EXISTING INSTANCE
+- SIGUSR2 to the Node process enters drain mode: new upgrades and create/join
+  commands are rejected; existing matches continue. /readyz becomes 503;
+  /healthz stays 200 to keep the instance and existing sockets alive.
+- Wait until /healthz reports zero connections and zero rooms before updating.
+  This can require players to return to menus/leave, and completed-room retention
+  may take 15 minutes. Do not assume a deploy can preserve ongoing matches.
+- SIGTERM shuts down, with a bounded five-second socket cleanup deadline.
+- Draining is one-way until restart. If deployment is canceled, wait for rooms
+  to finish, then restart the same release to reopen admission.
+- Initial launch uses one instance. A crash/restart loses active rooms; there is
+  no automatic resume. Do not advertise seamless rolling upgrades or HA.
+
+MONITORING
+- /healthz and /readyz: non-cacheable JSON with content version and aggregate counts.
+- Production emits one JSON health log per minute: rooms, connections, RSS and
+  event-loop p95 delay. No player IPs, room codes or credentials are logged.
+- Provider alerts: restarts, memory pressure, CPU saturation, event-loop delay,
+  failed health checks, outbound traffic and spend. Thresholds require hosted data.
+
+DOWNLOADS
+- Desktop candidate workflow produces PRIVATE, unsigned QA artifacts only.
+  The verified current local preview is offline and must not be advertised online.
+- Complete Apple Developer ID / Windows publisher verification first. Configure
+  signing via secrets/Keychain; never commit certificates or passwords. Signed
+  build publishing remains blocked until signature/notarization verification.
+- Create an R2 Standard bucket for reviewed release artifacts. Use a custom
+  download domain for production. Provider test URLs are for testing only.
+- Upload only signed/verified installers, a SHA-256 manifest and release notes.
+  Use AWS CLI or another S3 multipart uploader for large files; do not assume
+  the Wrangler single-file upload path supports these installer sizes.
+- Store credentials in secure environment/CI secrets. Use versioned object keys
+  and preserve old releases. Publish links only after downloading and checking
+  checksums. No public source repository or credential files belong in the bucket.
+
+CI
+- release-checks.yml: tests/builds plus actual Docker build and health smoke test.
+- publish-web.yml: manual dispatch only; production environment, explicit public
+  vars and scoped Cloudflare secret required. Configure environment reviewers.
+- desktop-candidates.yml: manual Windows x64 / Mac ARM64 / Mac x64 QA builds.
+  It intentionally does NOT publish unsigned downloads.
+- Secrets: CLOUDFLARE_API_TOKEN. Public vars: CLOUDFLARE_ACCOUNT_ID,
+  CLOUDFLARE_PAGES_PROJECT, FLY_APP_NAME, PUBLIC_WEB_ORIGIN, VITE_WS_URL.
+- No automatic server deploy on push. The operator must drain the current server
+  before deploying a changed protocol or simulation revision.
+
+EXTERNAL TASKS ONLY THE OWNER CAN COMPLETE
+- Account registration, payments and accepting provider agreements.
+- Domain purchase/ownership challenges if a custom domain is chosen.
+- Apple enrollment and Windows publisher identity verification.
+- Authorizing account access and securely adding signing credentials.
+- Physical controller actions and independent-device tests.
