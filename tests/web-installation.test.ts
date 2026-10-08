@@ -14,7 +14,7 @@ test('install prompt is single-use; rejection and blocked storage do not break t
  const events:Record<string,(e?:unknown)=>void>={};let click:()=>Promise<void>=async()=>{};
  const button={hidden:true,disabled:false,addEventListener:(_name:string,fn:()=>Promise<void>)=>{click=fn;}};
  const status={textContent:''};const document={documentElement:{lang:''},querySelectorAll:()=>[],querySelector:(s:string)=>s==='#install'?button:status};
- runInNewContext(ts.transpile(readFileSync('apps/client/src/launch.ts','utf8'),{target:ts.ScriptTarget.ES2022}),{document,localStorage:{getItem:()=>{throw Error('blocked');}},navigator:{language:'en-US'},window:{addEventListener:(n:string,f:(e?:unknown)=>void)=>events[n]=f}});
+ runInNewContext(ts.transpile(readFileSync('apps/client/src/launch.ts','utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}),{exports:{},document,localStorage:{getItem:()=>{throw Error('blocked');}},navigator:{language:'en-US'},window:{addEventListener:(n:string,f:(e?:unknown)=>void)=>events[n]=f}});
  assert.equal(button.hidden,true);let calls=0;
  events.beforeinstallprompt({preventDefault(){},prompt:async()=>{calls++;},userChoice:Promise.resolve({outcome:'dismissed'})});
  assert.equal(button.hidden,false);await click();await click();assert.equal(calls,1);assert.equal(button.hidden,true);assert.equal(button.disabled,false);
