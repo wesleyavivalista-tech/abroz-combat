@@ -1,3 +1,4 @@
+import {stepMetrics} from './capacityMetrics.js';
 import {GameSimulation,hashState} from '../../../packages/game-core/simulation/GameSimulation.js';
 /** Settled input-only verification. Never predicts or accepts client state/hash claims. */
 export class VerifiedMatch {
@@ -16,8 +17,10 @@ export class VerifiedMatch {
    // With no connected participants there is no stream to pace this simulation.
    if(this.departures.size===this.inputs.length)return;
    const frame=s.state.frame;
+   const stepStart=performance.now();
    s.step(this.inputs.map((q,i)=>frame>=(this.departures.get(i)??Infinity)?0:q.get(frame)!),
     [...this.departures].filter(([,due])=>due===frame).map(([seat])=>seat));
+   stepMetrics.observe(performance.now()-stepStart);
    this.inputs.forEach(q=>q.delete(frame));
    if(s.state.frame%60===0)this.checksum(s.state.frame,hashState(s.state));
   }

@@ -1,3 +1,4 @@
+import {connectionFailureReason} from './connectionStatus.js';
 import {diagnostics} from './diagnostics.js';
 import {desktopBridge,multiplayerEndpoint} from './platform/runtime.js';
 import {contentVersion} from '../../../packages/shared/contentVersion.js';
@@ -26,6 +27,11 @@ export class LobbyClient {
       const socket = new WebSocket(url);
       this.socket = socket;
       let opened = false;
+      let failurePending=false;
+      const fail=(fallback:string)=>{
+        if(failurePending)return;failurePending=true;
+        void connectionFailureReason(url).then(reason=>reject(new Error(reason??fallback)));
+      };
       this.cancelConnect = () => { clearTimeout(timeout); reject(new Error("Connection cancelled")); };
       const timeout = setTimeout(() => {
         diagnostics.record('connection-timeout');
@@ -42,12 +48,17 @@ export class LobbyClient {
       socket.onerror = () => {
         diagnostics.record('connection-error');
         clearTimeout(timeout);
-        reject(new Error("Cannot connect to room server on " + url));
+        if(!opened)fail("Cannot connect to room server on " + url);
       };
       socket.onclose = (event) => {
         diagnostics.record('connection-close',undefined,event?.code);
         clearTimeout(timeout);
-        if (!opened) reject(new Error("Room server closed the connection"));
+        if (!opened) {
+          fail("Room server closed the connection");
+          if(this.socket===socket)this.socket=null;
+          // A rejected handshake belongs to connect(), not the active-match disconnect UI.
+          return;
+        }
         if (this.socket !== socket) return;
         this.socket = null;
         this.cancelConnect = undefined;

@@ -1,3 +1,4 @@
+import {stepMetrics} from './capacityMetrics.js';
 import {createLogger,diagnosticId,errorFields} from './observability.js';
 import {allowedOrigins,clientAddress} from './deployment.js';
 import {contentVersion} from '../../../packages/shared/contentVersion.js';
@@ -11,6 +12,7 @@ const log=createLogger();
 const rooms = new RoomService(log);
 const admission=new Admission(positiveLimit(process.env.MAX_CONNECTIONS,256),positiveLimit(process.env.MAX_CONNECTIONS_PER_ADDRESS,32),positiveLimit(process.env.MAX_UPGRADES_PER_MINUTE,120));
 const production=process.env.NODE_ENV==='production';
+const capacityTest=process.env.NODE_ENV==='test'&&process.env.ABROZ_CAPACITY_TEST==='1'&&!process.env.FLY_APP_NAME;
 const origins=allowedOrigins(process.env.ALLOWED_ORIGINS,production);
 const trustFly=process.env.TRUST_FLY_PROXY==='1';
 if(trustFly&&!process.env.FLY_APP_NAME)throw new Error('Fly proxy trust requires the Fly deployment environment');
@@ -20,9 +22,21 @@ const server = createServer((req, res) => {
   res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');
   if(!['GET','HEAD'].includes(req.method??'')){res.writeHead(405);res.end();return;}
   const path=req.url?.split('?')[0];
+  if(path==='/capacity-test'&&capacityTest){
+    res.writeHead(200,{'Content-Type':'application/json'});
+    res.end(JSON.stringify({pid:process.pid,cpu:process.cpuUsage(),rss:process.memoryUsage().rss,eventLoopP95Ms:delay.percentile(95)/1e6,...stepMetrics.snapshot(),...rooms.capacitySnapshot(),connections:wss.clients.size}));return;
+  }
+  if(path==='/connection-status'){
+    const origin=req.headers.origin;
+    if(origin&&!origins.includes(origin)){res.writeHead(403);res.end();return;}
+    if(origin){res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');}
+    const address=clientAddress(req,trustFly);
+    const reason=draining?'Server maintenance: new rooms are temporarily unavailable.':address===undefined?undefined:admission.reason(address);
+    res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({reason}));return;
+  }
   if(!['/','/healthz','/readyz'].includes(path??'')){res.writeHead(404);res.end();return;}
   res.writeHead(path==='/readyz'&&draining?503:200, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ status: draining?'draining':'ok', rooms: rooms.rooms.size, connections:wss.clients.size, contentVersion:version }));
+  res.end(JSON.stringify({ status: draining?'draining':'ok', rooms: rooms.rooms.size, connections:wss.clients.size, capacity:admission.maximum, ...rooms.capacitySnapshot(), contentVersion:version }));
 });
 const wss = new WebSocketServer({
   server,
@@ -118,9 +132,10 @@ wss.on("connection", (socket,request) => {
   socket.on("error", (error) => {closeReason='socket-error';log('socket-error',{connectionId,...errorFields(error)});socket.close();});
 });
 const delay=monitorEventLoopDelay({resolution:20});
-if(production)delay.enable();
+if(production||capacityTest)delay.enable();
 const metrics=production?setInterval(()=>{
- log('server-health',{rooms:rooms.rooms.size,connections:wss.clients.size,rssMiB:Math.round(process.memoryUsage().rss/1048576),eventLoopP95Ms:Math.round(delay.percentile(95)/1e6),draining});delay.reset();
+ let socketQueueBytes=0,maxSocketQueueBytes=0;for(const socket of wss.clients){socketQueueBytes+=socket.bufferedAmount;maxSocketQueueBytes=Math.max(maxSocketQueueBytes,socket.bufferedAmount);}
+ log('server-health',{...rooms.capacitySnapshot(),...stepMetrics.snapshot(),socketQueueBytes,maxSocketQueueBytes,capacity:admission.maximum,rooms:rooms.rooms.size,connections:wss.clients.size,rssMiB:Math.round(process.memoryUsage().rss/1048576),eventLoopP95Ms:Math.round(delay.percentile(95)/1e6),draining});delay.reset();stepMetrics.reset();
 },60000):undefined;
 // Maintenance rejects new connections/rooms; existing matches continue normally.
 process.on('SIGUSR2',()=>{draining=true;log('draining',{rooms:rooms.rooms.size});});

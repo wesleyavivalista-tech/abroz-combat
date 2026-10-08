@@ -32,6 +32,12 @@ test('beta admission: 64 real sockets, eight rooms, settled combat hashes and cl
   }
   const health=()=>fetch(`http://127.0.0.1:${port}/healthz`).then(r=>r.json()) as Promise<{connections:number;rooms:number}>;
   assert.equal((await health()).connections,64);
+  const status=await fetch(`http://127.0.0.1:${port}/connection-status`,{headers:{Origin:'http://localhost:5174'}});
+  assert.equal(status.headers.get('Access-Control-Allow-Origin'),'http://localhost:5174');
+  assert.equal((await status.json()).reason,'Server full');
+  assert.equal((await fetch(`http://127.0.0.1:${port}/connection-status`,{headers:{Origin:'https://untrusted.invalid'}})).status,403);
+  assert.equal((await fetch(`http://127.0.0.1:${port}/capacity-test`)).status,404);
+  const counts=await (await fetch(`http://127.0.0.1:${port}/healthz`)).json();assert.equal(counts.activeMatches,8);assert.equal(counts.waitingRooms,0);
   const excess=new WebSocket(`ws://127.0.0.1:${port}`);excess.on('error',()=>{});await new Promise(resolve=>excess.once('close',resolve));assert.equal((await health()).connections,64);
   for(let frame=2;frame<602;frame++){
    const masks=Array.from({length:8},(_,seat)=>frame%29===seat?16:frame%47===seat?128:0);

@@ -1,3 +1,4 @@
+import {stepMetrics} from './capacityMetrics.js';
 import {trainingRoom} from "../../../packages/game-core/stages/registry.js";
 import type { WebSocket } from 'ws';
 import { GameSimulation, hashState } from '../../../packages/game-core/simulation/GameSimulation.js';
@@ -46,7 +47,9 @@ export class ChampionshipSession {
     this.send(this.peers[duel.players[1 - seat]].socket, { type: 'input', matchId: token, seat, frame, mask });
     while (duel.inputs.every(queue => queue.has(duel.simulation.state.frame))) {
       const f = duel.simulation.state.frame;
+      const stepStart=performance.now();
       duel.simulation.step(duel.inputs.map(queue => queue.get(f)!));
+      stepMetrics.observe(performance.now()-stepStart);
       duel.inputs.forEach(queue => queue.delete(f));
       if(duel.simulation.state.frame%60===0){const frame=duel.simulation.state.frame,hash=hashState(duel.simulation.state);duel.players.forEach(id=>this.send(this.peers[id].socket,{type:'hash',matchId:token,seat:-1,frame,hash}));}
       if (duel.simulation.state.phase === 'result') {

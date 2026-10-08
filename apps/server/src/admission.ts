@@ -4,6 +4,13 @@ export class Admission {
  private attempts=new Map<string,{start:number;count:number}>();
  private total=0;
  constructor(readonly maximum=256,readonly perAddress=32,readonly attemptsPerMinute=120){}
+ reason(address:string,now=Date.now()):string|undefined{
+  if(this.total>=this.maximum)return 'Server full';
+  if((this.active.get(address)??0)>=this.perAddress)return 'Too many connections from this network. Try again later.';
+  const window=this.attempts.get(address);
+  if(window&&now-window.start<60000&&window.count>=this.attemptsPerMinute)return 'Too many connection attempts. Wait a minute and try again.';
+  return undefined;
+ }
  allow(address:string,now=Date.now()):boolean{
   for(const [key,value] of this.attempts)if(now-value.start>=60000)this.attempts.delete(key);
   let window=this.attempts.get(address);

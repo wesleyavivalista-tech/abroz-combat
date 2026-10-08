@@ -8,6 +8,8 @@ const errorKeys:Readonly<Record<string,MessageKey>> = {
   "Invalid match mode": "error.invalidMode",
   "Invalid team": "error.invalidTeam",
   "Invalid arena": "error.invalidArena",
+  "Too many connections from this network. Try again later.": "error.networkFull",
+  "Too many connection attempts. Wait a minute and try again.": "error.connectionRate",
   "Server full": "error.serverFull",
   "Room not found": "error.notFound",
   "Already in this room": "error.alreadyJoined",

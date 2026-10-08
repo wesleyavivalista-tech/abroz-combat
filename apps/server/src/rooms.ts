@@ -56,6 +56,15 @@ export class RoomService {
       room.completedLogged=true;this.record('match-completed',room);
     }
   }
+  capacitySnapshot(){
+    let waitingRooms=0,activeRooms=0,activeMatches=0,resultRooms=0;
+    for(const room of this.rooms.values()){
+      if(!room.started)waitingRooms++;
+      else if(room.verification?.simulation.state.phase==='result'||room.championship?.completedAt!==undefined)resultRooms++;
+      else {activeRooms++;activeMatches+=room.championship?room.championship.duels.size:room.verification?1:0;}
+    }
+    return {waitingRooms,activeRooms,activeMatches,resultRooms};
+  }
   rooms = new Map<string, Room>();
   membership = new Map<WebSocket, Room>();
   create(socket: WebSocket, character: string, capacity = 2, mode: OnlineMode = "ffa", team?: number, skin?: string, stage = trainingRoom.id): void {

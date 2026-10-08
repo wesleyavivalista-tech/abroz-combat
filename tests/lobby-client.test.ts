@@ -74,3 +74,20 @@ test("delayed input is cancelled across reconnect and never enters a new match",
     if(location)Object.defineProperty(globalThis,'location',location);else Reflect.deleteProperty(globalThis,'location');
   }
 });
+
+
+test('capacity rejection survives close without opening disconnect UI and can be cancelled',async(t)=>{
+ const ws=Object.getOwnPropertyDescriptor(globalThis,'WebSocket'),location=Object.getOwnPropertyDescriptor(globalThis,'location');
+ Object.defineProperty(globalThis,'WebSocket',{value:Socket,configurable:true});
+ Object.defineProperty(globalThis,'location',{value:{protocol:'http:',hostname:'localhost'},configurable:true});
+ let finish:(r:Response)=>void=()=>{};
+ t.mock.method(globalThis,'fetch',()=>new Promise<Response>(resolve=>{finish=resolve;}));
+ const client=new LobbyClient();let closed=0;client.onClose=()=>closed++;
+ try{
+  const pending=client.connect();const rejected=assert.rejects(pending,/Server full/);
+  const socket=Socket.instances.at(-1)!;socket.onerror!();socket.close();finish(new Response(JSON.stringify({reason:'Server full'})));await rejected;assert.equal(closed,0);
+  const old=client.connect();const cancelled=assert.rejects(old,/cancelled/);Socket.instances.at(-1)!.close();
+  const next=client.connect();await cancelled;const fresh=Socket.instances.at(-1)!;fresh.readyState=1;fresh.onopen!();await next;
+  finish(new Response(JSON.stringify({reason:'Server full'})));await Promise.resolve();assert.equal(client.socket,fresh);assert.equal(closed,0);
+ }finally{client.disconnect();if(ws)Object.defineProperty(globalThis,'WebSocket',ws);else Reflect.deleteProperty(globalThis,'WebSocket');if(location)Object.defineProperty(globalThis,'location',location);else Reflect.deleteProperty(globalThis,'location');}
+});

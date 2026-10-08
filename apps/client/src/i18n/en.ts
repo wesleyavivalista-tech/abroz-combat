@@ -541,6 +541,8 @@ export const en = {
   "error.invalidTeam": "Invalid team",
   "error.invalidArena": "Invalid arena",
   "error.capacity": "Room size must be 2–{count} fighters",
+  "error.networkFull": "Too many connections from this network. Try again later.",
+  "error.connectionRate": "Too many connection attempts. Wait a minute and try again.",
   "error.serverFull": "Server full",
   "error.notFound": "Room not found",
   "error.alreadyJoined": "Already in this room",
