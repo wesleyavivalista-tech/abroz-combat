@@ -6,9 +6,15 @@ Server: wss://abroz-combat.fly.dev (health: HTTPS /healthz)
 Fly: exactly one performance-1x / 2048 MB Machine in gru, health passing.
 Cloudflare Pages deployment: f1a3f265; 1360 files uploaded.
 Owner confirmed billing and domain abrozcombat.com, currently using GoDaddy DNS.
-Custom domain/DNS cutover, R2 downloads, signing and real-device QA remain pending.
-Cloudflare's 16 official skills and authenticated MCP are installed; restart the
-Codex app to load that MCP connection before continuing domain/account setup.
+Custom domain is registered on Pages with a proxied apex CNAME to abroz-combat.pages.dev.
+Cloudflare zone dc22aaf029436a344b472b6f2627d838 is pending nameserver delegation.
+Assigned nameservers: dakota.ns.cloudflare.com and mary.ns.cloudflare.com.
+Owner confirmed the domain has no email/other services. Existing GoDaddy nameservers
+were ns41.domaincontrol.com and ns42.domaincontrol.com. No apex MX/TXT/DS found.
+Owner has been asked to replace nameservers at GoDaddy; cutover not verified yet.
+The production server already accepts https://abrozcombat.com (live WSS verified).
+R2 API reports activation required; owner has been given the activation link.
+Signing and real-device QA remain pending. Cloudflare MCP is now loaded and working.
 No optional cf CLI installed; Wrangler 4.148.0 is authenticated.
 Verification: 1108 TS tests, 11 desktop/deployment checks, typecheck and lint passed.
 Production browser build and remote Docker build passed. Eight hosted WebSocket
