@@ -10,7 +10,7 @@
   content: "";
   position: fixed;
   inset: 0;
-  background: linear-gradient(180deg, #060c1d40, transparent 35%, transparent 60%, #050b15db 100%), url('/art/launch-lantern-lake.webp') center 55% / cover no-repeat;
+  background: linear-gradient(180deg, #060c1d40, transparent 35%, transparent 60%, #050b15db 100%), url('/art/launch-mountain-sunrise.webp') center 55% / cover no-repeat;
   pointer-events: none;
 }
 .launch-scene {
