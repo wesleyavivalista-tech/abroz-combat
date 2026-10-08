@@ -1,0 +1,223 @@
+ABROZ COMBAT — PRE-LAUNCH WINDOWS DISTRIBUTION AUDIT
+2026-10-08 | Windows 10 Home Single Language 22H2, build 19045, x64
+Baseline: b5aed5a. Continues the earlier audit and preserves its source fix.
+Supersedes the build-blocked result in WINDOWS-DISTRIBUTION-2026-10-08.txt.
+
+WINDOWS RELEASE BLOCKERS
+- Packaged gameplay/UI certification incomplete: app approval now works and
+  accessibility reads the main menu, but screenshots time out and input fails
+  with stale-window-bounds errors. No navigation/combat/fullscreen pass claimed.
+- Game EXE and installer are unsigned. Publisher empty, default Electron icon,
+  version/build identifier 0.1.0. Complete release identity and signing.
+- Artifact is explicitly offline; no production WSS endpoint supplied. Actual
+  packaged Windows/browser and Windows/macOS matches remain unverified.
+- Windows 11, fresh-machine and physical controller/display/audio QA remain open.
+
+CRITICAL WINDOWS ISSUES
+No new confirmed critical Windows-specific issue in reviewed paths. This is not
+proof of safety across gameplay, drivers or hardware. Earlier security audit
+findings remain applicable.
+
+HIGH-PRIORITY ISSUES
+FIXED in the earlier part of this continuing audit: raw source-byte hashing made
+identical Windows CRLF and macOS LF checkouts incompatible in multiplayer.
+LF digest: 9e93a727214416bf1728c0b03ca69dd028b061625fe207aa412ab4e428bb9e1a
+CRLF before fix: 457dd383dc8dd480e1c709c4ffc2f0c238608a93834a00d10f8607d676d64aca
+Canonicalizing CRLF to LF restores the original release digest. Real gameplay
+changes still change the digest. Remaining high-priority gates are listed above.
+
+MEDIUM ISSUES
+- Default build ID 0.1.0 cannot distinguish repeated builds. Set a unique ID.
+- Final rebuilt installer: 1,425,529,383 bytes (~1.33 GiB).
+  Earlier unpacked measurement: 1,736,008,783 bytes.
+  Size affects downloads, storage and installation time. No assets were removed.
+- No automatic updater. Version-changing/interrupted upgrades, reboot, corrupt
+  settings and denied profile writes remain native tests.
+- Node AND pnpm must be on PATH for building. They are not player prerequisites.
+
+LOW ISSUES
+Default Electron icon and missing author/publisher. No dedicated borderless mode
+or Alt+Enter mapping found. Native fullscreen exists but was not exercised.
+
+FIXES IMPLEMENTED
+scripts/simulation-revision.mjs: CRLF normalization; path.join for filesystem
+reads; slash-based hash keys retained; source-root parameter for fixture testing.
+tests/desktop-simulation-revision.test.mjs: legacy LF compatibility, CRLF/mixed
+equivalence, and changed revision after a real gameplay value change.
+No further source fix needed in this pass. No gameplay, balance, art, input,
+protocol, dependency/version, macOS or browser behavior changes.
+
+WINDOWS BUILD RESULT
+PASS: frozen-lockfile install, including esbuild lifecycle (372 locked packages).
+PASS: production scripts/desktop.mjs build --offline --win --x64, exit 0.
+PASS: 1,067 TypeScript tests, zero failures/skips, normal tsx/process isolation,
+including real WebSocket tests; final rerun ~208 seconds. PASS: 8 desktop tests.
+PASS: production TypeScript check, ESLint, final diff whitespace check.
+Tools: Node 24.19.0, pnpm 11.25.0, Electron 44.5.1, electron-builder 26.15.3.
+Initial packaging failed collecting pnpm JSON because bundled pnpm was absent
+from PATH. Adding its directory to this process's PATH resolved it without a
+source change. Earlier spawn EPERM was resolved by updated execution permissions.
+This locked install in the existing clone is not a fresh OS/CI certification.
+
+Installer: release/Abroz Combat-0.1.0-win-x64.exe
+Repository root: C:\Users\nicol\Documents\GitHub\abroz-combat
+Final rebuilt size: 1,425,529,383 bytes
+SHA256: 902FF2149E1E0F4EA72D3C9AABF55D48F7A097C1B1E3CCE56B3C9C2FB013CBD5
+Blockmap/latest.yml also generated. Nothing published or uploaded.
+Unpacked EXE: release/win-unpacked/abroz-combat.exe; requires sibling resources.
+
+ACTUAL INSTALLER / PACKAGED PROCESS TESTS
+The lifecycle observations below were made on the earlier same-day production
+build of this source. The final pre-commit rebuild reran tests and packaging;
+installation/UI interaction was not repeated on its newly generated installer.
+- Packaged EXE launched from outside repository without a development server;
+  exposed versioned OS window and recorded win32/x64 startup. This is process/
+  window evidence, not proof that a menu or game rendered correctly.
+- Non-elevated per-user default install: exit 0. Directory:
+  C:\Users\nicol\AppData\Local\Programs\abroz-combat
+  Desktop/Start Menu shortcuts created. Installed EXE exposed versioned window.
+  Uninstall registry entry: Abroz Combat 0.1.0.
+- Default silent uninstall: exit 0; executable and both shortcuts removed.
+- Custom non-admin install: exit 0 at
+  C:\Users\nicol\Documents\Codex\2026-10-08\cont\work\Windows instalação São João\Abroz Combat
+  Spaces/accents preserved. Shortcut targeted existing EXE; launch exposed window.
+- Custom silent uninstall: exit 0; EXE removed; uninstall entry absent afterward.
+- Both uninstalls retained a marker in %APPDATA%\Abroz Combat. This proves folder
+  retention, not every game setting across upgrade. Marker removed after testing.
+- Duplicate launch: second process exited; original process and one window remained.
+- Forced termination: only task-launched unpacked game processes stopped; relaunch
+  exposed window and startup log. Preferences/Local State JSON still parsed.
+  No in-match crash or saved-game recovery claim.
+- Test installations and processes removed. Newly initialized profile preserved.
+  Interactive wizard, all-users/UAC and version upgrade remain untested.
+
+CONTENTS / FILESYSTEM / CLEAN MACHINE ASSUMPTIONS
+ASAR: main.mjs, policy.mjs, preload.cjs, metadata.json, package.json, directories.
+No tests/node_modules/environment files there. Packaged game: 1,353 files,
+1,351,064,469 bytes. No missing files or different sizes against dist-desktop.
+No source maps/review folder. Heuristic scan of packaged text/code found no
+Windows/macOS/Linux developer-home paths. No full secret/history scan claimed.
+Graphics/media DLLs and Electron runtime bundled; wrapper does not invoke global
+Node/packages at player startup. No localhost fallback in offline desktop config:
+offline=true, wsURL empty; assets load through abroz://game.
+Source assets: 1,754 files, 1,669,847,742 bytes; longest relative path 56 chars;
+no reserved Windows names/trailing dots/spaces. Arbitrarily deep paths untested.
+Settings/logs/cache use Electron profile, not install dir. Observed startup logs
+in %APPDATA%\Abroz Combat\logs; no recorded startup failure in checked launches.
+Guarded storage tests passed. Physical network-disconnected launch, read-only
+profile, low disk space, every dynamic asset and clean OS remain unverified.
+Sandbox/context isolation/web security remain enabled; renderer Node disabled;
+restricted IPC/navigation/popups/downloads. No suspicious executable-generation
+or privileged startup operation found in wrapper. Standard installer elevation
+helper is included; tested per-user installations did not run elevated.
+No firewall, Defender, security settings or security prompts bypassed or changed.
+
+SIGNING / SMARTSCREEN STATUS
+Get-AuthenticodeSignature: game EXE NotSigned; installer NotSigned,
+HasSigner=false, HasTimestamp=false. Builder's "signing with signtool.exe" log
+does not establish a signature. Artifact inspection controls this conclusion.
+No certificates/secrets/accounts created, read, replaced or configured.
+Unsigned downloaded files can produce SmartScreen warnings or policy blocking.
+Signing does not guarantee immediate reputation. Browser-downloaded marked-file
+behavior was not tested. No OS protection bypass attempted.
+Source: https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation
+
+CONTROLLER TEST RESULTS
+Automated simulated-device tests passed discovery, sparse indices, identical-device
+ownership, eight-device scenarios, reconnect, neutral rearming and menu/game input.
+No physical Xbox/PlayStation/generic wired/Bluetooth controller was tested.
+Packaged 6–8 device and duplicate backend enumeration tests remain open.
+Keyboard blur/held/short-tap regressions passed automatically; actual rollover,
+layouts, Alt+Tab, Windows key and packaged focus recovery remain manual.
+
+WINDOWS ↔ BROWSER MULTIPLAYER RESULT
+PASS: local real-WebSocket create/join/ready/input/hash/disconnect for abroz://game
+and http://localhost:5173 origins; browser/browser and desktop/desktop also pass.
+Full deterministic rollback/gameplay regression suite passed; newline fix covered.
+NOT VERIFIED: actual packaged Windows renderer versus browser on production WSS,
+complete matches/rematches, internet latency or firewall denial. Origin transport
+tests are not production cross-client gameplay certification. Artifact is offline.
+
+WINDOWS ↔ MACOS MULTIPLAYER RESULT
+NOT VERIFIED: no Mac client or production relay available. Shared source and
+LF-compatible digest are supporting evidence only, not a played cross-OS match.
+
+WINDOWS VERSIONS VERIFIED
+Windows 10 Home Single Language 22H2, build 19045 x64: build, silent installer
+lifecycle, process/window startup/restart, single-instance and automated checks.
+Windows 11, older Windows 10 builds, ARM64/32-bit and Server not tested.
+Pinned Electron README states Windows 10 and later; project target is x64 only.
+Windows 10 x64 is the runtime-family floor; 22H2 x64 is the only empirically
+checked baseline. Do not claim every older build/GPU is certified. Publish an
+explicit supported-OS matrix after testing; none was specified in release metadata.
+Source: https://github.com/electron/electron#platform-support
+
+MANUAL WINDOWS TESTS STILL REQUIRED
+[ ] Resolve Computer Use capture/input errors; verify assets/selection/training/local
+    matches, full roster/skins/arenas and offline online-mode message.
+[ ] Clean machine/account with no dev environment; reboot; low disk; corrupt/
+    missing settings; denied profile writes; physically disconnected internet.
+[ ] Windows 11 and intended minimum Windows 10/GPU/driver matrix.
+[ ] Signed downloaded installer/publisher/timestamp; actual Defender/SmartScreen.
+[ ] Interactive wizard, all-users/protected locations; interrupted/version-changing
+    upgrades; game control/audio settings retention (beyond marker retention).
+[ ] Real Xbox/PlayStation/generic USB/Bluetooth; identical models, pre/post launch,
+    reconnect, 6–8 devices and ownership through menus/rematches.
+[ ] Keyboard rollover/layouts, held inputs during focus loss, Alt+Tab/Windows key.
+[ ] Fullscreen, Alt+Enter expectation, resize/minimize/restore, resolution changes,
+    mouse/game coordinates and canvas alignment.
+[ ] 100/125/150/200% DPI; mixed resolutions/refresh rates; secondary fullscreen,
+    window movement between displays and unplug/reconnect.
+[ ] Audio outputs/headphones/Bluetooth/reconnect, focus/minimize, listening for
+    duplicate music/engine instances and continuity during combat.
+[ ] Production Windows/Windows, Windows/browser, Windows/macOS matches/results;
+    versions, abilities/physics/damage/timers/randomness, disconnect/rematch.
+[ ] Firewall denial, TLS/DNS failure, internet interruption, sleep/wake.
+[ ] Forced close during combat, normal exit, settings persistence, long-session
+    FPS/frame time/CPU/GPU/memory/cache and low-end hardware.
+
+REPRODUCTION
+From repository root, Node 22.12+ and pnpm on PATH:
+ pnpm install --frozen-lockfile
+ pnpm run desktop:install-runtime
+ pnpm run typecheck
+ pnpm run lint
+ pnpm test
+ pnpm run test:desktop
+ pnpm run build:desktop --offline --win --x64
+Online release needs real VITE_WS_URL, exact server origins, unique version/build,
+completed metadata and signing. No global tools/system PATH changed in this audit.
+
+FINAL DIFF REVIEW
+Only source modification: scripts/simulation-revision.mjs (7 added/4 removed).
+Added regression: tests/desktop-simulation-revision.test.mjs. Reports added/updated.
+Generated simulationRevision.ts restored to original digest/checkout newlines.
+No unrelated work reset. Build/dependency outputs ignored. Source fix, regression
+and reports are the intended commit scope; no installer publication/deployment.
+
+FINAL VERDICT
+NOT READY FOR WINDOWS RELEASE
+Unsigned offline package builds, installs and starts, and 1,075 tests pass.
+Native gameplay/hardware QA, signing, production multiplayer and OS matrix remain.
+
+ACCESS / ACCESSIBILITY FOLLOW-UP — 2026-10-08
+The saved app approval now works. Windows accessibility reads the production
+abroz://game/ document, main menu, LOCAL/ONLINE/TRAINING/FIGHTERS buttons,
+SETTINGS and FULLSCREEN controls. User also reports the game is visible.
+This supersedes the earlier app-permission blocker.
+Screenshot capture still fails with FrameArrived timeout. Clicking SETTINGS
+failed twice with "window bounds changed; call get_window_state before using
+this window", including after a fresh accessibility observation and updated
+window object. No click/navigation success or gameplay verification claimed.
+Further native interaction is blocked by Computer Use capture/input errors,
+not by missing user permission. No more permission changes are indicated by
+this evidence. Release verdict remains unchanged.
+
+FINAL PRE-COMMIT VALIDATION — 2026-10-08
+Fresh rerun: 1,067 game tests, 8 desktop tests, ESLint and production Windows x64
+NSIS build all passed. Windows build includes TypeScript noEmit and Vite desktop
+production stages; completed exit 0 with publish=never. The installer checksum
+above identifies this final artifact. Authenticode still reports NotSigned.
+The LF-compatible simulation revision remains unchanged. No new gameplay fix,
+dependency change, signing credential or security-policy change was introduced.
+Full game test output and final build output are available with the chat report.

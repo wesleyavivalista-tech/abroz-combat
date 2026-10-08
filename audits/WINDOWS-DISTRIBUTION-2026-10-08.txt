@@ -1,0 +1,148 @@
+SUPERSEDED: see WINDOWS-DISTRIBUTION-VERIFIED-2026-10-08.txt for successful
+Windows build/install results after execution permissions were updated.
+
+ABROZ COMBAT - WINDOWS DISTRIBUTION AUDIT
+Date: 2026-10-08
+Repository: C:\Users\nicol\Documents\GitHub\abroz-combat
+Baseline: b5aed5a (main); initially clean working tree.
+Continuation of audits/DESKTOP-PRELAUNCH-2026-10-08.txt.
+
+VERDICT: NOT READY FOR DOWNLOADABLE RELEASE
+The code/configuration audit and available automated checks are complete for this
+pass. The native production build was attempted but blocked by spawn EPERM while
+Vite started esbuild. No Windows installer, installed app, or native gameplay pass
+is claimed. These environment failures do not establish a defect in the game.
+
+HIGH-PRIORITY ISSUE FIXED: CROSS-PLATFORM MULTIPLAYER REVISION
+scripts/simulation-revision.mjs hashed raw source bytes. This clone has
+core.autocrlf=true, with LF in Git and CRLF in the Windows working tree.
+Without editing gameplay, running the generator changed the original hash:
+  LF:   9e93a727214416bf1728c0b03ca69dd028b061625fe207aa412ab4e428bb9e1a
+  CRLF: 457dd383dc8dd480e1c709c4ffc2f0c238608a93834a00d10f8607d676d64aca
+The revision participates in multiplayer compatibility, so identical Windows and
+macOS/web sources could reject each other. The generator now canonicalizes CRLF
+to LF before hashing and uses filesystem-aware joins when reading source files.
+It keeps slash-delimited relative hash keys and the existing LF release hash.
+No network protocol or gameplay changes were required.
+A temporary source-root parameter enables a regression using real fixture files.
+The regression verifies LF legacy compatibility, CRLF equivalence, mixed newline
+equivalence, and a changed revision when an actual gameplay value changes.
+
+REMAINING HIGH-PRIORITY RELEASE GATES
+- Produce the Windows x64 NSIS installer and validate it on a clean Windows user.
+- Test install, custom location, shortcuts, upgrade, uninstall and reinstall.
+- Configure release identity/version, approved icon and publisher; metadata still
+  has an empty publisher, no icon and package version 0.1.0.
+- Configure and verify Authenticode signing; no signing credentials were accessed.
+  Downloaded installer SmartScreen/Defender behavior was not tested or bypassed.
+- Supply the real production WSS relay and validate desktop/browser multiplayer
+  with exact approved origins, including abroz://game. No endpoint was supplied.
+- Perform physical controller, GPU, monitor/DPI and audio device certification.
+
+AUTOMATED RESULTS (THIS WINDOWS RUN)
+PASS: 8 desktop tests (7 existing policies plus 1 new revision regression).
+PASS: 90 selected tests, compiled with TypeScript and run in-process with Node:
+  platform/storage, release exclusions, gamepad ownership/hotplug models, keyboard
+  focus/input cleanup, audio lifecycle, network failure and rollback convergence.
+  Real WebSocket subprocess integration tests were explicitly excluded using
+  --test-skip-pattern 'real WebSocket'. Node reports 90 selected tests; the excluded
+  cases are not counted as passed. This is not a full-suite or real-device result.
+PASS: TypeScript noEmit check, TypeScript audit compilation, ESLint, diff whitespace.
+PASS: pinned Electron 44.5.1 runtime download/install script, exit 0.
+PASS: source-public inventory: 1,754 files, 1,669,847,742 bytes; longest relative
+  asset path 56 characters. No Windows reserved basenames or trailing dots/spaces.
+  This is source size, not release/installer size; arbitrary long install paths
+  and all installed asset loads still need live testing.
+
+ENVIRONMENT / BUILD LIMITATIONS
+No system Node/npm/pnpm commands were available on PATH. Used bundled Node
+v24.19.0 and pnpm 11.25.0 by absolute path; no global tools were installed.
+pnpm install --frozen-lockfile downloaded/linked 372 locked packages, then failed
+with spawn EPERM during esbuild's lifecycle script. This is NOT a successful clean
+frozen install. package.json and pnpm-lock.yaml were not modified.
+Normal Node test isolation and tsx/esbuild also encountered spawn EPERM.
+The desktop build command reached its Vite stage and failed loading vite.config.ts
+when esbuild's service could not spawn. No packaging success or artifact asserted.
+An initial alternate TypeScript emit invocation rejected .ts import extensions;
+rerunning with rewriteRelativeImportExtensions succeeded. No source edits were
+made to accommodate the audit runner.
+The selected tests were then run from release/audit-js with test isolation disabled.
+This changes the execution harness, so it does not certify the standard pnpm test
+command, child-process integration tests, or a normal fresh developer setup.
+
+WINDOWS-SPECIFIC SOURCE / CONFIGURATION REVIEW
+Packaging: Electron builder config declares NSIS x64, assisted installation and
+custom install directory. App data deletion on uninstall is explicitly false.
+Installed builder templates default to user execution level unless all-users mode
+requires elevation. Actual UAC, standard-user and protected-folder behavior untested.
+Paths: runtime uses resourcesPath/module-relative locations, pathToFileURL and
+realpath containment. Settings/logs use Electron userData rather than install dir.
+The custom scheme rejects foreign origins, backslash/encoded traversal and nulls;
+policy tests passed on Windows. Non-ASCII and deep installed paths remain manual.
+Storage: stable product identity/origin retained. Guarded localStorage reads/writes
+passed blocked-storage tests. Reboot, profile corruption and upgrade persistence
+were not exercised. No progression-save system was added.
+Window lifecycle: source has native fullscreen and single-instance restore/focus;
+closing all windows quits on Windows. No placement persistence, dedicated borderless
+mode or Alt+Enter shortcut. Alt+Tab, minimize, dual launch and multiple monitors
+require native QA; no behavior was inferred from test doubles.
+Input: blur clears held/queued input; neutral rearming and slot ownership have
+passing tests. Physical Xbox/PlayStation/generic USB/Bluetooth devices remain open.
+Audio: passing context/voice/music/focus/disposal tests are not a listening test.
+Security: sandbox/context isolation/web security retained; renderer Node integration
+off; restricted fullscreen/failure bridge; navigation/popups/downloads restricted.
+No security setting, firewall policy, certificate or signing configuration changed.
+Online/offline: online release guard requires non-loopback WSS or explicit offline.
+No server is bundled. Actual firewall denial, TLS/DNS failure, sleep/wake, reconnect
+and deployed browser/desktop matches were not tested in this run.
+Recovery/logs: bounded logging and startup/renderer failure paths reviewed. Forced
+crashes, shutdown during matches, log rotation under load and clean restart untested.
+Performance: no reliable Windows FPS, GPU, memory, input latency, cold launch or
+long-session benchmark collected. No performance optimization claimed.
+Package contents: source include/exclude configuration inspected. As the production
+build failed, final ASAR, asset exclusions, signatures and installer contents have
+not been verified on Windows. Earlier macOS evidence is not reused as Windows proof.
+
+REAL-MACHINE CHECKLIST
+[ ] Fresh frozen install; normal typecheck/lint/full tests; clean production build.
+[ ] Standard-user install; default and spaces/non-ASCII custom paths; shortcuts.
+[ ] Download/signature/SmartScreen/Defender handling without disabling protection.
+[ ] First launch without developer tools or development server; fully offline play.
+[ ] Save controls/audio; quit/reboot; upgrade; uninstall/reinstall; verify retention.
+[ ] Menus, training, local modes, every fighter/skin and arena from installed assets.
+[ ] Resize/maximize/minimize/Alt+Tab while holding inputs; fullscreen and return.
+[ ] 100/125/150/200% DPI; secondary display; differing refresh rates; monitor removal.
+[ ] 1/4/6/8 real controllers, identical models, USB/Bluetooth reconnect and rematches.
+[ ] Audio device changes/headphones, focus mute, overlap and long-match listening.
+[ ] Dual launch, normal exit, exit during match, forced crash, sleep/wake recovery.
+[ ] Signed old-to-new upgrade, interrupted install/update and uninstall behavior.
+[ ] Real WSS desktop/browser and desktop/desktop sessions on separate machines;
+      version mismatch, internet loss and denied network access.
+[ ] Long-session FPS/frame time/CPU/GPU/memory/cache and low-end graphics hardware.
+
+REPRODUCE / RESUME (NORMAL POWERSHELL WITH NODE 22.12+ AND PNPM AVAILABLE)
+Set-Location 'C:\Users\nicol\Documents\GitHub\abroz-combat'
+pnpm install --frozen-lockfile
+pnpm run desktop:install-runtime
+pnpm run typecheck
+pnpm run lint
+pnpm test
+pnpm run test:desktop
+pnpm run build:desktop --offline --win --x64
+The last command deliberately builds a local/offline testing edition. An online
+release instead needs VITE_WS_URL, a unique ABROZ_BUILD_VERSION, completed metadata
+and signing configuration. Test the resulting installer before distribution.
+
+ALTERNATE VALIDATION USED HERE
+node --test --test-isolation=none tests/desktop-policy.test.mjs tests/desktop-simulation-revision.test.mjs
+node node_modules/typescript/bin/tsc --noEmit false --rewriteRelativeImportExtensions true --outDir release/audit-js
+node --test --test-isolation=none --test-skip-pattern 'real WebSocket' release/audit-js/tests/platform.test.js release/audit-js/tests/release-config.test.js release/audit-js/tests/gamepad-manager.test.js release/audit-js/tests/input-client.test.js release/audit-js/tests/audio.test.js release/audit-js/tests/audio-prelaunch.test.js release/audit-js/tests/network-failure.test.js release/audit-js/tests/network.test.js
+
+FINAL CHANGE SCOPE
+Modified: scripts/simulation-revision.mjs.
+Added: tests/desktop-simulation-revision.test.mjs and this audit report.
+Generated simulationRevision.ts returned to its original hash and checkout bytes.
+No gameplay, balance, artwork, dependency versions, installer identity, user
+settings or network message changes. No commits, pushes or publication performed.
+node_modules and release/audit-js are ignored local dependency/audit outputs.
+Dependency/runtime download caches are under this chat's work directory.
