@@ -1,10 +1,14 @@
 ABROZ COMBAT — deployment handoff
 
-Status (2026-10-08): browser beta and multiplayer deployed from aa63456.
-Browser: https://abroz-combat.pages.dev
+Status (2026-10-08): browser beta and multiplayer live.
+Homepage: https://abrozcombat.com (Play in Browser / Download)
+Game: https://abrozcombat.com/play
+Download/install instructions: https://abrozcombat.com/download
+Fallback homepage: https://abroz-combat.pages.dev
 Server: wss://abroz-combat.fly.dev (health: HTTPS /healthz)
 Fly: exactly one performance-1x / 2048 MB Machine in gru, health passing.
-Cloudflare Pages deployment: f1a3f265; 1360 files uploaded.
+Homepage/install update: 6f8460c, Pages deployment 829b1267.
+Multiplayer simulation remains 46-cb74d9a3; server unchanged by homepage work.
 Owner confirmed billing and domain abrozcombat.com, currently using GoDaddy DNS.
 Custom domain is registered on Pages with a proxied apex CNAME to abroz-combat.pages.dev.
 Cloudflare zone dc22aaf029436a344b472b6f2627d838 is active.
@@ -16,11 +20,12 @@ return 200 at https://abrozcombat.com; multiplayer origin handshake passed.
 Some recursive nameserver caches still return the old delegation during propagation.
 The production server already accepts https://abrozcombat.com (live WSS verified).
 R2 is active. Standard bucket abroz-combat-releases created (ENAM).
-downloads.abrozcombat.com attached with TLS >=1.2 and public access DISABLED
-until signed installers are ready. No installer or other object uploaded.
+downloads.abrozcombat.com uses TLS >=1.2; public access is enabled for reviewed
+unsigned beta downloads approved by the owner. Release prefix: beta-b495bf3.
+Candidate workflow: 37826273291; Windows x64, macOS arm64 and macOS x64 all passed.
 Signing and real-device QA remain pending. Cloudflare MCP is now loaded and working.
 No optional cf CLI installed; Wrangler 4.148.0 is authenticated.
-Verification: 1108 TS tests, 11 desktop/deployment checks, typecheck and lint passed.
+Verification: 1110 TS tests, 12 desktop/deployment checks, typecheck and lint passed.
 Production browser build and remote Docker build passed. Eight hosted WebSocket
 clients agreed on 600 combat frames and cleaned all rooms/connections. Public
 browser main menu, fighter/arena selection and actual room creation verified;
@@ -82,14 +87,16 @@ MONITORING
   failed health checks, outbound traffic and spend. Thresholds require hosted data.
 
 DOWNLOADS
-- Desktop candidate workflow produces PRIVATE, unsigned QA artifacts only.
-  The verified current local preview is offline and must not be advertised online.
-- Complete Apple Developer ID / Windows publisher verification first. Configure
-  signing via secrets/Keychain; never commit certificates or passwords. Signed
-  build publishing remains blocked until signature/notarization verification.
+- Desktop candidate workflow retains PRIVATE artifacts. The owner approved
+  publishing reviewed unsigned beta installers with explicit OS-warning notices.
+  Do not publish old local offline previews as online-capable builds.
+- Apple Developer ID / Windows publisher verification remain unset. Do not claim
+  these beta downloads are verified by Apple/Microsoft. Production signing later
+  requires secure credentials and signature/notarization verification.
 - Create an R2 Standard bucket for reviewed release artifacts. Use a custom
   download domain for production. Provider test URLs are for testing only.
-- Upload only signed/verified installers, a SHA-256 manifest and release notes.
+- Upload only reviewed candidate installers, a SHA-256 manifest and release notes.
+  For unsigned beta files, clearly label their unsigned status on the download page.
   Use AWS CLI or another S3 multipart uploader for large files; do not assume
   the Wrangler single-file upload path supports these installer sizes.
 - Store credentials in secure environment/CI secrets. Use versioned object keys
@@ -101,7 +108,8 @@ CI
 - publish-web.yml: manual dispatch only; production environment, explicit public
   vars and scoped Cloudflare secret required. Configure environment reviewers.
 - desktop-candidates.yml: manual Windows x64 / Mac ARM64 / Mac x64 QA builds.
-  It intentionally does NOT publish unsigned downloads.
+  It does not automatically publish: review architectures/configuration first,
+  then upload approved candidates under versioned beta keys.
 - Secrets: CLOUDFLARE_API_TOKEN. Public vars: CLOUDFLARE_ACCOUNT_ID,
   CLOUDFLARE_PAGES_PROJECT, FLY_APP_NAME, PUBLIC_WEB_ORIGIN, VITE_WS_URL.
 - No automatic server deploy on push. The operator must drain the current server
@@ -113,3 +121,15 @@ EXTERNAL TASKS ONLY THE OWNER CAN COMPLETE
 - Apple enrollment and Windows publisher identity verification.
 - Authorizing account access and securely adding signing credentials.
 - Physical controller actions and independent-device tests.
+
+WEB INSTALLATION
+- The site root is the launch chooser. /play starts the game; desktop packaging
+  emits that game document as index.html. Manifest start_url is /play.
+- Installable web app requires internet; no service worker/offline guarantee.
+- Touch gameplay is not implemented. Use keyboard/controller.
+- Package-manager separators are removed before electron-builder arguments,
+  so the Intel and Apple Silicon targets cannot silently collapse to one arch.
+- Packaged Apple Silicon beta b495bf3 launched locally and created/left a live
+  multiplayer room. Windows and Intel Mac installation remain real-device QA.
+- Desktop installer contents were checked for correct CPU architecture, game
+  entry document and production WSS endpoint. Public downloads are checksum-checked.

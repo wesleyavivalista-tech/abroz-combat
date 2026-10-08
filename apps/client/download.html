@@ -1,1 +1,52 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#14191c"><link rel="icon" href="/app-icon.svg"><link rel="apple-touch-icon" href="/app-icon.png"><link rel="manifest" href="/manifest.webmanifest"><title>Abroz Combat</title><link rel="stylesheet" href="/src/launch.css"></head><body><main><img class="logo" src="/app-icon-512.png" alt="Abroz Combat"><p class="eyebrow">ABROZ COMBAT</p><h1 data-en="Take the fight with you." data-pt="Leve a luta com você.">Take the fight with you.</h1><section><h2 data-en="Install the web app" data-pt="Instale o aplicativo web">Install the web app</h2><p data-en="An app window with the Abroz Combat icon. Internet and a keyboard or controller required. Touch controls are not available." data-pt="Uma janela própria com o ícone do Abroz Combat. Requer internet e teclado ou controle. Controles por toque não estão disponíveis.">An app window with the Abroz Combat icon. Internet and a keyboard or controller required. Touch controls are not available.</p><button id="install" hidden data-en="Install Abroz Combat" data-pt="Instalar Abroz Combat">Install Abroz Combat</button><p id="install-status" role="status"></p><ul><li data-en="Chrome / Edge: use the install icon in the address bar or Install app in the browser menu." data-pt="Chrome / Edge: use o ícone de instalação na barra de endereço ou Instalar aplicativo no menu.">Chrome / Edge: use the install icon in the address bar or Install app in the browser menu.</li><li data-en="Safari on Mac: File → Add to Dock." data-pt="Safari no Mac: Arquivo → Adicionar ao Dock.">Safari on Mac: File → Add to Dock.</li><li data-en="iPhone / iPad: Safari → Share → Add to Home Screen." data-pt="iPhone / iPad: Safari → Compartilhar → Adicionar à Tela de Início.">iPhone / iPad: Safari → Share → Add to Home Screen.</li></ul></section><section><h2 data-en="Desktop beta downloads" data-pt="Downloads beta para computador">Desktop beta downloads</h2><p data-en="Unsigned test builds. Windows and macOS may warn or block installation. Online matches require internet." data-pt="Versões de teste sem assinatura. Windows e macOS podem alertar ou bloquear a instalação. Partidas online requerem internet.">Unsigned test builds. Windows and macOS may warn or block installation. Online matches require internet.</p><div id="desktop-downloads"><p data-en="Installers are being prepared. The web app is available now." data-pt="Os instaladores estão sendo preparados. O aplicativo web já está disponível.">Installers are being prepared. The web app is available now.</p></div></section><nav class="choices"><a class="primary" href="/play" data-en="Play in Browser" data-pt="Jogar no navegador">Play in Browser</a><a href="/" data-en="Back" data-pt="Voltar">Back</a></nav></main><script type="module" src="/src/launch.ts"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14191c">
+<link rel="icon" href="/app-icon.svg">
+<link rel="apple-touch-icon" href="/app-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>Abroz Combat</title>
+<link rel="stylesheet" href="/src/launch.css">
+</head>
+<body>
+<main>
+<img class="logo" src="/app-icon-512.png" alt="Abroz Combat">
+<p class="eyebrow">ABROZ COMBAT</p>
+<h1 data-en="Take the fight with you." data-pt="Leve a luta com você.">Take the fight with you.</h1>
+<section>
+<h2 data-en="Install the web app" data-pt="Instale o aplicativo web">Install the web app</h2>
+<p data-en="An app window with the Abroz Combat icon. Internet and a keyboard or controller required. Touch controls are not available." data-pt="Uma janela própria com o ícone do Abroz Combat. Requer internet e teclado ou controle. Controles por toque não estão disponíveis.">An app window with the Abroz Combat icon. Internet and a keyboard or controller required. Touch controls are not available.</p>
+<button id="install" hidden data-en="Install Abroz Combat" data-pt="Instalar Abroz Combat">Install Abroz Combat</button>
+<p id="install-status" role="status">
+</p>
+<ul>
+<li data-en="Chrome / Edge: use the install icon in the address bar or Install app in the browser menu." data-pt="Chrome / Edge: use o ícone de instalação na barra de endereço ou Instalar aplicativo no menu.">Chrome / Edge: use the install icon in the address bar or Install app in the browser menu.</li>
+<li data-en="Safari on Mac: File → Add to Dock." data-pt="Safari no Mac: Arquivo → Adicionar ao Dock.">Safari on Mac: File → Add to Dock.</li>
+<li data-en="iPhone / iPad: Safari → Share → Add to Home Screen." data-pt="iPhone / iPad: Safari → Compartilhar → Adicionar à Tela de Início.">iPhone / iPad: Safari → Share → Add to Home Screen.</li>
+</ul>
+</section>
+<section>
+<h2 data-en="Desktop beta downloads" data-pt="Downloads beta para computador">Desktop beta downloads</h2>
+<p data-en="Unsigned test builds. Windows and macOS may warn or block installation. Online matches require internet." data-pt="Versões de teste sem assinatura. Windows e macOS podem alertar ou bloquear a instalação. Partidas online requerem internet.">Unsigned test builds. Windows and macOS may warn or block installation. Online matches require internet.</p>
+<div id="desktop-downloads" class="choices">
+<a href="https://downloads.abrozcombat.com/beta-b495bf3/Abroz%20Combat-0.1.0-win-x64.exe" data-en="Windows (64-bit)" data-pt="Windows (64 bits)">Windows (64-bit)</a>
+<a href="https://downloads.abrozcombat.com/beta-b495bf3/Abroz%20Combat-0.1.0-mac-arm64.dmg" data-en="Mac — Apple Silicon" data-pt="Mac — Apple Silicon">Mac — Apple Silicon</a>
+<a href="https://downloads.abrozcombat.com/beta-b495bf3/Abroz%20Combat-0.1.0-mac-x64.dmg" data-en="Mac — Intel" data-pt="Mac — Intel">Mac — Intel</a>
+</div>
+<p class="note" data-en="Version 0.1.0 · Beta b495bf3 · Approximately 1.5 GB per installer. Choose Apple Silicon for M-series Macs, or Intel for older Intel Macs." data-pt="Versão 0.1.0 · Beta b495bf3 · Aproximadamente 1,5 GB por instalador. Escolha Apple Silicon para Macs da série M, ou Intel para Macs com processador Intel.">Version 0.1.0 · Beta b495bf3 · Approximately 1.5 GB per installer. Choose Apple Silicon for M-series Macs, or Intel for older Intel Macs.</p>
+<nav class="choices file-links">
+<a href="https://downloads.abrozcombat.com/beta-b495bf3/SHA256SUMS.txt" data-en="Checksums" data-pt="Somas de verificação">Checksums</a>
+<a href="https://downloads.abrozcombat.com/beta-b495bf3/README.txt" data-en="Beta notes" data-pt="Notas da versão beta">Beta notes</a>
+</nav>
+</section>
+<nav class="choices">
+<a class="primary" href="/play" data-en="Play in Browser" data-pt="Jogar no navegador">Play in Browser</a>
+<a href="/" data-en="Back" data-pt="Voltar">Back</a>
+</nav>
+</main>
+<script type="module" src="/src/launch.ts">
+</script>
+</body>
+</html>
