@@ -27,7 +27,7 @@
 }
 .launch-wordmark {
   display: block;
-  width: clamp(240px, 28vw, 420px);
+  width: clamp(300px, 38vw, 560px);
   height: auto;
   filter: drop-shadow(0 6px 18px #040915b3);
 }
@@ -53,14 +53,14 @@
 .launch-home .note { margin: 16px 0 0; color: #e0e7ef; font-size: 13px; text-shadow: 0 1px 4px #000; }
 @media (max-width: 600px) {
   .launch-scene { padding: 32px 20px max(24px, env(safe-area-inset-bottom)); }
-  .launch-wordmark { width: min(80vw, 330px); }
+  .launch-wordmark { width: min(90vw, 380px); }
   .launch-home .choices { flex-direction: column; gap: 10px; }
   .launch-home .choices a { min-height: 58px; padding: 16px 22px; }
   .launch-home .note { font-size: 12px; }
 }
 @media (max-height: 500px) and (min-width: 601px) {
   .launch-scene { padding: 18px 24px; gap: 60px; }
-  .launch-wordmark { width: 230px; }
+  .launch-wordmark { width: 300px; }
   .launch-home .choices a { min-height: 54px; padding: 12px 22px; }
   .launch-home .note { margin-top: 10px; }
 }
