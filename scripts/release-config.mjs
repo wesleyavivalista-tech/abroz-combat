@@ -19,10 +19,11 @@ export function flyConfig(settings,template){
  return `app = ${JSON.stringify(settings.flyApp)}\n`+template.replace('dockerfile = "Dockerfile"','dockerfile = "../../Dockerfile"').replace('[env]',`[env]\n  ALLOWED_ORIGINS = ${JSON.stringify([...new Set([settings.webOrigin,`https://${settings.pagesProject}.pages.dev`,'abroz://game'])].join(','))}`);
 }
 export function webHeaders(settings){return `/*
+  Strict-Transport-Security: max-age=86400
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' ${new URL(settings.wsURL).origin}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' ${new URL(settings.wsURL).origin} ${new URL(settings.wsURL).origin.replace(/^wss:/,'https:')}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'
 /
   Cache-Control: no-cache
 /index.html

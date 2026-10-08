@@ -543,6 +543,7 @@ export const en = {
   "error.capacity": "Room size must be 2–{count} fighters",
   "error.networkFull": "Too many connections from this network. Try again later.",
   "error.connectionRate": "Too many connection attempts. Wait a minute and try again.",
+  "error.lobbyRate": "Too many lobby attempts. Wait a moment and try again.",
   "error.serverFull": "Server full",
   "error.notFound": "Room not found",
   "error.alreadyJoined": "Already in this room",

@@ -31,11 +31,15 @@ test('active input timeout warns at 30 seconds, resets on progress and forfeits 
 });
 test('finished matches do not time out on the result screen',t=>{
  const {rooms,clients,advance}=setup(t);clients.forEach(c=>{rooms.input(c.socket,2,0);rooms.finished(c.socket,2);});
+ [...rooms.rooms.values()][0].verification!.simulation.state.phase='result';
  advance(300_000);assert.equal(rooms.membership.size,3);assert.ok(!clients[0].messages.some(m=>m.type==='input-wait'));
 });
 test('finished room retention is bounded and repeated claims cannot extend it',t=>{
  const {rooms,clients,advance}=setup(t);clients.forEach(c=>{rooms.input(c.socket,2,0);rooms.finished(c.socket,2);});
+ [...rooms.rooms.values()][0].verification!.simulation.state.phase='result';
  advance(899_999);assert.equal(rooms.membership.size,3);
  clients.forEach(c=>rooms.finished(c.socket,2));advance(1);
  assert.equal(rooms.membership.size,0);assert.equal(rooms.rooms.size,0);
 });
+
+test('matching forged completion claims cannot bypass authoritative inactivity',t=>{const {rooms,clients,advance}=setup(t);clients.forEach(c=>{rooms.input(c.socket,2,0);rooms.finished(c.socket,2);});assert.notEqual([...rooms.rooms.values()][0].verification!.simulation.state.phase,'result');advance(60_000);assert.equal(rooms.membership.size,0);assert.equal(rooms.rooms.size,0);});

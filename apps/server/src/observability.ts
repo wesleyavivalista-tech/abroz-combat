@@ -10,6 +10,7 @@ export function safeStack(error:unknown):string{
  return (error.stack??'').split('\n').slice(1,9).map(line=>line.match(/([\w.-]+\.[cm]?[jt]s):\d+:\d+(?=[)\s]*$)/)?.[0]??'').filter(Boolean).join(' ');
 }
 const expected=new Set([
+ 'Too many lobby attempts. Wait a moment and try again.',
  'Invalid message','Unknown message','Invalid room code','Invalid match mode','Invalid team','Invalid arena','Server full',
  'Room not found','Already in this room','Room is full','That team is full. Choose another team or Auto balance.',
  'This match has already started. Reconnecting isn’t supported yet. Return to the menu to join or create another room.',

@@ -25,3 +25,14 @@ This is an initial harness, not full production qualification: extend hold times
 ## Validation in this change
 
 Local two-player quick run completed with cleanup; approximately 3.6–4.2% of one core and 82–93 MiB RSS in this short sample. These are development-machine measurements, not Fly capacity guarantees. Existing 64-socket/eight-room integration passed with identical combat hashes and complete room/connection cleanup. No production load test was run.
+
+
+## Security follow-up (2026-10-08)
+
+Roomless connections now expire after two minutes (checked on the existing 30-second heartbeat). Expired waiting rooms close their sockets. Lobby create/join commands have a separate token budget: burst 10 per socket replenished at 20/minute; burst 128 per address replenished at 120/minute, shared across reconnects. These limits leave gameplay message/input rates unchanged and allow the existing 64-client local integration scenario. The generous shared-address burst accommodates simultaneous joins.
+
+Ordinary-match results retention additionally requires the authoritative simulation to be in its result phase. Client completion claims alone no longer bypass inactivity processing.
+
+Browser and desktop CSP permit HTTPS status checks only on the configured relay origin, alongside WSS. Browser HSTS starts with max-age=86400, without includeSubDomains or preload.
+
+All three published beta-b495bf3 installers were downloaded and matched their published SHA256 checksums. The verified Windows installer's embedded payload matched the previously scanned archive; the application code/configuration/text assets in both verified Mac installers were also scanned. No credential-pattern matches were found. This is scoped pattern scanning, not a proof that every possible secret is absent. Apple Silicon is ad-hoc signed, not Developer ID signed; published releases remain unsigned betas. Publisher signing/notarization is blocked on the user's Apple Developer and Windows signing setup. No installer was replaced during this change.

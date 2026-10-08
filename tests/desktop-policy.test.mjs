@@ -21,3 +21,5 @@ test('desktop title exposes version/build without multiline text',()=>{
  assert.equal(desktopTitle('Abroz Combat','1.2.3','release-42'),'Abroz Combat — v1.2.3 · release-42');
  assert.ok(!desktopTitle('Abroz Combat','1','build\n42').includes('\n'));
 });
+
+test('desktop CSP permits HTTPS capacity lookup only on the configured relay',()=>{const directive=contentPolicy('wss://relay.example/game').split(';').find(s=>s.trim().startsWith('connect-src'));assert.equal(directive.trim(),"connect-src 'self' wss://relay.example https://relay.example");});

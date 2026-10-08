@@ -60,9 +60,9 @@ test('championship hashes and inputs are scoped to socket ownership and attempt'
 
 import {spawn} from 'node:child_process';
 import {contentVersion} from '../packages/shared/contentVersion.js';
-test('real sockets reject malformed commands, ignore stat/seat forgery, and disconnect message floods',{timeout:15000},async()=>{
+test('real sockets reject malformed commands, ignore stat/seat forgery, and disconnect message floods',{timeout:15000},async(t)=>{
  const child=spawn(process.execPath,['--import','tsx','apps/server/src/index.ts'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','pipe']});
- const sockets:WebSocket[]=[];const queues=new Map<WebSocket,ServerMessage[]>();
+ const sockets:WebSocket[]=[];t.after(()=>{sockets.forEach(s=>s.terminate());child.kill();});const queues=new Map<WebSocket,ServerMessage[]>();
  try{
   const port=await new Promise<number>((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('startup timeout')),8000);child.once('error',reject);child.stdout.on('data',data=>{const m=String(data).match(/port (\d+)/);if(m){clearTimeout(timer);resolve(Number(m[1]));}});});
   const connect=async()=>{const s=new WebSocket(`ws://127.0.0.1:${port}`);sockets.push(s);queues.set(s,[]);s.on('message',raw=>queues.get(s)!.push(JSON.parse(String(raw))));await new Promise<void>((r,j)=>{s.once('open',r);s.once('error',j);});return s;};
@@ -78,6 +78,12 @@ test('real sockets reject malformed commands, ignore stat/seat forgery, and disc
   a.send('{"type":"input","frame":3,"mask":0}');assert.deepEqual(await next(b,'input'),{type:'input',seat:0,frame:3,mask:0});
   const flood=await connect();const closed=new Promise<void>(r=>flood.once('close',()=>r()));for(let i=0;i<300;i++)flood.send('{"type":"ping","sent":1}');await closed;
   assert.ok(queues.get(flood)!.filter(m=>m.type==='pong').length<=240);
+  const retrying=await connect();
+  for(let i=0;i<11;i++){
+   retrying.send(JSON.stringify({type:'join',code:'00000',character:'nikalz',contentVersion:contentVersion()}));
+   const response=await next(retrying,'error');assert.equal(response.type,'error');
+   if(response.type==='error')assert.equal(response.message,i===10?'Too many lobby attempts. Wait a moment and try again.':'Room not found');
+  }
   b.send('{"type":"ping","sent":123}');assert.deepEqual(await next(b,'pong'),{type:'pong',sent:123});
  }finally{sockets.forEach(s=>s.terminate());child.kill();}
 });

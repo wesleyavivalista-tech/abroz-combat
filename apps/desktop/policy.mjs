@@ -21,7 +21,7 @@ export function safeDevURL(value){
  return url.href;
 }
 export function contentPolicy(wsURL){
- const connect=wsURL?new URL(wsURL).origin:'';
+ const connect=wsURL?`${new URL(wsURL).origin} ${new URL(wsURL).origin.replace(/^wss:/,'https:').replace(/^ws:/,'http:')}`:'';
  return `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self' ${connect}; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none'`;
 }
 /** Packaged online editions must never silently ship a local development relay. */

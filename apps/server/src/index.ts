@@ -1,3 +1,4 @@
+import {LobbyBudget,LOBBY_RATE_ERROR,RoomlessDeadline} from './lobbyProtection.js';
 import {stepMetrics} from './capacityMetrics.js';
 import {createLogger,diagnosticId,errorFields} from './observability.js';
 import {allowedOrigins,clientAddress} from './deployment.js';
@@ -10,6 +11,7 @@ import { WebSocketServer } from "ws";
 import { RoomService, send } from "./rooms.js";
 const log=createLogger();
 const rooms = new RoomService(log);
+const lobbyBudget=new LobbyBudget();
 const admission=new Admission(positiveLimit(process.env.MAX_CONNECTIONS,256),positiveLimit(process.env.MAX_CONNECTIONS_PER_ADDRESS,32),positiveLimit(process.env.MAX_UPGRADES_PER_MINUTE,120));
 const production=process.env.NODE_ENV==='production';
 const capacityTest=process.env.NODE_ENV==='test'&&process.env.ABROZ_CAPACITY_TEST==='1'&&!process.env.FLY_APP_NAME;
@@ -51,7 +53,9 @@ const wss = new WebSocketServer({
   },
 });
 wss.on("connection", (socket,request) => {
-  const release=admission.connect(clientAddress(request,trustFly)!);
+  const address=clientAddress(request,trustFly)!;
+  const release=admission.connect(address);
+  const roomless=new RoomlessDeadline();
   const connectionId=diagnosticId();
   let closeReason='peer-closed';
   log('connection-open',{connectionId});
@@ -60,6 +64,7 @@ wss.on("connection", (socket,request) => {
   let window = Date.now();
   socket.on("pong", () => (alive = true));
   const timer = setInterval(() => {
+    if(roomless.expired(rooms.membership.has(socket))){closeReason='roomless-timeout';socket.terminate();return;}
     if (!alive) {
       closeReason='heartbeat-timeout';
       socket.terminate();
@@ -82,6 +87,7 @@ wss.on("connection", (socket,request) => {
       switch (m.type) {
         case "create":
         case "join":
+          if(!lobbyBudget.allow(socket,address))throw new Error(LOBBY_RATE_ERROR);
           if(draining)throw new Error('Server maintenance: new rooms are temporarily unavailable.');
           assertCompatibleContent(m.contentVersion);
           if (m.type === "create")
@@ -91,6 +97,7 @@ wss.on("connection", (socket,request) => {
               throw new Error("Invalid room code");
             rooms.join(socket, m.code, m.character, m.team, m.skin);
           }
+          roomless.expired(rooms.membership.has(socket));
           break;
         case "championship-ready":
           if (typeof m.matchId === "string") rooms.championshipReady(socket, m.matchId);

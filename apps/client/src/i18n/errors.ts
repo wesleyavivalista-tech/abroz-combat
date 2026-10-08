@@ -10,6 +10,7 @@ const errorKeys:Readonly<Record<string,MessageKey>> = {
   "Invalid arena": "error.invalidArena",
   "Too many connections from this network. Try again later.": "error.networkFull",
   "Too many connection attempts. Wait a minute and try again.": "error.connectionRate",
+  "Too many lobby attempts. Wait a moment and try again.": "error.lobbyRate",
   "Server full": "error.serverFull",
   "Room not found": "error.notFound",
   "Already in this room": "error.alreadyJoined",

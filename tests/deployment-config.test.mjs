@@ -16,7 +16,7 @@ test('release output uses one persistent São Paulo performance machine and exac
  assert.match(config,/ALLOWED_ORIGINS = "https:\/\/abroz-test.pages.dev,abroz:\/\/game"/);
  const custom=flyConfig({...settings,webOrigin:'https://abrozcombat.com'},readFileSync('deploy/fly.toml','utf8'));
  assert.ok(custom.includes('https://abrozcombat.com,https://abroz-test.pages.dev,abroz://game'));
- const headers=webHeaders(settings);assert.match(headers,/connect-src 'self' wss:\/\/abroz-test.fly.dev;/);assert.match(headers,/\/index.html\n {2}Cache-Control: no-cache/);
+ const headers=webHeaders(settings);assert.match(headers,/connect-src 'self' wss:\/\/abroz-test.fly.dev https:\/\/abroz-test.fly.dev;/);assert.match(headers,/\/index.html\n {2}Cache-Control: no-cache/);
  assert.match(headers,/\/art\/\*\n {2}Cache-Control: public, max-age=0, must-revalidate/);
  assert.ok(!headers.includes('localhost'));assert.ok(!headers.includes('unsafe-eval'));
 });
@@ -24,3 +24,5 @@ test('server container does not copy renderer assets or desktop runtime',()=>{
  const docker=readFileSync('Dockerfile','utf8');assert.ok(!docker.includes('COPY . .'));assert.ok(!docker.includes('COPY apps/client'));
  assert.match(docker,/USER node/);assert.match(docker,/--frozen-lockfile/);assert.match(docker,/dist-server\/apps\/server\/src\/index.js/);
 });
+
+test('HSTS starts with one day and does not extend to subdomains or preload',()=>{const headers=webHeaders(releaseSettings(env));assert.match(headers,/Strict-Transport-Security: max-age=86400\n/);assert.ok(!headers.includes('includeSubDomains'));assert.ok(!headers.includes('preload;'));});

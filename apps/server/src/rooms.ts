@@ -256,6 +256,7 @@ export class RoomService {
         for (const peer of [...room.peers]) {
           send(peer.socket, { type: "error", message: "Waiting room expired" });
           this.leave(peer.socket,'waiting-expired');
+          peer.socket.close();
         }
   }
   championshipReady(socket: WebSocket, matchId: string): void {
@@ -281,7 +282,7 @@ export class RoomService {
         continue;
       }
       const connected=room.peers.filter(p=>p.connected);
-      if(connected.length&&connected.every(p=>p.finishedFrame!==undefined&&p.finishedFrame===connected[0].finishedFrame)){
+      if(room.verification?.simulation.state.phase==='result'&&connected.length&&connected.every(p=>p.finishedFrame!==undefined&&p.finishedFrame===connected[0].finishedFrame)){
         if(now-Math.max(...connected.map(p=>p.finishedAt??now))>=RESULT_RETENTION_MS){
           for(const p of connected){send(p.socket,{type:'error',message:'Finished room closed after 15 minutes. Return to the menu to play again.'});this.leave(p.socket,'results-expired');p.socket.close();}
         }

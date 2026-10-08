@@ -544,6 +544,7 @@ export const ptBR = {
   "error.capacity": "A sala deve ter de 2 a {count} lutadores",
   "error.networkFull": "Muitas conexões desta rede. Tente novamente mais tarde.",
   "error.connectionRate": "Muitas tentativas de conexão. Aguarde um minuto e tente novamente.",
+  "error.lobbyRate": "Muitas tentativas de entrar ou criar sala. Aguarde um momento e tente novamente.",
   "error.serverFull": "Servidor lotado",
   "error.notFound": "Sala não encontrada",
   "error.alreadyJoined": "Você já está nesta sala",
