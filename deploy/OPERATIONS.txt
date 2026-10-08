@@ -133,3 +133,9 @@ WEB INSTALLATION
   multiplayer room. Windows and Intel Mac installation remain real-device QA.
 - Desktop installer contents were checked for correct CPU architecture, game
   entry document and production WSS endpoint. Public downloads are checksum-checked.
+
+FINAL DOWNLOAD PUBLICATION (2026-10-08)
+- Web source 4a0704d deployed to Pages 9317104b; live root and /download verified.
+- All three public installer bodies re-downloaded and SHA-256 matched originals.
+- Public SHA256SUMS.txt and README.txt match reviewed local files.
+- Temporary local R2 upload credentials removed; token expires after 24 hours.
