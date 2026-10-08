@@ -1,0 +1,62 @@
+AUDIT FIXES — 2026-10-07
+
+Resolved all six findings from GAME-AUDIT-2026-10-07.txt.
+
+H1: Zombie claw contact now checks the existing six-frame active interval.
+Each struck seat is recorded in the fighter's snapshot-owned hitTargets list,
+reset at the next claw start. Misses do not consume the window, and a target
+cannot take repeated damage during one swing. Existing 36-frame pose end,
+84-frame attack cadence, damage, poison, movement and hitstop behavior remain.
+
+M1: Fifth-hit escape is immediately bounded by the actual arena width, including
+periodic, returning-projectile, Jopa, Nikalz, structure and direct-hit paths.
+Horizontal escape stops at solid house/wall surfaces; friendly walls and
+one-way platform tops preserve their existing behavior. Unobstructed escape
+still travels 40 units. No wait for a later movement tick or hitstop expiry.
+
+M2: Grave rollback explicitly hides a previously created zombie and its shadow.
+Grave/fighter lighting visitors use the current phase, rather than whether a
+zombie renderer was once allocated. A reused ID with a different character
+recreates the visual and disposes the old instance without disposing shared art.
+
+M3: Extracted the existing KO status cleanup into clearFighterCombat, reused by
+shared round/result/forfeit cleanup. Moves, ability deadlines, modes, mounts,
+grapples, velocities and input buffers end consistently. Health, lives, meter,
+spent supers, competition scores and next-round configuration are preserved.
+Removed the redundant normal-result cleanup list. No tournament scoring changes.
+
+M4: Authoritative zombie shamble uses the existing deterministicSin helper.
+The 0.49 movement multiplier and rounding remain unchanged. Added explicit
+cross-engine undead scenarios covering all four arenas, slow modifiers and
+snapshot restoration; the existing native-sine movement comparison also passes.
+
+L1: The eight-player cross-engine scenario uses non-training simulation with
+controlled result resets. It asserts that both Jomp's requested ultimate and
+Roms's requested special actually start, instead of comparing idle dummy traces.
+
+Regression coverage
+-------------------
+tests/audit-fixes-20261007.test.ts adds seven regression tests for late contact,
+one-hit-per-target, late misses, snapshot hit stamps, both edges/custom width,
+hitstop, walls/houses/platform height, rollback visibility, visual identity
+replacement, tournament/ordinary/elimination cleanup and preserved winner/HP.
+The old audit reproduction entry point now runs these desired-behavior tests.
+Existing undead interruption/hitstop, delayed rollback, life, match reset,
+ability and arena tests remain in the full suite.
+
+Verification
+------------
+- 829 TypeScript tests passed.
+- Five desktop policy tests, client/server type checks, full lint, production
+  web build and whitespace/diff checks passed.
+- V8 / JavaScriptCore: all 239 move/scenario traces match, including four new
+  undead arena traces and the corrected eight-player input scenarios.
+- Seeded stress: 57,600 eight-fighter simulation ticks across all four arenas;
+  finite-state and snapshot replay hash checks passed.
+- Simulation compatibility revision regenerated so older combat code cannot
+  silently join this version.
+
+The original architectural cautions are maintenance guidance, not claims of
+additional confirmed defects. No broad rewrite or gameplay rebalance was made.
+Physical controllers, real remote-player sessions and a multi-hour GPU/heap
+soak were not tested in this follow-up.

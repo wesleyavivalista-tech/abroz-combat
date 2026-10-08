@@ -15,3 +15,5 @@ document.querySelectorAll<HTMLButtonElement>('[data-button]').forEach(el=>el.onc
 document.querySelector('#drift')!.addEventListener('click',()=>{const axes=target().axes as number[];axes[0]=axes[0]?0:.1;});
 // Keep the game focused when operating virtual pad buttons, like a real hardware press.
 document.querySelectorAll('button').forEach(el=>el.addEventListener('mousedown',event=>event.preventDefault()));
+
+document.querySelectorAll<HTMLButtonElement>('[data-stick]').forEach(el=>el.onclick=()=>{const axes=target().axes as number[];const [x,y]=el.dataset.stick!.split(',').map(Number);axes[0]=x;axes[1]=y;frame.contentWindow?.focus();setTimeout(()=>{axes[0]=axes[1]=0;},160);});

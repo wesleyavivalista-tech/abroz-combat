@@ -3,7 +3,19 @@ import {
   hashState,
 } from "../game-core/simulation/GameSimulation.js";
 import { StateHistory } from "./StateHistory.js";
+import type {GameplayEvent} from '../game-core/combat/GameplayEvents.js';
 export class RollbackManager {
+  // Presentation-only history is overwritten during replay, never hashed or sent.
+  private impacts=new Map<number,GameplayEvent[]>();
+  private deliveredImpactFrame=-1;
+  drainConfirmedImpacts():GameplayEvent[]{
+    const settled=Math.min(this.confirmed,this.simulation.state.frame-1),events:GameplayEvent[]=[];
+    for(const [frame,impacts] of this.impacts){
+      if(frame<=settled){if(frame>this.deliveredImpactFrame)events.push(...impacts);this.impacts.delete(frame);}
+    }
+    this.deliveredImpactFrame=Math.max(this.deliveredImpactFrame,settled);
+    return events;
+  }
   history = new StateHistory();
   departures = new Map<number, number>();
   local = new Map<number, number>();
@@ -141,6 +153,8 @@ export class RollbackManager {
         .filter(([, due]) => due === frame)
         .map(([seat]) => seat),
     );
+    this.impacts.set(frame,this.simulation.gameplayEvents.filter(e=>e.type==='DamageApplied'));
+    for(const key of this.impacts.keys())if(key<frame-180)this.impacts.delete(key);
     for (const map of [this.local, ...this.remotes, ...this.usedBySeat])
       for (const f of map.keys()) if (f < frame - 180) map.delete(f);
   }

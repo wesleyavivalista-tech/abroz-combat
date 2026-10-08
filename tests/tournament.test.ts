@@ -1,3 +1,4 @@
+import {MATCH_INTRO_FRAMES} from '../packages/game-core/simulation/MatchIntro.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {GameSimulation,hashState} from '../packages/game-core/simulation/GameSimulation.js';
@@ -9,7 +10,7 @@ import {RoomService} from '../apps/server/src/rooms.js';
 import type {WebSocket} from 'ws';
 const make=()=>{const s=new GameSimulation(['dodo','drupa','gut'],false,undefined,undefined,undefined,true);s.state.phase='fight';s.state.fighters.forEach(f=>f.state='Idle');return s;};
 function win(s:GameSimulation,seat:number){s.state.fighters.forEach((f,i)=>{if(i!==seat){f.health=0;f.lives=1;}});s.step([0,0,0]);}
-function next(s:GameSimulation){for(let i=0;i<TOURNAMENT_BREAK_FRAMES+151;i++)s.step([0,0,0]);}
+function next(s:GameSimulation){for(let i=0;i<TOURNAMENT_BREAK_FRAMES+MATCH_INTRO_FRAMES+1;i++)s.step([0,0,0]);}
 test('first to three match wins ends tournament; every round restores lives and retains scores',()=>{
  const s=make();win(s,1);assert.deepEqual(s.state.tournament!.wins,[0,1,0]);assert.equal(s.state.tournament!.complete,false);const frame=s.state.frame;
  next(s);assert.ok(s.state.frame>frame);assert.equal(s.state.phase,'fight');assert.equal(s.state.tournament!.round,2);assert.ok(s.state.fighters.every(f=>f.lives===3&&f.health>0));
@@ -24,7 +25,7 @@ test('departures persist across matches and last connected player wins by forfei
 });
 test('tournament scores and round transitions replay deterministically after rollback',()=>{
  const base=make();win(base,1);base.state.phaseFrame=TOURNAMENT_BREAK_FRAMES-2;const snapshot=base.snapshot();const sim=make();sim.restore(snapshot);const rb=new RollbackManager(sim,0,0,8);rb.confirmed=0;rb.remotes.forEach(remote=>remote.set(0,0));
- for(let n=0;n<170;n++){const frame=base.state.frame;const remote=n%7===0?2:0;base.step([0,remote,0]);rb.local.set(frame,0);rb.receive(frame,0,2);assert.equal(rb.tick(),true);rb.receive(frame,remote,1);}
+ for(let n=0;n<MATCH_INTRO_FRAMES+20;n++){const frame=base.state.frame;const remote=n%7===0?2:0;base.step([0,remote,0]);rb.local.set(frame,0);rb.receive(frame,0,2);assert.equal(rb.tick(),true);rb.receive(frame,remote,1);}
  assert.equal(hashState(sim.state),hashState(base.state));assert.equal(sim.state.tournament!.round,2);assert.deepEqual(sim.state.tournament!.wins,[0,1,0]);
 });
 test('eight-player tournament room broadcasts tournament mode and unique FFA teams',()=>{

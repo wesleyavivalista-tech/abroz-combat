@@ -1,0 +1,421 @@
+{
+  "scope": "32 synthetic rematches in one renderer with arena transitions, eight fighters, 24 zombies, projectiles and bursts; resource counters after reset. Not heap or GPU byte measurements.",
+  "reports": [
+    {
+      "round": 1,
+      "stage": "the-foundry",
+      "memory": {
+        "geometries": 36,
+        "textures": 38
+      },
+      "programs": 25,
+      "drawCalls": 54,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 2,
+      "stage": "basketball-court",
+      "memory": {
+        "geometries": 43,
+        "textures": 40
+      },
+      "programs": 29,
+      "drawCalls": 71,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 3,
+      "stage": "shopping-mall",
+      "memory": {
+        "geometries": 42,
+        "textures": 40
+      },
+      "programs": 29,
+      "drawCalls": 89,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 4,
+      "stage": "aeroporto-church",
+      "memory": {
+        "geometries": 36,
+        "textures": 39
+      },
+      "programs": 27,
+      "drawCalls": 58,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 5,
+      "stage": "the-foundry",
+      "memory": {
+        "geometries": 36,
+        "textures": 38
+      },
+      "programs": 27,
+      "drawCalls": 54,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 6,
+      "stage": "basketball-court",
+      "memory": {
+        "geometries": 43,
+        "textures": 40
+      },
+      "programs": 31,
+      "drawCalls": 71,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 7,
+      "stage": "shopping-mall",
+      "memory": {
+        "geometries": 42,
+        "textures": 40
+      },
+      "programs": 29,
+      "drawCalls": 89,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 8,
+      "stage": "aeroporto-church",
+      "memory": {
+        "geometries": 36,
+        "textures": 39
+      },
+      "programs": 27,
+      "drawCalls": 58,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 9,
+      "stage": "the-foundry",
+      "memory": {
+        "geometries": 36,
+        "textures": 38
+      },
+      "programs": 27,
+      "drawCalls": 54,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 10,
+      "stage": "basketball-court",
+      "memory": {
+        "geometries": 43,
+        "textures": 40
+      },
+      "programs": 31,
+      "drawCalls": 71,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 11,
+      "stage": "shopping-mall",
+      "memory": {
+        "geometries": 42,
+        "textures": 40
+      },
+      "programs": 29,
+      "drawCalls": 89,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 12,
+      "stage": "aeroporto-church",
+      "memory": {
+        "geometries": 36,
+        "textures": 39
+      },
+      "programs": 27,
+      "drawCalls": 58,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 13,
+      "stage": "the-foundry",
+      "memory": {
+        "geometries": 36,
+        "textures": 38
+      },
+      "programs": 27,
+      "drawCalls": 54,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 14,
+      "stage": "basketball-court",
+      "memory": {
+        "geometries": 43,
+        "textures": 40
+      },
+      "programs": 31,
+      "drawCalls": 71,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 15,
+      "stage": "shopping-mall",
+      "memory": {
+        "geometries": 42,
+        "textures": 40
+      },
+      "programs": 29,
+      "drawCalls": 89,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 16,
+      "stage": "aeroporto-church",
+      "memory": {
+        "geometries": 36,
+        "textures": 39
+      },
+      "programs": 27,
+      "drawCalls": 58,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 17,
+      "stage": "the-foundry",
+      "memory": {
+        "geometries": 36,
+        "textures": 38
+      },
+      "programs": 27,
+      "drawCalls": 54,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 18,
+      "stage": "basketball-court",
+      "memory": {
+        "geometries": 43,
+        "textures": 40
+      },
+      "programs": 31,
+      "drawCalls": 71,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 19,
+      "stage": "shopping-mall",
+      "memory": {
+        "geometries": 42,
+        "textures": 40
+      },
+      "programs": 29,
+      "drawCalls": 89,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 20,
+      "stage": "aeroporto-church",
+      "memory": {
+        "geometries": 36,
+        "textures": 39
+      },
+      "programs": 27,
+      "drawCalls": 58,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 21,
+      "stage": "the-foundry",
+      "memory": {
+        "geometries": 36,
+        "textures": 38
+      },
+      "programs": 27,
+      "drawCalls": 54,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 22,
+      "stage": "basketball-court",
+      "memory": {
+        "geometries": 43,
+        "textures": 40
+      },
+      "programs": 31,
+      "drawCalls": 71,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 23,
+      "stage": "shopping-mall",
+      "memory": {
+        "geometries": 42,
+        "textures": 40
+      },
+      "programs": 29,
+      "drawCalls": 89,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 24,
+      "stage": "aeroporto-church",
+      "memory": {
+        "geometries": 36,
+        "textures": 39
+      },
+      "programs": 27,
+      "drawCalls": 58,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 25,
+      "stage": "the-foundry",
+      "memory": {
+        "geometries": 36,
+        "textures": 38
+      },
+      "programs": 27,
+      "drawCalls": 54,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 26,
+      "stage": "basketball-court",
+      "memory": {
+        "geometries": 43,
+        "textures": 40
+      },
+      "programs": 31,
+      "drawCalls": 71,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 27,
+      "stage": "shopping-mall",
+      "memory": {
+        "geometries": 42,
+        "textures": 40
+      },
+      "programs": 29,
+      "drawCalls": 89,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 28,
+      "stage": "aeroporto-church",
+      "memory": {
+        "geometries": 36,
+        "textures": 39
+      },
+      "programs": 27,
+      "drawCalls": 58,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 29,
+      "stage": "the-foundry",
+      "memory": {
+        "geometries": 36,
+        "textures": 38
+      },
+      "programs": 27,
+      "drawCalls": 54,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 30,
+      "stage": "basketball-court",
+      "memory": {
+        "geometries": 43,
+        "textures": 40
+      },
+      "programs": 31,
+      "drawCalls": 71,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 31,
+      "stage": "shopping-mall",
+      "memory": {
+        "geometries": 42,
+        "textures": 40
+      },
+      "programs": 29,
+      "drawCalls": 89,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    },
+    {
+      "round": 32,
+      "stage": "aeroporto-church",
+      "memory": {
+        "geometries": 36,
+        "textures": 39
+      },
+      "programs": 27,
+      "drawCalls": 58,
+      "sceneChildren": 152,
+      "clones": 0,
+      "projectiles": 0
+    }
+  ]
+}

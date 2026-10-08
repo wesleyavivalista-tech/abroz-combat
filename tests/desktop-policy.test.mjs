@@ -7,3 +7,17 @@ test('asset policy rejects foreign origins, credentials and encoded traversal',(
 test('only the main app document or explicit loopback dev URL is trusted',()=>{assert.ok(trustedDocument('abroz://game/'));assert.ok(trustedDocument('abroz://game/index.html'));assert.ok(!trustedDocument('abroz://game/art/evil.html'));assert.ok(!trustedDocument('https://example.com'));assert.ok(trustedDocument('http://127.0.0.1:5175/','http://127.0.0.1:5175/'));assert.ok(!trustedDocument('http://127.0.0.1:9999/','http://127.0.0.1:5175/'));});
 test('desktop development never loads a remote website',()=>{assert.equal(safeDevURL('http://localhost:5175/'),'http://localhost:5175/');for(const url of ['https://example.com','http://localhost.evil/','http://user@localhost:5175/','file:///a'])assert.throws(()=>safeDevURL(url));});
 test('CSP permits only configured relay and local scripts',()=>{const policy=contentPolicy('wss://relay.example/game');assert.ok(policy.includes('connect-src \'self\' wss://relay.example'));assert.ok(policy.includes("script-src 'self'"));assert.ok(!policy.includes('unsafe-eval'));assert.ok(!contentPolicy('').includes('wss:'));});
+
+import {releaseEndpoint,desktopTitle} from '../apps/desktop/policy.mjs';
+test('packaging rejects loopback relays and credentials without echoing supplied values',()=>{
+ for(const url of [undefined,'','ws://relay.example','wss://localhost:8080','wss://127.0.0.2','wss://[::1]','wss://0.0.0.0','wss://test.localhost','wss://user:private@relay.example']){
+  assert.throws(()=>releaseEndpoint(url),error=>/non-loopback production WSS/.test(error.message)&&!error.message.includes('private'));
+ }
+ assert.equal(releaseEndpoint('wss://relay.example/game'),'wss://relay.example/game');
+ assert.equal(releaseEndpoint('ws://localhost:8080',true),'');
+});
+test('desktop title exposes version/build without multiline text',()=>{
+ assert.equal(desktopTitle('Abroz Combat','1.2.3','1.2.3'),'Abroz Combat — v1.2.3');
+ assert.equal(desktopTitle('Abroz Combat','1.2.3','release-42'),'Abroz Combat — v1.2.3 · release-42');
+ assert.ok(!desktopTitle('Abroz Combat','1','build\n42').includes('\n'));
+});

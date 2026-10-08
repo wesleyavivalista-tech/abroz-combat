@@ -1,0 +1,106 @@
+PRE-LAUNCH GAME MODE / ROUND / SCORING / CHAMPIONSHIP AUDIT
+2026-10-07
+
+GAME MODE BUGS
+No new confirmed gameplay-breaking mode bug was found in this pass. No production
+code was changed. This is a bounded code and automated-test audit, not proof that
+all real-device or visual transition sequences are bug-free.
+
+Mode map:
+- Training: no competitive winner; dummy options and reset use the existing system.
+- Survival: local/online 2–8 fighters; three lives, last surviving side wins.
+- Teams: balanced 2v2 or 3v3, shared team victory and friendly-fire protection.
+- FFA tournament: online first to three match wins, eight-second round breaks.
+- Elimination: 2–8, winners become safe; last unsaved entrant is eliminated.
+- Elimination Party: exactly six, seeded team rounds/first-out/individual stages.
+- Championship: local/online 2–16 registrations, each duel has two fighters.
+  Local duels use Player 1/2 controls as explicitly stated in the bracket UI;
+  online registration IDs map to separate, stable duel seats.
+
+Initialization, cleanup and transitions inspected in GameSimulation, LifeSystem,
+TournamentSystem, EliminationSystem, Championship, client main/result UI, server
+rooms and ChampionshipSession. Home discards simulation/bracket/rollback state
+and disconnects. Local rematches create a new simulation; elimination preserves
+its mode. Online results deliberately require a new room, not an in-room rematch.
+
+WIN-CONDITION BUGS
+No new confirmed issue. Final-life deaths are resolved together before selecting
+a surviving team. All-dead results are draws; first-to-three draws award no point;
+championship draws increment the attempt token and replay the duel. Elimination
+draws replay; Party simultaneous first-out losses create a tied-player playoff.
+Tournament scores are guarded by scoredRound. Result simulation cannot keep
+applying combat damage. Remaining competitors can win by forfeit.
+
+There is no competitive match time limit in the current rules. Consequently,
+"timer expires exactly as someone dies" applies here to round-break boundaries,
+respawns and ability timers, not a nonexistent timed-match scoring system.
+Break-deadline departures are explicitly covered by new tests.
+
+TOURNAMENT BUGS
+No bracket dead end was reproduced. Both pure brackets and RoomService-backed
+championship sessions completed at every size 2–16. Existing tests verify n−1
+played wins and correct power-of-two byes. New tests exercise repeated draws,
+withdrawal of every possible registration, round progress, and server duel cleanup.
+Already-won entrants withdrawing before the next round, active-duel disconnects,
+readiness expiration, stale match tokens and forged results have existing tests.
+
+Network scope: ordinary modes use shared deterministic simulation with relayed
+inputs and frame-addressed forfeits; championship duel outcomes are computed by
+the server's confirmed-input simulation. Disconnect forfeits; rejoining a started
+room is intentionally unsupported. There is no host migration requirement because
+the room creator is not the simulation server. Do not add reconnect restoration or
+new scoring rules as an incidental audit fix.
+
+FIXES IMPLEMENTED
+None: no confirmed root cause warranted a production change. Added 43 focused
+regression/stress cases in tests/game-mode-prelaunch.test.ts. Gameplay, balance,
+assets, networking messages and UI were preserved.
+
+PARTICIPANT COUNTS TESTED
+- Brackets and server championship: every count 2 through 16, including odd sizes.
+- Survival / first-to-three / standard elimination: every count 2 through 8.
+- Teams: four and six participants.
+- Party: six registrations, progression through smaller stages; simultaneous
+  first-out ties involving two, three, four and all five active fighters.
+- Engine rejects more than eight simultaneous fighters. Sixteen is registration
+  capacity for championship, not simultaneous arena capacity.
+
+TESTS PERFORMED
+New tests: all-dead final-life trades; draw restart; continued scoring through
+competition completion; snapshot/replay equality across breaks; complete state
+remaining terminal; simultaneous team defeat and all-team draw; each participant
+withdrawing in brackets; online bracket progression/duel and room ownership
+cleanup; all/most players leaving during fights and exactly at break deadlines;
+Party tied-player playoffs through champion.
+Existing suite includes championship readiness/timeout/ownership, ordinary room
+formation, elimination seeds, rollback, rematch/menu lifecycle, and eight real
+WebSocket clients recovering from creator loss. These are local automated sockets,
+not eight physical computers. Programmatic lethal-state setup exercises result
+resolution without waiting for a full human-played combat match.
+Final validation: 1,052 automated tests passed, zero failures; all 43 new tests
+passed. Type checking, full-repository lint, client production build, server build
+and tracked diff whitespace checks passed. After the final four tests were added,
+type checking and lint for the new file were also rerun successfully.
+
+EDGE CASES REQUIRING MANUAL QA
+- Complete local championship with changing human participants using P1/P2 devices.
+- Real remote-machine bracket and Party session: disconnect during asset loading,
+  during death presentation, during a round break and before final readiness.
+- Visual/audio result ordering, focus, pause/menu exit and repeated local rematches
+  across every mode. This pass did not operate the browser or physical controllers.
+- Repeated draws can intentionally replay indefinitely: no tiebreak rule exists.
+
+TECHNICAL RISKS (UNCHANGED)
+- Mode transition state exists in separate systems; a future new mode must be
+  explicitly included in scoring, result gating, rematch and serialization paths.
+- First-to-three is currently online-only. If later exposed locally, the rematch
+  handler must preserve that mode; its current generic branch starts survival.
+- Elimination resets remaining competition after a departure by existing design;
+  changing that policy requires a rules decision, not an audit guess.
+- Automated state setup verifies rules, but cannot establish that UI/controller
+  ownership feels correct for every participant handoff.
+
+FINAL DIFF REVIEW
+Compared all tracked changes against the task-start diff: byte-identical. Existing
+uncommitted work was preserved. Only this report and the new test file were added.
+No assets, rules, production modules, dependencies or protocol were changed.

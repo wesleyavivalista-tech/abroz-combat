@@ -1,3 +1,6 @@
+import {advanceAfterlife,advanceUndead} from './UndeadSystem.js';
+import {hostile} from './Actors.js';
+import {MATCH_INTRO_FRAMES} from './MatchIntro.js';
 import {advancePlatforms,stageAtTick} from "../stages/motion.js";
 import {activateNikalz,advanceNikalz,controlMeteor,nikalzRequest} from './NikalzSystem.js';
 import {activateEide,advanceEide,keepEideNpc,inLove,EIDE,nextAppliance} from './EideSystem.js';
@@ -158,6 +161,7 @@ export class GameSimulation {
     this.resolvedStage=undefined;
     s.hazards = [];
     s.clones = [];
+    delete s.finalDeaths;
     s.treeDeaths = [];
     s.nextCloneId = 0;
     if(s.structures){s.structures=[];s.nextStructureId=0;}
@@ -189,6 +193,7 @@ export class GameSimulation {
     this.events = [];
     s.frame++;
     s.phaseFrame++;
+    advanceAfterlife(s);
     if (s.phase === "result") return;
     for (const seat of forfeits) {
       const f = s.fighters[seat];
@@ -198,11 +203,11 @@ export class GameSimulation {
       f.respawnAt = 0;
     }
     if (forfeits.length) {
-      resolveKnockouts(s);
+      resolveKnockouts(s,false);
       if (this.state.phase === "result") return;
     }
     if (s.phase === "intro") {
-      if (s.phaseFrame >= 150) {
+      if (s.phaseFrame >= MATCH_INTRO_FRAMES) {
         s.phase = "fight";
         s.phaseFrame = 0;
         s.fighters.forEach((f) => enter(f, "Idle"));
@@ -228,10 +233,10 @@ export class GameSimulation {
     dropMonsterCookies(s,this.activeStage);
     cleanupJopa(s,this.collisionStage);
     advanceEide(s,this.activeStage);
-    s.clones = s.clones.filter(c => (isActive(c.fighter)||keepEideNpc(c,s)) && isActive(s.fighters[c.owner]));
+    s.clones = s.clones.filter(c => c.undead || (isActive(c.fighter)||keepEideNpc(c,s)) && isActive(s.fighters[c.owner]));
     advanceJopa(s,this.collisionStage,(f,owner)=>{this.emit('impact',f,4,owner);this.emit('landing-dust',f,3,owner);});
     advanceStatuses(s, this.stage.width,this.stage.floorHeight);
-    advanceDodo(s,this.stage.floorHeight);
+    advanceDodo(s,this.stage.floorHeight,this.stage.width);
     advanceJomp(s,this.activeStage,d=>this.emit("impact",d,1,Math.max(0,s.fighters.indexOf(d))));
     advanceFireTrails(s,this.collisionStage);
     advanceGrapples(s,this.stage.floorHeight);
@@ -245,7 +250,7 @@ export class GameSimulation {
     advanceNikalz(s,this.collisionStage);
     const returningStarts=new Map(s.projectiles.filter(p=>p.active&&p.trajectory).map(p=>[p,{x:p.x,y:p.y,serial:p.serial}]));
     advanceReturningProjectiles(s,this.activeStage,d=>this.emit("impact",d,1,Math.max(0,s.fighters.indexOf(d))));
-    advanceContinuousAttacks(s,d=>this.emit("impact",d,1,Math.max(0,s.fighters.indexOf(d))),this.stage.floorHeight);
+    advanceContinuousAttacks(s,d=>this.emit("impact",d,1,Math.max(0,s.fighters.indexOf(d))),this.stage.floorHeight,this.stage.width);
     if (!s.training) {
       for (const player of resolveKnockouts(s)) this.emit("ko", s.fighters[player], 4, player);
       if (this.state.phase === "result") return;
@@ -254,6 +259,7 @@ export class GameSimulation {
       s.hitstop--;
       return;
     }
+    advanceUndead(s,this.collisionStage);
     const previousPositions=new Map(actors(s).map(a=>[a.fighter,{x:a.fighter.x,y:a.fighter.y}]));
     for (let i = 0; i < s.fighters.length; i++) {
       const f = s.fighters[i];
@@ -272,14 +278,14 @@ export class GameSimulation {
           pushApart(s.fighters[i], s.fighters[j], this.stage.width);
     // Companions use normal movement and move timing, but only AI basic inputs.
     for (const clone of s.clones) {
-      if(clone.fighter.jopaSummon||clone.fighter.loveNpc)continue;
+      if(clone.undead||clone.fighter.jopaSummon||clone.fighter.loveNpc)continue;
       const input = cloneInput(s, clone, this.activeStage), f = clone.fighter;
       updateMovementFacing(f,input,s.frame);
       record(f.buffer, s.frame, input, f.previousInput, f.facing);
       f.previousInput = input;
       if (isActive(f)) this.updateFighter(f, input, clone.owner);
     }
-    for(const [p,from] of returningStarts)if(p.active&&p.serial===from.serial)hitReturningProjectile(s,p,from.x,from.y,d=>this.emit('impact',d,1,Math.max(0,s.fighters.indexOf(d))),previousPositions,this.stage.floorHeight);
+    for(const [p,from] of returningStarts)if(p.active&&p.serial===from.serial)hitReturningProjectile(s,p,from.x,from.y,d=>this.emit('impact',d,1,Math.max(0,s.fighters.indexOf(d))),previousPositions,this.stage.floorHeight,this.stage.width);
     advanceSpiders(s,this.collisionStage,previousPositions);
     advanceBeams(s,this.stage.width,(a,d,m,source,target)=>this.hit(a,m,target.previousInput,!!target.move,d,source.facing,source,target),this.stage.floorHeight);
     const combatants = actors(s);
@@ -287,7 +293,7 @@ export class GameSimulation {
       const a=combatants[i], b=combatants[j];
       if((a.clone||b.clone)&&isActive(a.fighter)&&isActive(b.fighter)&&!isFlashDashing(a.fighter)&&!isFlashDashing(b.fighter)) pushApart(a.fighter,b.fighter,this.stage.width);
     }
-    const structureBlocked=collideStructures(s,previousPositions);
+    const structureBlocked=collideStructures(s,previousPositions,this.stage.width);
     attackStructures(s,this.activeStage);
     triggerOrigami(s,this.collisionStage,previousPositions,(...args)=>this.emit(...args));
     const contacts: {attacker: number; defender: number; move: MoveDefinition; projectile?: number}[] = [];
@@ -295,23 +301,23 @@ export class GameSimulation {
       const f=a.fighter, m=f.move ? characters[f.characterId].moves[f.move] : undefined;
       if (!isActive(f) || !m || (f.connected&&!m.piercing)) return;
       combatants.forEach((d, defender) => {
-        if(!f.hitTargets.includes(d.clone?`clone:${d.clone.id}`:`seat:${d.owner}`) && s.teams[a.owner]!==s.teams[d.owner] && (basicMeleeTier(f,m)===null||(d.fighter.x-f.x)*f.facing>=0) && hitboxes(f,m).some(b=>{if(m.flashDash){const old=previousPositions.get(f)??f;const delta=f.x-old.x;return this.hurts(d.fighter,{...b,x:b.x-Math.max(0,delta),w:b.w+Math.abs(delta)});}return this.hurts(d.fighter,b);})) contacts.push({attacker,defender,move:m});
+        if(!f.hitTargets.includes(d.clone?`clone:${d.clone.id}`:`seat:${d.owner}`) && hostile(s,a.owner,d.fighter,d.owner) && (basicMeleeTier(f,m)===null||(d.fighter.x-f.x)*f.facing>=0) && hitboxes(f,m).some(b=>{if(m.flashDash){const old=previousPositions.get(f)??f;const delta=f.x-old.x;return this.hurts(d.fighter,{...b,x:b.x-Math.max(0,delta),w:b.w+Math.abs(delta)});}return this.hurts(d.fighter,b);})) contacts.push({attacker,defender,move:m});
       });
     });
     for (let i=0;i<s.projectiles.length;i++) {
       const p=s.projectiles[i]; if(!p.active || p.trajectory || p.jopaKind) continue;
       const m=characters[s.fighters[p.owner].characterId].moves[p.move], spec=m.projectile,oldX=p.x,oldY=p.y;
       if(spec?.homing) {
-        const target=combatants.filter(a=>s.teams[a.owner]!==s.teams[p.owner]&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-p.x)+Math.abs(a.fighter.y+85-p.y)-Math.abs(b.fighter.x-p.x)-Math.abs(b.fighter.y+85-p.y))[0]?.fighter;
+        const target=combatants.filter(a=>hostile(s,p.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-p.x)+Math.abs(a.fighter.y+85-p.y)-Math.abs(b.fighter.x-p.x)-Math.abs(b.fighter.y+85-p.y))[0]?.fighter;
         if(target){p.vx=Math.sign(target.x-p.x)*spec.speed;p.y+=Math.max(-8,Math.min(8,target.y+85-p.y));}
       }
       const r=spec?.radius??22;p.x+=p.vx;p.y+=p.vy??0;p.life--;
       if(p.gravity){p.vy=(p.vy??0)-p.gravity;if(p.y-r<=this.stage.floorHeight){if((p.bounces??0)>0){p.y=this.stage.floorHeight+r;p.vy=Math.abs(p.vy)*.75;p.bounces!--;}else {p.active=false;continue;}}}
       if(p.life<=0){p.active=false;continue;}
-      if(hitStructureProjectile(s,p,{x:oldX,y:oldY},this.activeStage))continue;
+      if(hitStructureProjectile(s,p,{x:oldX,y:oldY},this.activeStage,previousPositions))continue;
       let defender=-1,earliest=Infinity;
       combatants.forEach((a,index)=>{
-        if(s.teams[a.owner]===s.teams[p.owner]||!canReceiveDirectHit(a.fighter,s.frame))return;
+        if(!hostile(s,p.owner,a.fighter,a.owner)||!canReceiveDirectHit(a.fighter,s.frame))return;
         const previous=previousPositions.get(a.fighter)??a.fighter;
         const time=Math.min(...targetBoxes(a.fighter,'move').map(box=>sweepEntry(box,oldX+a.fighter.x-previous.x,oldY+a.fighter.y-previous.y,p.x,p.y,r)));
         if(time<earliest){earliest=time;defender=index;}
@@ -341,7 +347,7 @@ export class GameSimulation {
     dropMonsterCookies(s,this.activeStage);
     cleanupJopa(s,this.collisionStage);
     advanceEide(s,this.activeStage);
-    s.clones=s.clones.filter(c=>(isActive(c.fighter)||keepEideNpc(c,s))&&isActive(s.fighters[c.owner]));
+    s.clones=s.clones.filter(c=>c.undead||(isActive(c.fighter)||keepEideNpc(c,s))&&isActive(s.fighters[c.owner]));
     for (const f of s.fighters) {
       if (s.training) {
         if (
@@ -428,6 +434,7 @@ export class GameSimulation {
     }
     if (f.stun > 0) {
       f.stun--;
+      if(f.timedHitReaction){if(--f.timedHitReaction===0)delete f.timedHitReaction;}
       if(!f.stun)f.dazed=false;
       // Airborne movement is integrated once below, alongside gravity.
       if (grounded(f,this.collisionStage)) f.x += f.vx;
@@ -687,12 +694,14 @@ export class GameSimulation {
         ) {
           f.move = null;
           if(f.gymLandingStun){f.gymLandingStun=false;f.gymStunnedUntil=this.state.frame+JOMP.landingStun;f.stun=JOMP.landingStun;f.dazed=true;enter(f,'HitStunStanding');}
-          else{f.stun=0;enter(f, "Knockdown");}
+          else{f.stun=0;f.dazed=false;enter(f, "Knockdown");}
         } else if (f.move && def.moves[f.move].dive) {
           const m=def.moves[f.move];
           recordGameplayEvent(this.state,'GroundImpact',player,m.id);
           f.moveFrame=m.startupFrames+m.activeFrames;
         } else if (!f.move) enter(f, "Land");
+        // A throw landing effect belongs to this flight, including a combo escape.
+        if(f.gymLandingStun)f.gymLandingStun=false;
         this.emit("landing-dust", f, 1, player);
       } else if (
         f.vy <= 0 &&

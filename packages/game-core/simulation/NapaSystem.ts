@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {deterministicHypot} from './DeterministicMath.js';
 import {Button,type Fighter,type HairClone,type MoveDefinition,type SimulationSnapshot,type StageDefinition} from '../types.js';
 import {characters} from '../characters/registry.js';
@@ -29,7 +30,7 @@ export function activateNapa(s:SimulationSnapshot,stage:StageDefinition,f:Fighte
 export function advanceNapa(s:SimulationSnapshot,stage:StageDefinition):void{
  s.hazards=s.hazards.filter(h=>h.expiresAt>s.frame);
  for(const h of s.hazards){
-  if(h.kind==='snot')for(const a of actors(s))if(s.teams[a.owner]!==s.teams[h.owner]&&isActive(a.fighter)&&!isInvulnerable(a.fighter,s.frame)&&Math.abs(a.fighter.x-h.x)<(h.width??NAPA.snotWidth)/2+25&&Math.abs(a.fighter.y-h.y)<(h.height??NAPA.snotHeight))a.fighter.areaSlow=Math.min(a.fighter.areaSlow,NAPA.slow);
+  if(h.kind==='snot')for(const a of actors(s))if(hostile(s,h.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isInvulnerable(a.fighter,s.frame)&&Math.abs(a.fighter.x-h.x)<(h.width??NAPA.snotWidth)/2+25&&Math.abs(a.fighter.y-h.y)<(h.height??NAPA.snotHeight))a.fighter.areaSlow=Math.min(a.fighter.areaSlow,NAPA.slow);
   if(h.kind==='cookie-drop'){
    // Seat order resolves simultaneous pickups identically on every client.
    const f=s.fighters.find(f=>isActive(f)&&Math.abs(f.x-h.x)<35&&Math.abs(f.y-h.y)<45);if(!f)continue;
@@ -47,7 +48,7 @@ export function advanceNapa(s:SimulationSnapshot,stage:StageDefinition):void{
   if(!isActive(f)||!m?.suction||f.moveFrame<m.startupFrames||f.moveFrame>=m.startupFrames+m.activeFrames)continue;
   for(const a of actors(s)){
    const d=a.fighter,dx=d.x-f.x,dy=d.y-f.y,distance=deterministicHypot(dx,dy);
-   if(s.teams[a.owner]===s.teams[source.owner]||!isActive(d)||isInvulnerable(d,s.frame)||isLowProfile(d,s.frame)||d.grappleUntil>s.frame||distance<=85||distance>m.suction.range)continue;
+   if(!hostile(s,source.owner,a.fighter,a.owner)||!isActive(d)||isInvulnerable(d,s.frame)||isLowProfile(d,s.frame)||d.grappleUntil>s.frame||distance<=85||distance>m.suction.range)continue;
    const amount=Math.min(m.suction.strength,distance-85)/distance;
    const nextX=Math.max(40,Math.min(stage.width-40,d.x-dx*amount));
    const nextY=Math.max(surfaceBelow(stage,nextX,d.y),d.y-dy*amount);
@@ -60,7 +61,7 @@ export function advanceNapa(s:SimulationSnapshot,stage:StageDefinition):void{
 }
 export function cookieMonsterInput(s:SimulationSnapshot,c:HairClone,stage:StageDefinition):number{
  const f=c.fighter;if(f.move){c.nextAction=s.frame+45;return 0;}if(!isActive(f)||locked(f)||f.trappedUntil>s.frame||f.grappleUntil>s.frame)return 0;
- const target=actors(s).filter(a=>s.teams[a.owner]!==s.teams[c.owner]&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-f.x)-Math.abs(b.fighter.x-f.x))[0]?.fighter;
+ const target=actors(s).filter(a=>hostile(s,c.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-f.x)-Math.abs(b.fighter.x-f.x))[0]?.fighter;
  if(!target)return 0;
  const dx=target.x-f.x;f.facing=dx<0?-1:1;
  if(s.frame>=(c.nextAction??0)&&grounded(f,stage)){

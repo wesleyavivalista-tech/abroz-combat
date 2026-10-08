@@ -331,3 +331,9 @@
 .ac-home-cast .cast-right[data-fighter="luizinho"] { translate:clamp(-64px,-4.5vw,-28px) 0; }
 
 .arena-picker{display:flex;align-items:center;gap:12px;color:#eee3c6;font:700 12px monospace;letter-spacing:2px;margin:14px 0;position:relative;z-index:2}.arena-picker select{background:#10212c;color:#fff3d7;border:1px solid #ddab61;padding:12px;font:700 14px monospace;max-width:100%}.arena-heading h2{max-width:650px;font-size:clamp(44px,7vw,100px)}
+
+/* Match the opening pair’s head line using artwork width, including fullscreen. */
+.ac-home-cast { container-type:inline-size; }
+@media (min-width:1000px) {
+  .ac-home-cast img[data-fighter="bozo"] { margin-top:clamp(18px,calc(10cqw - 126px),84px); }
+}

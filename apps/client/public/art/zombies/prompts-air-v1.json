@@ -1,0 +1,58 @@
+{
+  "tool": "built-in image_gen",
+  "layout": {
+    "columns": 3,
+    "rows": 4,
+    "poses": [
+      "idle-scale-anchor",
+      "jump",
+      "fall"
+    ]
+  },
+  "jobs": [
+    {
+      "ids": [
+        "nikalz",
+        "drupa",
+        "bozo",
+        "caio"
+      ],
+      "prompt": "Create a production 2D game sprite sheet, transparent background. Use the four input sheets ONLY as character identity and hand-painted outlined illustration style references. New layout exactly THREE columns and FOUR rows, twelve separate full-body drawings with generous transparent gutters, no overlap. Row characters in order: nikalz, drupa, bozo, caio corresponding to references 1 to 4. Every character faces RIGHT, same head/body pixel scale within each row. Column 1: hunched standing zombie idle, scale anchor. Column 2: airborne JUMP ascending, both knees bent/tucked, forward hunched torso, limp claw hands reaching. Column 3: airborne FALL descending, legs hanging asymmetrically down, arms raised/spread loosely, limp wrists. Jump and fall silhouettes must clearly differ from each other and from walking. Preserve exact outfits, hair, faces, shoes and undead appearance in references. Detailed painted 2D sprites with dark outlines, NOT 3D models. Portrait canvas. No text, dividers, ground, shadows, glow, particles, or background. Keep all feet and hands inside cells.",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-ea51a79a-cf9b-4b68-b555-cdd956d9b63e.png",
+      "file": "air-0-v1.png"
+    },
+    {
+      "ids": [
+        "gut",
+        "luizinho",
+        "roms",
+        "jopa"
+      ],
+      "prompt": "Create a production 2D game sprite sheet, transparent background. Use the four input sheets ONLY as character identity and hand-painted outlined illustration style references. New layout exactly THREE columns and FOUR rows, twelve separate full-body drawings with generous transparent gutters, no overlap. Row characters in order: gut, luizinho, roms, jopa corresponding to references 1 to 4. Every character faces RIGHT, same head/body pixel scale within each row. Column 1: hunched standing zombie idle, scale anchor. Column 2: airborne JUMP ascending, both knees bent/tucked, forward hunched torso, limp claw hands reaching. Column 3: airborne FALL descending, legs hanging asymmetrically down, arms raised/spread loosely, limp wrists. Jump and fall silhouettes must clearly differ from each other and from walking. Preserve exact outfits, hair, faces, shoes and undead appearance in references. Detailed painted 2D sprites with dark outlines, NOT 3D models. Portrait canvas. No text, dividers, ground, shadows, glow, particles, or background. Keep all feet and hands inside cells.",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-80c5ccab-4594-4309-ab67-8d2ab2ca4c17.png",
+      "file": "air-1-v1.png"
+    },
+    {
+      "ids": [
+        "eide",
+        "napa",
+        "astolfo",
+        "fausto"
+      ],
+      "prompt": "Create a production 2D game sprite sheet, transparent background. Use the four input sheets ONLY as character identity and hand-painted outlined illustration style references. New layout exactly THREE columns and FOUR rows, twelve separate full-body drawings with generous transparent gutters, no overlap. Row characters in order: eide, napa, astolfo, fausto corresponding to references 1 to 4. Every character faces RIGHT, same head/body pixel scale within each row. Column 1: hunched standing zombie idle, scale anchor. Column 2: airborne JUMP ascending, both knees bent/tucked, forward hunched torso, limp claw hands reaching. Column 3: airborne FALL descending, legs hanging asymmetrically down, arms raised/spread loosely, limp wrists. Jump and fall silhouettes must clearly differ from each other and from walking. Preserve exact outfits, hair, faces, shoes and undead appearance in references. Detailed painted 2D sprites with dark outlines, NOT 3D models. Portrait canvas. No text, dividers, ground, shadows, glow, particles, or background. Keep all feet and hands inside cells.",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-5665daff-4232-4131-8d45-e041dee08865.png",
+      "file": "air-2-v1.png"
+    },
+    {
+      "ids": [
+        "biel",
+        "jomp",
+        "dodo",
+        "tocha"
+      ],
+      "prompt": "Create a production 2D game sprite sheet, transparent background. Use the four input sheets ONLY as character identity and hand-painted outlined illustration style references. New layout exactly THREE columns and FOUR rows, twelve separate full-body drawings with generous transparent gutters, no overlap. Row characters in order: biel, jomp, dodo, tocha corresponding to references 1 to 4. Every character faces RIGHT, same head/body pixel scale within each row. Column 1: hunched standing zombie idle, scale anchor. Column 2: airborne JUMP ascending, both knees bent/tucked, forward hunched torso, limp claw hands reaching. Column 3: airborne FALL descending, legs hanging asymmetrically down, arms raised/spread loosely, limp wrists. Jump and fall silhouettes must clearly differ from each other and from walking. Preserve exact outfits, hair, faces, shoes and undead appearance in references. Detailed painted 2D sprites with dark outlines, NOT 3D models. Portrait canvas. No text, dividers, ground, shadows, glow, particles, or background. Keep all feet and hands inside cells.",
+      "source": "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-0ee53eae-6fe9-4d3a-8975-de0734e14131.png",
+      "file": "air-3-v1.png"
+    }
+  ]
+}

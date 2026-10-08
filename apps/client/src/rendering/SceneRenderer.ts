@@ -1,3 +1,10 @@
+import {StageVisualEnvironment} from './StageVisualEnvironment.js';
+import {visualPresets,type VisualQuality} from './StageLighting.js';
+import {createEnvironmentPost} from './EnvironmentPost.js';
+import {renderStage} from './StageCoordinates.js';
+import {loadZombieSprites} from './ZombieSpriteRenderer.js';
+import {UndeadVisuals} from './UndeadVisuals.js';
+import {FINAL_DEATH_FRAMES,finalDeathActive} from '../../../../packages/game-core/simulation/UndeadSystem.js';
 import {stageAtTick} from "../../../../packages/game-core/stages/motion.js";
 import {animationTick} from './AnimationPlayback.js';
 import {NikalzEffects} from './NikalzEffects.js';
@@ -39,6 +46,9 @@ import type {
 } from "../../../../packages/game-core/types.js";
 export class SceneRenderer {
   private observer:ResizeObserver;
+  environment=new StageVisualEnvironment(trainingRoom);
+  private bloom=new UnrealBloomPass(new THREE.Vector2(1280,720),.1,.5,.9);
+  private atmosphere=createEnvironmentPost();
   renderer: THREE.WebGLRenderer;
   composer: EffectComposer;
   scene = new THREE.Scene();
@@ -62,13 +72,14 @@ export class SceneRenderer {
   hair = new HairEffects();
   spears = new SpearProjectiles();
   cloneGrowth = new HairCloneGrowth();
+  private undead = new UndeadVisuals();
   clones = new Map<number, FighterVisual>();
   private cloneIdentities = new Map<number,string>();
   fighters: FighterVisual[] = [];
   ids = "";
   ready = Promise.resolve();
   async prepareFighters(ids?:readonly string[]): Promise<void> {
-    await loadFighterSprites(ids);
+    await Promise.all([loadFighterSprites(ids),loadZombieSprites(ids)]);
     if(!ids||ids.includes("luizinho"))await this.structures.load();
     this.ids = "";
   }
@@ -88,12 +99,14 @@ export class SceneRenderer {
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.info.autoReset=false;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.0;
     this.scene.background = new THREE.Color("#6c747e");
     this.scene.fog = new THREE.Fog("#776c61", 13, 30);
     this.scene.add(
+      this.environment.root,
       this.stage.root,
       this.effects.root,
       this.fire.root,
@@ -129,9 +142,8 @@ export class SceneRenderer {
     this.scene.add(orange);
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.composer.addPass(
-      new UnrealBloomPass(new THREE.Vector2(1280, 720), 0.12, 0.5, 0.85),
-    );
+    this.composer.addPass(this.bloom);
+    this.composer.addPass(this.atmosphere);
     this.composer.addPass(new OutputPass());
     this.camera.position.set(0, 3.4, 12);
     this.camera.lookAt(0, 1.25, 0);
@@ -207,9 +219,17 @@ export class SceneRenderer {
     }
     this.observer=new ResizeObserver(() => this.resize());
     this.observer.observe(canvas.parentElement!);
-    this.resize();
+    this.setVisualQuality(this.environment.quality);
+  }
+  setVisualQuality(value:VisualQuality):void{
+    this.environment.setQuality(value);this.effects.particleDensity=visualPresets[value].particles;
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio,visualPresets[value].dpr));
+    this.composer.setPixelRatio(this.renderer.getPixelRatio());
+    this.renderer.shadowMap.enabled=value==='high';this.resize();
   }
   dispose():void{
+    this.environment.dispose();
+    this.undead.dispose();this.scene.remove(this.undead.root);
     this.cloneGrowth.dispose();this.scene.remove(this.cloneGrowth.root);
     this.observer.disconnect();this.stage.dispose();this.structures.dispose();this.napa.dispose();this.jopa.dispose();this.finance.dispose();this.eide.dispose();this.nikalz.dispose();this.fausto.dispose();this.astolfo.dispose();
     this.fighters.forEach(f=>f.dispose());this.clones.forEach(f=>f.dispose());
@@ -222,6 +242,12 @@ export class SceneRenderer {
   }
   resize(): void {
     const canvas = this.renderer.domElement;
+    // Zoom/fullscreen/display changes can change pixel density after initialization.
+    const pixelRatio = Math.min(devicePixelRatio, visualPresets[this.environment.quality].dpr);
+    if (this.renderer.getPixelRatio() !== pixelRatio) {
+      this.renderer.setPixelRatio(pixelRatio);
+      this.composer.setPixelRatio(pixelRatio);
+    }
     this.renderer.setSize(
       canvas.parentElement!.clientWidth,
       canvas.parentElement!.clientHeight,
@@ -235,38 +261,32 @@ export class SceneRenderer {
     this.camera.updateProjectionMatrix();
   }
   consume(events: CombatEvent[]): void {
+    this.environment.consume(events);
     events.forEach((e) => {
       this.effects.spawn(e);
       if (e.power >= 3) this.shake = 0.07;
     });
   }
-  syncCloneVisuals(s:SimulationSnapshot,menu:boolean,_time?:number):void{
+  syncCloneVisuals(s:SimulationSnapshot,menu:boolean,cosmeticTime?:number):void{
     for(const [id,visual] of this.clones) if(!s.clones.some(c=>c.id===id&&this.cloneIdentities.get(id)===`${c.fighter.characterId}:${c.kind}:${c.variant}`)) {
       this.scene.remove(visual.root);if(visual.shadow)this.scene.remove(visual.shadow);visual.dispose();this.clones.delete(id);this.cloneIdentities.delete(id);
     }
     for(const c of s.clones){
+      if(c.undead)continue;
       let v=this.clones.get(c.id);
       if(!v){v=createFighterVisual(characters[c.fighter.characterId],c.kind==='blonde'?`blonde-${c.variant??0}`:c.kind==='sad'||c.kind==='angry'?c.kind+(s.skins[c.owner]==='casual'?'-casual':''):c.kind==='basketball'?`pain-killer-${c.variant}`:c.fighter.jopaSummon??(c.kind==='cookie-monster'?'cookie-monster':'hair-clone'));this.clones.set(c.id,v);this.cloneIdentities.set(c.id,`${c.fighter.characterId}:${c.kind}:${c.variant}`);this.scene.add(v.root);if(v.shadow)this.scene.add(v.shadow);}
-      v.update(c.fighter,animationTick(c.fighter)/60,s.frame);v.root.visible=!menu&&s.phase==="fight";if(v.shadow)v.shadow.visible=v.root.visible;
+      v.update(c.fighter,cosmeticTime??animationTick(c.fighter)/60,s.frame);v.root.visible=!menu&&s.phase==="fight";if(v.shadow)v.shadow.visible=v.root.visible;
     }
   }
-  draw(s: SimulationSnapshot, dt: number, time: number, menu = false, stageDefinition=trainingRoom): void {
+  draw(s: SimulationSnapshot, dt: number, time: number, menu = false, stageDefinition=trainingRoom,cosmeticTime?:number): void {
     withRenderStage(stageAtTick(stageDefinition,s.platformTick??0),()=>{
     if(this.stage.definition!==stageDefinition){
-      const court=stageDefinition.theme==='basketball',mall=stageDefinition.theme==='mall',church=stageDefinition.theme==='church';
-      const key=this.scene.getObjectByName('arena-key') as THREE.DirectionalLight;
-      const rim=this.scene.getObjectByName('arena-rim') as THREE.DirectionalLight;
-      const fill=this.scene.getObjectByName('arena-fill') as THREE.PointLight;
-      const sky=this.scene.getObjectByName('arena-sky') as THREE.HemisphereLight;
-      if(sky){sky.color.set(church?'#e3e7ed':mall?'#e8d8e2':court?'#b5d4ee':'#c9d4e0');sky.groundColor.set(church?'#776650':mall?'#57404f':court?'#24464b':'#645347');}
-      (this.scene.fog as THREE.Fog).color.set(church?'#737b84':mall?'#6c5a64':court?'#526d80':'#776c61');
-      if(key){key.color.set(church?'#f4ecd9':mall?'#ffe8ce':court?'#d2ebff':'#ffe0b4');key.intensity=church?2.2:court?2.4:2.7;}
-      if(rim)rim.color.set(church?'#bdcde6':mall?'#bb91ab':court?'#5b9edc':'#b6c9e2');
-      if(fill){fill.color.set(court?'#8de3e5':'#ffd3a1');fill.intensity=church?2:mall?3:court?3:6;}
+      this.environment.configure(stageDefinition);
       this.scene.remove(this.stage.root);this.stage.dispose();this.stage=new StageRenderer(stageDefinition);this.scene.add(this.stage.root);void this.stage.ready.catch(()=>{});
     }
     const ids = s.fighters.map((f, i) => `${f.characterId}:${s.skins[i]}`).join();
     if (ids !== this.ids) {
+      this.environment.reset();
       this.fighters.forEach((f) => {
         this.scene.remove(f.root);
         if (f.shadow) this.scene.remove(f.shadow);
@@ -283,10 +303,12 @@ export class SceneRenderer {
     }
     this.shields.forEach((shield) => (shield.visible = false));
     this.fighters.forEach((visual, i) => {
-      const fighter = s.fighters[i];
+      let fighter = s.fighters[i];
+      const death=s.finalDeaths?.find(d=>d.seat===i&&s.frame<d.frame+FINAL_DEATH_FRAMES);
+      if(death)fighter={...fighter,x:death.x,y:death.y,lives:1,health:1,state:"HitStunStanding",move:null};
       const holder=s.fighters[fighter.grappleOwner];
       const gymWeight=fighter.state==='Grappled'&&holder?.characterId==='jomp'&&holder.move==='gymBro';
-      visual.update(gymWeight?{...fighter,state:'Idle',move:null}:["HairTrapped","Grappled"].includes(fighter.state) ? {...fighter, state:"HitStunStanding"} : fighter, animationTick(fighter)/60,s.frame);
+      visual.update(gymWeight?{...fighter,state:'Idle',move:null}:["HairTrapped","Grappled"].includes(fighter.state) ? {...fighter, state:"HitStunStanding"} : fighter, cosmeticTime??animationTick(fighter)/60,s.frame);
       if (fighter.trappedUntil > s.frame) visual.root.rotation.z = Math.sin(s.frame*.25+i)*.018;
       else visual.root.rotation.z = fighter.dazed && fighter.stun ? Math.sin(s.frame*.12)*.025 : 0;
       if(gymWeight){
@@ -314,7 +336,8 @@ export class SceneRenderer {
       shield.position.set(worldX(fighter.x), fighter.y / 100 + 0.9, 0.1);
       shield.scale.setScalar(1 + Math.sin(time * 8) * 0.035);
     });
-    this.syncCloneVisuals(s,menu);
+    this.syncCloneVisuals(s,menu,cosmeticTime);
+    if(!this.undead.root.parent)this.scene.add(this.undead.root);this.undead.update(s,menu);
     if(!this.cloneGrowth.root.parent)this.scene.add(this.cloneGrowth.root);
     this.cloneGrowth.update(s,menu,time);
     this.hair.update(s, menu);
@@ -350,10 +373,10 @@ export class SceneRenderer {
     const distance = (right - left) / 100;
     const arenaHeight=stageDefinition.theme!=='rooftop'?Math.max(0,...(stageDefinition.platforms??[]).map(p=>p.y-stageDefinition.floorHeight)):0;
     const height = Math.max(arenaHeight,...tracked.map((f) => f.y-stageDefinition.floorHeight)) / 100;
-    const targetX = menu
+    let targetX = menu
       ? 0
       : Math.max(cameraBounds[0], Math.min(cameraBounds[1], mid));
-    const targetZ = menu
+    let targetZ = menu
       ? 12.8
       : Math.max(
           13.5,
@@ -362,14 +385,17 @@ export class SceneRenderer {
               this.camera.aspect),
           height * 1.5 + (stageDefinition.theme==='church'?12.9:stageDefinition.theme==='mall'?11:stageDefinition.theme==='basketball'?9:7),
         );
-    const smoothing = 1 - Math.exp(-dt * 5);
+    const deaths=!menu&&finalDeathActive(s)?s.finalDeaths!.filter(d=>s.frame<d.frame+FINAL_DEATH_FRAMES):[];
+    const deathY=deaths.length?deaths.reduce((sum,d)=>sum+d.y,0)/deaths.length/100+1:undefined;
+    if(deaths.length){targetX=worldX(deaths.reduce((sum,d)=>sum+d.x,0)/deaths.length);const span=(Math.max(...deaths.map(d=>d.x))-Math.min(...deaths.map(d=>d.x)))/100;targetZ=Math.max(8,(span/2+2)/(Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*this.camera.aspect));}
+    const smoothing = 1 - Math.exp(-dt * (deaths.length?35:5));
     this.camera.position.x += (targetX - this.camera.position.x) * smoothing;
     this.camera.position.z += (targetZ - this.camera.position.z) * smoothing;
     this.camera.position.y = stageDefinition.floorHeight/100 + 3.15 + height * 0.18 + (stageDefinition.theme==='mall'?.5:0);
     const fog = this.scene.fog as THREE.Fog;
     fog.near = this.camera.position.z + 1;
     fog.far = this.camera.position.z + 18;
-    this.camera.lookAt(targetX, stageDefinition.floorHeight/100 + (menu ? 1.0 : stageDefinition.theme==='mall'?2.6:2.1) + height * 0.25, 0);
+    this.camera.lookAt(targetX, deathY??stageDefinition.floorHeight/100 + (menu ? 1.0 : stageDefinition.theme==='mall'?2.6:2.1) + height * 0.25, 0);
     this.camera.updateMatrixWorld();
     this.blood.updateCamera(this.camera);
     const tags = document.getElementById("player-tags");
@@ -394,7 +420,7 @@ export class SceneRenderer {
           ).project(this.camera);
           return `<span class="player-tag" style="left:${(point.x + 1) * 50}%;top:${(1 - point.y) * 50}%;color:${s.teamMatch ? ["#7adfff", "#ff8575"][s.teams[i]] : colors[i]}">P${i + 1}${f.beeBoxes ? ` · BEE BOXES ${f.beeBoxes}/5` : (f.beeSlowUntil??0)>s.frame ? ' · SLOWED 30%' : (f.loanUntil??0)>s.frame ? `<strong class="loan-indicator">LOAN<small>${Math.ceil((f.loanUntil!-s.frame)/60)}s · ENERGY LOCKED</small></strong>` : f.loveMode&&!f.weaponUntil ? ' · LOVE MODE' : f.stampAttempts!==undefined ? ` · LOAN STAMPS ${f.stampAttempts}/5` : (f.angelUntil??0)>s.frame ? ` · MMORPG BIEL ${Math.ceil((f.angelUntil!-s.frame)/60)}s` : (f.movementSlowUntil??0)>s.frame ? ` · SLOWED 20%` : (f.talkUntil??0)>s.frame ? ` · A GREAT IDEA ${Math.ceil((f.talkUntil!-s.frame)/60)}s` : (f.talkSlow??1)<1 ? ` · TALK SLOW ${Math.round((1-f.talkSlow!)*100)}%` : (f.sadnessUntil??0)>s.frame ? ` · SADNESS ${Math.ceil((f.sadnessUntil!-s.frame)/60)}s` : (f.angerUntil??0)>s.frame ? ` · BRAVINHO ${Math.ceil((f.angerUntil!-s.frame)/60)}s · ${f.angerStacks??0} HITS · +${20+5*(f.angerStacks??0)}%` : (f.cloudSlow??1)<1 ? ` · SLOWED 40%` : f.bloodMasterUntil>s.frame ? ` · BLOOD MASTER ${Math.ceil((f.bloodMasterUntil-s.frame)/60)}s` : f.areaSlow<1 || f.bloodSlowUntil>s.frame ? ` · SLOWED ${f.areaSlow===.1?90:50}%` : f.poisonUntil>s.frame ? ` · POISON ${Math.ceil((f.poisonUntil-s.frame)/60)}s` : f.weaponUntil>s.frame ? ` · ${characters[f.characterId].weaponModifiers?.label??"SPEAR"} ${Math.ceil((f.weaponUntil-s.frame)/60)}s` : f.grappleUntil>s.frame ? ` · GRABBED ${Math.ceil((f.grappleUntil-s.frame)/60)}s` : f.trappedUntil>s.frame ? ` · TRAPPED ${Math.ceil((f.trappedUntil-s.frame)/60)}s` : f.armorUntil>s.frame ? ` · ARMOR ${Math.ceil((f.armorUntil-s.frame)/60)}s` : ""}${s.teamMatch ? ` · ${["BLUE", "RED"][s.teams[i]]}` : ""}</span>`;
         })
-        .join("") + s.clones.map(c=>{
+        .join("") + s.clones.filter(c=>!c.undead).map(c=>{
           const point=new THREE.Vector3(worldX(c.fighter.x),c.fighter.y/100+(c.fighter.jopaSummon==="tree"?3.65:c.fighter.jopaSummon==="knight"?3.05:1.85),0).project(this.camera);
           return `<span class="player-tag" style="left:${(point.x+1)*50}%;top:${(1-point.y)*50}%;color:#d5b18c">P${c.owner+1} ${c.kind==='blonde'?`BLONDE ${(c.variant??0)+1}`:c.kind==='basketball'?`#${dodoCompanions[c.variant??0]?.number}`:c.fighter.jopaSummon?c.fighter.jopaSummon.toUpperCase():c.kind==='cookie-monster'?'COOKIE MONSTER':c.kind==='sad'?'SAD ASTOLFO':c.kind==='angry'?'ANGRY ASTOLFO':'HAIR'} · ${c.fighter.health}${c.maxHealth?`<progress max="${c.maxHealth}" value="${c.fighter.health}" aria-label="${c.fighter.jopaSummon??(c.kind==='blonde'?`Blonde ${(c.variant??0)+1}`:c.kind==='cookie-monster'?'Cookie Monster':c.kind==='sad'?'Sad Astolfo':c.kind==='angry'?'Angry Astolfo':'Pain Killer')} health" style="display:block;width:56px;height:7px"></progress>`:''}</span>`;
         }).join("") + (s.structures??[]).filter(b=>b.phase!=="collapsed"&&b.kind!=="bee-box").map(b=>{
@@ -439,7 +465,20 @@ export class SceneRenderer {
         (mesh.material as THREE.LineBasicMaterial).color.set(colors[b.kind]);
       }
     }
-    this.composer.render();
+    const env=this.environment,c=env.config;
+    env.begin(s,renderStage,dt,this.camera.position.x,menu);
+    env.applyStageLights(this.scene);
+    fog.color.set(c.fogColor);fog.far=this.camera.position.z+c.fogDistance;
+    this.fighters.forEach((v,i)=>{env.shader.apply(v.root);env.shadow('fighter-'+i,s.fighters[i],v,renderStage,s,s.fighters[i].characterId==='dodo'?lowProfileOpacity(s.fighters[i],s.frame):1);});
+    for(const clone of s.clones){const v=this.clones.get(clone.id);if(v){env.shader.apply(v.root);env.shadow('clone-'+clone.id,clone.fighter,v,renderStage,s);}}
+    this.undead.forEachGrave((id,root)=>{const clone=s.clones.find(c=>c.id===id);if(clone)env.shadow('grave-'+id,clone.fighter,{root},renderStage,s);});
+    for(const b of s.structures??[])if(b.phase==='built'&&b.health>0)env.shadow('structure-'+b.id,{x:b.x,y:b.y},{root:this.structures.root},renderStage,s,.65);
+    this.undead.forEachFighter((id,v)=>{const clone=s.clones.find(c=>c.id===id);if(clone)env.shadow('undead-'+id,clone.fighter,v,renderStage,s);});
+    for(const root of [this.undead.root,this.structures.root,this.nikalz.root,this.jopa.root,this.napa.root,this.dodo.root,this.finance.root,this.eide.root,this.fausto.root,this.astolfo.root,this.hair.root,this.spears.root])env.shader.apply(root);
+    this.bloom.enabled=visualPresets[env.quality].bloom&&c.bloomStrength>0;this.bloom.strength=c.bloomStrength*(env.quality==='medium'?.6:1);
+    this.atmosphere.enabled=env.quality!=='low';this.atmosphere.uniforms.tint.value.set(c.tint);this.atmosphere.uniforms.strength.value=c.tintStrength;this.atmosphere.uniforms.vignette.value=c.vignette;this.atmosphere.uniforms.grain.value=env.quality==='high'?c.grain:0;this.atmosphere.uniforms.clock.value=time;
+    this.renderer.info.reset();this.composer.render();
+    env.finish((import.meta as ImportMeta & {env:{DEV:boolean}}).env.DEV&&this.debug,this.renderer);
     });
   }
 }

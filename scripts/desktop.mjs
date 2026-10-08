@@ -1,5 +1,6 @@
 /* global fetch */
 import {spawn} from 'node:child_process';
+import {releaseEndpoint} from '../apps/desktop/policy.mjs';
 import {readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {fileURLToPath,URL} from 'node:url';
@@ -33,8 +34,8 @@ try{
   if(!existsSync('dist-desktop/desktop-config.json'))throw Error('Build desktop assets first (build:desktop -- --offline --dir for an offline preview).');
   await launch();
  }else if(command==='build'){
-  const offline=args.includes('--offline'),wsURL=offline?'':env.VITE_WS_URL||'';
-  if(!offline&&(!wsURL||new URL(wsURL).protocol!=='wss:'||new URL(wsURL).username||new URL(wsURL).password))throw Error('Set VITE_WS_URL to your production wss:// server, or pass --offline to build an explicitly offline edition.');
+  const offline=args.includes('--offline'),wsURL=releaseEndpoint(env.VITE_WS_URL,offline);
+
   await run('node_modules/typescript/bin/tsc',['--noEmit']);
   await run('node_modules/vite/bin/vite.js',['build','--config','apps/client/vite.config.ts','--mode','desktop'],{VITE_WS_URL:wsURL});
   const pkg=JSON.parse(readFileSync('package.json','utf8'));

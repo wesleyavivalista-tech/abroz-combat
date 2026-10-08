@@ -50,14 +50,21 @@ export function buildMallArena(root: THREE.Group, stage: StageDefinition): THREE
   }
   const decks=(stage.platforms??[]).map((p,index)=>{
     const y=(p.y-stage.floorHeight)/100,w=p.width/100;
+    // Keep stone/paint/brass grain at the original world scale on wider decks.
+    const across=(material:THREE.MeshStandardMaterial)=>{
+      const tiled=material.clone(),map=material.map!.clone();
+      map.repeat.x*=w/4.8;tiled.map=tiled.bumpMap=map;
+      return tiled;
+    };
+    const deckStone=across(marble),deckPlum=across(plum),deckBrass=across(brass);
     // Recessed rear tracks explain the motion without obstructing fighters.
     box(root,0,y-.22,-1.05,stage.width/100,.09,.11,dark);
     box(root,0,y-.28,-1.06,stage.width/100,.025,.12,brass);
     for(const x of [-11.9,11.9])box(root,x,y-.22,-1.04,.18,.32,.2,plum);
     const group=new THREE.Group();group.position.y=y;root.add(group);
-    box(group,0,-.11,0,w,.22,1.5,marble);
-    box(group,0,-.29,0,w-.12,.17,1.3,plum);
-    box(group,0,-.075,.77,w,.07,.04,brass);
+    box(group,0,-.11,0,w,.22,1.5,deckStone);
+    box(group,0,-.29,0,w-.12,.17,1.3,deckPlum);
+    box(group,0,-.075,.77,w,.07,.04,deckBrass);
     box(group,0,-.2,.775,w-.35,.025,.025,light);
     for(const side of [-1,1]){
       box(group,side*(w/2-.10),-.18,.79,.14,.32,.055,brass);

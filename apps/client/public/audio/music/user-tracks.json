@@ -1,0 +1,77 @@
+{
+  "tracks": [
+    {
+      "id": "menu_01",
+      "file": "abroz-main-menu-theme-v8.mp3",
+      "source": "Abroz - Main Menu Theme v8.mp3, supplied by the user on 2026-10-07",
+      "sha256": "91390f62f00da51e47b43506fdba87743b1cf82b65c69425920e5c782da7fd27",
+      "seconds": 122.98449,
+      "processing": "None; original MP3 copied byte-for-byte",
+      "usage": "Home, menus, selection, lobbies and competition setup; looped by the existing music player"
+    },
+    {
+      "id": "previous_main_menu_theme",
+      "file": "main-menu-theme.mp3",
+      "source": "main menu theme.mp3, supplied by the user on 2026-10-07",
+      "sha256": "39cc77435f0ff5a5605f9e5e0257a880cdf050f31f5128e445faa704bd3411c5",
+      "seconds": 122.958292,
+      "processing": "None; original MP3 copied byte-for-byte",
+      "usage": "Archived previous menu theme; no longer selected by the music registry"
+    },
+    {
+      "id": "previous_menu_theme",
+      "file": "main-menu-user.wav",
+      "source": "Full.wav, supplied by the user on 2026-10-05",
+      "originalFolder": "epic-2026-08-06-04-39-29-utc",
+      "sha256": "0910007be736d3cbf03f39048202ef8da2cc30ddfe67b68cbfe7b4f1520834ee",
+      "seconds": 127.8,
+      "processing": "None; original WAV copied byte-for-byte",
+      "usage": "Archived previous menu theme; no longer selected by the music registry"
+    },
+    {
+      "id": "rooftop_01",
+      "file": "rooftop-sunset-showdown.mp3",
+      "source": "Rooftop_Sunset_Showdown.mp3, supplied by the user",
+      "sha256": "9c05461d14b948e1c65a2ce0e0516389d98662bdbf3decde12352c6a9c4a1b3a",
+      "seconds": 123.846458,
+      "processing": "None; original MP3 copied byte-for-byte",
+      "usage": "The Rooftop arena match theme, looped by the existing music player"
+    },
+    {
+      "id": "church_01",
+      "file": "ceremonial-steel.mp3",
+      "source": "Ceremonial_Steel.mp3, supplied by the user",
+      "sha256": "b89afca855e2b141cb817ddf808a99c7301835c017f73e5cff5a68f18e0df518",
+      "seconds": 119.928125,
+      "processing": "None; original MP3 copied byte-for-byte",
+      "usage": "Aeroporto Church arena match theme, looped by the existing music player"
+    },
+    {
+      "id": "mall_01",
+      "file": "mall-theme.mp3",
+      "source": "Mall theme.mp3, supplied by the user",
+      "sha256": "e5751e588bf6fa7a5654f6debef2be2d4b61b8c28fc4538e8b3489269776e8a2",
+      "seconds": 122.958292,
+      "processing": "None; original MP3 copied byte-for-byte",
+      "usage": "Shopping Mall arena match theme, looped by the existing music player"
+    },
+    {
+      "id": "court_01",
+      "file": "basketball-court-theme.mp3",
+      "source": "Basketball court theme.mp3, supplied by the user",
+      "sha256": "5e9ba65bd73cb05ee21cb2b0909daefe67edcae38125852058288cb06a0b3dcb",
+      "seconds": 125.596667,
+      "processing": "None; original MP3 copied byte-for-byte",
+      "usage": "Basketball Court arena match theme, looped by the existing music player"
+    },
+    {
+      "id": "victory_01",
+      "file": "victory-theme.mp3",
+      "source": "Main.mp3 from Epic, supplied by the user on 2026-10-07",
+      "sha256": "755422877f9c3d5db28bdb3c9cfc072df73e5aac0ede352556a79771ea8e9469",
+      "seconds": 70.9398,
+      "processing": "None; original MP3 copied byte-for-byte",
+      "usage": "Victory screen; plays once through the existing music player"
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import type {Fighter,SimulationSnapshot} from '../../../../packages/game-core/ty
 import {characters} from '../../../../packages/game-core/characters/registry.js';
 import {setDisplayTicks} from './AnimationPlayback.js';
 
-const locomotionStates=new Set(['Idle','WalkForward','WalkBackward','Jump','Fall']);
+const locomotionStates=new Set(['Idle','WalkForward','WalkBackward','Jump','Fall','DashForward','DashBackward']);
 const attachedStates=new Set(['Grappled','Grappling','HairTrapped','GymBro','KO','Respawning']);
 const meleeStates=new Set(['LightAttack','MediumAttack','HeavyAttack','CrouchingAttack','AirAttack']);
 type Sample=Pick<Fighter,'characterId'|'x'|'y'|'state'|'move'|'attackSerial'|'health'|'lives'|'respawnAt'|'facing'|'jopaRide'|'jopaTree'|'lastStunHitFrame'|'stateFrame'|'moveFrame'|'weaponUntil'|'armorUntil'|'personality'|'bloodMasterUntil'|'angerUntil'|'angelUntil'|'loveMode'|'onFireUntil'|'beeBoxes'>;
@@ -17,10 +17,22 @@ export class RenderInterpolation {
  private skins='';
  private phase='';
  private hitstop=0;
- reset():void{this.source=undefined;this.frame=-1;this.fighters=[];this.clones.clear();}
+ private cosmeticTicks=0;
+ private cosmeticAdvances=false;
+ /** Commit one successful live tick, never rollback replay ticks or wall-clock time. */
+ complete(s:SimulationSnapshot):void {
+  this.cosmeticAdvances=s===this.source&&s.frame===this.frame+1&&s.phase==='fight'&&this.phase===s.phase&&s.hitstop===0&&this.hitstop===0;
+  if(this.cosmeticAdvances)this.cosmeticTicks++;
+ }
+ /** Continuous effect clock: state changes do not restart breathing, auras or performance loops. */
+ seconds(alpha=1):number {
+  const t=Number.isFinite(alpha)?Math.max(0,Math.min(1,alpha)):1;
+  return (this.cosmeticTicks-(this.cosmeticAdvances?1-t:0))/60;
+ }
+ reset():void{this.cosmeticAdvances=false;this.source=undefined;this.frame=-1;this.fighters=[];this.clones.clear();}
  /** Capture just before each fixed step, including catch-up steps. */
  capture(s:SimulationSnapshot):void{
-  this.source=s;this.frame=s.frame;this.phase=s.phase;this.hitstop=s.hitstop;this.skins=s.skins.join('|');
+  this.cosmeticAdvances=false;this.source=s;this.frame=s.frame;this.phase=s.phase;this.hitstop=s.hitstop;this.skins=s.skins.join('|');
   this.fighters=s.fighters.map(sample);this.clones.clear();
   for(const c of s.clones)this.clones.set(c.id,sample(c.fighter));
  }

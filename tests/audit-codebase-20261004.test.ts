@@ -71,7 +71,7 @@ test('scene teardown disposes clone preview textures exactly once',async()=>{
  const scene=new THREE.Scene();scene.add(cloneGrowth.root);
  const noop={dispose(){}};
  const renderer=Object.assign(Object.create(SceneRenderer.prototype),{
-  cloneGrowth,scene,observer:{disconnect(){}},stage:noop,structures:noop,napa:noop,
+  environment:noop,undead:{dispose(){},root:new THREE.Group()},cloneGrowth,scene,observer:{disconnect(){}},stage:noop,structures:noop,napa:noop,
   jopa:noop,finance:noop,eide:noop,nikalz:noop,fausto:noop,astolfo:noop,
   fighters:[],clones:new Map(),composer:{passes:[],dispose(){}},renderer:noop,
  }) as InstanceType<typeof SceneRenderer>;

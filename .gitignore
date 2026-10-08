@@ -2,7 +2,12 @@ node_modules/
 dist/
 dist-server/
 .env
+.env.*
+!.env.example
 *.log
 
 dist-desktop/
 release/
+
+# Local transfer/export archives; source assets are tracked separately.
+*.zip

@@ -1,0 +1,129 @@
+PRE-LAUNCH PERFORMANCE AND STRESS AUDIT — 2026-10-07
+
+PERFORMANCE BASELINE
+Measured locally; these numbers are not guarantees for other hardware.
+- Browser actual-renderer lab: 21 scenarios, seven workloads at low/medium/high,
+  960x540 CSS viewport and preset DPR; approximately 100 rAF FPS. Frame interval
+  p95 10.5–10.9ms; renderer.draw CPU p95 2.3–3.7ms; up to 361 draw calls,
+  32 character shadows, eight transient lights. Actual assets and renderer with
+  synthetic positions/events; four fighter identities, eight fighter instances,
+  24 extra zombies, up to 12 active projectiles. Not whole-game GPU timing.
+- Node simulation/physics: 48 eight-fighter sessions covering all arenas/roster,
+  43,200 ticks, 144 resets. Step p95 0.136–0.205ms; deep snapshot p95
+  0.275–0.347ms. Includes CPU process accounting and p50/p95/p99/max in JSON.
+- Five simulated minutes / 18,000 additional ticks: eight Tochas, all 64 pooled
+  projectiles repeatedly replenished, health restored to keep the fixture running.
+  Step p95 0.151ms, p99 0.206ms, maximum 2.341ms. No gameplay constants changed.
+- Forty fresh eight-player rollback sessions, 240 ticks each, exercised retained
+  history and session replacement; forced-GC heap samples plateau around 17MB.
+- GC observations (Node process, including warmup/forced collections): 386 events,
+  138.7ms total, p95 1.706ms, max 4.412ms. Not browser GC timing.
+- Network payload calculation at 60Hz/eight players/frame 36000/mask 2047:
+  2,520 input JSON bytes/s upstream and 21,420 bytes/s downstream per client;
+  171,360 relay JSON bytes/s server total. Excludes framing/TCP/TLS, hashes/pings.
+  Existing real-socket tests passed. No packet capture/bandwidth claim is made.
+- Source-verified audio bounds: 24 policy voices, max four music-loop elements,
+  decoded cache limited to 512 entries or 64MiB. Existing audio lifecycle/cap and
+  offline mix tests passed. Did not measure live speaker output or device latency.
+
+BOTTLENECKS FOUND
+One measured avoidable cost: updateHUD replaced lives and ultimate innerHTML on
+EVERY frame regardless of content. This discards/recreates child nodes even for
+idle fighters. A browser microbenchmark of these two sections for eight players,
+1,000 updates each, showed 16,000 child-list replacements.
+This was a localized inefficiency, not a demonstrated whole-frame bottleneck.
+Snapshot/hash allocation is measurable but currently small. No evidence justified
+pooling snapshots, changing collision systems or reducing visual quality.
+Stage artwork is requested on arena replacement; disposal counts stay stable.
+Did not introduce texture caching without an observed load-time bottleneck.
+
+FIXES IMPLEMENTED
+- Added UI.updateMarkup helper that compares actual current HTML and only writes
+  changed content. Applied solely to lives and ultimate slots in updateHUD.
+- No retained cache keyed by IDs, so rebuilding screens or external DOM writes
+  cannot leave stale cached content. Actual HTML/title/state generation unchanged.
+- Regression test checks repeated unchanged states, lives changes, training lives,
+  READY/USED/LOAN/BUILD labels, and external content replacement.
+- Added repeatable development-only HUD microbenchmark and 32-rematch renderer
+  test, plus a Node simulation/GC stress script. No new dependency.
+
+BEFORE/AFTER RESULTS
+Same-browser pair using the implemented helper under concurrent test load:
+  Baseline: 16,000 replacements, 226.1ms total.
+  Guard:        88 replacements,  14.5ms total.
+  99.45% fewer replacements, about 93.6% less time for this synthetic operation.
+Initial exploratory pair was 101.6ms versus 7.1ms; timing varies with system load.
+These are DOM microbenchmark results, NOT a claimed 93.6% improvement in game FPS.
+Live training: Bee house READY -> USED -> READY after reset verified in the game.
+No captured browser warning/error. Saved screenshot shows the unchanged live HUD.
+
+WORST-CASE SCENARIOS
+- Renderer test combines eight fighters, 24 synthetic zombies, particles,
+  explosions, 12 projectiles, high lighting/shadows and an enlarged moving arena.
+- Physics saturation separately replenishes 64 projectile slots for 18,000 ticks.
+- Mixed-fighter fixtures observed up to 10 simultaneous structures, ten hazards,
+  nine clones, ten projectiles and one bee. Randomized inputs do NOT exhaust every
+  theoretical simultaneous summon/trap/transformation combination. No such claim.
+- Existing 978-test suite covers all moves, simultaneous abilities, reset/KO
+  cleanup, arena effects, network correction and audio limits.
+
+MEMORY-LEAK RESULTS
+- Actual single renderer reused for 32 synthetic rematches with arena changes.
+  After each reset, clones/projectiles zero. Scene children stable at 152.
+  Same-arena geometry/texture counts remained exactly stable on subsequent visits:
+    Rooftop 36/38; Basketball 43/40; Mall 42/40; Church 36/39.
+  Shader programs warmed up then stabilized. Counts are resources, not GPU bytes.
+- Five-minute simulation heap after forced GC: approximately 14.40–14.64MB,
+  including the growing timing-sample array; no continuing large retained growth.
+- Forty discarded rollback sessions: samples roughly 18.02 -> 17.21MB, with
+  intermediate GC variation; no per-session monotonic leak demonstrated.
+- Source inspection: UI event lifetime uses AbortController, renderer disposal
+  disconnects ResizeObserver, audio disposal clears timers and sources; existing
+  regression tests exercise relevant cancellation paths. Listener/timer counts
+  were NOT instrumented across full production menu transitions.
+- No hours-long browser heap snapshot comparison, GPU VRAM measurement or leak
+  proof for every asset/skin. The rematch fixture is renderer lifecycle stress,
+  not 32 end-to-end UI-controlled matches.
+
+RECOMMENDED PRACTICAL PLAYER/ENTITY LIMITS
+Keep existing limits: up to eight simultaneous fighters; 16 championship entrants
+are bracket registration, not 16 simultaneous fighters. Preserve current caps:
+64 pooled projectile slots for eight fighters, 180 visual particles, 24 admitted
+sound voices, four music elements. Do not increase limits based on this desktop
+benchmark alone. Extra zombie workload is test headroom, not a new gameplay limit.
+No balance, ability duration, damage, timing, movement or art changes recommended.
+
+REMAINING PERFORMANCE RISKS
+High-DPI/fullscreen fill rate and GPU/driver cost; low-end/mobile CPU rollback;
+all-16-skin asset warming; huge simultaneous summons/structures/bees; long-lived
+browser heap/decoded-image memory; rapid full UI transitions; real network stalls.
+No GPU timer query or browser GC/heap instrumentation was available in this run.
+Physics is measured as total simulation-step CPU, not a separate broadphase timer.
+
+MANUAL STRESS TESTS
+- On minimum target hardware: high-DPI/fullscreen 8-player match, maximum summons,
+  arena-wide abilities and moving platforms; compare low/medium/high settings.
+- Play 60+ minutes and 50+ actual rematches without refreshing; monitor browser
+  heap, VRAM, audio source counts and frame-time spikes after warm caches.
+- Repeatedly enter/leave matches while loading, open/close settings and controllers,
+  and swap arenas/skins. Look for retained listeners, timers, textures and audio.
+- Multi-device eight-player session at unequal latency while several ultimates
+  overlap; profile replay CPU alongside rendering and audio.
+
+FINAL DIFF REVIEW
+Production change limited to main.ts's two HUD markup assignments and the helper
+in ui/UI.ts. Development-only benchmark pages/scripts, one regression test, this
+report and evidence added/extended. Existing working-tree changes preserved.
+No game-core, physics, network protocol, audio mix, assets or balance changes.
+978 tests passed, zero failures/skips; type check, lint, web and server builds
+passed. Final tracked diff compared against the pre-audit snapshot; changes
+outside those listed above were not introduced.
+
+EVIDENCE
+- audits/evidence/2026-10-07-performance-core.json
+- audits/evidence/2026-10-07-performance-render.json
+- audits/evidence/2026-10-07-rematches.json
+- audits/evidence/2026-10-07-hud-writes.json
+- audits/evidence/2026-10-07-hud-live.png
+Reproduce core with Node --expose-gc --import tsx audits/performance-stress-2026-10-07.mts.
+Browser tools: /lighting-lab.html and /performance-hud.html (development only).

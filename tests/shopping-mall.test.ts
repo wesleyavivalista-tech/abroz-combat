@@ -11,13 +11,13 @@ import {activateStructure} from '../packages/game-core/simulation/StructureSyste
 const game=(ids=['biel','gut'])=>{const g=new GameSimulation(ids,false,shoppingMall);g.state.phase='fight';g.state.fighters.forEach(f=>f.state='Idle');return g;};
 
 test('mall decks stay inside bounds at separate heights through opposite full loops',()=>{
- const [a,b]=shoppingMall.platforms!;assert.notEqual(a.y,b.y);assert.equal(a.width,b.width);
+ const [a,b]=shoppingMall.platforms!;assert.notEqual(a.y,b.y);assert.equal(a.width,b.width);assert.equal(a.width,960);
  for(let tick=0;tick<=1920;tick++){
   const x=platformX(a,tick),y=platformX(b,tick);
-  assert.ok(x>=0&&x+a.width<=shoppingMall.width);assert.equal(x+y,1920);
+  assert.ok(x>=0&&x+a.width<=shoppingMall.width);assert.equal(x+y,1440);
   if(tick)assert.ok(Math.abs(x-platformX(a,tick-1))<=4);
  }
- assert.equal(platformX(a,480),1920);assert.equal(platformX(a,960),0);
+ assert.equal(platformX(a,360),1440);assert.equal(platformX(a,720),0);
 });
 
 test('all fighters ride both decks through reversals, land, jump, and can reach the next tier',()=>{

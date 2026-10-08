@@ -1,0 +1,52 @@
+Audio mix verification
+
+Offline Web Audio renders using shipped sounds and shared mix calibration. No live match is modified.
+
+Run mix checks
+
+Complete
+
+[
+  {
+    "name": "menu",
+    "peakDbFS": -28.1113145071633,
+    "rmsDbFS": -44.81282968586041,
+    "clippedSamples": 0
+  },
+  {
+    "name": "1v1",
+    "peakDbFS": -16.89156565278749,
+    "rmsDbFS": -39.836327933034056,
+    "clippedSamples": 0
+  },
+  {
+    "name": "8 fighters",
+    "peakDbFS": -0.792155446065287,
+    "rmsDbFS": -24.536808443915984,
+    "clippedSamples": 0
+  },
+  {
+    "name": "major events",
+    "peakDbFS": -14.600947612462225,
+    "rmsDbFS": -34.928445931367776,
+    "clippedSamples": 0
+  },
+  {
+    "name": "quiet",
+    "peakDbFS": -30.185350948245375,
+    "rmsDbFS": -45.19354001214698,
+    "clippedSamples": 0
+  },
+  {
+    "name": "maximum sliders / 24 simultaneous",
+    "peakDbFS": -0.3625871594070966,
+    "rmsDbFS": -13.208715292878477,
+    "clippedSamples": 0
+  },
+  {
+    "name": "countdown",
+    "peakDbFS": -14.56405908997613,
+    "rmsDbFS": -30.18163863383849,
+    "clippedSamples": 0
+  }
+]

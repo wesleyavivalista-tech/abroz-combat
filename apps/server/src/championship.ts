@@ -6,11 +6,12 @@ import type { ServerMessage } from '../../../packages/shared/protocol.js';
 interface Participant { socket: WebSocket; character: string; skin: string; connected: boolean }
 interface Duel {
   simulation: GameSimulation; players: [number, number]; token: string;
-  inputs: [Map<number, number>, Map<number, number>]; last: [number, number]; progress: [number, number];
+  inputs: [Map<number, number>, Map<number, number>]; last: [number, number]; lastHash: [number, number]; progress: [number, number];
 }
 /** Tournament seats never change. Duel seats and packets are scoped to one match attempt. */
 export class ChampionshipSession {
   bracket;
+  completedAt?: number;
   ready = new Set<number>();
   duels = new Map<string, Duel>();
   private awaiting = new Map<number, number>();
@@ -22,7 +23,7 @@ export class ChampionshipSession {
   acknowledge(socket: WebSocket, token: string): void {
     const id = this.peers.findIndex(p => p.socket === socket && p.connected);
     const m = currentMatches(this.bracket).find(m => matchToken(m) === token && m.status === 'ready' && m.slots.includes(id));
-    if (!m || id < 0) return;
+    if (!m || id < 0 || this.ready.has(id)) return;
     this.ready.add(id);
     if (m.slots.every(n => n !== null && this.ready.has(n))) {
       startBracketMatch(this.bracket, m.id);
@@ -30,7 +31,7 @@ export class ChampionshipSession {
       const chars = players.map(n => this.peers[n].character), skins = players.map(n => this.peers[n].skin);
       const simulation = new GameSimulation(chars, false, this.stage, undefined, skins);
       simulation.step([0, 0]); simulation.step([0, 0]);
-      this.duels.set(m.id, { simulation, players, token, inputs: [new Map(), new Map()], last: [1, 1], progress: [Date.now(), Date.now()] });
+      this.duels.set(m.id, { simulation, players, token, inputs: [new Map(), new Map()], last: [1, 1], lastHash: [-1, -1], progress: [Date.now(), Date.now()] });
       players.forEach((n, seat) => { this.ready.delete(n); this.awaiting.delete(n); this.send(this.peers[n].socket, { type: 'championship-start', stage: this.stage.id, matchId: token, seat, characters: chars, skins }); });
     }
     this.publish();
@@ -56,7 +57,8 @@ export class ChampionshipSession {
   }
   hash(socket: WebSocket, token: string | undefined, frame: number, hash: string): void {
     const found = this.duelFor(socket, token);
-    if (!found || !Number.isInteger(frame) || frame < 0 || frame > found.duel.last[found.seat] || frame % 60 !== 0 || !/^[a-f0-9]{1,8}$/.test(hash)) return;
+    if (!found || !Number.isInteger(frame) || frame < 0 || frame > found.duel.last[found.seat] || frame <= found.duel.lastHash[found.seat] || frame % 60 !== 0 || !/^[a-f0-9]{1,8}$/.test(hash)) return;
+    found.duel.lastHash[found.seat] = frame;
     this.send(this.peers[found.duel.players[1 - found.seat]].socket, { type: 'hash', matchId: token, seat: found.seat, frame, hash });
   }
   leave(socket: WebSocket): void {
@@ -82,6 +84,7 @@ export class ChampionshipSession {
     }
   }
   private publish(): void {
+    if(this.bracket.complete)this.completedAt??=Date.now();
     const waiting = new Set(currentMatches(this.bracket).filter(m => m.status === 'ready').flatMap(m => m.slots).filter((id): id is number => id !== null));
     for (const id of this.awaiting.keys()) if (!waiting.has(id)) this.awaiting.delete(id);
     for (const id of waiting) if (!this.awaiting.has(id)) this.awaiting.set(id, Date.now());

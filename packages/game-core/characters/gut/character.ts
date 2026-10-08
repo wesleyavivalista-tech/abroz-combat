@@ -22,7 +22,7 @@ const moves={
  spearDive:move('spearDive',{displayName:'Diving spear',cancelRules:[],state:'AirAttack',startupFrames:7,activeFrames:1,recoveryFrames:24,damage:160,priority:3,knockdown:true,knockback:12,dive:{speed:28,drift:4},hitboxes:[{x:45,y:0,w:70,h:65},{x:100,y:-35,w:70,h:65},{x:155,y:-70,w:70,h:65},{x:210,y:-120,w:80,h:75}]}),
  spearAir:move('spearAir',{displayName:'Air spear thrust',cancelRules:[],state:'AirAttack',startupFrames:9,activeFrames:12,recoveryFrames:20,damage:110,hitboxes:[{x:10,y:30,w:340,h:65}]}),
 };
-export const character:CharacterDefinition={id:'gut',displayName:'GUT',description:'Kung fu · 1.80 m',color:'#cc4440',skins:[{id:'original',name:'Dress shirt'},{id:'kung-fu',name:'Kung fu'}],stats:{maxHealth: 1500,walkSpeed:4,backwardSpeed:3,jumpVelocity:22,gravity:1,weight:115},moves,
+export const character:CharacterDefinition={id:'gut',displayName:'GUT',description:'Kung fu · 1.80 m',color:'#cc4440',skins:[{id:'original',name:'Dress shirt'},{id:'kung-fu',name:'Kung fu'}],stats:{maxHealth: 1600,walkSpeed:4,backwardSpeed:3,jumpVelocity:22,gravity:1,weight:115},moves,
  basicAttacks:{chain:['palm','cross','finish'],heavy:'axe',kick:'swing',crouch:'crouch',air:'air'},
  weaponExpiryMove:'spearThrow',
  weaponAttacks:{chain:['thrust','sweep','spearFinish'],heavy:'spearHeavy',kick:'spearSwing',crouch:'spearLow',air:'spearAir',doubleJumpHeavy:'spearDive'},

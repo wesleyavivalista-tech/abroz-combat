@@ -1,0 +1,35 @@
+FIGHTER ANIMATION FLUIDITY — 2026-10-07
+
+AUDIT
+Reviewed existing AnimationPlayback, RenderInterpolation, VisualRegistry, per-fighter renderers, frame selectors, shared dash/fall/air/crouch/mount adapters, frame extraction/atlas contracts, main fixed-step loop and rollback integration. Existing earlier fluidity work was retained rather than replaced.
+
+All 16 fighters use client presentation factories: Nikalz, Jopa, Biel, Eide, Astolfo, Fausto, Napa, Jomp, Dodo, Drupa, Gut, Tocha, Bozo, Caio, Roms and Luizinho. Both skins and existing mode/summon variants remain registered. Source sheets are cached, sliced by existing authored rectangles or silhouette extraction, and selected by stateFrame/moveFrame. The existing optional frameDurations and loop settings already support authored holds. Walking rates vary intentionally by fighter (roughly 5–8 ticks per pose; slower special-form cycles). Idle, hit, guard, anticipation and recovery holds should not receive a blanket FPS increase.
+
+Gameplay advances at60Hz in game-core. Move definitions govern startup/active/recovery, collision, damage, movement, stun, energy and durations. Sprite indices do not control hit detection. RenderInterpolation creates display copies after simulation; snapshots/hashes/network never consume those copies. Existing impact windows retain exact positions. Rollback replaces/restores snapshots and invalidates interpolation. Debug hitbox display continues using authoritative positions.
+
+CAUSES REMAINING AFTER EARLIER WORK
+1. SceneRenderer supplied stateFrame-based time to continuous cosmetic effects. Changing action resets stateFrame, restarting breathing/shimmer/aura phase; Fausto's accumulated aura clock could also stall when its input time jumped backwards.
+2. Dash entry/exit was excluded from otherwise safe neutral locomotion interpolation, creating a one-tick root discontinuity.
+3. Drupa's rolling rotation and Buda aura sampled whole state ticks even when fractional presentation time was available.
+4. Limited authored pose counts remain a real constraint. Raising playback FPS cannot add useful poses and would rush existing holds.
+
+IMPLEMENTATION
+- RenderInterpolation now maintains a continuous cosmetic clock, advanced only after a successful live fixed simulation step. State changes do not reset it. Pause, hitstop, stalled network ticks and snapshot replacement do not advance it. Cosmetic time never enters saved/authoritative state. The clock uses fractional display time between successful ticks and is constant-cost.
+- main.ts commits that clock immediately after a successful step and supplies it separately to SceneRenderer. Existing simulation/input/network control flow remains unchanged.
+- SceneRenderer supplies continuous cosmetic time to all fighter and ordinary clone visuals. Render adapters retain authoritative simulationFrame forwarding.
+- Neutral DashForward/DashBackward entry/exit join the existing safe locomotion transitions. Poses switch immediately; root motion interpolates between adjacent positions. Damage, health/life changes, facing changes, attached actors, respawns, mode changes, teleports and attacks remain protected by the existing exclusions. Landing remains exact.
+- Drupa rolling uses the existing fractional state clock; Buda aura uses the continuous cosmetic clock. No scale constants, artwork dimensions or beam collision geometry changed.
+- Dodo's drawn performance sequence explicitly retains its state-relative clock. Continuous effect time must not change the opening frame of an authored sequence.
+- Updated the existing animation-review page to exercise the same clock as the game.
+
+UNTOUCHED
+No sprite image, atlas rectangle, pivot, UV indexing, frame ordering, texture filtering, fighter height or collision dimensions edited. No generated in-between frames, duplicated frames, blending, new squash/stretch, pose crossfade or attack retiming. No changes to game-core, move definitions, network protocol or rollback rules for this pass.
+
+VERIFICATION
+Full automated suite:821/821 passed, including animation/atlas/dash/fall/neutral poses, every-roster-move timing and impact alignment, movement, damage, hitstun, transformations, summons, multiplayer and rollback checks. One additional cosmetic-clock regression was then added: final animation/interpolation group also passed (see test output). New tests cover all16 fighters' neutral dash transitions; state changes; pause/hitstop/network stalls; unchanged snapshot hashes; display-refresh independence; and rollback snapshot replacement.
+TypeScript:passed. Focused ESLint:passed. Production web build:passed.
+Browser:animation-review completed245,091 pose updates covering every fighter, both skins, mode combinations, summons, idle/walk/jump/fall/land/dash/guard/hit/knockdown/get-up/results and every registered move through startup/active/recovery. Zero missing textures, invalid frame accesses or non-finite transforms. Browser error/warning log empty. Representative Drupa rolling presentation inspected in the rendered scene.
+Evidence:animation-roster-browser-2026-10-07.txt and evidence/animation-fluidity-2026-10-07.png.
+
+LIMITATIONS
+The browser pose sweep checks loading and rendering integrity, not the subjective feel of every move. Local/online behavior was checked by automated simulation, hash and rollback tests; no live remote-player session or physical-controller playtest was performed. No hardware frame-time benchmark was run. Added work is a few scalar operations per live simulation tick; no new textures, meshes or per-fighter queues. Low-frame-count poses remain visibly discrete by design. Additional authored artwork would be required for more actual limb-motion detail.

@@ -1,0 +1,447 @@
+{
+  "scope": "Browser rAF and renderer.draw CPU time; actual renderer and assets, synthetic positions/projectiles/zombies/events. 1s warmup + 3s measured; not GPU timer queries or multiplayer.",
+  "viewport": "960x540 CSS pixels; preset DPR",
+  "reports": [
+    {
+      "name": "1v1",
+      "quality": "low",
+      "frames": 300,
+      "fps": 100.00666711114064,
+      "frameP95Ms": 10.5,
+      "drawCpuP95Ms": 2.600000023841858,
+      "maxCalls": 15,
+      "maxLights": 0,
+      "maxShadows": 2,
+      "programs": 8,
+      "memoryStart": {
+        "geometries": 14,
+        "textures": 16
+      },
+      "memoryEnd": {
+        "geometries": 14,
+        "textures": 17
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "4 fighters",
+      "quality": "low",
+      "frames": 300,
+      "fps": 100,
+      "frameP95Ms": 10.299999999995634,
+      "drawCpuP95Ms": 2.3000000715255737,
+      "maxCalls": 21,
+      "maxLights": 0,
+      "maxShadows": 4,
+      "programs": 10,
+      "memoryStart": {
+        "geometries": 16,
+        "textures": 21
+      },
+      "memoryEnd": {
+        "geometries": 16,
+        "textures": 21
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "6 fighters",
+      "quality": "low",
+      "frames": 300,
+      "fps": 100,
+      "frameP95Ms": 10.60000000000582,
+      "drawCpuP95Ms": 2.899999976158142,
+      "maxCalls": 27,
+      "maxLights": 0,
+      "maxShadows": 6,
+      "programs": 10,
+      "memoryStart": {
+        "geometries": 18,
+        "textures": 21
+      },
+      "memoryEnd": {
+        "geometries": 18,
+        "textures": 21
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "8 fighters",
+      "quality": "low",
+      "frames": 300,
+      "fps": 100.02667377967468,
+      "frameP95Ms": 10.700000000011642,
+      "drawCpuP95Ms": 3,
+      "maxCalls": 33,
+      "maxLights": 0,
+      "maxShadows": 8,
+      "programs": 10,
+      "memoryStart": {
+        "geometries": 20,
+        "textures": 21
+      },
+      "memoryEnd": {
+        "geometries": 20,
+        "textures": 21
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "projectiles / explosions",
+      "quality": "low",
+      "frames": 300,
+      "fps": 99.98666844420715,
+      "frameP95Ms": 10.799999999988358,
+      "drawCpuP95Ms": 3.1999999284744263,
+      "maxCalls": 237,
+      "maxLights": 0,
+      "maxShadows": 8,
+      "programs": 12,
+      "memoryStart": {
+        "geometries": 20,
+        "textures": 21
+      },
+      "memoryEnd": {
+        "geometries": 33,
+        "textures": 21
+      },
+      "projectiles": 12
+    },
+    {
+      "name": "24 zombies / lights",
+      "quality": "low",
+      "frames": 300,
+      "fps": 100.00333344444834,
+      "frameP95Ms": 10.30000000000291,
+      "drawCpuP95Ms": 2.399999976158142,
+      "maxCalls": 309,
+      "maxLights": 0,
+      "maxShadows": 32,
+      "programs": 12,
+      "memoryStart": {
+        "geometries": 57,
+        "textures": 25
+      },
+      "memoryEnd": {
+        "geometries": 57,
+        "textures": 29
+      },
+      "projectiles": 12
+    },
+    {
+      "name": "large moving arena",
+      "quality": "low",
+      "frames": 300,
+      "fps": 100,
+      "frameP95Ms": 10.299999999988358,
+      "drawCpuP95Ms": 2.600000023841858,
+      "maxCalls": 323,
+      "maxLights": 0,
+      "maxShadows": 32,
+      "programs": 14,
+      "memoryStart": {
+        "geometries": 61,
+        "textures": 29
+      },
+      "memoryEnd": {
+        "geometries": 63,
+        "textures": 31
+      },
+      "projectiles": 12
+    },
+    {
+      "name": "1v1",
+      "quality": "medium",
+      "frames": 300,
+      "fps": 100,
+      "frameP95Ms": 11,
+      "drawCpuP95Ms": 1.7999999523162842,
+      "maxCalls": 29,
+      "maxLights": 0,
+      "maxShadows": 2,
+      "programs": 19,
+      "memoryStart": {
+        "geometries": 26,
+        "textures": 37
+      },
+      "memoryEnd": {
+        "geometries": 27,
+        "textures": 38
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "4 fighters",
+      "quality": "medium",
+      "frames": 300,
+      "fps": 100,
+      "frameP95Ms": 10.60000000000582,
+      "drawCpuP95Ms": 2.600000023841858,
+      "maxCalls": 35,
+      "maxLights": 0,
+      "maxShadows": 4,
+      "programs": 21,
+      "memoryStart": {
+        "geometries": 29,
+        "textures": 40
+      },
+      "memoryEnd": {
+        "geometries": 29,
+        "textures": 40
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "6 fighters",
+      "quality": "medium",
+      "frames": 299,
+      "fps": 99.98662386302806,
+      "frameP95Ms": 10.60000000000582,
+      "drawCpuP95Ms": 2.3000000715255737,
+      "maxCalls": 41,
+      "maxLights": 0,
+      "maxShadows": 6,
+      "programs": 21,
+      "memoryStart": {
+        "geometries": 31,
+        "textures": 40
+      },
+      "memoryEnd": {
+        "geometries": 31,
+        "textures": 40
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "8 fighters",
+      "quality": "medium",
+      "frames": 300,
+      "fps": 100.01333511134847,
+      "frameP95Ms": 10.30000000000291,
+      "drawCpuP95Ms": 2.299999952316284,
+      "maxCalls": 47,
+      "maxLights": 0,
+      "maxShadows": 8,
+      "programs": 21,
+      "memoryStart": {
+        "geometries": 33,
+        "textures": 40
+      },
+      "memoryEnd": {
+        "geometries": 33,
+        "textures": 40
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "projectiles / explosions",
+      "quality": "medium",
+      "frames": 300,
+      "fps": 100.01000100010012,
+      "frameP95Ms": 10.39999999999418,
+      "drawCpuP95Ms": 2.799999952316284,
+      "maxCalls": 251,
+      "maxLights": 4,
+      "maxShadows": 8,
+      "programs": 21,
+      "memoryStart": {
+        "geometries": 33,
+        "textures": 40
+      },
+      "memoryEnd": {
+        "geometries": 33,
+        "textures": 40
+      },
+      "projectiles": 12
+    },
+    {
+      "name": "24 zombies / lights",
+      "quality": "medium",
+      "frames": 300,
+      "fps": 100.00333344444834,
+      "frameP95Ms": 10.80000000000291,
+      "drawCpuP95Ms": 3,
+      "maxCalls": 323,
+      "maxLights": 4,
+      "maxShadows": 32,
+      "programs": 21,
+      "memoryStart": {
+        "geometries": 57,
+        "textures": 40
+      },
+      "memoryEnd": {
+        "geometries": 57,
+        "textures": 40
+      },
+      "projectiles": 12
+    },
+    {
+      "name": "large moving arena",
+      "quality": "medium",
+      "frames": 300,
+      "fps": 100,
+      "frameP95Ms": 10.60000000000582,
+      "drawCpuP95Ms": 3.3000000715255737,
+      "maxCalls": 337,
+      "maxLights": 4,
+      "maxShadows": 32,
+      "programs": 23,
+      "memoryStart": {
+        "geometries": 61,
+        "textures": 40
+      },
+      "memoryEnd": {
+        "geometries": 63,
+        "textures": 42
+      },
+      "projectiles": 12
+    },
+    {
+      "name": "1v1",
+      "quality": "high",
+      "frames": 300,
+      "fps": 100.01333511134798,
+      "frameP95Ms": 10.60000000000582,
+      "drawCpuP95Ms": 3.200000047683716,
+      "maxCalls": 34,
+      "maxLights": 0,
+      "maxShadows": 2,
+      "programs": 21,
+      "memoryStart": {
+        "geometries": 27,
+        "textures": 38
+      },
+      "memoryEnd": {
+        "geometries": 28,
+        "textures": 39
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "4 fighters",
+      "quality": "high",
+      "frames": 300,
+      "fps": 100.02333877904834,
+      "frameP95Ms": 10.30000000000291,
+      "drawCpuP95Ms": 2,
+      "maxCalls": 40,
+      "maxLights": 0,
+      "maxShadows": 4,
+      "programs": 23,
+      "memoryStart": {
+        "geometries": 30,
+        "textures": 41
+      },
+      "memoryEnd": {
+        "geometries": 30,
+        "textures": 41
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "6 fighters",
+      "quality": "high",
+      "frames": 294,
+      "fps": 98.00980098009809,
+      "frameP95Ms": 10.60000000000582,
+      "drawCpuP95Ms": 2.4000000953674316,
+      "maxCalls": 46,
+      "maxLights": 0,
+      "maxShadows": 6,
+      "programs": 23,
+      "memoryStart": {
+        "geometries": 32,
+        "textures": 41
+      },
+      "memoryEnd": {
+        "geometries": 32,
+        "textures": 41
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "8 fighters",
+      "quality": "high",
+      "frames": 300,
+      "fps": 100,
+      "frameP95Ms": 10.60000000000582,
+      "drawCpuP95Ms": 2,
+      "maxCalls": 52,
+      "maxLights": 0,
+      "maxShadows": 8,
+      "programs": 23,
+      "memoryStart": {
+        "geometries": 34,
+        "textures": 41
+      },
+      "memoryEnd": {
+        "geometries": 34,
+        "textures": 41
+      },
+      "projectiles": 0
+    },
+    {
+      "name": "projectiles / explosions",
+      "quality": "high",
+      "frames": 299,
+      "fps": 99.99331148418175,
+      "frameP95Ms": 10.69999999999709,
+      "drawCpuP95Ms": 3.299999952316284,
+      "maxCalls": 256,
+      "maxLights": 8,
+      "maxShadows": 8,
+      "programs": 25,
+      "memoryStart": {
+        "geometries": 34,
+        "textures": 41
+      },
+      "memoryEnd": {
+        "geometries": 34,
+        "textures": 41
+      },
+      "projectiles": 12
+    },
+    {
+      "name": "24 zombies / lights",
+      "quality": "high",
+      "frames": 300,
+      "fps": 100.02667377967418,
+      "frameP95Ms": 10.799999999988358,
+      "drawCpuP95Ms": 2.700000047683716,
+      "maxCalls": 328,
+      "maxLights": 8,
+      "maxShadows": 32,
+      "programs": 25,
+      "memoryStart": {
+        "geometries": 58,
+        "textures": 41
+      },
+      "memoryEnd": {
+        "geometries": 58,
+        "textures": 41
+      },
+      "projectiles": 12
+    },
+    {
+      "name": "large moving arena",
+      "quality": "high",
+      "frames": 298,
+      "fps": 99.32671155256277,
+      "frameP95Ms": 10.60000000000582,
+      "drawCpuP95Ms": 3.600000023841858,
+      "maxCalls": 359,
+      "maxLights": 8,
+      "maxShadows": 32,
+      "programs": 28,
+      "memoryStart": {
+        "geometries": 62,
+        "textures": 41
+      },
+      "memoryEnd": {
+        "geometries": 64,
+        "textures": 43
+      },
+      "projectiles": 12
+    }
+  ]
+}

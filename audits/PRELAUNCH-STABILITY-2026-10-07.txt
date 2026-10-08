@@ -1,0 +1,164 @@
+PRE-LAUNCH STABILITY AUDIT — 7 October 2026
+
+Scope and safety
+Inspected the existing dirty working tree before editing and saved its diff for
+comparison. Existing changes, assets, balance values, combat timing, animation,
+audio, rendering, networking protocol and game rules were preserved. No new
+runtime dependencies or frameworks. Only main.ts changed in production code.
+This is a focused stability audit, not a certification that every possible
+interaction or hardware configuration is bug-free.
+
+Architecture inspected
+- Fixed-step GameSimulation, state transitions, contact/damage handling,
+  absolute ability timers, hitstop, KO/respawn, final deaths and zombies.
+- Owner cleanup for projectiles, clones, structures, hazards and transformations;
+  training resets, tournament and elimination boundaries.
+- Rollback replay/history limits, confirmed inputs, disconnects, server room
+  expiry and socket cleanup.
+- Client navigation/loading revision guards, keyboard/controller capture,
+  nested native dialogs, pause, result and disconnect paths.
+- Renderer asset ownership/disposal, retryable loading, effect pools, cached
+  source textures, audio timers and teardown.
+
+CRITICAL ISSUES
+No new critical issue was confirmed in this pass. Existing tests for combat,
+rollback, room handling and terminal cleanup remain passing. The findings below
+are client recovery/input lifecycle defects, not balance changes.
+
+HIGH-PRIORITY ISSUES
+H1 — Rebinding from pause abandons the current match UI. FIXED.
+Where: apps/client/src/main.ts, bind action (~959–983), refreshBindings (~587).
+Reproduction: enter a match, pause, open Settings, choose a keyboard binding,
+then press a valid key (even its existing key). The old implementation navigated
+to full-screen Settings and removed the pause UI; there was no resume route.
+Root cause: the capture callback called settings() with its default overlay=false,
+which invoked navigate('settings') and replaced the entire screen.
+Fix: refresh only the binding labels in the existing view. Update both sides of
+swapped bindings; clear pending input; preserve the match and pause state.
+Verified: reproduced in the browser before the fix; after the fix both pause and
+settings dialogs remained open, Back returned to pause, Resume returned to the
+same match, and movement/reset worked. Automated handler test also checks swaps
+and that a later key cannot trigger a second commit.
+Regression risk: low. Binding assignment rules and game simulation are unchanged.
+
+H2 — Connection-loss recovery is hidden behind native modal menus. FIXED.
+Where: main.ts disconnectMessage (~782), pause (~811),
+toggleOnlineControllerMenu (~126), controllerBack (~134).
+Reproduction: open online Options (or nested Settings), then lose the connection.
+The old MATCH INTERRUPTED div existed in the DOM, but the open modal dialog
+kept it inert and out of the accessible UI. The old Return to fight control also
+remained available despite the failed connection.
+Root cause: terminal connection handling appended a normal overlay without
+closing/replacing native top-layer dialogs or invalidating menu input state.
+Fix: cancel binding/controller capture, clear menu/input state, replace the old
+UI with the existing interruption panel, focus Main Menu, and prevent pause/
+online-menu controls from reopening the failed match. Controller Back exits to
+Main Menu. Loading revision invalidation remains in place.
+Verified: isolated local WebSocket fixture triggered a real browser connection
+close before and after the fix. Before: only the old online dialog was accessible.
+After: nested Settings disappeared, recovery was focused and clickable, Escape
+could not resume combat, and Main Menu worked. Automated tests cover duplicate
+notifications, capture cancellation and pause/back handling.
+Regression risk: low to moderate, limited to terminal client UI transitions.
+Normal network messages, rollback and disconnect/forfeit simulation are unchanged.
+
+MEDIUM ISSUES
+M1 — Settings can leave a keyboard capture listener active after closing. FIXED.
+Where: main.ts closeSettings (~582), controllerBack (~134), settings cancel
+handler (~600), settings-close action (~911), openControllers (~114).
+Reproduction: while paused, click a binding so it says PRESS KEY, then click
+Settings Back before entering a key. Previously the window capture listener
+survived removal of its dialog. The next gameplay key could change the binding,
+consume that input, and previously also navigate away via H1.
+Root cause: close paths removed the dialog without calling cancelBinding.
+Fix: route Settings close/cancel through one small close helper that cancels
+capture, clears input and resets menu navigation. Opening Controllers also
+cancels an in-progress keyboard rebind.
+Verified: automated Back-button/controller-back cancellation tests; browser
+pending-capture -> Back -> key -> Resume sequence. No unintended binding change
+or navigation occurred; movement worked after resuming.
+Regression risk: low; only cancellation/close handling changes.
+
+LOW ISSUES
+No additional low-priority defect was confirmed within this focused pass.
+Unrelated formatting, duplication and visual cleanup were left alone.
+
+FIXES IMPLEMENTED
+- Preserve the current match while committing a settings key binding.
+- Refresh swapped binding labels without replacing the screen.
+- Remove pending key capture when leaving its settings context.
+- Clear obsolete dialogs/capture on terminal disconnect and expose recovery.
+- Keep failed matches input-locked until the user leaves.
+No combat or character behavior was changed.
+
+TESTS PERFORMED
+- Existing baseline before edits: 829 tests passed.
+- Final complete TypeScript test suite: 853 tests passed, zero failures/skips.
+  Includes 24 new focused tests:
+  * 336 death-after-attack-input scenarios: 16 fighters x 7 attack buttons x
+    3 interruption ages. Check owned effect cleanup, respawn, movement and attack
+    recovery. These sample input sequences, not every move branch/variant.
+  * 32 active reset cycles across four arenas; snapshot replay of resets;
+    simultaneous final deaths and result stability under input spam.
+  * Interrupted basic-attack startup/control recovery for all 16 fighters.
+  * Three real-main-handler regression tests for rebinding, cancellation and
+    disconnect UI. A small DOM boundary fixture runs extracted TypeScript handlers;
+    native modal behavior is additionally checked in the actual browser.
+- Separate stress replay: 16 eight-fighter scenarios, four arenas, 57,600 ticks,
+  finite state checks, periodic restore/hash comparison and match reset cycles.
+- Cross-engine replay: 239 move/scenario traces exactly matched in V8 and
+  JavaScriptCore.
+- Desktop boundary tests: 5 passed (not a packaged desktop playtest).
+- Client typecheck, server TypeScript compilation, full ESLint and production
+  Vite build passed. git diff --check passed.
+- Browser: before/after reproduction of H1 and H2; cancellation recovery;
+  movement and reset after resume; three additional consecutive random-arena
+  training load/leave cycles without refresh; no captured console errors.
+- Disconnect browser test used a temporary isolated development server and
+  synthetic peer. It validates real socket close + client menus, not Internet
+  conditions or remote peer determinism. Production WebSocket tests also passed
+  as part of the full suite.
+- Final tracked diff was compared with the pre-audit snapshot: only main.ts
+  changed during this audit. Temporary browser tabs/server processes were closed.
+
+FILES/SYSTEMS CHANGED
+Production:
+  apps/client/src/main.ts — client settings/input/dialog recovery only.
+Tests:
+  tests/prelaunch-menu-lifecycle.test.ts
+  tests/prelaunch-stability.test.ts
+Report/evidence:
+  audits/PRELAUNCH-STABILITY-2026-10-07.txt
+  audits/evidence/prelaunch-disconnect-recovery.png
+
+REMAINING MANUAL TESTS
+- Real controller hardware: disconnect/reassign devices with nested menus open;
+  verify confirm/back prompts and multi-controller ownership.
+- Packaged desktop builds on target operating systems and GPUs, including
+  suspend/resume, fullscreen changes, graphics-context loss and audio-device loss.
+- Real remote multiplayer with packet delay/loss, peer reconnect attempts and
+  disconnects at round/result boundaries. Automated rollback/room tests do not
+  substitute for an Internet playtest.
+- Multi-hour eight-player sessions with repeated rematches, tournaments and
+  elimination-party transitions while monitoring CPU/GPU memory. Bounded pools
+  and automated cleanup checks do not prove the absence of driver/resource leaks.
+- Manual rare ability combinations, stage edges and transformations beyond the
+  sampled input sequences. No exhaustive claim is made.
+
+AREAS THAT STILL LOOK TECHNICALLY RISKY
+These are review/coverage risks, not newly confirmed bugs or reasons to redesign
+working systems during this audit:
+- main.ts coordinates many global flags, async callbacks and nested dialogs.
+  Further overlay entry/exit paths should use the same capture cleanup discipline.
+- Successful shared sprite/texture caches intentionally live for the application
+  lifetime. The finite current roster bounds them, but a longer soak is needed
+  to distinguish intended caching from GPU/resource growth.
+- Loading catches rejected resources and guards stale revisions, but several
+  image/fetch requests rely on browser/network timeouts rather than a single
+  application loading deadline. Test requests that stall without rejecting.
+- The frame loop and client message callback assume valid internal state and
+  compatible server payloads. Unexpected renderer failures or malformed server
+  data can still require stronger diagnostics/recovery; no speculative broad
+  exception-swallowing or protocol rewrite was introduced.
+- Character-specific behavior remains distributed across systems. Adding fighters
+  requires interruption/KO/reset tests for every new optional state field.

@@ -1,0 +1,46 @@
+PRE-LAUNCH COLLISION / PHYSICS AUDIT — 2026-10-07
+
+PHYSICS BUGS FOUND
+Confirmed: generic projectile blocking and fighter collision disagreed about target motion during a tick. StructureSystem compared a projectile sweep with the target's final box; GameSimulation used relative motion from the target's previous position. A wall could receive damage instead of a fighter crossed earlier. Conversely, a fighter arriving late at a point already crossed by the projectile could suppress a valid wall hit.
+Reproduction: enemy-owned wall at x=500; shot moves from x=0 to 1000 at y=80. Enemy moves from x=200 to 800. Old blocking logic sees the wall first; relative motion correctly sees the fighter first. Second regression moves a target vertically from y=1000 to zero at x=200: final-position overlap incorrectly prevented the wall hit. These deliberately exaggerated one-tick trajectories isolate tunneling/contact-order behavior; they are not new gameplay speeds.
+Root cause: two different time models for the same collision decision.
+Severity: HIGH for incorrect combat collision; not a demonstrated crash or permanent lock.
+
+HITBOX/HURTBOX BUGS
+The confirmed issue above concerns swept hurtbox contact ordering. No authored attack box, size, damage, active window or recovery was changed.
+Added checks cover startup and end-of-active-frame boundaries for every registered move, plus finite arena-bound knockback and high-speed floor landing for every registered character on all four arenas.
+Transformation caution: hurtboxes and structure body collision account for weapon bodyScale, while fighter push separation scales cookieBoss only. This may intentionally preserve close combat spacing for large forms. Left unchanged because enlarging pushboxes would change reach and spacing without a confirmed design requirement. Visual review required for Eide mutant and Drupa White Buda.
+
+FIXES IMPLEMENTED
+StructureSystem.hitStructureProjectile accepts an optional read-only previous-position map. Its normal-projectile fighter-priority check now uses the same relative-motion sweep as GameSimulation. GameSimulation passes its existing map; no extra per-frame map or entity allocation was added.
+Existing callers without movement history retain stationary-target behavior. Returning projectiles retain their existing separate path/blocking behavior. Equal-time structure contacts retain their existing priority.
+Generated simulation revision updated so incompatible deterministic builds do not silently join.
+Regression risk: low and confined to normal projectile-versus-structure ordering when targets move during the tick. No physics constants, assets, balance values, input or protocol fields changed.
+
+ABILITIES MOST LIKELY TO CREATE COLLISION EDGE CASES
+- Luizinho walls/house roofs: swept side blocking, multiple adjacent solids, house interior and roof transitions.
+- Biel fast slash / rolling movement: swept attack coverage and blocked movement recovery.
+- Eide and Drupa large forms; Napa cookie form: body size versus authored attack and push spacing.
+- Roms returning/bouncing projectiles; gravity projectiles: floor contact and reversal during moving-target contact.
+- Eide platform companions, Jopa tree/knight/mounted forms: independent collision policies and platform ownership.
+- Nikalz meteor, Jomp landing attacks, teleports, grapples: intentional repositioning and landing/release boundaries.
+- Moving Mall platforms carrying structures, traps and summons: moving support, roof transitions and reversal.
+These are risk concentrations, not additional confirmed bugs.
+
+TESTS PERFORMED
+New tests/collision-prelaunch.test.ts: 11 cases.
+- Two opposing moving-target/wall ordering regressions failed before the fix and passed afterward.
+- Four actual GameSimulation projectile contact cases, one per arena.
+- Four roster sweeps: high-speed falling and extreme horizontal knockback per arena.
+- All registered moves: startup and recovery do not expose attack hitboxes; active frames expose authored boxes.
+Targeted collision + existing Luizinho suite: 31 passed before adding the four integration cases. Final new suite: 11 passed.
+Full suite includes existing platform landing/drop-through, Mall movement and rider attachment, arena-specific ability replay, transformations, grabs, returning projectiles, traps, summon and structure collision tests. Final full-suite result: 989 passed, zero failures (/tmp/collision-final-tests.log).
+TypeScript, lint, client build and server build passed. Cross-engine deterministic replay: 239 V8/JavaScriptCore move/scenario traces matched.
+Frame-rate architecture reviewed: physics advances in discrete simulation steps; render time is accumulated separately, with a six-step catch-up cap. This avoids variable-delta collision changes. Real low-FPS visual behavior and catch-up pacing were not measured during this audit.
+
+MANUAL VISUAL QA REQUIRED
+No new in-game visual inspection was performed in this pass. Automated collision assertions cannot certify sprite-to-box alignment.
+Check large forms against fighters, house interiors and both arena edges; simultaneous multi-fighter corner crowding; jumps and drop-through at moving-platform reversals; wall/house collisions during teleport and grapple release; fast bouncing shots at floor/platform corners; meteor and dive landings; respawns among multiple fighters. Repeat at low rendering FPS and during online rollback. Exhaustive combinations of all abilities and geometry remain unverified.
+
+FINAL DIFF REVIEW
+Compared tracked diff with the audit-start snapshot (/tmp/collision-start.diff). Only GameSimulation.ts, StructureSystem.ts and generated simulationRevision.ts changed in tracked production files during this audit. New collision test and this report were reviewed separately. git diff --check passed. Existing unrelated modifications and assets were preserved. No broad refactor or speculative pushbox adjustment was made.

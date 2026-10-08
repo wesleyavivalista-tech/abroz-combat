@@ -1,0 +1,2752 @@
+[
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-heavy-swing-3.wav",
+    "rmsDb": -12.27,
+    "peakDb": -2.56
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-heavy-swing-2.wav",
+    "rmsDb": -12.4,
+    "peakDb": -2.62
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-light-swing-1.wav",
+    "rmsDb": -12.56,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-light-hit-1.wav",
+    "rmsDb": -15.77,
+    "peakDb": -2.39
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-light-swing-3.wav",
+    "rmsDb": -12.31,
+    "peakDb": -2.67
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-heavy-swing-1.wav",
+    "rmsDb": -12.71,
+    "peakDb": -2.6
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-light-swing-2.wav",
+    "rmsDb": -12.85,
+    "peakDb": -2.58
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-heavy-hit-1.wav",
+    "rmsDb": -17.27,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-heavy-swing-3.wav",
+    "rmsDb": -12.47,
+    "peakDb": -2.73
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-heavy-swing-2.wav",
+    "rmsDb": -12.61,
+    "peakDb": -2.7
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-heavy-swing-1.wav",
+    "rmsDb": -12.87,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-light-swing-2.wav",
+    "rmsDb": -11.81,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-light-hit-2.wav",
+    "rmsDb": -16.72,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-heavy-hit-3.wav",
+    "rmsDb": -17.65,
+    "peakDb": -2.59
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-heavy-swing-3.wav",
+    "rmsDb": -12.61,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-heavy-swing-2.wav",
+    "rmsDb": -12.45,
+    "peakDb": -2.66
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-light-swing-1.wav",
+    "rmsDb": -12.49,
+    "peakDb": -2.39
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-heavy-hit-2.wav",
+    "rmsDb": -17.29,
+    "peakDb": -2.45
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-light-hit-3.wav",
+    "rmsDb": -15.66,
+    "peakDb": -2.54
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-light-swing-3.wav",
+    "rmsDb": -12.59,
+    "peakDb": -2.45
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-heavy-swing-1.wav",
+    "rmsDb": -11.84,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-light-hit-3.wav",
+    "rmsDb": -16.58,
+    "peakDb": -2.43
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-heavy-hit-2.wav",
+    "rmsDb": -18.33,
+    "peakDb": -2.51
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-charged-hit-1.wav",
+    "rmsDb": -17.17,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-charged-swing-2.wav",
+    "rmsDb": -11.9,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-charged-hit-1.wav",
+    "rmsDb": -19.15,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-charged-swing-3.wav",
+    "rmsDb": -12.51,
+    "peakDb": -2.56
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-heavy-hit-3.wav",
+    "rmsDb": -17.39,
+    "peakDb": -2.55
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-light-hit-2.wav",
+    "rmsDb": -16.56,
+    "peakDb": -2.42
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-light-swing-1.wav",
+    "rmsDb": -12.53,
+    "peakDb": -2.54
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-light-swing-3.wav",
+    "rmsDb": -12.64,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-heavy-hit-1.wav",
+    "rmsDb": -18.01,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-charged-hit-2.wav",
+    "rmsDb": -17.3,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-charged-swing-1.wav",
+    "rmsDb": -12.47,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-charged-hit-3.wav",
+    "rmsDb": -18.62,
+    "peakDb": -2.59
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-charged-hit-2.wav",
+    "rmsDb": -19.32,
+    "peakDb": -2.44
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-charged-hit-3.wav",
+    "rmsDb": -17.1,
+    "peakDb": -2.4
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-light-hit-1.wav",
+    "rmsDb": -16.66,
+    "peakDb": -2.4
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-light-swing-2.wav",
+    "rmsDb": -13.1,
+    "peakDb": -2.64
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-light-swing-3.wav",
+    "rmsDb": -12.72,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-light-hit-1.wav",
+    "rmsDb": -16.26,
+    "peakDb": -2.64
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-light-hit-3.wav",
+    "rmsDb": -15.54,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-light-swing-2.wav",
+    "rmsDb": -12.84,
+    "peakDb": -2.54
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-heavy-hit-2.wav",
+    "rmsDb": -18.0,
+    "peakDb": -2.52
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-charged-hit-2.wav",
+    "rmsDb": -18.59,
+    "peakDb": -2.49
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-heavy-hit-1.wav",
+    "rmsDb": -17.22,
+    "peakDb": -2.44
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-light-hit-1.wav",
+    "rmsDb": -16.89,
+    "peakDb": -2.45
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-charged-swing-1.wav",
+    "rmsDb": -12.3,
+    "peakDb": -2.5
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-charged-hit-3.wav",
+    "rmsDb": -18.38,
+    "peakDb": -2.61
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-heavy-hit-1.wav",
+    "rmsDb": -18.41,
+    "peakDb": -2.63
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-heavy-hit-3.wav",
+    "rmsDb": -18.13,
+    "peakDb": -2.52
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-light-hit-2.wav",
+    "rmsDb": -16.24,
+    "peakDb": -2.48
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-light-swing-3.wav",
+    "rmsDb": -12.1,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-light-swing-2.wav",
+    "rmsDb": -12.49,
+    "peakDb": -2.6
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-light-hit-2.wav",
+    "rmsDb": -17.23,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-light-swing-1.wav",
+    "rmsDb": -12.52,
+    "peakDb": -3.54
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-heavy-hit-1.wav",
+    "rmsDb": -18.17,
+    "peakDb": -2.39
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-heavy-hit-3.wav",
+    "rmsDb": -17.8,
+    "peakDb": -2.64
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-charged-hit-1.wav",
+    "rmsDb": -19.21,
+    "peakDb": -2.88
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-charged-swing-3.wav",
+    "rmsDb": -12.14,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-heavy-hit-2.wav",
+    "rmsDb": -18.76,
+    "peakDb": -2.5
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-light-hit-3.wav",
+    "rmsDb": -17.05,
+    "peakDb": -2.59
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-light-hit-2.wav",
+    "rmsDb": -15.82,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-heavy-hit-3.wav",
+    "rmsDb": -17.76,
+    "peakDb": -2.42
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-charged-swing-2.wav",
+    "rmsDb": -11.95,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-heavy-hit-2.wav",
+    "rmsDb": -17.26,
+    "peakDb": -2.47
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-light-hit-1.wav",
+    "rmsDb": -15.69,
+    "peakDb": -2.76
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-light-hit-3.wav",
+    "rmsDb": -16.09,
+    "peakDb": -2.71
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-light-swing-1.wav",
+    "rmsDb": -12.58,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-charged-hit-1.wav",
+    "rmsDb": -19.51,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-charged-hit-3.wav",
+    "rmsDb": -18.63,
+    "peakDb": -2.42
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/charge.wav",
+    "rmsDb": -18.43,
+    "peakDb": -6.15
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-heavy-swing-3.wav",
+    "rmsDb": -12.48,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-charged-swing-2.wav",
+    "rmsDb": -12.2,
+    "peakDb": -2.63
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-charged-swing-3.wav",
+    "rmsDb": -12.03,
+    "peakDb": -2.47
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-heavy-swing-2.wav",
+    "rmsDb": -12.15,
+    "peakDb": -2.58
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-charged-hit-2.wav",
+    "rmsDb": -17.97,
+    "peakDb": -2.62
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-charged-swing-1.wav",
+    "rmsDb": -12.28,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-charged-hit-2.wav",
+    "rmsDb": -19.44,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-charged-swing-3.wav",
+    "rmsDb": -12.14,
+    "peakDb": -2.73
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-charged-swing-1.wav",
+    "rmsDb": -12.4,
+    "peakDb": -2.73
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-heavy-swing-1.wav",
+    "rmsDb": -12.63,
+    "peakDb": -2.75
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-charged-hit-1.wav",
+    "rmsDb": -18.89,
+    "peakDb": -2.41
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-charged-swing-2.wav",
+    "rmsDb": -12.73,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-charged-hit-3.wav",
+    "rmsDb": -18.08,
+    "peakDb": -2.45
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-charged-swing-3.wav",
+    "rmsDb": -12.01,
+    "peakDb": -2.49
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-heavy-swing-3.wav",
+    "rmsDb": -12.62,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-heavy-swing-2.wav",
+    "rmsDb": -12.61,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-charged-swing-2.wav",
+    "rmsDb": -11.87,
+    "peakDb": -2.4
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-charged-swing-1.wav",
+    "rmsDb": -13.01,
+    "peakDb": -2.59
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-charged-swing-3.wav",
+    "rmsDb": -12.42,
+    "peakDb": -2.79
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/axe-heavy-swing-1.wav",
+    "rmsDb": -13.07,
+    "peakDb": -2.56
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-charged-swing-1.wav",
+    "rmsDb": -12.29,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-charged-swing-2.wav",
+    "rmsDb": -12.59,
+    "peakDb": -2.41
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-charged-swing-1.wav",
+    "rmsDb": -12.49,
+    "peakDb": -2.52
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-light-swing-3.wav",
+    "rmsDb": -12.72,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-charged-hit-2.wav",
+    "rmsDb": -19.73,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-light-swing-1.wav",
+    "rmsDb": -12.28,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-light-hit-2.wav",
+    "rmsDb": -15.71,
+    "peakDb": -2.65
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-light-hit-1.wav",
+    "rmsDb": -13.83,
+    "peakDb": -2.5
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-heavy-swing-2.wav",
+    "rmsDb": -12.79,
+    "peakDb": -2.48
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-heavy-hit-3.wav",
+    "rmsDb": -17.48,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-heavy-hit-1.wav",
+    "rmsDb": -18.04,
+    "peakDb": -2.59
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-heavy-hit-2.wav",
+    "rmsDb": -17.38,
+    "peakDb": -2.43
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-heavy-swing-3.wav",
+    "rmsDb": -12.46,
+    "peakDb": -2.58
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-heavy-hit-1.wav",
+    "rmsDb": -15.64,
+    "peakDb": -2.39
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-light-swing-1.wav",
+    "rmsDb": -12.25,
+    "peakDb": -2.42
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-light-hit-3.wav",
+    "rmsDb": -16.92,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-light-hit-1.wav",
+    "rmsDb": -16.36,
+    "peakDb": -2.9
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-charged-hit-3.wav",
+    "rmsDb": -18.06,
+    "peakDb": -2.44
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-light-swing-2.wav",
+    "rmsDb": -12.52,
+    "peakDb": -2.71
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-heavy-swing-1.wav",
+    "rmsDb": -12.56,
+    "peakDb": -2.75
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-heavy-swing-3.wav",
+    "rmsDb": -12.43,
+    "peakDb": -2.51
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-charged-swing-2.wav",
+    "rmsDb": -12.22,
+    "peakDb": -2.39
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-charged-hit-1.wav",
+    "rmsDb": -18.84,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-light-hit-3.wav",
+    "rmsDb": -16.59,
+    "peakDb": -2.44
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-light-hit-1.wav",
+    "rmsDb": -16.13,
+    "peakDb": -2.72
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-light-hit-2.wav",
+    "rmsDb": -13.86,
+    "peakDb": -2.39
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-light-swing-3.wav",
+    "rmsDb": -11.76,
+    "peakDb": -2.58
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-light-swing-2.wav",
+    "rmsDb": -12.36,
+    "peakDb": -2.42
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-heavy-hit-2.wav",
+    "rmsDb": -17.81,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-heavy-hit-3.wav",
+    "rmsDb": -15.31,
+    "peakDb": -2.43
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-heavy-swing-1.wav",
+    "rmsDb": -12.32,
+    "peakDb": -2.56
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-heavy-hit-3.wav",
+    "rmsDb": -17.0,
+    "peakDb": -2.78
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-heavy-hit-1.wav",
+    "rmsDb": -18.51,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-heavy-hit-2.wav",
+    "rmsDb": -15.7,
+    "peakDb": -2.41
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-light-swing-3.wav",
+    "rmsDb": -12.58,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-light-hit-2.wav",
+    "rmsDb": -16.95,
+    "peakDb": -2.57
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-light-swing-2.wav",
+    "rmsDb": -12.25,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-light-hit-3.wav",
+    "rmsDb": -13.88,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/whip-charged-swing-3.wav",
+    "rmsDb": -11.86,
+    "peakDb": -2.51
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-light-swing-1.wav",
+    "rmsDb": -12.73,
+    "peakDb": -2.74
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-heavy-swing-2.wav",
+    "rmsDb": -12.62,
+    "peakDb": -2.5
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-charged-swing-3.wav",
+    "rmsDb": -12.28,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-charged-hit-3.wav",
+    "rmsDb": -18.86,
+    "peakDb": -2.49
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-charged-hit-2.wav",
+    "rmsDb": -17.91,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-charged-swing-1.wav",
+    "rmsDb": -11.82,
+    "peakDb": -2.56
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-charged-hit-1.wav",
+    "rmsDb": -18.41,
+    "peakDb": -2.74
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-charged-hit-3.wav",
+    "rmsDb": -18.81,
+    "peakDb": -2.45
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-charged-hit-2.wav",
+    "rmsDb": -18.74,
+    "peakDb": -2.55
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-charged-swing-2.wav",
+    "rmsDb": -12.42,
+    "peakDb": -2.67
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-light-swing-1.wav",
+    "rmsDb": -12.32,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-light-swing-3.wav",
+    "rmsDb": -12.97,
+    "peakDb": -2.8
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/blade-charged-hit-1.wav",
+    "rmsDb": -18.19,
+    "peakDb": -2.44
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-charged-hit-2.wav",
+    "rmsDb": -18.86,
+    "peakDb": -2.52
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-charged-swing-2.wav",
+    "rmsDb": -12.68,
+    "peakDb": -2.45
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/body-charged-hit-3.wav",
+    "rmsDb": -18.5,
+    "peakDb": -2.57
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-charged-swing-3.wav",
+    "rmsDb": -12.36,
+    "peakDb": -2.45
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-charged-hit-1.wav",
+    "rmsDb": -18.45,
+    "peakDb": -2.64
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/shaft-charged-swing-1.wav",
+    "rmsDb": -12.91,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/guitar-light-swing-2.wav",
+    "rmsDb": -12.48,
+    "peakDb": -2.6
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-heavy-hit-1.wav",
+    "rmsDb": -17.92,
+    "peakDb": -2.74
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-heavy-swing-1.wav",
+    "rmsDb": -12.71,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-heavy-swing-1.wav",
+    "rmsDb": -12.53,
+    "peakDb": -2.42
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-light-hit-1.wav",
+    "rmsDb": -16.31,
+    "peakDb": -2.43
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-heavy-hit-2.wav",
+    "rmsDb": -17.8,
+    "peakDb": -2.51
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-light-hit-3.wav",
+    "rmsDb": -15.83,
+    "peakDb": -2.44
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-heavy-swing-2.wav",
+    "rmsDb": -12.24,
+    "peakDb": -2.49
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-heavy-swing-3.wav",
+    "rmsDb": -12.25,
+    "peakDb": -2.49
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/flame-heavy-swing-2.wav",
+    "rmsDb": -11.88,
+    "peakDb": -2.6
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/foot-heavy-swing-3.wav",
+    "rmsDb": -12.04,
+    "peakDb": -2.67
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-light-hit-2.wav",
+    "rmsDb": -15.6,
+    "peakDb": -2.82
+  },
+  {
+    "file": "apps/client/public/audio/combat-v2/fist-heavy-hit-3.wav",
+    "rmsDb": -17.11,
+    "peakDb": -2.66
+  },
+  {
+    "file": "apps/client/public/audio/announcer/two.wav",
+    "rmsDb": -14.01,
+    "peakDb": -0.57
+  },
+  {
+    "file": "apps/client/public/audio/announcer/three.wav",
+    "rmsDb": -15.09,
+    "peakDb": -0.93
+  },
+  {
+    "file": "apps/client/public/audio/announcer/fight.wav",
+    "rmsDb": -17.94,
+    "peakDb": -1.51
+  },
+  {
+    "file": "apps/client/public/audio/announcer/one.wav",
+    "rmsDb": -12.74,
+    "peakDb": -0.85
+  },
+  {
+    "file": "apps/client/public/audio/materials/kick/end.wav",
+    "rmsDb": -17.22,
+    "peakDb": -2.66
+  },
+  {
+    "file": "apps/client/public/audio/materials/kick/impact-1.wav",
+    "rmsDb": -19.12,
+    "peakDb": -2.67
+  },
+  {
+    "file": "apps/client/public/audio/materials/kick/impact-2.wav",
+    "rmsDb": -17.05,
+    "peakDb": -2.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/kick/impact-3.wav",
+    "rmsDb": -18.06,
+    "peakDb": -2.4
+  },
+  {
+    "file": "apps/client/public/audio/materials/kick/active.wav",
+    "rmsDb": -10.72,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/kick/start.wav",
+    "rmsDb": -17.14,
+    "peakDb": -2.66
+  },
+  {
+    "file": "apps/client/public/audio/materials/paper/end.wav",
+    "rmsDb": -15.51,
+    "peakDb": -2.63
+  },
+  {
+    "file": "apps/client/public/audio/materials/paper/impact-1.wav",
+    "rmsDb": -15.99,
+    "peakDb": -2.65
+  },
+  {
+    "file": "apps/client/public/audio/materials/paper/impact-2.wav",
+    "rmsDb": -15.2,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/paper/impact-3.wav",
+    "rmsDb": -15.98,
+    "peakDb": -2.81
+  },
+  {
+    "file": "apps/client/public/audio/materials/paper/active.wav",
+    "rmsDb": -15.95,
+    "peakDb": -2.85
+  },
+  {
+    "file": "apps/client/public/audio/materials/paper/start.wav",
+    "rmsDb": -14.59,
+    "peakDb": -3.45
+  },
+  {
+    "file": "apps/client/public/audio/materials/wood/end.wav",
+    "rmsDb": -19.01,
+    "peakDb": -2.55
+  },
+  {
+    "file": "apps/client/public/audio/materials/wood/impact-1.wav",
+    "rmsDb": -20.42,
+    "peakDb": -2.56
+  },
+  {
+    "file": "apps/client/public/audio/materials/wood/impact-2.wav",
+    "rmsDb": -20.15,
+    "peakDb": -4.04
+  },
+  {
+    "file": "apps/client/public/audio/materials/wood/impact-3.wav",
+    "rmsDb": -21.13,
+    "peakDb": -3.59
+  },
+  {
+    "file": "apps/client/public/audio/materials/wood/active.wav",
+    "rmsDb": -11.77,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/wood/start.wav",
+    "rmsDb": -15.53,
+    "peakDb": -2.56
+  },
+  {
+    "file": "apps/client/public/audio/materials/juggle/end.wav",
+    "rmsDb": -16.99,
+    "peakDb": -4.18
+  },
+  {
+    "file": "apps/client/public/audio/materials/juggle/impact-1.wav",
+    "rmsDb": -18.42,
+    "peakDb": -3.76
+  },
+  {
+    "file": "apps/client/public/audio/materials/juggle/impact-2.wav",
+    "rmsDb": -18.5,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/materials/juggle/impact-3.wav",
+    "rmsDb": -18.23,
+    "peakDb": -3.12
+  },
+  {
+    "file": "apps/client/public/audio/materials/juggle/active.wav",
+    "rmsDb": -13.7,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/juggle/start.wav",
+    "rmsDb": -14.96,
+    "peakDb": -3.7
+  },
+  {
+    "file": "apps/client/public/audio/materials/tree/end.wav",
+    "rmsDb": -18.76,
+    "peakDb": -2.87
+  },
+  {
+    "file": "apps/client/public/audio/materials/tree/impact-1.wav",
+    "rmsDb": -20.01,
+    "peakDb": -2.75
+  },
+  {
+    "file": "apps/client/public/audio/materials/tree/impact-2.wav",
+    "rmsDb": -18.91,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/tree/impact-3.wav",
+    "rmsDb": -19.51,
+    "peakDb": -2.53
+  },
+  {
+    "file": "apps/client/public/audio/materials/tree/active.wav",
+    "rmsDb": -11.89,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/tree/start.wav",
+    "rmsDb": -14.87,
+    "peakDb": -2.73
+  },
+  {
+    "file": "apps/client/public/audio/materials/sword/end.wav",
+    "rmsDb": -18.05,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/sword/impact-1.wav",
+    "rmsDb": -19.31,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/sword/impact-2.wav",
+    "rmsDb": -18.98,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/sword/impact-3.wav",
+    "rmsDb": -19.89,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/sword/active.wav",
+    "rmsDb": -11.74,
+    "peakDb": -2.74
+  },
+  {
+    "file": "apps/client/public/audio/materials/sword/start.wav",
+    "rmsDb": -14.96,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/meditation/end.wav",
+    "rmsDb": -15.48,
+    "peakDb": -2.27
+  },
+  {
+    "file": "apps/client/public/audio/materials/meditation/impact-1.wav",
+    "rmsDb": -16.29,
+    "peakDb": -2.26
+  },
+  {
+    "file": "apps/client/public/audio/materials/meditation/impact-2.wav",
+    "rmsDb": -15.76,
+    "peakDb": -2.28
+  },
+  {
+    "file": "apps/client/public/audio/materials/meditation/impact-3.wav",
+    "rmsDb": -16.17,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/meditation/active.wav",
+    "rmsDb": -9.56,
+    "peakDb": -2.18
+  },
+  {
+    "file": "apps/client/public/audio/materials/meditation/start.wav",
+    "rmsDb": -16.12,
+    "peakDb": -2.26
+  },
+  {
+    "file": "apps/client/public/audio/materials/feather/end.wav",
+    "rmsDb": -10.89,
+    "peakDb": -2.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/feather/impact-1.wav",
+    "rmsDb": -10.99,
+    "peakDb": -2.5
+  },
+  {
+    "file": "apps/client/public/audio/materials/feather/impact-2.wav",
+    "rmsDb": -10.99,
+    "peakDb": -2.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/feather/impact-3.wav",
+    "rmsDb": -10.62,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/feather/active.wav",
+    "rmsDb": -10.61,
+    "peakDb": -2.19
+  },
+  {
+    "file": "apps/client/public/audio/materials/feather/start.wav",
+    "rmsDb": -12.81,
+    "peakDb": -2.57
+  },
+  {
+    "file": "apps/client/public/audio/materials/slam/end.wav",
+    "rmsDb": -17.54,
+    "peakDb": -2.45
+  },
+  {
+    "file": "apps/client/public/audio/materials/slam/impact-1.wav",
+    "rmsDb": -18.84,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/materials/slam/impact-2.wav",
+    "rmsDb": -17.82,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/slam/impact-3.wav",
+    "rmsDb": -17.25,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/slam/active.wav",
+    "rmsDb": -10.9,
+    "peakDb": -2.42
+  },
+  {
+    "file": "apps/client/public/audio/materials/slam/start.wav",
+    "rmsDb": -17.04,
+    "peakDb": -2.45
+  },
+  {
+    "file": "apps/client/public/audio/materials/turret/end.wav",
+    "rmsDb": -18.32,
+    "peakDb": -2.57
+  },
+  {
+    "file": "apps/client/public/audio/materials/turret/impact-1.wav",
+    "rmsDb": -19.67,
+    "peakDb": -2.59
+  },
+  {
+    "file": "apps/client/public/audio/materials/turret/impact-2.wav",
+    "rmsDb": -19.66,
+    "peakDb": -3.39
+  },
+  {
+    "file": "apps/client/public/audio/materials/turret/impact-3.wav",
+    "rmsDb": -20.05,
+    "peakDb": -3.01
+  },
+  {
+    "file": "apps/client/public/audio/materials/turret/active.wav",
+    "rmsDb": -12.84,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/turret/start.wav",
+    "rmsDb": -17.81,
+    "peakDb": -2.59
+  },
+  {
+    "file": "apps/client/public/audio/materials/bees/end.wav",
+    "rmsDb": -14.77,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/bees/impact-1.wav",
+    "rmsDb": -16.52,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/bees/impact-2.wav",
+    "rmsDb": -16.52,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/bees/impact-3.wav",
+    "rmsDb": -16.52,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/bees/active.wav",
+    "rmsDb": -11.75,
+    "peakDb": -2.24
+  },
+  {
+    "file": "apps/client/public/audio/materials/bees/start.wav",
+    "rmsDb": -16.19,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/angel/end.wav",
+    "rmsDb": -16.3,
+    "peakDb": -2.21
+  },
+  {
+    "file": "apps/client/public/audio/materials/angel/impact-1.wav",
+    "rmsDb": -16.62,
+    "peakDb": -2.21
+  },
+  {
+    "file": "apps/client/public/audio/materials/angel/impact-2.wav",
+    "rmsDb": -16.66,
+    "peakDb": -2.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/angel/impact-3.wav",
+    "rmsDb": -16.47,
+    "peakDb": -2.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/angel/active.wav",
+    "rmsDb": -9.83,
+    "peakDb": -2.42
+  },
+  {
+    "file": "apps/client/public/audio/materials/angel/start.wav",
+    "rmsDb": -16.56,
+    "peakDb": -2.21
+  },
+  {
+    "file": "apps/client/public/audio/materials/appliance/end.wav",
+    "rmsDb": -18.75,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/appliance/impact-1.wav",
+    "rmsDb": -20.07,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/appliance/impact-2.wav",
+    "rmsDb": -19.3,
+    "peakDb": -3.12
+  },
+  {
+    "file": "apps/client/public/audio/materials/appliance/impact-3.wav",
+    "rmsDb": -19.79,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/appliance/active.wav",
+    "rmsDb": -11.6,
+    "peakDb": -2.52
+  },
+  {
+    "file": "apps/client/public/audio/materials/appliance/start.wav",
+    "rmsDb": -15.63,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/romance/end.wav",
+    "rmsDb": -15.98,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/romance/impact-1.wav",
+    "rmsDb": -16.42,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/romance/impact-2.wav",
+    "rmsDb": -16.25,
+    "peakDb": -2.19
+  },
+  {
+    "file": "apps/client/public/audio/materials/romance/impact-3.wav",
+    "rmsDb": -16.42,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/romance/active.wav",
+    "rmsDb": -9.55,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/romance/start.wav",
+    "rmsDb": -16.33,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/water/end.wav",
+    "rmsDb": -16.25,
+    "peakDb": -3.05
+  },
+  {
+    "file": "apps/client/public/audio/materials/water/impact-1.wav",
+    "rmsDb": -16.61,
+    "peakDb": -2.92
+  },
+  {
+    "file": "apps/client/public/audio/materials/water/impact-2.wav",
+    "rmsDb": -16.52,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/water/impact-3.wav",
+    "rmsDb": -17.45,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/water/active.wav",
+    "rmsDb": -12.16,
+    "peakDb": -2.18
+  },
+  {
+    "file": "apps/client/public/audio/materials/water/start.wav",
+    "rmsDb": -14.04,
+    "peakDb": -2.89
+  },
+  {
+    "file": "apps/client/public/audio/materials/plush/end.wav",
+    "rmsDb": -15.34,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/plush/impact-1.wav",
+    "rmsDb": -15.5,
+    "peakDb": -2.58
+  },
+  {
+    "file": "apps/client/public/audio/materials/plush/impact-2.wav",
+    "rmsDb": -15.92,
+    "peakDb": -2.8
+  },
+  {
+    "file": "apps/client/public/audio/materials/plush/impact-3.wav",
+    "rmsDb": -15.75,
+    "peakDb": -2.53
+  },
+  {
+    "file": "apps/client/public/audio/materials/plush/active.wav",
+    "rmsDb": -15.9,
+    "peakDb": -2.72
+  },
+  {
+    "file": "apps/client/public/audio/materials/plush/start.wav",
+    "rmsDb": -13.94,
+    "peakDb": -3.32
+  },
+  {
+    "file": "apps/client/public/audio/materials/football/end.wav",
+    "rmsDb": -17.01,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/football/impact-1.wav",
+    "rmsDb": -18.54,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/football/impact-2.wav",
+    "rmsDb": -18.47,
+    "peakDb": -3.08
+  },
+  {
+    "file": "apps/client/public/audio/materials/football/impact-3.wav",
+    "rmsDb": -18.42,
+    "peakDb": -2.72
+  },
+  {
+    "file": "apps/client/public/audio/materials/football/active.wav",
+    "rmsDb": -15.76,
+    "peakDb": -3.49
+  },
+  {
+    "file": "apps/client/public/audio/materials/football/start.wav",
+    "rmsDb": -15.68,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/dart/end.wav",
+    "rmsDb": -11.22,
+    "peakDb": -2.67
+  },
+  {
+    "file": "apps/client/public/audio/materials/dart/impact-1.wav",
+    "rmsDb": -11.04,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/dart/impact-2.wav",
+    "rmsDb": -10.45,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/dart/impact-3.wav",
+    "rmsDb": -11.15,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/dart/active.wav",
+    "rmsDb": -10.69,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/dart/start.wav",
+    "rmsDb": -12.67,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/immortal/end.wav",
+    "rmsDb": -16.23,
+    "peakDb": -2.55
+  },
+  {
+    "file": "apps/client/public/audio/materials/immortal/impact-1.wav",
+    "rmsDb": -16.59,
+    "peakDb": -2.55
+  },
+  {
+    "file": "apps/client/public/audio/materials/immortal/impact-2.wav",
+    "rmsDb": -16.59,
+    "peakDb": -2.31
+  },
+  {
+    "file": "apps/client/public/audio/materials/immortal/impact-3.wav",
+    "rmsDb": -16.51,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/immortal/active.wav",
+    "rmsDb": -11.26,
+    "peakDb": -2.34
+  },
+  {
+    "file": "apps/client/public/audio/materials/immortal/start.wav",
+    "rmsDb": -16.51,
+    "peakDb": -2.55
+  },
+  {
+    "file": "apps/client/public/audio/materials/personality/end.wav",
+    "rmsDb": -16.04,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/personality/impact-1.wav",
+    "rmsDb": -16.52,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/personality/impact-2.wav",
+    "rmsDb": -16.08,
+    "peakDb": -2.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/personality/impact-3.wav",
+    "rmsDb": -16.33,
+    "peakDb": -2.23
+  },
+  {
+    "file": "apps/client/public/audio/materials/personality/active.wav",
+    "rmsDb": -9.5,
+    "peakDb": -2.19
+  },
+  {
+    "file": "apps/client/public/audio/materials/personality/start.wav",
+    "rmsDb": -16.42,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/panda/end.wav",
+    "rmsDb": -16.29,
+    "peakDb": -2.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/panda/impact-1.wav",
+    "rmsDb": -17.74,
+    "peakDb": -2.34
+  },
+  {
+    "file": "apps/client/public/audio/materials/panda/impact-2.wav",
+    "rmsDb": -18.8,
+    "peakDb": -3.49
+  },
+  {
+    "file": "apps/client/public/audio/materials/panda/impact-3.wav",
+    "rmsDb": -19.68,
+    "peakDb": -3.06
+  },
+  {
+    "file": "apps/client/public/audio/materials/panda/active.wav",
+    "rmsDb": -10.72,
+    "peakDb": -2.65
+  },
+  {
+    "file": "apps/client/public/audio/materials/panda/start.wav",
+    "rmsDb": -15.85,
+    "peakDb": -2.33
+  },
+  {
+    "file": "apps/client/public/audio/materials/shadow/end.wav",
+    "rmsDb": -10.85,
+    "peakDb": -2.28
+  },
+  {
+    "file": "apps/client/public/audio/materials/shadow/impact-1.wav",
+    "rmsDb": -11.0,
+    "peakDb": -2.35
+  },
+  {
+    "file": "apps/client/public/audio/materials/shadow/impact-2.wav",
+    "rmsDb": -10.98,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/shadow/impact-3.wav",
+    "rmsDb": -10.78,
+    "peakDb": -2.36
+  },
+  {
+    "file": "apps/client/public/audio/materials/shadow/active.wav",
+    "rmsDb": -10.85,
+    "peakDb": -2.19
+  },
+  {
+    "file": "apps/client/public/audio/materials/shadow/start.wav",
+    "rmsDb": -12.72,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/materials/band/end.wav",
+    "rmsDb": -12.9,
+    "peakDb": -2.19
+  },
+  {
+    "file": "apps/client/public/audio/materials/band/impact-1.wav",
+    "rmsDb": -13.95,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/band/impact-2.wav",
+    "rmsDb": -13.97,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/band/impact-3.wav",
+    "rmsDb": -13.96,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/band/active.wav",
+    "rmsDb": -9.49,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/band/start.wav",
+    "rmsDb": -13.67,
+    "peakDb": -2.18
+  },
+  {
+    "file": "apps/client/public/audio/materials/divine/end.wav",
+    "rmsDb": -18.2,
+    "peakDb": -2.39
+  },
+  {
+    "file": "apps/client/public/audio/materials/divine/impact-1.wav",
+    "rmsDb": -18.46,
+    "peakDb": -2.39
+  },
+  {
+    "file": "apps/client/public/audio/materials/divine/impact-2.wav",
+    "rmsDb": -17.31,
+    "peakDb": -2.88
+  },
+  {
+    "file": "apps/client/public/audio/materials/divine/impact-3.wav",
+    "rmsDb": -17.57,
+    "peakDb": -2.44
+  },
+  {
+    "file": "apps/client/public/audio/materials/divine/active.wav",
+    "rmsDb": -11.52,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/divine/start.wav",
+    "rmsDb": -18.41,
+    "peakDb": -2.39
+  },
+  {
+    "file": "apps/client/public/audio/materials/body/end.wav",
+    "rmsDb": -18.07,
+    "peakDb": -3.79
+  },
+  {
+    "file": "apps/client/public/audio/materials/body/impact-1.wav",
+    "rmsDb": -19.14,
+    "peakDb": -3.8
+  },
+  {
+    "file": "apps/client/public/audio/materials/body/impact-2.wav",
+    "rmsDb": -18.06,
+    "peakDb": -2.59
+  },
+  {
+    "file": "apps/client/public/audio/materials/body/impact-3.wav",
+    "rmsDb": -18.84,
+    "peakDb": -3.67
+  },
+  {
+    "file": "apps/client/public/audio/materials/body/active.wav",
+    "rmsDb": -10.91,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/body/start.wav",
+    "rmsDb": -16.97,
+    "peakDb": -3.78
+  },
+  {
+    "file": "apps/client/public/audio/materials/knight/end.wav",
+    "rmsDb": -18.49,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/knight/impact-1.wav",
+    "rmsDb": -19.73,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/knight/impact-2.wav",
+    "rmsDb": -18.73,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/knight/impact-3.wav",
+    "rmsDb": -20.01,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/knight/active.wav",
+    "rmsDb": -11.91,
+    "peakDb": -3.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/knight/start.wav",
+    "rmsDb": -14.55,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/gear/end.wav",
+    "rmsDb": -17.93,
+    "peakDb": -3.94
+  },
+  {
+    "file": "apps/client/public/audio/materials/gear/impact-1.wav",
+    "rmsDb": -19.3,
+    "peakDb": -3.66
+  },
+  {
+    "file": "apps/client/public/audio/materials/gear/impact-2.wav",
+    "rmsDb": -19.62,
+    "peakDb": -4.24
+  },
+  {
+    "file": "apps/client/public/audio/materials/gear/impact-3.wav",
+    "rmsDb": -18.01,
+    "peakDb": -2.87
+  },
+  {
+    "file": "apps/client/public/audio/materials/gear/active.wav",
+    "rmsDb": -11.76,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/gear/start.wav",
+    "rmsDb": -15.0,
+    "peakDb": -3.57
+  },
+  {
+    "file": "apps/client/public/audio/materials/guitar/end.wav",
+    "rmsDb": -19.47,
+    "peakDb": -4.26
+  },
+  {
+    "file": "apps/client/public/audio/materials/guitar/impact-1.wav",
+    "rmsDb": -20.63,
+    "peakDb": -4.27
+  },
+  {
+    "file": "apps/client/public/audio/materials/guitar/impact-2.wav",
+    "rmsDb": -20.07,
+    "peakDb": -4.13
+  },
+  {
+    "file": "apps/client/public/audio/materials/guitar/impact-3.wav",
+    "rmsDb": -19.97,
+    "peakDb": -3.83
+  },
+  {
+    "file": "apps/client/public/audio/materials/guitar/active.wav",
+    "rmsDb": -11.9,
+    "peakDb": -2.94
+  },
+  {
+    "file": "apps/client/public/audio/materials/guitar/start.wav",
+    "rmsDb": -15.49,
+    "peakDb": -4.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/masonry/end.wav",
+    "rmsDb": -19.27,
+    "peakDb": -3.9
+  },
+  {
+    "file": "apps/client/public/audio/materials/masonry/impact-1.wav",
+    "rmsDb": -19.35,
+    "peakDb": -3.91
+  },
+  {
+    "file": "apps/client/public/audio/materials/masonry/impact-2.wav",
+    "rmsDb": -17.63,
+    "peakDb": -3.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/masonry/impact-3.wav",
+    "rmsDb": -19.0,
+    "peakDb": -3.41
+  },
+  {
+    "file": "apps/client/public/audio/materials/masonry/active.wav",
+    "rmsDb": -13.58,
+    "peakDb": -3.13
+  },
+  {
+    "file": "apps/client/public/audio/materials/masonry/start.wav",
+    "rmsDb": -16.26,
+    "peakDb": -3.9
+  },
+  {
+    "file": "apps/client/public/audio/materials/coins/end.wav",
+    "rmsDb": -17.51,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/coins/impact-1.wav",
+    "rmsDb": -19.23,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/coins/impact-2.wav",
+    "rmsDb": -19.35,
+    "peakDb": -3.14
+  },
+  {
+    "file": "apps/client/public/audio/materials/coins/impact-3.wav",
+    "rmsDb": -18.9,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/coins/active.wav",
+    "rmsDb": -11.57,
+    "peakDb": -2.34
+  },
+  {
+    "file": "apps/client/public/audio/materials/coins/start.wav",
+    "rmsDb": -15.2,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/wine/end.wav",
+    "rmsDb": -17.0,
+    "peakDb": -3.65
+  },
+  {
+    "file": "apps/client/public/audio/materials/wine/impact-1.wav",
+    "rmsDb": -17.07,
+    "peakDb": -3.39
+  },
+  {
+    "file": "apps/client/public/audio/materials/wine/impact-2.wav",
+    "rmsDb": -18.47,
+    "peakDb": -3.56
+  },
+  {
+    "file": "apps/client/public/audio/materials/wine/impact-3.wav",
+    "rmsDb": -17.29,
+    "peakDb": -2.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/wine/active.wav",
+    "rmsDb": -15.59,
+    "peakDb": -3.57
+  },
+  {
+    "file": "apps/client/public/audio/materials/wine/start.wav",
+    "rmsDb": -14.22,
+    "peakDb": -3.12
+  },
+  {
+    "file": "apps/client/public/audio/materials/blood/end.wav",
+    "rmsDb": -15.79,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/blood/impact-1.wav",
+    "rmsDb": -16.53,
+    "peakDb": -2.53
+  },
+  {
+    "file": "apps/client/public/audio/materials/blood/impact-2.wav",
+    "rmsDb": -16.56,
+    "peakDb": -2.75
+  },
+  {
+    "file": "apps/client/public/audio/materials/blood/impact-3.wav",
+    "rmsDb": -21.05,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/blood/active.wav",
+    "rmsDb": -13.71,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/blood/start.wav",
+    "rmsDb": -14.12,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/basketball/end.wav",
+    "rmsDb": -17.18,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/basketball/impact-1.wav",
+    "rmsDb": -18.93,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/basketball/impact-2.wav",
+    "rmsDb": -17.82,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/basketball/impact-3.wav",
+    "rmsDb": -18.19,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/basketball/active.wav",
+    "rmsDb": -14.73,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/basketball/start.wav",
+    "rmsDb": -16.02,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/product/end.wav",
+    "rmsDb": -17.63,
+    "peakDb": -2.24
+  },
+  {
+    "file": "apps/client/public/audio/materials/product/impact-1.wav",
+    "rmsDb": -18.92,
+    "peakDb": -2.23
+  },
+  {
+    "file": "apps/client/public/audio/materials/product/impact-2.wav",
+    "rmsDb": -19.5,
+    "peakDb": -3.19
+  },
+  {
+    "file": "apps/client/public/audio/materials/product/impact-3.wav",
+    "rmsDb": -20.61,
+    "peakDb": -4.32
+  },
+  {
+    "file": "apps/client/public/audio/materials/product/active.wav",
+    "rmsDb": -11.5,
+    "peakDb": -2.32
+  },
+  {
+    "file": "apps/client/public/audio/materials/product/start.wav",
+    "rmsDb": -14.15,
+    "peakDb": -2.24
+  },
+  {
+    "file": "apps/client/public/audio/materials/hug/end.wav",
+    "rmsDb": -15.81,
+    "peakDb": -2.3
+  },
+  {
+    "file": "apps/client/public/audio/materials/hug/impact-1.wav",
+    "rmsDb": -17.4,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/hug/impact-2.wav",
+    "rmsDb": -18.18,
+    "peakDb": -3.29
+  },
+  {
+    "file": "apps/client/public/audio/materials/hug/impact-3.wav",
+    "rmsDb": -18.88,
+    "peakDb": -3.12
+  },
+  {
+    "file": "apps/client/public/audio/materials/hug/active.wav",
+    "rmsDb": -10.5,
+    "peakDb": -2.36
+  },
+  {
+    "file": "apps/client/public/audio/materials/hug/start.wav",
+    "rmsDb": -15.11,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/buda/end.wav",
+    "rmsDb": -16.12,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/buda/impact-1.wav",
+    "rmsDb": -16.61,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/buda/impact-2.wav",
+    "rmsDb": -16.63,
+    "peakDb": -2.84
+  },
+  {
+    "file": "apps/client/public/audio/materials/buda/impact-3.wav",
+    "rmsDb": -17.06,
+    "peakDb": -2.34
+  },
+  {
+    "file": "apps/client/public/audio/materials/buda/active.wav",
+    "rmsDb": -11.37,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/buda/start.wav",
+    "rmsDb": -16.5,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/head/end.wav",
+    "rmsDb": -17.03,
+    "peakDb": -2.68
+  },
+  {
+    "file": "apps/client/public/audio/materials/head/impact-1.wav",
+    "rmsDb": -18.73,
+    "peakDb": -2.67
+  },
+  {
+    "file": "apps/client/public/audio/materials/head/impact-2.wav",
+    "rmsDb": -18.52,
+    "peakDb": -3.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/head/impact-3.wav",
+    "rmsDb": -18.34,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/head/active.wav",
+    "rmsDb": -11.2,
+    "peakDb": -2.43
+  },
+  {
+    "file": "apps/client/public/audio/materials/head/start.wav",
+    "rmsDb": -16.78,
+    "peakDb": -2.74
+  },
+  {
+    "file": "apps/client/public/audio/materials/star/end.wav",
+    "rmsDb": -12.36,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/star/impact-1.wav",
+    "rmsDb": -13.61,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/star/impact-2.wav",
+    "rmsDb": -13.62,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/star/impact-3.wav",
+    "rmsDb": -13.64,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/star/active.wav",
+    "rmsDb": -9.33,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/star/start.wav",
+    "rmsDb": -13.27,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/sniff/end.wav",
+    "rmsDb": -17.5,
+    "peakDb": -4.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/sniff/impact-1.wav",
+    "rmsDb": -17.95,
+    "peakDb": -4.26
+  },
+  {
+    "file": "apps/client/public/audio/materials/sniff/impact-2.wav",
+    "rmsDb": -18.6,
+    "peakDb": -3.19
+  },
+  {
+    "file": "apps/client/public/audio/materials/sniff/impact-3.wav",
+    "rmsDb": -17.09,
+    "peakDb": -3.43
+  },
+  {
+    "file": "apps/client/public/audio/materials/sniff/active.wav",
+    "rmsDb": -12.7,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/sniff/start.wav",
+    "rmsDb": -14.89,
+    "peakDb": -4.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/chomp/end.wav",
+    "rmsDb": -17.38,
+    "peakDb": -2.42
+  },
+  {
+    "file": "apps/client/public/audio/materials/chomp/impact-1.wav",
+    "rmsDb": -17.99,
+    "peakDb": -2.95
+  },
+  {
+    "file": "apps/client/public/audio/materials/chomp/impact-2.wav",
+    "rmsDb": -18.51,
+    "peakDb": -3.27
+  },
+  {
+    "file": "apps/client/public/audio/materials/chomp/impact-3.wav",
+    "rmsDb": -18.16,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/chomp/active.wav",
+    "rmsDb": -14.88,
+    "peakDb": -2.77
+  },
+  {
+    "file": "apps/client/public/audio/materials/chomp/start.wav",
+    "rmsDb": -15.08,
+    "peakDb": -3.01
+  },
+  {
+    "file": "apps/client/public/audio/materials/fire/end.wav",
+    "rmsDb": -17.48,
+    "peakDb": -3.61
+  },
+  {
+    "file": "apps/client/public/audio/materials/fire/impact-1.wav",
+    "rmsDb": -17.92,
+    "peakDb": -3.61
+  },
+  {
+    "file": "apps/client/public/audio/materials/fire/impact-2.wav",
+    "rmsDb": -20.22,
+    "peakDb": -3.33
+  },
+  {
+    "file": "apps/client/public/audio/materials/fire/impact-3.wav",
+    "rmsDb": -19.03,
+    "peakDb": -2.63
+  },
+  {
+    "file": "apps/client/public/audio/materials/fire/active.wav",
+    "rmsDb": -14.47,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/fire/start.wav",
+    "rmsDb": -15.33,
+    "peakDb": -2.7
+  },
+  {
+    "file": "apps/client/public/audio/materials/idea/end.wav",
+    "rmsDb": -15.36,
+    "peakDb": -2.29
+  },
+  {
+    "file": "apps/client/public/audio/materials/idea/impact-1.wav",
+    "rmsDb": -15.98,
+    "peakDb": -2.29
+  },
+  {
+    "file": "apps/client/public/audio/materials/idea/impact-2.wav",
+    "rmsDb": -16.02,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/idea/impact-3.wav",
+    "rmsDb": -16.17,
+    "peakDb": -2.27
+  },
+  {
+    "file": "apps/client/public/audio/materials/idea/active.wav",
+    "rmsDb": -9.66,
+    "peakDb": -2.18
+  },
+  {
+    "file": "apps/client/public/audio/materials/idea/start.wav",
+    "rmsDb": -15.85,
+    "peakDb": -2.29
+  },
+  {
+    "file": "apps/client/public/audio/materials/perfection/end.wav",
+    "rmsDb": -16.23,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/perfection/impact-1.wav",
+    "rmsDb": -16.51,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/perfection/impact-2.wav",
+    "rmsDb": -16.49,
+    "peakDb": -2.18
+  },
+  {
+    "file": "apps/client/public/audio/materials/perfection/impact-3.wav",
+    "rmsDb": -16.48,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/perfection/active.wav",
+    "rmsDb": -9.5,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/perfection/start.wav",
+    "rmsDb": -16.44,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/ancestry/end.wav",
+    "rmsDb": -15.64,
+    "peakDb": -2.26
+  },
+  {
+    "file": "apps/client/public/audio/materials/ancestry/impact-1.wav",
+    "rmsDb": -16.29,
+    "peakDb": -2.27
+  },
+  {
+    "file": "apps/client/public/audio/materials/ancestry/impact-2.wav",
+    "rmsDb": -15.83,
+    "peakDb": -2.33
+  },
+  {
+    "file": "apps/client/public/audio/materials/ancestry/impact-3.wav",
+    "rmsDb": -16.11,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/ancestry/active.wav",
+    "rmsDb": -11.26,
+    "peakDb": -2.28
+  },
+  {
+    "file": "apps/client/public/audio/materials/ancestry/start.wav",
+    "rmsDb": -16.16,
+    "peakDb": -2.27
+  },
+  {
+    "file": "apps/client/public/audio/materials/cloud/end.wav",
+    "rmsDb": -11.0,
+    "peakDb": -2.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/cloud/impact-1.wav",
+    "rmsDb": -11.08,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/cloud/impact-2.wav",
+    "rmsDb": -10.69,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/cloud/impact-3.wav",
+    "rmsDb": -10.87,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/cloud/active.wav",
+    "rmsDb": -10.92,
+    "peakDb": -2.37
+  },
+  {
+    "file": "apps/client/public/audio/materials/cloud/start.wav",
+    "rmsDb": -13.21,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/anger/end.wav",
+    "rmsDb": -16.61,
+    "peakDb": -2.55
+  },
+  {
+    "file": "apps/client/public/audio/materials/anger/impact-1.wav",
+    "rmsDb": -16.86,
+    "peakDb": -2.5
+  },
+  {
+    "file": "apps/client/public/audio/materials/anger/impact-2.wav",
+    "rmsDb": -17.48,
+    "peakDb": -2.41
+  },
+  {
+    "file": "apps/client/public/audio/materials/anger/impact-3.wav",
+    "rmsDb": -17.32,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/anger/active.wav",
+    "rmsDb": -11.62,
+    "peakDb": -2.65
+  },
+  {
+    "file": "apps/client/public/audio/materials/anger/start.wav",
+    "rmsDb": -16.76,
+    "peakDb": -2.54
+  },
+  {
+    "file": "apps/client/public/audio/materials/spider/end.wav",
+    "rmsDb": -23.66,
+    "peakDb": -3.56
+  },
+  {
+    "file": "apps/client/public/audio/materials/spider/impact-1.wav",
+    "rmsDb": -24.01,
+    "peakDb": -3.62
+  },
+  {
+    "file": "apps/client/public/audio/materials/spider/impact-2.wav",
+    "rmsDb": -23.12,
+    "peakDb": -2.24
+  },
+  {
+    "file": "apps/client/public/audio/materials/spider/impact-3.wav",
+    "rmsDb": -23.35,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/spider/active.wav",
+    "rmsDb": -20.77,
+    "peakDb": -4.8
+  },
+  {
+    "file": "apps/client/public/audio/materials/spider/start.wav",
+    "rmsDb": -23.91,
+    "peakDb": -3.61
+  },
+  {
+    "file": "apps/client/public/audio/materials/spear/end.wav",
+    "rmsDb": -17.48,
+    "peakDb": -3.06
+  },
+  {
+    "file": "apps/client/public/audio/materials/spear/impact-1.wav",
+    "rmsDb": -18.94,
+    "peakDb": -3.06
+  },
+  {
+    "file": "apps/client/public/audio/materials/spear/impact-2.wav",
+    "rmsDb": -19.58,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/spear/impact-3.wav",
+    "rmsDb": -17.94,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/materials/spear/active.wav",
+    "rmsDb": -11.44,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/spear/start.wav",
+    "rmsDb": -14.74,
+    "peakDb": -2.61
+  },
+  {
+    "file": "apps/client/public/audio/materials/chess/end.wav",
+    "rmsDb": -18.8,
+    "peakDb": -3.69
+  },
+  {
+    "file": "apps/client/public/audio/materials/chess/impact-1.wav",
+    "rmsDb": -20.13,
+    "peakDb": -3.78
+  },
+  {
+    "file": "apps/client/public/audio/materials/chess/impact-2.wav",
+    "rmsDb": -19.77,
+    "peakDb": -2.51
+  },
+  {
+    "file": "apps/client/public/audio/materials/chess/impact-3.wav",
+    "rmsDb": -19.29,
+    "peakDb": -2.72
+  },
+  {
+    "file": "apps/client/public/audio/materials/chess/active.wav",
+    "rmsDb": -11.64,
+    "peakDb": -2.89
+  },
+  {
+    "file": "apps/client/public/audio/materials/chess/start.wav",
+    "rmsDb": -15.18,
+    "peakDb": -3.78
+  },
+  {
+    "file": "apps/client/public/audio/materials/punch/end.wav",
+    "rmsDb": -17.32,
+    "peakDb": -4.25
+  },
+  {
+    "file": "apps/client/public/audio/materials/punch/impact-1.wav",
+    "rmsDb": -18.36,
+    "peakDb": -4.11
+  },
+  {
+    "file": "apps/client/public/audio/materials/punch/impact-2.wav",
+    "rmsDb": -18.9,
+    "peakDb": -2.19
+  },
+  {
+    "file": "apps/client/public/audio/materials/punch/impact-3.wav",
+    "rmsDb": -17.62,
+    "peakDb": -3.6
+  },
+  {
+    "file": "apps/client/public/audio/materials/punch/active.wav",
+    "rmsDb": -10.41,
+    "peakDb": -2.36
+  },
+  {
+    "file": "apps/client/public/audio/materials/punch/start.wav",
+    "rmsDb": -16.49,
+    "peakDb": -4.1
+  },
+  {
+    "file": "apps/client/public/audio/materials/stamp/end.wav",
+    "rmsDb": -18.12,
+    "peakDb": -2.94
+  },
+  {
+    "file": "apps/client/public/audio/materials/stamp/impact-1.wav",
+    "rmsDb": -19.36,
+    "peakDb": -2.88
+  },
+  {
+    "file": "apps/client/public/audio/materials/stamp/impact-2.wav",
+    "rmsDb": -19.12,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/stamp/impact-3.wav",
+    "rmsDb": -19.72,
+    "peakDb": -2.23
+  },
+  {
+    "file": "apps/client/public/audio/materials/stamp/active.wav",
+    "rmsDb": -11.56,
+    "peakDb": -2.46
+  },
+  {
+    "file": "apps/client/public/audio/materials/stamp/start.wav",
+    "rmsDb": -14.43,
+    "peakDb": -2.86
+  },
+  {
+    "file": "apps/client/public/audio/materials/gym/end.wav",
+    "rmsDb": -16.55,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/gym/impact-1.wav",
+    "rmsDb": -17.85,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/gym/impact-2.wav",
+    "rmsDb": -17.95,
+    "peakDb": -2.98
+  },
+  {
+    "file": "apps/client/public/audio/materials/gym/impact-3.wav",
+    "rmsDb": -19.1,
+    "peakDb": -3.51
+  },
+  {
+    "file": "apps/client/public/audio/materials/gym/active.wav",
+    "rmsDb": -11.21,
+    "peakDb": -2.67
+  },
+  {
+    "file": "apps/client/public/audio/materials/gym/start.wav",
+    "rmsDb": -15.65,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/stealth/end.wav",
+    "rmsDb": -10.75,
+    "peakDb": -2.33
+  },
+  {
+    "file": "apps/client/public/audio/materials/stealth/impact-1.wav",
+    "rmsDb": -10.82,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/stealth/impact-2.wav",
+    "rmsDb": -10.78,
+    "peakDb": -2.28
+  },
+  {
+    "file": "apps/client/public/audio/materials/stealth/impact-3.wav",
+    "rmsDb": -10.69,
+    "peakDb": -2.33
+  },
+  {
+    "file": "apps/client/public/audio/materials/stealth/active.wav",
+    "rmsDb": -10.9,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/stealth/start.wav",
+    "rmsDb": -12.66,
+    "peakDb": -2.5
+  },
+  {
+    "file": "apps/client/public/audio/materials/cookie/end.wav",
+    "rmsDb": -17.81,
+    "peakDb": -2.94
+  },
+  {
+    "file": "apps/client/public/audio/materials/cookie/impact-1.wav",
+    "rmsDb": -18.03,
+    "peakDb": -2.91
+  },
+  {
+    "file": "apps/client/public/audio/materials/cookie/impact-2.wav",
+    "rmsDb": -16.81,
+    "peakDb": -3.03
+  },
+  {
+    "file": "apps/client/public/audio/materials/cookie/impact-3.wav",
+    "rmsDb": -17.06,
+    "peakDb": -2.51
+  },
+  {
+    "file": "apps/client/public/audio/materials/cookie/active.wav",
+    "rmsDb": -13.07,
+    "peakDb": -2.84
+  },
+  {
+    "file": "apps/client/public/audio/materials/cookie/start.wav",
+    "rmsDb": -15.01,
+    "peakDb": -2.64
+  },
+  {
+    "file": "apps/client/public/audio/materials/axe/end.wav",
+    "rmsDb": -18.81,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/axe/impact-1.wav",
+    "rmsDb": -20.17,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/axe/impact-2.wav",
+    "rmsDb": -19.26,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/axe/impact-3.wav",
+    "rmsDb": -19.69,
+    "peakDb": -4.01
+  },
+  {
+    "file": "apps/client/public/audio/materials/axe/active.wav",
+    "rmsDb": -11.49,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/axe/start.wav",
+    "rmsDb": -15.81,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/chord/end.wav",
+    "rmsDb": -13.39,
+    "peakDb": -2.18
+  },
+  {
+    "file": "apps/client/public/audio/materials/chord/impact-1.wav",
+    "rmsDb": -14.32,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/chord/impact-2.wav",
+    "rmsDb": -14.37,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/chord/impact-3.wav",
+    "rmsDb": -14.33,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/chord/active.wav",
+    "rmsDb": -9.18,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/chord/start.wav",
+    "rmsDb": -14.05,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/flex/end.wav",
+    "rmsDb": -16.0,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/materials/flex/impact-1.wav",
+    "rmsDb": -17.38,
+    "peakDb": -2.38
+  },
+  {
+    "file": "apps/client/public/audio/materials/flex/impact-2.wav",
+    "rmsDb": -17.3,
+    "peakDb": -2.44
+  },
+  {
+    "file": "apps/client/public/audio/materials/flex/impact-3.wav",
+    "rmsDb": -19.42,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/flex/active.wav",
+    "rmsDb": -10.63,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/flex/start.wav",
+    "rmsDb": -15.32,
+    "peakDb": -2.44
+  },
+  {
+    "file": "apps/client/public/audio/materials/metalMusic/end.wav",
+    "rmsDb": -13.18,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/metalMusic/impact-1.wav",
+    "rmsDb": -14.26,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/metalMusic/impact-2.wav",
+    "rmsDb": -14.37,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/metalMusic/impact-3.wav",
+    "rmsDb": -14.3,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/metalMusic/active.wav",
+    "rmsDb": -10.02,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/metalMusic/start.wav",
+    "rmsDb": -13.97,
+    "peakDb": -2.17
+  },
+  {
+    "file": "apps/client/public/audio/materials/mutant/end.wav",
+    "rmsDb": -18.99,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/mutant/impact-1.wav",
+    "rmsDb": -20.34,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/mutant/impact-2.wav",
+    "rmsDb": -18.04,
+    "peakDb": -2.34
+  },
+  {
+    "file": "apps/client/public/audio/materials/mutant/impact-3.wav",
+    "rmsDb": -18.95,
+    "peakDb": -3.46
+  },
+  {
+    "file": "apps/client/public/audio/materials/mutant/active.wav",
+    "rmsDb": -11.03,
+    "peakDb": -2.34
+  },
+  {
+    "file": "apps/client/public/audio/materials/mutant/start.wav",
+    "rmsDb": -18.37,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/hair/end.wav",
+    "rmsDb": -15.59,
+    "peakDb": -2.59
+  },
+  {
+    "file": "apps/client/public/audio/materials/hair/impact-1.wav",
+    "rmsDb": -15.54,
+    "peakDb": -3.01
+  },
+  {
+    "file": "apps/client/public/audio/materials/hair/impact-2.wav",
+    "rmsDb": -15.36,
+    "peakDb": -2.3
+  },
+  {
+    "file": "apps/client/public/audio/materials/hair/impact-3.wav",
+    "rmsDb": -15.51,
+    "peakDb": -2.62
+  },
+  {
+    "file": "apps/client/public/audio/materials/hair/active.wav",
+    "rmsDb": -15.43,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/hair/start.wav",
+    "rmsDb": -14.17,
+    "peakDb": -2.67
+  },
+  {
+    "file": "apps/client/public/audio/materials/monster/end.wav",
+    "rmsDb": -17.72,
+    "peakDb": -3.08
+  },
+  {
+    "file": "apps/client/public/audio/materials/monster/impact-1.wav",
+    "rmsDb": -18.98,
+    "peakDb": -3.09
+  },
+  {
+    "file": "apps/client/public/audio/materials/monster/impact-2.wav",
+    "rmsDb": -17.2,
+    "peakDb": -2.48
+  },
+  {
+    "file": "apps/client/public/audio/materials/monster/impact-3.wav",
+    "rmsDb": -18.16,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/monster/active.wav",
+    "rmsDb": -11.01,
+    "peakDb": -2.67
+  },
+  {
+    "file": "apps/client/public/audio/materials/monster/start.wav",
+    "rmsDb": -16.79,
+    "peakDb": -3.07
+  },
+  {
+    "file": "apps/client/public/audio/materials/sneeze/end.wav",
+    "rmsDb": -17.69,
+    "peakDb": -3.84
+  },
+  {
+    "file": "apps/client/public/audio/materials/sneeze/impact-1.wav",
+    "rmsDb": -18.1,
+    "peakDb": -3.52
+  },
+  {
+    "file": "apps/client/public/audio/materials/sneeze/impact-2.wav",
+    "rmsDb": -16.78,
+    "peakDb": -2.89
+  },
+  {
+    "file": "apps/client/public/audio/materials/sneeze/impact-3.wav",
+    "rmsDb": -17.14,
+    "peakDb": -2.36
+  },
+  {
+    "file": "apps/client/public/audio/materials/sneeze/active.wav",
+    "rmsDb": -13.59,
+    "peakDb": -2.16
+  },
+  {
+    "file": "apps/client/public/audio/materials/sneeze/start.wav",
+    "rmsDb": -15.08,
+    "peakDb": -3.52
+  },
+  {
+    "file": "apps/client/public/audio/materials/talk/end.wav",
+    "rmsDb": -14.53,
+    "peakDb": -2.3
+  },
+  {
+    "file": "apps/client/public/audio/materials/talk/impact-1.wav",
+    "rmsDb": -16.25,
+    "peakDb": -2.36
+  },
+  {
+    "file": "apps/client/public/audio/materials/talk/impact-2.wav",
+    "rmsDb": -16.36,
+    "peakDb": -2.22
+  },
+  {
+    "file": "apps/client/public/audio/materials/talk/impact-3.wav",
+    "rmsDb": -16.29,
+    "peakDb": -2.3
+  },
+  {
+    "file": "apps/client/public/audio/materials/talk/active.wav",
+    "rmsDb": -12.6,
+    "peakDb": -2.2
+  },
+  {
+    "file": "apps/client/public/audio/materials/talk/start.wav",
+    "rmsDb": -15.87,
+    "peakDb": -2.36
+  },
+  {
+    "file": "apps/client/public/audio/music/mall-theme.mp3",
+    "rmsDb": -14.25,
+    "peakDb": 0.0
+  },
+  {
+    "file": "apps/client/public/audio/music/rooftop-sunset-showdown.mp3",
+    "rmsDb": -14.23,
+    "peakDb": 0.0
+  },
+  {
+    "file": "apps/client/public/audio/music/ceremonial-steel.mp3",
+    "rmsDb": -14.13,
+    "peakDb": 0.0
+  },
+  {
+    "file": "apps/client/public/audio/music/basketball-court-theme.mp3",
+    "rmsDb": -14.2,
+    "peakDb": -0.05
+  },
+  {
+    "file": "apps/client/public/audio/music/main-menu-theme.mp3",
+    "rmsDb": -14.2,
+    "peakDb": 0.0
+  }
+]

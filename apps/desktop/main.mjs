@@ -4,7 +4,7 @@ import {readFileSync,appendFileSync,mkdirSync,statSync,renameSync,realpathSync} 
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import process from 'node:process';
-import {APP_ORIGIN,assetPath,trustedDocument,safeDevURL,contentPolicy} from './policy.mjs';
+import {APP_ORIGIN,assetPath,trustedDocument,safeDevURL,contentPolicy,desktopTitle} from './policy.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url));
 const metadata=JSON.parse(readFileSync(path.join(here,'metadata.json'),'utf8'));
 app.setName(metadata.productName);app.setAppUserModelId(metadata.appId);
@@ -29,6 +29,7 @@ else {
   const root=app.isPackaged?path.join(process.resourcesPath,'game'):path.resolve(here,'../../dist-desktop');
   const config=devURL?{wsURL:''}:JSON.parse(readFileSync(path.join(root,'desktop-config.json'),'utf8'));
   const csp=contentPolicy(config.wsURL);
+  const title=desktopTitle(metadata.productName,app.getVersion(),config.buildVersion);
   protocol.handle('abroz',async request=>{
    if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});
    try {
@@ -46,7 +47,8 @@ else {
   ipcMain.on('abroz:failure',(event,category)=>{if(event.sender===window?.webContents&&event.senderFrame===window.webContents.mainFrame&&trustedDocument(event.senderFrame.url,devURL)&&['initialization','graphics','assets'].includes(category))log(`renderer-${category}`);});
   Menu.setApplicationMenu(null);
   const create=async()=>{
-   window=new BrowserWindow({title:metadata.productName,width:1280,height:800,minWidth:800,minHeight:500,backgroundColor:'#080e12',show:false,autoHideMenuBar:true,webPreferences:{preload:path.join(here,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true,allowRunningInsecureContent:false,webviewTag:false,devTools:!app.isPackaged}});
+   window=new BrowserWindow({title,width:1280,height:800,minWidth:800,minHeight:500,backgroundColor:'#080e12',show:false,autoHideMenuBar:true,webPreferences:{preload:path.join(here,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true,allowRunningInsecureContent:false,webviewTag:false,devTools:!app.isPackaged}});
+   window.on('page-title-updated',event=>{event.preventDefault();window.setTitle(title);});
    window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
    window.webContents.on('will-navigate',(event,url)=>{if(!trustedDocument(url,devURL))event.preventDefault();});
    window.webContents.on('will-redirect',(event,url)=>{if(!trustedDocument(url,devURL))event.preventDefault();});
@@ -58,7 +60,7 @@ else {
    window.on('closed',()=>{window=undefined;});
    await window.loadURL(devURL||`${APP_ORIGIN}/`);
   };
-  log(`start version=${app.getVersion()} platform=${process.platform} arch=${process.arch}`);
+  log(`start version=${app.getVersion()} build=${String(config.buildVersion??app.getVersion()).replace(/[\r\n]/g,' ').slice(0,100)} platform=${process.platform} arch=${process.arch}`);
   await create();app.on('activate',()=>{if(!window)void create().catch(()=>failure('Unable to open the game window.'));});
  }).catch(()=>{failure('Unable to initialize Abroz Combat. Check that the application files are intact.');app.quit();});
 }

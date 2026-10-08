@@ -1,3 +1,4 @@
+import {paintArenaPatina} from './ArenaPatina.js';
 import * as THREE from 'three';
 
 type Theme = 'church' | 'mall' | 'basketball' | 'rooftop';
@@ -15,8 +16,9 @@ export function arenaFloorMap(theme: Theme): THREE.CanvasTexture {
   const w=2048/columns,h=512/rows;
   for(let row=0;row<rows;row++)for(let col=-1;col<=columns;col++){
     const x=(col+(row%2)*.5)*w,y=row*h;
-    c.fillStyle=palette[Math.floor(rand()*palette.length)];c.fillRect(x,y,w,h);
-    if(theme!=='basketball'){
+    c.fillStyle=palette[Math.floor(rand()*palette.length)];
+    if(theme==='church'||theme==='mall')c.fillRect(x,y,w,h);
+    if(theme==='church'||theme==='mall'){
       c.strokeStyle=theme==='church'?'#362d244d':'#20292e33';c.lineWidth=theme==='mall'?1.5:2;c.strokeRect(x,y,w,h);
       c.fillStyle='#fbe7ba20';c.fillRect(x+2,y+2,w-4,1);
     }
@@ -51,30 +53,32 @@ export function arenaFloorMap(theme: Theme): THREE.CanvasTexture {
     glow.addColorStop(0,theme==='basketball'?'#91e1e124':'#ffe1a32b');glow.addColorStop(1,'#ffe1a300');
     c.fillStyle=glow;c.fillRect(x-250,0,500,370);
   }
+  paintArenaPatina(c,theme);
   const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;map.anisotropy=4;return map;
 }
 
 /** One thin painted fascia per deck. Its top never crosses the authored surface. */
 export function addDeckFinish(root:THREE.Group,x:number,y:number,width:number,theme:Theme,index=0):void {
-  const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=96;
+  const canvas=document.createElement('canvas');canvas.width=theme==='mall'?Math.round(1024*(width-.08)/4.72):1024;canvas.height=96;
+  const pixels=canvas.width,center=pixels/2;
   const c=canvas.getContext('2d')!;
   const colors={church:['#8a7051','#d0b78c'],mall:['#443643','#c8a46b'],basketball:['#244957','#df894f'],rooftop:['#58605d','#c3b58b']};
-  const [base,edge]=colors[theme];c.fillStyle=base;c.fillRect(0,0,1024,96);
-  const grad=c.createLinearGradient(0,0,0,96);grad.addColorStop(0,'#ffffff12');grad.addColorStop(.4,'#ffffff00');grad.addColorStop(1,'#080f20a0');c.fillStyle=grad;c.fillRect(0,0,1024,96);
-  for(let i=0;i<85;i++){
-    const px=(i*137)%1024,py=12+(i*23)%70;c.fillStyle=i%3?'#0b172633':'#e9d5a82b';
+  const [base,edge]=colors[theme];c.fillStyle=base;c.fillRect(0,0,pixels,96);
+  const grad=c.createLinearGradient(0,0,0,96);grad.addColorStop(0,'#ffffff12');grad.addColorStop(.4,'#ffffff00');grad.addColorStop(1,'#080f20a0');c.fillStyle=grad;c.fillRect(0,0,pixels,96);
+  for(let i=0;i<Math.round(85*pixels/1024);i++){
+    const px=(i*137)%pixels,py=12+(i*23)%70;c.fillStyle=i%3?'#0b172633':'#e9d5a82b';
     c.fillRect(px,py,8+(i*31)%65,theme==='church'?1:2);
   }
-  c.fillStyle=edge;c.fillRect(0,2,1024,5);
-  for(let i=0;i<25;i++){c.fillStyle=base;c.fillRect((i*173)%1024,2,3+i%9,2+i%4);}
+  c.fillStyle=edge;c.fillRect(0,2,pixels,5);
+  for(let i=0;i<Math.round(25*pixels/1024);i++){c.fillStyle=base;c.fillRect((i*173)%pixels,2,3+i%9,2+i%4);}
   // Recessed panel seams, rivets and end guards convey construction at low cost.
-  for(let px=64;px<1024;px+=128){
+  for(let px=64;px<pixels;px+=128){
     c.fillStyle='#101c2b77';c.fillRect(px,12,2,70);c.fillStyle='#f0dfbe66';c.fillRect(px+3,12,1,65);
     for(const py of [18, 70]){c.fillStyle='#101b2a';c.beginPath();c.arc(px-10,py,3,0,Math.PI*2);c.fill();c.fillStyle=edge;c.fillRect(px-11,py-2,2,1);}
   }
   if(theme!=='church'){
-    c.fillStyle='#172333';c.fillRect(456,22,112,49);c.strokeStyle=edge;c.lineWidth=2;c.strokeRect(456,22,112,49);
-    c.fillStyle=edge;c.font='bold 28px monospace';c.textAlign='center';c.fillText(`${theme==='mall'?'M':theme==='basketball'?'C':'R'} / ${index+1}`,512,56);
+    c.fillStyle='#172333';c.fillRect(center-56,22,112,49);c.strokeStyle=edge;c.lineWidth=2;c.strokeRect(center-56,22,112,49);
+    c.fillStyle=edge;c.font='bold 28px monospace';c.textAlign='center';c.fillText(`${theme==='mall'?'M':theme==='basketball'?'C':'R'} / ${index+1}`,center,56);
   }
   const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;
   const mesh=new THREE.Mesh(new THREE.PlaneGeometry(width-.08,.27),new THREE.MeshStandardMaterial({map,roughness:theme==='mall'?.64:.9}));

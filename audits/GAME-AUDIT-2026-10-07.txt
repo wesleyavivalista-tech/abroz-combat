@@ -1,0 +1,211 @@
+GAME CODEBASE AUDIT — 2026-10-07
+
+FOLLOW-UP: H1, M1–M4 and L1 were subsequently fixed at the user's request.
+See AUDIT-FIXES-2026-10-07.txt for implementation and verification. The original
+findings and stopping point below are preserved as the pre-fix audit record.
+
+Scope and decision
+==================
+Audited the current working tree, including its uncommitted changes. This is a
+fresh review; the October 5 report is historical and its fixed findings are not
+counted again. Reviewed simulation ordering, all character ability systems,
+contact/damage/stun, projectiles, platforms/structures, summons/undead, lifecycle,
+tournaments, rollback/history, room service/transport, async loading, rendering
+ownership, input listeners and audio teardown. Automated coverage exercises all
+16 fighters and all four arenas. This is a risk-focused audit, not a proof that
+every possible combination or every source line is defect-free.
+
+Result: no confirmed CRITICAL issue. One HIGH combat inconsistency, three
+MEDIUM reproduced defects, one MEDIUM determinism risk, and one LOW coverage
+defect remain. Per the requested stopping rule, no gameplay or renderer fixes
+were made. No balance values, authored timing, networking or assets were changed.
+Added this report and executable diagnostic reproductions only.
+
+Locations below are relative to the project root:
+/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow
+
+CRITICAL
+========
+None confirmed in this pass. No crash, divergent replay hash, corrupted match
+outcome or permanent gameplay lock was reproduced. This does not rule out
+uncovered critical defects; see verification limits below. Consequently there
+is no critical patch to apply or claim as fixed.
+
+HIGH
+====
+H1 — Zombie claw ignores most of its declared active window [REPRODUCED]
+1. Problem: a fighter entering the claw during active frames 19–23 is not hit.
+   The definition declares six active frames beginning at 18, while collision
+   checks happen only once. This makes the visible claw/declared move window
+   disagree with combat and routinely misses moving targets.
+2. Where: packages/game-core/simulation/UndeadSystem.ts:68–72;
+   ZOMBIE_CLAW definition in the same file. ZombieSpriteRenderer.ts uses the
+   declared startup/active interval for the contact drawing.
+3. Reproduce: start a zombie claw with a target in reach, move out during its
+   windup, then return on its second active frame. The audit probe isolates the
+   boundary: target x=1300 at attackFrame 18, x=1075 at frame 19, zombie x=1000;
+   health remains unchanged.
+4. Cause: u.hit is set true on the first contact check even if nobody is hit;
+   subsequent active ticks never check. Attack scheduling also hardcodes 36/84
+   separately from the move definition, increasing maintenance risk.
+5. Safest fix: honor the existing [startup, startup+active) contact interval and
+   retain per-target hit stamps so each target is struck once per swing. Keep
+   current damage, poison, attack cadence and interruption behavior. Add miss,
+   late-entry, multi-target, hitstop and rollback tests. If a single-tick strike
+   is actually intended, reconcile the definition/art instead; do not silently
+   invent a new balance value.
+6. Regression risk: medium. A simple removal of u.hit would deal damage every
+   tick. Per-target stamping and snapshot coverage are essential.
+
+MEDIUM
+======
+M1 — Fifth-hit escape can leave arena bounds [REPRODUCED]
+1. Problem: the escape displacement can put a fighter outside x=40..width-40.
+   Another actor's hitstop can hold that illegal position for several ticks.
+2. Where: packages/game-core/combat/HitstunSystem.ts:30–32; callers in
+   CombatSystem.ts and PeriodicHit.ts; GameSimulation.ts movement clamp occurs
+   before the final combat pass, or is skipped during hitstop.
+3. Reproduce: target at x=40 with four consecutive hits; fifth hit directed left
+   sets x=0. Step with hitstop=3: target remains x=0. Mirror at right edge.
+4. Cause: immediate escape translates 40 units without stage bounds or solid
+   geometry validation; the ordinary movement clamp cannot repair that frame.
+5. Safest fix: route escape displacement through a bounded stage-aware helper,
+   including structures, while retaining the full displacement where legal.
+   Test both edges, walls, platforms and periodic/direct hit callers.
+6. Regression risk: low to medium. Avoid clamping only one caller or reducing
+   the intended center-arena escape distance.
+
+M2 — Rollback from zombie rise to grave leaves a ghost visual [REPRODUCED]
+1. Problem: a zombie created for a predicted grave break stays visible when
+   rollback restores the same entity to a grave. That grave also stops being
+   visited by grave lighting; hiding the menu does not hide the stale root.
+2. Where: apps/client/src/rendering/UndeadVisuals.ts:23–42.
+3. Reproduce: save a grave snapshot, break it and render rising, restore the
+   snapshot and render again. getObjectByName('zombie-nikalz').visible remains
+   true. forEachGrave visits zero graves. Rendering with menu=true still leaves
+   the separately parented zombie root visible. In a loaded game this displays
+   its previously loaded sprite; the headless probe checks object visibility.
+4. Cause: if(grave)return precedes fighter/shadow visibility updates. The zombie
+   root is a sibling, so hiding the grave root cannot hide it. Grave lighting
+   checks whether a renderer ever existed rather than the current phase.
+5. Safest fix: hide zombie and shadow on every grave update, classify lighting
+   by current phase, and recreate cached visuals if a restored entity ID changes
+   character identity. Test grave→rise→grave→rise and menu/result transitions.
+6. Regression risk: low; presentation-only. Preserve shared texture ownership.
+
+M3 — Tournament-forfeit result skips fighter ability cleanup [REPRODUCED]
+1. Problem: the final opponent's departure can leave the winner's move and
+   ability deadline active in the result snapshot, unlike a normal match end.
+   Attack/effect presentation can persist on the result screen. No extra combat
+   damage or wrong winner was reproduced after the result.
+2. Where: packages/game-core/simulation/TournamentSystem.ts:11;
+   analogous early-result paths in EliminationSystem.ts; CombatLifecycle.ts
+   clears entities only. Compare normal result cleanup in LifeSystem.ts.
+3. Reproduce: two-player FFA tournament, Drupa in active bald beam with
+   actionUntil=500, opponent forfeits. phase becomes result while move='bald'
+   and actionUntil=500 remain. The probe exercises the real step/forfeit path.
+4. Cause: tournament result is set before advanceFrame; advanceFrame returns
+   immediately on result and never reaches resolveKnockouts' fighter cleanup.
+5. Safest fix: factor the already-intended terminal fighter cleanup into a small
+   shared helper used by terminal result paths. Keep inter-round reset/scoring,
+   forfeit frame and winner logic unchanged. Test normal KO, draw, tournament
+   and elimination forfeit, with active beam, mount and grapple states.
+6. Regression risk: medium. Terminal and between-round states are different;
+   do not erase tournament scores, saved players or pending next-round data.
+
+M4 — Native sine reintroduced into authoritative zombie movement [RISK]
+1. Problem: zombie movement uses native Math.sin despite the project's fixed
+   arithmetic policy. Different JS engines can differ in the last bits; movement
+   rounding makes divergence less likely, but does not prove equivalence at all
+   collision/rounding boundaries. No actual zombie desync is claimed here.
+2. Where: packages/game-core/simulation/UndeadSystem.ts:89–90; compare
+   packages/game-core/simulation/DeterministicMath.ts.
+3. Reproduce/verify: inspect the sole authoritative native trigonometric call;
+   run a dedicated V8/JavaScriptCore zombie pursuit replay over platform edges
+   and slow modifiers. The existing 235-scenario engine suite passes but does
+   not explicitly cover this new undead locomotion path.
+4. Cause: the new shamble implementation bypasses deterministicSin; its unit
+   test calculates expected movement using the same native sine.
+5. Safest fix: use the existing deterministic helper with trace comparisons
+   confirming ordinary rounded movement is preserved, and add explicit undead
+   engine coverage. No new math library or movement multiplier change is needed.
+6. Regression risk: low to medium at numerical boundaries; regenerate the
+   simulation revision for any authoritative source change.
+
+LOW
+===
+L1 — Eight-player cross-engine fixture silently discards supplied inputs
+1. Problem: the named eight-player scenario does not execute the second player's
+   authored special inputs and does not supply meaningful human inputs to the
+   remaining six fighters. Its passing hash is less coverage than its label
+   suggests; other non-training multiplayer tests still exercise these paths.
+2. Where: tests/fixtures/cross-engine-replay.ts:17–18 and
+   packages/game-core/simulation/GameSimulation.ts training input override.
+3. Reproduce: construct that eight-fighter simulation with training=true and
+   submit the fixture masks. Training replaces them with [inputs[0],dummyInput()],
+   so the stand dummy overrides the requested Roms special.
+4. Cause: training mode was used to keep the replay alive without accounting
+   for its input substitution; the scenario lacks activation assertions.
+5. Safest fix: use a non-training fixture with controlled lifecycle resets and
+   assert the intended attacks actually activate before comparing hashes.
+6. Regression risk: low; test-only, but baseline hash traces will intentionally
+   change once the intended scenario is truly exercised.
+
+WORKING BUT FRAGILE AS THE ROSTER GROWS
+=====================================
+F1. Fighter contains many independent optional flags/deadlines. KO cleanup is a
+    manually maintained list; fresh respawn/reset is stronger because it rebuilds
+    state. New fields need explicit interruption, KO, respawn, result, forfeit,
+    clone-removal and restore tests. M3 is a concrete gap; no broad state rewrite
+    is recommended as part of this audit.
+F2. GameSimulation.advanceFrame has a significant ordering contract: some status
+    clocks continue during hitstop, movement does not; companion defeat hooks
+    run before both pruning sites. Moving calls to simplify the file can alter
+    who gets hit, death bursts and ability duration. Document these phases and
+    expand interaction tests before changing the order.
+F3. Normal, returning, Jopa and turret projectiles have different integration,
+    collision and lifetime paths. Shared pool initialization/contact helpers
+    already prevent old-field reuse. New projectile families should use those
+    helpers and test nearest-contact ordering, owner death and pool reuse;
+    wholesale consolidation risks changing intentional projectile behavior.
+F4. Persistent visual caches must tolerate rollback changing phases and entity
+    identities in both directions. Forward-only lifecycle tests miss M2.
+F5. actors(s) and several ability passes allocate/sort arrays multiple times per
+    tick; snapshots copy all active entities. Current pools/history have bounds
+    and the stress pass was stable, but this is not a heap/GPU soak measurement.
+    Profile an eight-player summon-heavy match before adding more entity types.
+F6. Network packets are type-checked only partially at the browser boundary.
+    RoomService validates normal inputs and content compatibility; the browser
+    assumes a trusted compatible server. Runtime validation would help future
+    reconnect/protocol changes. No normal-server malformed packet was found.
+    Rejoining an active room is intentionally unsupported, not a failed resume.
+
+VALIDATION AND LIMITS
+=====================
+PASS: all 822 existing TypeScript tests, including old audit regressions,
+combat/ability tests, interruption/lifecycle, rollback/disconnect, stage motion,
+all-roster animation coverage, audio and controller tests.
+PASS: five desktop policy tests.
+PASS: client TypeScript, server TypeScript, whole-project lint, production web
+build (largest game chunk about 438 KB).
+PASS: seeded stress replay — 16 eight-fighter runs across all four arenas,
+57,600 simulation ticks, finite-state checks and snapshot replay hash comparison.
+PASS: V8/JavaScriptCore replay — 235 existing move/scenario traces match exactly.
+PASS: browser startup → training fighter selection → arena selection → playable
+Rooftop training HUD; no captured warning/error logs. Visually checked the
+rendered arena and fighters. Screenshot:
+audits/evidence/codebase-audit-training-2026-10-07.png.
+PASS: audits/2026-10-07-codebase-probes.mts reproduces H1 and M1–M3. These are
+diagnostic assertions of current defects, NOT passing desired-behavior tests
+and NOT part of the normal test suite. Replace them with regression tests when
+implementing the fixes.
+
+Not verified: real remote players under packet loss/reconnect, physical
+controllers, all ability-pair permutations, multi-hour memory/GPU resource soak,
+all browser/OS/driver combinations, and dedicated cross-engine undead replay.
+The passing existing suite does not invalidate the new edge-case reproductions.
+
+STOPPING POINT
+==============
+No CRITICAL fix was necessary or performed. H1, M1–M4 and L1 remain open.
+Only audit evidence was added; all earlier user changes were preserved.

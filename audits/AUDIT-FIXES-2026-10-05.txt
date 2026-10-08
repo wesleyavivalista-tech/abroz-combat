@@ -1,0 +1,74 @@
+AUDIT FOLLOW-UP — 2026-10-05
+
+Implemented all five reproduced defects and the build warning from the audit.
+No character damage, speed, cooldown or authored timing values were edited.
+
+H1: Ordinary hit reaction has its own countdown while loan/Nikalz absolute locks
+are active. Expiry preserves a newer reaction and any other active lock. The
+countdown pauses with hitstop, is saved in rollback snapshots, and clears on KO,
+reset or escape. Five-hit escape releases the immediate loan lock but preserves
+its later repayment. Existing dive recovery behavior passes its regression suite.
+
+H2: Beam pulse index is saved per move/attack serial. Held animation frames cannot
+repeat a pulse, and a speed boost crossing an interval still emits it. Roms's
+simulation-clock water push remains unchanged. Two Drupa baseline trace entries
+were updated for the new pulse snapshot field; all other baseline entries match.
+
+H3: All pending input packets drain through an ordered queue, even when delay
+changes to zero. Timer rounding cannot invert their delivery. Disconnect clears
+both queued packets and timers; server input validation remains unchanged.
+
+M1: Edge collisions choose a legal non-overlapping position inside the arena.
+Candidates account for other solid structures; if structures fill the available
+horizontal space, the fighter is placed above them rather than out of bounds.
+Ordinary wall/house collisions and friendly wall pass-through remain intact.
+
+M2: Championship completion records a timestamp. Completed rooms close after the
+existing 15-minute result retention, releasing membership and sockets. Active
+bracket spectators keep their existing behavior.
+
+L1: Separate cacheable Three.js core/renderer and combat chunks. Largest game
+chunk is ~400 KB (previously ~1.05 MB); all chunks are below the warning threshold.
+This improves cache granularity; it does not claim a measured cold-start speedup
+or a reduction of the total application payload.
+
+Fragile-area follow-up:
+F1: Removed native Math.pow from authoritative meteor square/cube calculations,
+using explicit multiplication with the same formula. Cross-browser replay still
+needs a dedicated V8/JavaScriptCore integration run; no universal determinism
+claim is made.
+F2: Reaction ownership and new field cleanup are now explicitly covered by
+regression tests. timedHitReaction belongs to ordinary combat reactions only
+while an ability lock exists; beamPulse belongs to the attack serial. Both are
+snapshot state and clear with fighter lifecycle resets. Future optional state
+must cover hit/interrupt, KO, respawn, reset, replay, forfeit and clone removal.
+Existing shared damage/projectile/lifecycle helpers were retained. The broad
+per-character ownership architecture was not rewritten.
+F3: Added missing revision checks between asynchronous preparation/loading and
+inside loading progress callbacks. An obsolete load cannot update a later
+screen's progress. Existing final activation/error guards are retained.
+F4: Online DamageApplied audio events are retained in bounded presentation-only
+history, overwritten during rollback, and delivered exactly once after input
+confirmation. Swing cues remain immediate. Confirmed damage retains its original
+world position. Cosmetic movement/ambient cues remain predicted. No network
+packet format or simulation rule depends on this presentation history.
+
+Additional user request: Bozo's home portrait moves down responsively based on
+the artwork container's width, aligning the opening pair at wide/fullscreen
+sizes without changing the fighter's in-game size, hitbox or gameplay position.
+
+Validation:
+- 750 TypeScript tests passed, including 12 new audit regression tests.
+- 57,600 seeded eight-player simulation ticks passed across all four arenas,
+  with snapshot replay hash comparisons and finite-state checks.
+- TypeScript/client and server compilation, lint and production build passed.
+- Production browser smoke: home → fighter selection → arena → training HUD;
+  no captured console errors. Wide (1880×930) and windowed (1260×694) portrait
+  layouts were visually inspected. Hardware fullscreen itself was not verified.
+- Physical controllers, real remote multiplayer, audible device playback,
+  production memory soak and cross-browser determinism were not verified.
+
+The original GAME-AUDIT-2026-10-05.txt is a historical pre-fix report. The edge
+probe entry point now runs desired-behavior regression tests, not assertions
+that the old defects still exist. The simulation content revision was regenerated
+so clients with old combat code cannot silently join the updated version.

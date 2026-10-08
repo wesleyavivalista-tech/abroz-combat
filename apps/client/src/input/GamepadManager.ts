@@ -1,7 +1,9 @@
 import { Button } from '../../../../packages/game-core/types.js';
 export const MAX_LOCAL_GAMEPADS = 8;
 export const DEFAULT_DEADZONE = .2;
-export const DEFAULT_ATTACK_BUTTONS = [0, 2, 1, 3, 5, 6, 7];
+// Crouching needs a deliberate downward push, not lateral stick wobble.
+export const CROUCH_STICK_THRESHOLD = .6;
+export const DEFAULT_ATTACK_BUTTONS = [2, 3, 1, 5, 7, 4, 6];
 export const STANDARD = { confirm: 0, back: 1, pause: 9, view: 8, previous: 4, next: 5, up: 12, down: 13, left: 14, right: 15 } as const;
 const attackBits = [Button.Light, Button.Medium, Button.Heavy, Button.Special, Button.Special2, Button.Super1, Button.Super2];
 export type MenuAction = 'left'|'right'|'up'|'down'|'confirm'|'back'|'pause'|'previous'|'next';
@@ -16,6 +18,20 @@ export function controllerName(id: string): {name:string;brand:ControllerDevice[
  if (/dualsense|dualshock|playstation|054c|sony/i.test(id)) return {name:/dualsense/i.test(id)?'DualSense Controller':'PlayStation Controller',brand:'playstation'};
  if (/xbox|xinput|045e|microsoft/i.test(id)) return {name:'Xbox Controller',brand:'xbox'};
  return {name: id.replace(/\([^)]*\)/g,'').trim().slice(0,48)||'Generic Controller',brand:'generic'};
+}
+/** Menus choose one deliberate direction; gameplay still permits diagonals. */
+export function menuDirection(buttons:readonly number[],axes:readonly number[],previous=''):MenuAction|'' {
+ const held=(i:number)=>(buttons[i]??0)>.5;
+ const dx=Number(held(STANDARD.right))-Number(held(STANDARD.left));
+ const dy=Number(held(STANDARD.down))-Number(held(STANDARD.up));
+ if(dx||dy)return Math.abs(dy)>Math.abs(dx)?(dy<0?'up':'down'):(dx<0?'left':'right');
+ const x=axes[0]??0,y=axes[1]??0;
+ const magnitude=Math.max(Math.abs(x),Math.abs(y));
+ if(magnitude<(previous ? .35 : .55))return '';
+ // Retain the selected axis near a diagonal to avoid alternating every poll.
+ if((previous==='left'||previous==='right')&&Math.abs(x)>=Math.abs(y)*.8&&Math.sign(x)===(previous==='left'?-1:1))return previous;
+ if((previous==='up'||previous==='down')&&Math.abs(y)>=Math.abs(x)*.8&&Math.sign(y)===(previous==='up'?-1:1))return previous;
+ return Math.abs(x)>Math.abs(y)?(x<0?'left':'right'):(y<0?'up':'down');
 }
 /** Session identities deliberately never persist: browser indices and IDs are not physical serial numbers. */
 export class GamepadManager {
@@ -41,7 +57,7 @@ export class GamepadManager {
   this.events.push({kind:'assigned',device:key,player});return true;
  }
  release(player:number) { const d=this.device(player);if(d){d.player=null;this.suppress(d);}this.slots[player]=null;this.revision++; }
- private suppress(d:ControllerDevice) { d.mask=0;d.pressed=0;d.released=0;d.pending=0;d.blocked=true;d.direction=''; }
+ private suppress(d:ControllerDevice) { this.events=this.events.filter(e=>e.kind!=='menu'||e.device!==d.key);d.mask=0;d.pressed=0;d.released=0;d.pending=0;d.blocked=true;d.direction=''; }
  discover(pad:PadSample):ControllerDevice {
   let d=Array.from(this.devices.values()).find(d=>d.connected&&d.index===pad.index&&d.id===pad.id);
   if(!d){
@@ -65,14 +81,19 @@ export class GamepadManager {
    d.buttons=pad.buttons.map(b=>b.pressed?Math.max(.51,b.value):b.value);d.axes=Array.from(pad.axes);
    const down=(i:number)=>d!.buttons[i]>.5;
    const fresh=d.buttons.some((v,i)=>v>.5&&!(d!.previousButtons[i]>.5));
-   if(fresh){d.lastActivity=now;this.events.push({kind:'activity',device:d.key,player:d.player});}
+   const stickFresh=Math.max(Math.abs(d.axes[0]??0),Math.abs(d.axes[1]??0))>=.55&&Math.max(Math.abs(d.previousAxes[0]??0),Math.abs(d.previousAxes[1]??0))<.55;
+   if(fresh||stickFresh){d.lastActivity=now;this.events.push({kind:'activity',device:d.key,player:d.player});}
    if(d.mapping!=='standard')continue;
+   // Keep a controller-only exit available while normal navigation is suppressed.
+   if((this.testing!==null&&down(STANDARD.pause)&&!(d.previousButtons[STANDARD.pause]>.5))||(this.capture&&down(STANDARD.back)&&!(d.previousButtons[STANDARD.back]>.5))){
+    this.suppress(d);this.events.push({kind:'menu',device:d.key,player:d.player??0,action:'back'});continue;
+   }
    if(fresh&&this.capture){
     if('player' in this.capture){this.assign(d.key,this.capture.player);this.capture=null;continue;}
     if(this.capture.identify===d.key){this.capture=null;this.suppress(d);continue;}
     this.suppress(d);continue;
    }
-   if(fresh&&allowJoin&&d.player===null&&this.testing===null){
+   if((fresh||stickFresh)&&allowJoin&&d.player===null&&this.testing===null){
     const missing=this.slots.findIndex((key,i)=>i<joinLimit&&key!==null&&!this.devices.get(key)?.connected);
     const slot=missing>=0?missing:this.slots.findIndex((key,i)=>i<joinLimit&&key===null&&!this.keyboardClaimed.has(i));
     if(slot>=0){this.assign(d.key,slot);this.events.push({kind:'join',device:d.key,player:slot});continue;}
@@ -80,14 +101,14 @@ export class GamepadManager {
    let mask=0;
    if(down(STANDARD.left)||(d.axes[0]??0)<-this.deadzone)mask|=Button.Left;
    if(down(STANDARD.right)||(d.axes[0]??0)>this.deadzone)mask|=Button.Right;
-   if(down(STANDARD.up)||(d.axes[1]??0)<-this.deadzone)mask|=Button.Up;
-   if(down(STANDARD.down)||(d.axes[1]??0)>this.deadzone)mask|=Button.Down;
+   if(down(STANDARD.confirm)&&!this.attackButtons.includes(STANDARD.confirm))mask|=Button.Up;
+   if(down(STANDARD.down)||(d.axes[1]??0)>Math.max(this.deadzone,CROUCH_STICK_THRESHOLD))mask|=Button.Down;
    this.attackButtons.forEach((b,i)=>{if(down(b))mask|=attackBits[i];});
-   if(d.blocked){if(!d.buttons.some(v=>v>.5)&&!d.axes.some(v=>Math.abs(v)>this.deadzone))d.blocked=false;continue;}
+   if(d.blocked){if(!d.buttons.some(v=>v>.5)&&!d.axes.slice(0,2).some(v=>Math.abs(v)>this.deadzone))d.blocked=false;continue;}
    if(this.testing!==null||this.capture){this.suppress(d);continue;}
    d.pressed=mask&~d.mask;d.released=d.mask&~mask;d.mask=mask;d.pending|=d.pressed;
    if(d.player===null)continue;
-   const direction=mask&Button.Left?'left':mask&Button.Right?'right':mask&Button.Up?'up':mask&Button.Down?'down':'';
+   const direction=menuDirection(d.buttons,d.axes,d.direction);
    if(direction&&(direction!==d.direction||now>=d.repeatAt)){
     this.events.push({kind:'menu',device:d.key,player:d.player,action:direction});d.repeatAt=now+(direction===d.direction?110:350);
    }

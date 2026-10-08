@@ -36,8 +36,8 @@ test('escape clears airborne hit reaction and prevents launches or traps while i
  resolveHit(g.state,trainingRoom,()=>{},0,{...characters.dodo.moves.jab,launch:20,trapFrames:120,grappleFrames:120},0,false);
  assert.equal(f.state,'Fall');assert.equal(f.y,y);assert.equal(f.trappedUntil,0);assert.equal(f.grappleUntil,0);
 });
-test('roster health gains 400 and respawns restore new maximum and reset escape',()=>{
- const expected={dodo:1400,luizinho:1400,caio:1400,tocha:1400,drupa:1600,gut:1500,bozo:1450,roms:1450};
+test('roster health matches configured values and respawns restore maximum and reset escape',()=>{
+ const expected={dodo:1400,luizinho:1400,caio:1400,tocha:1400,drupa:1500,gut:1600,bozo:1450,roms:1450};
  for(const [id,hp] of Object.entries(expected))assert.equal(characters[id].stats.maxHealth,hp);
- const g=game(),f=g.state.fighters[1];f.health=0;f.hitstunImmuneUntil=999;f.consecutiveHits=4;g.step([0,0]);for(let i=0;i<120;i++)g.step([0,0]);assert.equal(f.health,1500);assert.equal(f.consecutiveHits,0);assert.equal(f.hitstunImmuneUntil,0);
+ const g=game(),f=g.state.fighters[1];f.health=0;f.hitstunImmuneUntil=999;f.consecutiveHits=4;g.step([0,0]);for(let i=0;i<120;i++)g.step([0,0]);assert.equal(f.health,1600);assert.equal(f.consecutiveHits,0);assert.equal(f.hitstunImmuneUntil,0);
 });

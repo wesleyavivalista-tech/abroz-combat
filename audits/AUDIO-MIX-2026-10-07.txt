@@ -1,0 +1,45 @@
+AUDIO MIX AUDIT AND IMPLEMENTATION — 2026-10-07
+
+CAUSES
+Music already had a separate bus but bypassed the additional SFX slider affecting combat/UI/ambience. Dense supplied music tracks measured roughly -14 dBFS RMS, while short SFX varied substantially: combat-v2 approximately -19.7 to -11.8; materials -24.0 to -9.2. Recorded effects also received an extra synthesized decay envelope that shortened their authored body/tail. These combined to obscure feedback. Measurements are PCM RMS, not integrated LUFS or listening-based mastering.
+
+ARCHITECTURE AND BALANCE
+One existing AudioManager retained. Music and Voice feed Master; Combat, UI and Ambience feed the existing SFX gain then Master. Priority >=90 combat retains the existing protected route during KO attenuation. Master feeds a compressor and final soft peak protection.
+Central category trims in AudioMix.ts: Music .38, Combat 1.35, UI 2.2, Voice .90, Ambience .18, protected Combat 1.35. These multiply authored sound/track gain and player preferences; they are not comparable final loudness percentages. UI's larger correction compensates its small authored gains and two existing player gains.
+Player defaults remain Master .35, Music .30, SFX .65, UI .65. New Voice default .80. Existing abroz-audio-v1 saves continue working without resets. Voice is independent of SFX and still respects Master/mute/focus/pause.
+Recorded effects retain their original envelope after a 4ms entrance ramp. Synthesized fallbacks retain their decay. Existing layered impact identity, stereo placement and subtle variation remain.
+
+SOURCE COMPENSATION
+Once per decoded buffer, measure active 20ms RMS windows and peak. Target RMS .18 with correction bounded to .65–1.8, plus a .88 source peak constraint (which can reduce gain below .65). Silence cannot cause excessive boosts. Cache corrections alongside decoded buffers; evict together. Voice clips preserve their authored dynamics without correction. No source audio is destructively normalized.
+
+DUCKING
+Smooth music targets: significant heavy impact .82 for260ms; special .75/450ms; ultimate .62/700ms; KO .55/900ms; voice .50/1200ms. Attack time constant35ms; release220ms. Basic strikes do not request ducking. Overlaps select the strongest active category, never multiply reductions. Each category expires independently; one bounded release timer is cleared on reset/disposal. Existing KO attenuation of ordinary combat is preserved. Character move registry assigns significant-event duck requests; gameplay events and timing are unchanged.
+
+OVERLAP AND PRIORITY
+Retain24 admitted voices, per-sound cooldowns/instance limits,2048-event duplicate history and maximum6 ability loops. Low priority sounds are evicted before more important cues, with a short fade. Block priority raised to85; special activations82; ultimate95; heavy/charged confirmations80/88 versus light68. Announcer100. Existing preload deduplication and512-buffer/64MB limits remain. No repeated per-frame decoding or added simulation/network work.
+
+PEAK PROTECTION
+Compressor threshold-6dB, knee6dB, ratio4:1, attack3ms, release120ms. Shared soft safety curve stays linear below amplitude .8 and compresses overload, with2x oversampling. This is safety headroom, not a loudness maximizer or certified true-peak limiter. Offline renders showed zero clipped samples; do not interpret this as proof of subjective comfort at arbitrary device volume.
+
+COUNTDOWN RECORDING
+Supplied '3 2 1 fight.mp3' retained exactly as source. Four WAV cues cut from its waveform and given5ms edge fades: Three .13–1.22s, Two1.23–2.09s, One2.10–2.99s, Fight3.00–4.80s. Metadata/SHA in public/audio/announcer/source.json. These replace OS speech for the countdown, aligning to existing1.2-second visual beats without changing match timing, pitch or speed. DEAD still uses existing OS speech; its Voice/Master level is respected, but OS speech bypasses Web Audio peak protection.
+
+CHANGED SYSTEMS FOR THIS PASS
+apps/client/src/audio/AudioMix.ts: central calibration, duck envelope state, source analysis and protection.
+AudioManager.ts: bus trims, Voice preferences, cached normalization, natural sample envelopes, release lifecycle and diagnostics.
+FighterAudio.ts: meaningful event priorities and duck metadata.
+SoundRegistry.ts: duck metadata, block priority/gain, recorded voice cues.
+GameAudio.ts: supplied countdown cue selection replaces countdown TTS.
+apps/client/src/main.ts: Voice slider in existing settings/controller controls.
+tests/audio.test.ts, audio-mix.test.ts, match-countdown.test.ts: coverage.
+apps/client/audio-mix-lab.html and src/dev/audio-mix-lab.ts: development-only offline renderer, not included in production entry points.
+No gameplay, collision, damage, animation, input or network changes for this audio pass. Existing unrelated working-tree changes were preserved.
+
+VERIFICATION
+Full suite817/817 passed before adding one more independent mute/voice regression. Final focused audio/countdown/music suite35/35 passed including that additional test. TypeScript and focused ESLint passed. Web and desktop production builds passed.
+Real browser OfflineAudioContext rendered shipped assets through shared mix/protection for menu,1v1,8-fighter cue burst,major events,quiet,max-sliders24 simultaneous impacts,and countdown. All seven had0 clipped samples. Peak ranges: quiet-30.19dBFS; menu-28.11;1v1-16.89;major-14.60;countdown-14.56;8-fighter burst-.79;max-sliders burst-.36. The latter two intentionally bypass admission limits to stress the output; they are synthetic audio scenarios, not recordings of live online matches. See audio-mix-offline-results.txt.
+Existing eight-fighter simulation/determinism and voice flood tests passed, along with all roster activation/impact coverage. Live browser Settings verified Voice0/restored.8 and Mute all toggling; existing saved Music.81 remained unchanged. Diagnostics showed running menu track,1stream,0 failures; browser warning/error log empty. Screenshot: evidence/audio-settings.jpg.
+
+LIMITATIONS / FOLLOW-UP MASTERING
+No subjective listening through speakers/headphones was possible with available tools. Countdown word edges were located by waveform activity, not listening. Final perceived balance, fatigue, timbre, pumping and cut quality still need an auditory check. No live8-player online listening session or native packaged-app audio device test was conducted.
+RMS correction is intentionally bounded rather than flattening all dynamics. Quiet spider impact/start/end (~-24dBFS RMS), wood/blood impacts (~-21), and sustained chord/star/band/perfection/personality/romance/meditation active loops (~-9 to-9.6) are strongest candidates for individual review. Different durations/spectra can make similar RMS values feel different. Some generic UI/combat cues remain the existing oscillator sounds; intentionally silent status placeholders were not replaced. OS DEAD speech remains device-dependent and outside the compressor.

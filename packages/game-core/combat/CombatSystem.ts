@@ -10,7 +10,7 @@ import {canReceiveDirectHit} from './ContactPolicy.js';
 import {Button,type Fighter,type SimulationSnapshot,type StageDefinition,type MoveDefinition} from '../types.js';
 import {applyDamage} from './DamageSystem.js';
 import {scaledDamage} from './CollisionSystem.js';
-import {actors} from '../simulation/Actors.js';
+import {actors,hostile} from '../simulation/Actors.js';
 import {grounded} from '../simulation/StageCollision.js';
 import {enter} from '../simulation/StateMachine.js';
 import {igniteTarget} from '../simulation/StatusSystem.js';
@@ -27,7 +27,7 @@ export function resolveHit(s:SimulationSnapshot,stage:StageDefinition,emit:(type
   ): void {
     const a = source ?? s.fighters[attacker],
       d = target ?? s.fighters[defender];
-    if (s.teams[attacker] === s.teams[defender] || !canReceiveDirectHit(d,s.frame)) return;
+    if ((!a.undead&&!hostile(s,attacker,d,defender)) || !canReceiveDirectHit(d,s.frame)) return;
     if(m.loanStamp && a.stampAttempts===undefined)return;
     // Summons can strike in a staggered swarm. Their contacts must not pause
     // unrelated players (or repeatedly shake everyone's camera).
@@ -47,9 +47,9 @@ export function resolveHit(s:SimulationSnapshot,stage:StageDefinition,emit:(type
     // Both double-jump dives share defender-side protection, including team follow-ups.
     const stunDive=!!m.dive&&!!m.fixedStun;
     const protectedDive=stunDive&&(d.stun>0||d.dazed||s.frame<(d.diveStunImmuneUntil??0));
-    const reactionStun = blocked ? m.blockstun : protectedDive?0:consecutiveHitstun(s,d,m.hitstun+(counter&&!m.fixedStun?4:0),impactDirection,stage.floorHeight);
+    const reactionStun = blocked ? m.blockstun : protectedDive?0:consecutiveHitstun(s,d,m.hitstun+(counter&&!m.fixedStun?4:0),impactDirection,stage.floorHeight,stage.width);
     const stanceArmor=(characters[d.characterId].muscleFighter&&(d.move==='coolMuscles'||d.move==='gymBro'));
-    const reacts = !d.loveNpc && !d.jopaSummon && !stanceArmor && (blocked || reactionStun > 0);
+    const reacts = d.undead!=="grave" && !d.loveNpc && !d.jopaSummon && !stanceArmor && (blocked || reactionStun > 0);
     const outgoing=(a.bloodMasterUntil>s.frame?1.05:1)*(inLove(a)?EIDE.loveDamage:1)*personalityDamage(a)*angerMultiplier(a,s.frame)*(a.weaponUntil>s.frame?characters[a.characterId].weaponModifiers?.damage??1:1);
     if(reacts){
       d.move=null;

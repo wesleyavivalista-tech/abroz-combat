@@ -1,0 +1,103 @@
+PRE-LAUNCH UI / RESOLUTION / FULLSCREEN / BROWSER AUDIT
+2026-10-07
+
+UI BUGS FOUND
+1. Pause heading could be clipped above the scroll origin on short screens.
+   Reproduction: open pause at 960x540; the first heading line was above the screen.
+   Cause: flex centering within a height-limited scrolling drawer centers oversized
+   content into negative space. Shrinking flex children compounded the problem.
+   Fix: safe centering with a start-alignment fallback, and nonshrinking children.
+   Existing roomy-screen centering, typography, colors and button design retained.
+2. Eight-player pause lineup overflowed horizontally behind the command drawer.
+   Reproduction: eight idle fighters, pause at 1280x720; players beyond P4 were off
+   to the right and the full dialog acquired a horizontal scrollbar.
+   Cause: unwrapped flex row sized for a two-player matchup.
+   Fix: allow existing player entries to wrap. All eight now fit; no card redesign.
+3. Canvas/postprocessing density remained at initialization/last quality setting
+   after a resize accompanied by a device-pixel-ratio change.
+   Cause: resize updated sizes and camera aspect but never updated pixel ratio.
+   Fix: recompute density using the existing quality cap and update both renderer
+   and composer only when it changes. No quality cap or lighting change.
+   Confirmed by code inspection and regression tests. Physical monitor switching
+   was not performed. A DPR-only change that does not trigger ResizeObserver still
+   needs hardware validation; this fix runs on the existing resize path.
+
+RESOLUTION-SPECIFIC PROBLEMS
+Pause defects reproduced at 960x540 and 1280x720. Fixed pause measured at all seven
+sizes below: dialog scrollWidth equaled clientWidth, scrollTop was zero and the
+first content item was at positive y. Last Controllers action was successfully
+reached through the scrolling drawer. Larger screens retain centered content.
+Settings and controller lists intentionally scroll; controls below the viewport
+are not classified as clipping when reachable in their scroll container.
+Sixteen-player brackets intentionally scroll vertically and, where needed,
+horizontally. Tested maximum-length unbroken participant names at 960x540.
+
+BROWSER-SPECIFIC PROBLEMS
+No browser-specific production bug was confirmed during the limited smoke tests.
+- Installed Safari: launched the illustrated menu, entered actual fullscreen,
+  exited through the game's control back to a normal window; menu remained usable.
+  Increased browser zoom by two keyboard increments and inspected the menu,
+  then restored zoom. Exact percentage was not recorded.
+- Installed Chrome: launched the illustrated menu with assets. Automated fullscreen
+  requests did not enter fullscreen; the second attempt showed the existing
+  "Fullscreen is unavailable. Try maximizing the window." message. No console
+  error was recorded. Successful Chrome fullscreen is NOT verified.
+- Codex in-app browser: primary live layout/interaction environment.
+- Edge/Firefox: not available in the connected browser inventory; not tested.
+Do not interpret Chromium-based checks as Firefox, Edge or Safari certification.
+
+FIXES IMPLEMENTED
+apps/client/src/ui/match-overlays.css: wrap pause lineup; safe drawer centering;
+prevent child shrinkage that obscures scrolling content.
+apps/client/src/rendering/SceneRenderer.ts: synchronize renderer/composer density
+on resize with the current quality preset.
+tests/ui-resolution.test.ts: three tests execute the real renderer resize method
+with lightweight WebGL substitutes, covering low/medium/high quality, densities
+1, 1.25, 1.5, 2, 3 and return to 1, repeated stable density, and camera aspect changes.
+No gameplay, balance, assets, menu design, dependencies or network changes.
+
+TEST ENVIRONMENTS CHECKED
+Live CSS viewport matrix in the in-app browser:
+1920x1080, 1366x768, 1440x900, 2560x1440, 1280x720, 3440x1440, 960x540.
+Main menu, mode selection, fighter selection, arena selection, settings/controller
+panels, two-player HUD controls, 16-player setup/bracket and tournament result
+preview were inspected/measured. Eight-player HUD was visually inspected at
+1280x720. Fixed eight-player pause was measured at every size. Loading-to-gameplay
+worked on multiple starts. HP/energy/lives/status/ultimate indicators were visible.
+Result tests used the repository's existing tournament-review preview with the
+real result template, not a completed human tournament.
+Pointer selection of menu controls continued to work after resizing. Combat uses
+keyboard/controllers, so there is no combat mouse-to-world picking path to test.
+Focus-loss cleanup, fullscreen rejection handling and startup/network error UI
+were inspected in code; existing automated input/menu lifecycle checks passed.
+No live graphics-load failure or real remote disconnect was forced during this pass.
+
+Validation: 1,055 automated tests passed, zero failures (including three new density
+regressions). Type checking, full lint and client production build passed. Existing
+tracked diff whitespace checks passed. Browser errors queried on the in-app audit
+tab: none. A final optional screenshot request failed in the capture tool; an
+already-saved successful 960x540 screenshot and numeric checks are retained.
+Evidence:
+- audits/evidence/ui-pause-fixed-960.jpg
+- audits/evidence/ui-pause-checks.json
+- audits/evidence/ui-resolution-measurements.json
+The initial settings measurements include intentionally scrollable off-screen
+controls; read them together with this report rather than treating every flag as
+a confirmed defect.
+
+MANUAL BROWSER TESTS REQUIRED
+- Real Firefox/Edge full flows, and fuller Safari gameplay/settings/result checks.
+- Chrome fullscreen using a physical click, exiting with Escape, then resuming.
+- Real Retina/non-Retina display moves (including same CSS viewport size), OS scaling
+  and browser zoom at explicitly recorded 100/125/150/200 percent values.
+- Physical focus loss/restore with held keyboard/controller inputs in fullscreen.
+- Normal survival/team/draw result visuals, long live status strings, and startup/
+  network failure recovery at high zoom. Those variants were code/test reviewed,
+  not exhaustively browser-rendered here.
+- Windows monitor changes and minimized/restored windows; this machine is macOS.
+
+FINAL DIFF REVIEW
+Compared the full tracked diff with the pre-audit snapshot. Only SceneRenderer.ts
+and match-overlays.css changed during this task. Existing unrelated dirty files
+were preserved. New additions are the targeted tests, this report and evidence.
+Temporary in-app viewport overrides were reset and audit browser tabs closed.

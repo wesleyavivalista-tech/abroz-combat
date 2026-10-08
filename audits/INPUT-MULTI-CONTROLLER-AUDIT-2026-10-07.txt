@@ -1,0 +1,63 @@
+PRE-LAUNCH INPUT AND MULTI-CONTROLLER AUDIT — 2026-10-07
+
+INPUT BUGS FOUND
+1. Held keyboard auto-repeat could repopulate gameplay inputs after clear(), including screen/pause transitions. Reproduced with KeyJ -> clear -> repeated KeyJ. Fixed by rejecting repeat events for keys no longer held by the input manager; a fresh keydown still works.
+2. Focus loss cleared current keys but did not prevent subsequent controller polling from restoring input while unfocused. Fixed with a focus gate on polling/consumption and cleanup on focus return. Held controller buttons must return to neutral before resuming. No automatic match pause was added; online simulation remains unchanged.
+3. Queued Escape/debug/training-reset commands survived clear()/blur. Fixed by clearing systemActions along with gameplay inputs.
+4. Holding R generated repeated training resets through keyboard repeat. Reset is now edge-triggered, consistent with existing pause/debug commands.
+5. Controller menu events survived input suppression. A queued confirm/direction could execute after clear, disconnect or reassignment even though its gameplay mask had been cleared. Device suppression now removes that device's pending menu events, retaining connection/assignment notifications.
+Five failing regression cases established the keyboard, system-queue and controller-queue failures before edits. An additional focus/controller polling regression covers the focus gate.
+
+CONTROLLER ASSIGNMENT BUGS
+Confirmed: queued menu events retained their old player after reassignment (issue 5). Fixed at the shared suppression boundary used by assignment, release and disconnect.
+No duplicate simultaneous ownership reproduced. assign() removes a device's old seat and releases an occupied destination. Disconnect retains a reserved seat; menus allow an unassigned device to reclaim missing seats. During gameplay, main.ts explicitly routes recent activity on an unassigned standard device to a missing active seat. A connected device already assigned elsewhere is not silently stolen.
+Browser index gaps/order changes and identical model strings are covered by tests. Device records use session keys, not model names as unique physical identities. The code cannot identify which identical physical controller was replugged; explicit rejoin/reassignment is intentional.
+Keyboard layouts remain fallback inputs for P1/P2 even when a controller occupies those seats. This is existing intentional behavior, not exclusive keyboard ownership. Claim keyboard seats before controller join when mixing input methods.
+
+FIXES IMPLEMENTED
+Production edits limited to apps/client/src/input/InputManager.ts and GamepadManager.ts. No mapping, menu layout, physics, combat, network protocol or asset changes.
+InputManager: focus gate; focus/blur cleanup; system-action queue cleanup; reject stale key-repeat; edge-trigger R.
+GamepadManager: cancel queued menu events when suppressing a device.
+Existing Xbox menu-stick fixes from the preceding task were retained, not reimplemented.
+
+TESTS PERFORMED
+Final full suite: 1,002 passed, zero failures (/tmp/input-all-tests.log). TypeScript, ESLint and Vite client build passed.
+Eight new tests added across input-client.test.ts, gamepad-manager.test.ts and controller-menu.test.ts:
+- Keyboard cleanup and fresh press recovery.
+- Blur and queued pause/reset cleanup.
+- R repeat suppression.
+- Background controller polling and neutral-on-refocus.
+- Queued menu cancellation on clear and reassignment.
+- Eight simultaneous mixed-model simulated pads over 20 menu/match/rematch-cleanup cycles, with occupied-seat swaps. Real GameSimulation receives each seat's movement mask and verifies its fighter moves in the intended direction.
+- Eight identical simulated devices through 16 disconnect/reconnect cycles at new sparse indexes and reversed sample enumeration, with exclusive ownership checks.
+Existing tests cover all seven attack defaults, two keyboard layouts, taps versus holds, preconnected/hot-plug discovery, reconnect and reserved seats, cap enforcement, capture/test mode, unsupported mappings, deadzones, analog triggers, menu repeat/confirm/back, focus restoration and scoped menu ownership.
+These are automated input and menu-boundary fixtures, not eight physical controllers or a complete browser walkthrough of every screen. Existing main.ts routing for selection, pause owner, results, rematch, controller settings and disconnect handling was inspected. Last turn's simulated browser menu/fighter-navigation check is separate evidence.
+
+PLATFORM/BROWSER LIMITATIONS
+Only devices reported with mapping='standard' are assignable. Non-standard devices remain visible for diagnostics; the code does not guess vendor-specific button layouts. Brand recognition affects labels only.
+The game consumes what navigator.getGamepads exposes; successful simulated tests do not prove a particular browser/OS/USB/Bluetooth setup exposes eight devices. Actual mappings, simultaneous button behavior, keyboard rollover, wireless reliability, and real focus events require hardware testing.
+Disconnected device records are retained in-session for identity/history; repeated reconnections grow that diagnostics collection. No practical failure reproduced, but an unusually long hot-plug soak should monitor it.
+
+REALISTIC MAXIMUM CONTROLLER SETUP
+Configured software ceiling: eight independently assigned controller seats (MAX_LOCAL_GAMEPADS=8). The automated eight-pad configuration passes. Six-to-eight physical controllers remain a release qualification target, not a certified hardware result.
+For mixed keyboard/controller play, reserve P1/P2 for keyboard and use six pads in P3–P8. The supported eight-pad seat range does not extend to seats 9–16 even though some match modes allow sixteen fighters. Do not advertise sixteen local controller players on this implementation.
+
+PHYSICAL CONTROLLER TESTS I SHOULD RUN
+1. Start with controllers already connected, then repeat with hot-plug. Join individually and confirm displayed player numbers.
+2. With six and then eight pads, move each fighter separately and simultaneously; verify no second fighter responds. Include identical Xbox pads and a mixed-model run.
+3. Hold attack/stick while opening pause/settings, changing screens and rematching; release, then press again. No phantom action should survive.
+4. Unplug P1, a middle seat and P8 while moving; reconnect in a different port/order, rejoin, release held controls and resume. Check all unaffected owners remain unchanged.
+5. Swap occupied seats in Controllers; test that controller's card/menu and fighter before and after the swap.
+6. Alt-tab while holding movement/attack, operate the pad while unfocused, then return. Input must remain neutral until release/repress.
+7. Exercise character selection, pause/back, results/rematch, and a long eight-device session with the exact target browser/desktop build.
+8. Reserve both keyboard layouts before joining pads; verify their intended fallback behavior and actual keyboard rollover.
+
+FINAL DIFF REVIEW
+Compared against /tmp/input-audit-start.diff. Only the two input production files and three test files changed during this audit, plus this report. Existing unrelated work preserved. git diff --check passed. No new dependency or broad rewrite.
+
+PHYSICAL FOLLOW-UP — Xbox Bluetooth, Codex in-app browser, 2026-10-07
+User operated the physical controller while the assistant inspected the actual game UI (no simulated pad used in these checks).
+PASS: baseline one Xbox Wireless Controller (STANDARD GAMEPAD), browser index 1, Player 1, Connected. User clicked outside game and returned without pressing controller buttons. The same single device entry, index and Player 1 assignment remained connected.
+PASS: with input test open, user pressed/released physical Menu once. Input test disappeared; Controllers stayed open; Player 1 remained connected.
+PASS: with Test focused, user pushed left stick left once and released. Observed focus moved to Identify, as expected, with Player 1 still connected.
+Evidence: audits/evidence/xbox-physical-focus-check.png. No code changed during this verification. This is a successful single-controller focus/menu check, not certification of all buttons, combat, prolonged Bluetooth reliability or six-to-eight physical controllers.

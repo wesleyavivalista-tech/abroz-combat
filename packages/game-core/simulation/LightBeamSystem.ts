@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {deterministicSin,deterministicCos} from './DeterministicMath.js';
 import {canReceiveDirectHit} from '../combat/ContactPolicy.js';
 import {applyDamage} from '../combat/DamageSystem.js';
@@ -39,10 +40,15 @@ export function advanceBeams(s:SimulationSnapshot,width:number,hit?:(owner:numbe
  for(const source of all){
   const f=source.fighter,ray=lightBeam(f,width,floorHeight);if(!ray||!isActive(f))continue;
   const m=characters[f.characterId].moves[f.move!],b=m.beam!;
-  if(!b.push&&(f.moveFrame-m.startupFrames)%b.interval)continue;
+  if(!b.push){
+   const index=Math.floor((f.moveFrame-m.startupFrames)/b.interval);
+   const previous=f.beamPulse;
+   if(previous?.serial===f.attackSerial&&previous.move===m.id&&previous.index>=index)continue;
+   f.beamPulse={serial:f.attackSerial,move:m.id,index};
+  }
   for(const target of all){
    const d=target.fighter;
-   if(s.teams[source.owner]===s.teams[target.owner]||!canReceiveDirectHit(d,s.frame)||!beamHitsFighter(ray,d))continue;
+   if(!hostile(s,source.owner,d,target.owner)||!canReceiveDirectHit(d,s.frame)||!beamHitsFighter(ray,d))continue;
    if(!b.continuous&&hit){hit(source.owner,target.owner,m,f,d);continue;}
    if(b.push){d.x=Math.max(40,Math.min(width-40,d.x+ray.dx*b.push));d.y=Math.max(floorHeight,d.y+ray.dy*b.push);if(s.frame%b.interval)continue;}
    applyDamage(s,d,m.damage,{receivedHit:true,source:source.owner,move:m.id});

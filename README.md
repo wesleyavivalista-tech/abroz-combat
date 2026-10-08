@@ -187,3 +187,7 @@ Caio is playable in local, training and online modes with Teal & Gold and Blacko
 Specials cost 25 energy: a 6-second blood pool slows movement and attacks by 50%; the blowgun dart deals 45 base damage and slows movement by 20% for 3 seconds. Full-energy supers are once per match: a 17-second arena flood slows movement/attacks by 80% below its surface, while Blood master lasts 34 seconds and leaves 2-second trails/contact slows. Strongest slow wins. Teams, spawn protection, knockouts, clones and rollback share the same rules.
 
 Drupa has a new walk cycle with fixed anatomical scale, distinct opposite-arm jab/cross artwork for both skins, and golden light around his preview fists. Caio has dedicated victory artwork and blood-coated hands in his portraits. Protocol version 29 includes the new fighter state; reload clients together after updating.
+
+### Production release checklist
+
+See [Release configuration](docs/RELEASE_CHECKLIST.txt) for production WSS/origin settings, root-path hosting, cache policy, asset exclusions, and desktop signing requirements. Do not publish the repository or use development-server URLs as the release endpoint.

@@ -1,0 +1,263 @@
+FOLLOW-UP: Confirmed findings have now been fixed. See AUDIT-FIXES-2026-10-05.txt.
+The report below records the pre-fix audit; edge-probes now runs regression tests.
+
+ABROZ COMBAT — CODEBASE AUDIT
+Date: 2026-10-05
+Baseline: 29d3e65
+
+DECISION / SCOPE
+No confirmed CRITICAL issue was found in this review. This is not a guarantee
+that the game has no critical bugs. No production code or balance values were
+changed. Per the requested stopping point, HIGH/MEDIUM/LOW fixes are deferred.
+
+Findings: 3 HIGH, 2 MEDIUM confirmed behavioral defects, 1 LOW build concern.
+Four additional fragile areas are recorded separately, not claimed as proven
+runtime failures. Each recommendation below requires its own focused change
+and desired-behavior regression tests before release.
+
+Reviewed the shared simulation pipeline and all character ability systems,
+state transitions, damage/contact policy, hitstun, projectiles, structures,
+platform support, summons, lifecycle/reset paths, competition modes, rollback,
+room/duel input validation and disconnect handling. Also inspected client
+navigation/startup async guards, input/listener ownership, audio lifecycle and
+presentation-event integration, rendering interpolation and resource caches.
+The apps/packages source inventory contains 221 TS/JS/MJS/CJS files. This is a
+risk-focused repository audit, not a claim of line-by-line proof for every file.
+Generated art/audio, vendored dependencies and generated output were excluded.
+No physical controller, real multi-device session, cross-browser replay,
+production soak, audio listening session or GPU heap profile was performed.
+
+EVIDENCE
+- Existing tests/*.test.ts suite: 738 passed, 0 failed.
+- Existing desktop *.test.mjs suite: 5 passed, 0 failed.
+- TypeScript type check: passed.
+- ESLint: passed, including the saved audit probes.
+- Client production build and server TypeScript compilation: passed.
+  Vite emitted the existing large-chunk warning described under L1.
+- Additional seeded stress: 16 eight-player configurations across all 4 arenas,
+  rotating through all 16 fighters; 3,600 ticks/configuration = 57,600 ticks.
+  Finite-state checks plus paired simulation/snapshot hash checks passed.
+  Test-only full meter and periodic super resets increase ability activity.
+  This tests same-engine deterministic restoration, not cross-engine precision
+  or arbitrary network packet schedules. Existing tests cover rollback cases.
+- Six targeted probes reproduced the five behavioral defects below (two stun
+  implementations are separate probes for H1).
+
+Reproduce from the project root with Node and the installed dependencies:
+  node node_modules/tsx/dist/cli.mjs audits/2026-10-05-edge-probes.mts
+  node node_modules/tsx/dist/cli.mjs audits/2026-10-05-stress.mts
+
+IMPORTANT: edge-probes asserts the CURRENT defective observations to make the
+report independently reproducible. It is intentionally outside the normal test
+suite; a passing probe means the defect was observed, NOT that it was fixed.
+Convert the relevant observation to a desired-behavior test when implementing
+its fix. Fixtures place fighters at precise legal combat boundaries; they are
+component/simulation probes, not recordings of human input or browser sessions.
+
+CRITICAL
+========
+None confirmed. No critical fix was made. In particular, stress/replay tests did
+not show corrupted snapshots, non-finite combat state or divergent same-engine
+replays. Cross-engine determinism remains unverified (F1).
+
+HIGH
+====
+H1 — Ability-specific stun clocks erase newer hitstun
+Problem: a newly connected attack's reaction is overwritten by an older loan or
+Nikalz stun timer, releasing the victim early. With one frame left on the old
+stun, a 25-frame jab reaction becomes zero on the next simulation tick.
+Where: packages/game-core/simulation/FinanceSystem.ts:56–58;
+       packages/game-core/simulation/NikalzSystem.ts:70–72;
+       packages/game-core/combat/CombatSystem.ts / HitstunSystem.ts.
+Reproduction: strike a victim just before their loan or Nikalz stun expires.
+The saved probe gives Gut one frame remaining on each timer, resolves Luizinho's
+jab through the real resolveHit function, then advances GameSimulation. Both
+cases print before=25, after=0, state=Idle. This happens even while hitstop remains.
+Why: these systems assign the shared stun field from their own deadline every
+tick and unconditionally clear it/enter Idle or Fall at expiry. They do not
+track whether a subsequent hit now owns the reaction. Jopa's related deadline
+has explicit clearing in consecutiveHitstun; these deadlines do not.
+Safest fix: separate remaining ability-lock duration from ordinary hit reaction
+ownership, or retain the newer hit deadline when updating/expiring the ability
+lock. Only release the state when no other active reaction requires it. Define
+and test the existing escape-immunity interaction rather than extending stun
+or changing move values. Avoid a blanket timer deletion that shortens intended
+loan/Nikalz locks on every hit.
+Regression risk: MEDIUM/HIGH. Shared hitstun, five-hit escape, launch, loan expiry,
+Nikalz knockback, platform landing and hitstop must all be tested together.
+
+H2 — Slowed continuous beams repeat damage on one attack frame
+Problem: Drupa's continuous beam deals another pulse when slow motion holds its
+moveFrame at the same interval boundary. Timing is tied to repeated samples of
+an animation frame rather than one pulse crossing.
+Where: packages/game-core/simulation/LightBeamSystem.ts:41–48;
+       packages/game-core/simulation/GameSimulation.ts:526–530.
+Reproduction: have Caio's blood slow active on Drupa while his Buda beam reaches
+its first damage frame, with an opponent in the ray. Probe: move frames are
+[39,40,40], damage is [0,18,18] over three ticks. Two damage pulses occur at 40.
+Why: the modulo interval condition is true on every simulation tick with that
+moveFrame. The attack clock legitimately advances by fractional accumulated
+speed. Boosts can also skip pulse frames; that variant is inferred, not probed.
+Safest fix: dispatch pulses once when the intended attack-clock boundary is
+crossed, retaining enough snapshot state to identify pulses per attack. Keep
+Roms's intentionally simulation-clock push/damage cadence intact. Establish
+normal/slow/boosted expectations from current authored intervals, not new DPS.
+Regression risk: MEDIUM. Cover held beams, interruption, reactivation, rollback,
+multiple targets/clones, and structure damage, which uses a different cooldown.
+
+H3 — Setting simulated outbound delay to zero reorders live inputs
+Problem: toggling the available network setting during an online match can
+cause an out-of-order input rejection and disconnect/forfeit for that player.
+Where: apps/client/src/network.ts:71–86;
+       apps/client/src/main.ts:577–578, 710–714;
+       apps/server/src/rooms.ts input validation;
+       apps/server/src/championship.ts:40–41.
+Reproduction: enter an online match with 50–200 ms simulated delay, open its
+settings overlay while combat continues, set delay to 0. If an older input is
+pending, the next input is sent first. Probe queues frame 2 at 40 ms, switches
+to zero, sends frame 3: socket receives [3,2]. The strict server sequence check
+rejects frame 3 when frame 2 is expected; the client treats the error as a match
+disconnect. The byte order is tested; the complete browser flow is not automated.
+Why: only positive-delay sends use lastDelivery/the timer queue. Immediate sends
+bypass pending inputs. Changing a public property does not drain that queue.
+Safest fix: preserve FIFO for all input sends, including the transition to zero;
+let queued frames drain before immediate delivery resumes. Do not weaken server
+validation, drop frames, or change network input numbering. Keep disconnect
+cancellation and duel tokens intact.
+Regression risk: LOW/MEDIUM. Test transitions both directions, jitter, disconnect
+with queued frames and a new championship duel. Classified HIGH rather than
+CRITICAL: this explicit setting edge case disconnects a participant through the
+existing forfeit path; no divergent or corrupted survivor state was demonstrated.
+
+MEDIUM
+======
+M1 — Structure collision can push a fighter outside the arena movement boundary
+Problem: boundary clamping and wall collision disagree near arena edges. A
+fighter can finish the tick beyond the normal x=40 minimum and be repeatedly
+clamped then pushed back out while the wall remains.
+Where: packages/game-core/simulation/StructureSystem.ts:24–31, 115–139;
+       packages/game-core/simulation/GameSimulation.ts movement/collision order.
+Reproduction: Luizinho at x=185 facing left builds a wall while an enemy stands
+at x=40. Structure placement clamps the wall's left edge to 40. One tick later
+Gut is at x=9, outside the movement bound. Mirror at the right edge. The probe
+uses activateStructure and a full simulation step, without modifying geometry.
+Why: wall resolution subtracts the enemy's half-width from the wall edge after
+the normal movement boundary clamp. Placement reserves no room for a trapped
+body between the wall and arena boundary.
+Safest fix: choose an in-bounds, non-overlapping resolution when the usual side
+has insufficient room. Do not simply clamp after collision, which leaves a body
+inside the wall. Test moving platforms carrying walls to an edge as well.
+Regression risk: MEDIUM. Direction of displacement, wall charges, house trapped
+actors, knockback and overlapping structures are sensitive. No permanent trap or
+crash was demonstrated, so this is not classified as a critical failure.
+
+M2 — Completed championship rooms have no result retention expiry
+Problem: completed online brackets can remain allocated indefinitely while a
+winner/spectator leaves the results tab connected. Regular matches have a
+15-minute result retention rule, but championships bypass it.
+Where: apps/server/src/rooms.ts:233–249;
+       apps/server/src/championship.ts:73–81.
+Reproduction: create and ready a two-player championship, let one player leave
+so the bracket completes, retain the winner's connection, call expireInactive
+with a time 24 hours later. Probe confirms bracket.complete=true and one room
+still allocated. Real connected result tabs follow the same branch.
+Why: championship handling always continues before the ordinary finished-room
+expiry. ChampionshipSession.expired only considers pending contestants/duels;
+a completed bracket has neither. Its connected peers are treated as spectators.
+Safest fix: record completion time and expire completed brackets after the
+existing result retention period, while preserving active-bracket spectators.
+Regression risk: LOW/MEDIUM. Test a final forfeit, normal final, byes, draws and
+spectators waiting between rounds. Accumulation is limited by the 1,000-room cap
+and connections; actual heap growth/server exhaustion was not load-tested.
+
+LOW
+===
+L1 — Large initial client chunk increases startup cost
+Problem: the production main chunk is ~1.05 MB minified (~307 KB gzip), triggering
+Vite's >500 KB warning. This is a measurable build concern, not a demonstrated
+frame-rate regression or a game-start failure.
+Where: apps/client/src/main.ts and its statically imported rendering/UI graph;
+       apps/client/vite.config.ts production build output.
+Reproduction: run the client production build; inspect the main chunk warning.
+Why: many game and presentation systems share the entry import graph.
+Safest fix: profile startup first; only then split genuinely deferred screens or
+optional diagnostics at existing lifecycle boundaries. Preserve current asset
+loading/error handling. Do not replace the renderer or add a dependency.
+Regression risk: MEDIUM if changed: loading races and missing-chunk handling.
+No code splitting was attempted in this audit.
+
+WORKING BUT FRAGILE — NOT CONFIRMED RUNTIME BUGS
+==============================================
+F1 — Cross-engine numeric determinism (MEDIUM risk)
+Where: NikalzSystem.ts:34,56 and networking hashState/snapshot comparison.
+Problem/why: authoritative meteor calculations still use Math.pow while other
+nontrivial simulation math has deterministic helpers. Native power calculations
+can have implementation-dependent precision; raw state hashing is sensitive to
+even tiny differences. Same-engine replay passing does not settle this.
+Reproduction/check: replay the same seeded meteor inputs on V8 and JavaScriptCore
+and compare snapshots frame by frame. NOT performed; no actual desync claimed.
+Safest recommendation: add cross-engine golden traces first; consider explicit
+multiplication for integer powers, validating results and content-version sync.
+Fix risk: MEDIUM; rounding boundaries and live mixed-version peers matter.
+
+F2 — Multiple owners of fighter reaction/lifecycle state (MEDIUM risk)
+Where: FinanceSystem, NikalzSystem, JopaSystem, JompSystem, CombatSystem,
+HitstunSystem, LifeSystem, GameSimulation.resetPositions and CombatLifecycle.
+Problem/why: shared cleanup and damage helpers exist, but ability timers also
+write move/stun/state/velocity and cleanup optional fields themselves. A future
+ability can omit a reset/interrupt path or overwrite another system's state.
+Reproduction/check: add an ability-owned field and trace KO, forfeit, training
+reset, rollback restore, round restart, clone pruning and interruption. Current
+stress tests exercise many paths but do not prove each field's ownership.
+Safest recommendation: document owners and add a lifecycle test matrix before
+any shared refactor. Fix H1 narrowly first; do not unify all behavior at once.
+Fix risk: HIGH for a broad refactor; LOW for ownership documentation/tests.
+
+F3 — Scene orchestration and async UI transitions share mutable globals
+(MEDIUM risk)
+Where: apps/client/src/main.ts: start/navigate/network onMessage/result handling.
+Problem/why: simulation, mode, selected roster, rollback and active screen are
+coordinated in one large entry module. Existing viewRevision/load cancellation
+checks work, but a new async screen can omit them and revive an obsolete match.
+Reproduction/check: navigate home while assets load, start another mode, then
+allow the old load to finish; repeat with a late championship message. Existing
+guards were inspected; no new reproducible failure was found.
+Safest recommendation: require the same revision/connection guard for new async
+flows, and add targeted transition tests rather than extracting the entire UI.
+Fix risk: LOW for tests; MEDIUM/HIGH for unsolicited orchestration refactors.
+
+F4 — Presentation events can precede rollback confirmation (MEDIUM risk)
+Where: apps/client/src/audio/GameAudio.ts, main simulation/audio loop,
+packages/networking/RollbackManager.ts and simulation presentation journal.
+Problem/why: immediate predicted effects provide responsive audio, but a hit
+sound already played cannot be undone if a late input invalidates that contact.
+Clearing replay presentation events prevents duplication but cannot retract it.
+Reproduction/check: deliberately deliver a late dodge/block that overturns a
+predicted hit and listen/log events. Not tested by listening or two devices.
+Safest recommendation: explicitly document prediction policy; if confirmed-only
+impacts are required, retain responsive swings and delay only impact cues until
+confirmation with stable event identity. Treat this as a latency tradeoff.
+Fix risk: MEDIUM: delaying every cue would make controls feel unresponsive.
+
+POSITIVE CHECKS / LIMITS
+- Shared damage/contact, projectile initialization and terminal entity cleanup
+  already reduce duplication; no reason was found to replace these systems.
+- All four authored arenas have valid Eide destinations. Church uses two offsets
+  on the single platform; mall summons track moving platforms. Existing arena
+  tests and stress passed; new arena definitions still require targeted tests.
+- Audio disposal cancels pending timers and loading; input/window lifetime
+  listeners and resize observers have teardown paths. Retained texture/asset
+  caches are deliberate lifetime caches, not automatically proven leaks.
+- Projectile reuse clears stale optional fields. Structures and bee swarms have
+  bounds. No unbounded combat entity growth was demonstrated in this run.
+- Server duel tokens reject stale championship inputs; stable seat departures
+  and rollback snapshots have existing regression coverage. Reconnection is not
+  claimed to resume a departed seat; disconnect follows current forfeit rules.
+- No balance, character damage, speed, cooldown, move timing, hitbox, physics,
+  input handling or networking behavior was changed.
+
+DELIVERED CHANGES
+Only this report and two portable audit scripts were added. No critical fixes
+were applicable because none was confirmed. HIGH/MEDIUM/LOW changes remain
+unimplemented as requested. There is therefore no claim that the reproduced
+bugs are resolved, nor that the game is exhaustively verified.

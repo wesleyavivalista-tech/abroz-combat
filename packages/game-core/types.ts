@@ -190,6 +190,7 @@ export interface CharacterDefinition {
   states: Record<string, (fighter: Fighter, frame: number) => void>;
 }
 export interface Fighter {
+  undead?: "grave"|"rising"|"zombie"|"dying";
   diveStunImmuneUntil?:number; beeBoxes?:number; beeSlowUntil?:number; nikalzStunUntil?:number; meteorStart?:number; meteorX?:number; meteorY?:number;
   npcPlatform?:number; loveMode?:boolean; loveNpc?:boolean; npcEntrance?:{fromX:number;takeoffX:number;landingX:number;targetX:number;floorY:number;targetY:number;elapsed:number;lastFrame:number}; npcHitAt?:number; npcDefeatedAt?:number; applianceVariant?:number; applianceSeed?:number;
   loanUntil?:number; loanStunUntil?:number; movementSlowUntil?:number;
@@ -269,6 +270,9 @@ export interface Fighter {
   moveFrame: number;
   connected: boolean;
   stun: number;
+  /** Ordinary hit reaction preserved independently of absolute ability locks. */
+  timedHitReaction?: number;
+  beamPulse?: {serial:number;move:string;index:number};
   consecutiveHits: number;
   lastStunHitFrame: number;
   hitstunImmuneUntil: number;
@@ -312,7 +316,7 @@ export interface Hazard {
   height?: number;
   owner: number; x: number; y: number; expiresAt: number; move: string; nextTicks: number[];
 }
-export interface HairClone { id: number; owner: number; fighter: Fighter; kind?: "blonde" | "sad" | "angry" | "basketball" | "cookie-monster" | "tree" | "tentacle" | "knight"; rider?:number; bornAt?:number; nextJump?:number; reboundUntil?:number; recoveryUntil?:number; landingHitReadyAt?:number; impactAt?:number; nextAction?:number; pattern?:number; variant?: number; maxHealth?: number; }
+export interface HairClone { id: number; owner: number; fighter: Fighter; undead?: {phaseAt:number; target:number; nextAttack:number; attackAt:number; attackFrame:number; hit:boolean; stuck:number; lastX:number; spawnX:number; spawnY:number}; kind?: "undead" | "blonde" | "sad" | "angry" | "basketball" | "cookie-monster" | "tree" | "tentacle" | "knight"; rider?:number; bornAt?:number; nextJump?:number; reboundUntil?:number; recoveryUntil?:number; landingHitReadyAt?:number; impactAt?:number; nextAction?:number; pattern?:number; variant?: number; maxHealth?: number; }
 export interface StructureDefinition {
  kind: "wall"|"turret"|"house"|"bee-box"; width:number; height:number; healthRatio:number; duration:number; offset:number;
  shotMove?:string; interval?:number; collapseDamage?:number; collapseStun?:number;
@@ -324,7 +328,9 @@ export interface Structure {
 }
 export interface BeeSwarm {id:number;owner:number;x:number;y:number;originX:number;originY:number;born:number;range:number;period:number;direction:number;vertical:number;}
 export interface ForeheadWave {owner:number;x:number;y:number;born:number;range:number;speed:number;meteor:boolean;hits:string[];}
+export interface FinalDeath {seat:number; x:number; y:number; frame:number; facing:1|-1; spawned?:boolean;}
 export interface SimulationSnapshot {
+  finalDeaths?: FinalDeath[];
   platformTick?: number;
   bees?:BeeSwarm[]; nextBeeId?:number; foreheadWaves?:ForeheadWave[];
   elimination?: import("./simulation/EliminationSystem.js").EliminationState;

@@ -35,9 +35,9 @@ wss.on("connection", (socket) => {
         window = Date.now();
         budget = 0;
       }
-      if (++budget > 240) throw new Error("Message rate exceeded");
+      if (++budget > 240) { socket.terminate(); return; }
       const m = JSON.parse(data.toString());
-      if (!m || typeof m.type !== "string") throw new Error("Invalid message");
+      if (!m || typeof m !== "object" || Array.isArray(m) || typeof m.type !== "string") throw new Error("Invalid message");
       switch (m.type) {
         case "create":
         case "join":

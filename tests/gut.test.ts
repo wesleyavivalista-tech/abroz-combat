@@ -31,7 +31,7 @@ test('meditation heals only each two seconds held, caps health and stops on rele
  run(s,1,Button.Special2);assert.equal(f.health,685);run(s,120,Button.Special2);assert.equal(f.health,770);
  run(s,1);assert.equal(f.move,null);run(s,200);assert.equal(f.health,770);
  run(s,119,Button.Special2);assert.equal(f.health,770);run(s,1,Button.Special2);assert.equal(f.health,855);
- run(s,1800,Button.Special2);assert.equal(f.health,1500);
+ run(s,1800,Button.Special2);assert.equal(f.health,1600);
 });
 test('meditation is interrupted by hits and cannot start airborne or resume just by holding',()=>{
  const s=match(),f=s.state.fighters[0];f.health=500;run(s,170,Button.Special2);
@@ -55,8 +55,8 @@ test('a defeated or removed summoned target cannot leave Gut stuck holding it',(
 
 test('Rising spear catches an opponent above Gut and launches upward',()=>{
  const s=match(),[a,b]=s.state.fighters;a.x=500;a.weaponUntil=1000;a.move='spearHeavy';a.moveFrame=m.spearHeavy.startupFrames-1;
- b.x=710;b.y=280;b.vy=0;b.state='Fall';s.step([0,0]);assert.ok(b.health<1500);assert.ok(b.vy>0);
- const t=match(),[c,d]=t.state.fighters;c.x=500;c.weaponUntil=1000;c.move='spearHeavy';c.moveFrame=m.spearHeavy.startupFrames-1;d.x=710;d.y=0;t.step([0,0]);assert.equal(d.health,1500);
+ b.x=710;b.y=280;b.vy=0;b.state='Fall';s.step([0,0]);assert.ok(b.health<1600);assert.ok(b.vy>0);
+ const t=match(),[c,d]=t.state.fighters;c.x=500;c.weaponUntil=1000;c.move='spearHeavy';c.moveFrame=m.spearHeavy.startupFrames-1;d.x=710;d.y=0;t.step([0,0]);assert.equal(d.health,1600);
 });
 
 test('double-jump heavy becomes a spear dive only with the weapon active',()=>{
@@ -71,7 +71,7 @@ test('double-jump heavy becomes a spear dive only with the weapon active',()=>{
 });
 test('spear dive hits on descent once and can be interrupted or expire with the weapon',()=>{
  const s=match(),[a,b]=s.state.fighters;a.x=600;b.x=725;a.y=230;a.state='Fall';a.airJumpUsed=true;a.weaponUntil=1000;
- s.step([Button.Medium,0]);run(s,18);assert.ok(b.health<1500);const hp=b.health;run(s,65);assert.equal(b.health,hp);
+ s.step([Button.Medium,0]);run(s,18);assert.ok(b.health<1600);const hp=b.health;run(s,65);assert.equal(b.health,hp);
  const t=match(),f=t.state.fighters[0];f.y=400;f.state='Fall';f.airJumpUsed=true;f.weaponUntil=1000;t.step([Button.Medium,0]);t.hit(1,m.palm,0,false,0);assert.equal(f.move,null);
  const u=match(),g=u.state.fighters[0];g.y=400;g.state='Fall';g.airJumpUsed=true;g.weaponUntil=10;u.step([Button.Medium,0]);run(u,10);assert.equal(g.weaponUntil,0);assert.equal(g.move,'spearThrow');
 });
@@ -89,9 +89,9 @@ test('expired spear crosses the arena in either direction, hits only the first o
 });
 test('expiry throw ignores teammates, respects guard, and never spawns from a dead fighter',()=>{
  const s=new GameSimulation(['gut','gut','gut','gut'],false,undefined,[0,1,0,1]);s.state.phase='fight';s.state.fighters.forEach(f=>{f.state='Idle';f.y=0});
- const [a,b,ally,c]=s.state.fighters;a.x=100;a.facing=1;a.weaponUntil=1;ally.x=400;b.x=900;c.x=1700;run(s,60);assert.equal(ally.health,1500);assert.ok(b.health<1500);assert.equal(c.health,1500);
+ const [a,b,ally,c]=s.state.fighters;a.x=100;a.facing=1;a.weaponUntil=1;ally.x=400;b.x=900;c.x=1700;run(s,60);assert.equal(ally.health,1600);assert.ok(b.health<1600);assert.equal(c.health,1600);
  const dead=match();dead.state.fighters[0].weaponUntil=1;dead.state.fighters[0].health=0;run(dead,1);assert.equal(dead.state.projectiles.some(p=>p.active),false);
- const guard=match(),[g,d]=guard.state.fighters;g.x=100;g.weaponUntil=1;d.x=350;d.facing=-1;for(let i=0;i<30;i++)guard.step([0,Button.Right]);assert.equal(d.health,1500-Math.ceil(m.spearThrow.damage*.4));assert.equal(guard.state.projectiles.some(p=>p.active),false);
+ const guard=match(),[g,d]=guard.state.fighters;g.x=100;g.weaponUntil=1;d.x=350;d.facing=-1;for(let i=0;i<30;i++)guard.step([0,Button.Right]);assert.equal(d.health,1600-Math.ceil(m.spearThrow.damage*.4));assert.equal(guard.state.projectiles.some(p=>p.active),false);
 });
 test('spear expiry and its projectile replay identically after snapshot restoration',()=>{
  const s=match();s.state.fighters[0].weaponUntil=8;s.state.fighters[0].x=100;s.state.fighters[1].x=1800;

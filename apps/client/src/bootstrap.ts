@@ -12,5 +12,5 @@ void import('./main.js').catch((error: unknown)=>{
   : ['localhost','127.0.0.1','[::1]'].includes(location.hostname)
    ? 'The game could not finish loading. Make sure the local game server is running, then retry. If this continues, check the browser console for the startup error.'
    : 'The game could not finish loading. Check your connection and retry. If this continues, report the problem.';
- const retry=document.createElement('button');retry.textContent='RETRY';retry.onclick=()=>location.reload();panel.append(title,message,retry);root.append(panel);retry.focus();
+ const retry=document.createElement('button');retry.textContent='RETRY';retry.style.cssText='background:#e8c77f;color:#14212b;border:2px solid #fff0ce;padding:12px 24px;font:700 16px sans-serif;cursor:pointer';retry.onclick=()=>location.reload();panel.append(title,message,retry);root.append(panel);retry.focus();
 });

@@ -1,3 +1,4 @@
+import {animationTick} from './AnimationPlayback.js';
 import {dodoCompanions,companionJumpPose} from './DodoCompanionPresentation.js';
 import {RetryableAssets} from './RetryableAssets.js';
 import * as THREE from 'three';
@@ -55,7 +56,7 @@ export class DodoRenderer implements FighterVisual{
   this.sprite=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:frames[0].texture,transparent:true,alphaTest:.1,side:THREE.DoubleSide,toneMapped:false}));this.root.add(this.sprite);
   this.shadow=new THREE.Mesh(new THREE.CircleGeometry(.4,24),new THREE.MeshBasicMaterial({color:0x101020,transparent:true,opacity:.25,depthWrite:false}));this.shadow.rotation.x=-Math.PI/2;
  }
- update(f:Fighter,time:number):void{
+ update(f:Fighter,_time:number):void{
   let frame:Frame;
   if(this.companion){
    const active=f.move&&f.moveFrame>=characters.dodo.moves[f.move].startupFrames;
@@ -69,7 +70,7 @@ export class DodoRenderer implements FighterVisual{
    const dashing=!f.move&&f.state.startsWith('Dash');
    const count=this.walking.length,step=Math.floor(f.stateFrame/(dashing?3:7))%count;
    const recovering=f.move&&f.moveFrame>=characters.dodo.moves[f.move].startupFrames+characters.dodo.moves[f.move].activeFrames;
-   frame=dashing&&count?this.walking[f.state==='DashBackward'?(count-step)%count:step]:performing?this.playing[Math.floor(time*10)%this.playing.length]:!f.move&&f.state.startsWith('Walk')&&count?this.walking[f.state==='WalkBackward'?(count-step)%count:step]:this.attacks.length&&[7,8].includes(pose)?this.attacks[pose===8?1:recovering?2:0]:this.frames[pose];
+   frame=dashing&&count?this.walking[f.state==='DashBackward'?(count-step)%count:step]:performing?this.playing[Math.floor(animationTick(f)/6)%this.playing.length]:!f.move&&f.state.startsWith('Walk')&&count?this.walking[f.state==='WalkBackward'?(count-step)%count:step]:this.attacks.length&&[7,8].includes(pose)?this.attacks[pose===8?1:recovering?2:0]:this.frames[pose];
   }
   // Different sheets can have different pixel scales; their own standing frame anchors height.
   const source=this.walking.includes(frame)?this.walking:this.playing.includes(frame)?this.playing:this.attacks.includes(frame)?this.attacks:this.frames;

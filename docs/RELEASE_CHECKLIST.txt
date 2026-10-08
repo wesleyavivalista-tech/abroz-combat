@@ -1,0 +1,60 @@
+ABROZ COMBAT — RELEASE CONFIGURATION
+
+Web
+- Install the locked dependencies with pnpm install --frozen-lockfile in the build environment.
+- Set build-time VITE_WS_URL=wss://your-relay-host (public address, never credentials).
+  Rebuild to change it. Without this setting, the web client uses the page hostname
+  on port 8080, with WSS on HTTPS pages. Most hosted deployments need an explicit URL.
+- Run pnpm run build. It regenerates simulation compatibility revision, checks types,
+  builds the client to dist/ and compiles the relay to dist-server/.
+- Publish dist/ at the domain root. Artwork/audio paths are root-relative; mounting
+  under /game/ is not currently supported by changing Vite base alone.
+- Serve index.html and unhashed art/audio with revalidation (Cache-Control: no-cache
+  or short max-age + validators). Only hashed /assets/ bundles should be immutable.
+- Deploy a complete, consistent artifact atomically and keep previous hashed chunks
+  available briefly for existing sessions. Do not mix old HTML/new assets.
+- Serve appropriate content types, compression, and byte-range responses for music.
+  Confirm the real host serves MP3/WAV and fonts correctly over HTTPS.
+- Development review HTML, prompts, and generation notes remain in source public/
+  but are removed from both production outputs by the build plugin.
+- basic-attacks.html is a read-only fighter reference and intentionally ships on web.
+- Training dummy, infinite meter, reset and hitbox tools are intentional training
+  features. Debug/network-delay settings and idle-fighter test controls are dev-only.
+
+Relay
+- Start the compiled server with pnpm run start:server.
+- Set PORT to the platform-assigned/internal relay port.
+- Set ALLOWED_ORIGINS to the exact production web origin and, if distributing the
+  desktop build, abroz://game. Do not rely on localhost defaults in production.
+- Terminate TLS at the reverse proxy, enable WebSocket upgrades and appropriate idle
+  timeouts. Apply aggregate connection/join rate limits as discussed in the security
+  audit. The Node server itself listens using plain HTTP/WS.
+- Deploy matching client/server content revisions. Compatibility hashes detect
+  mismatched simulation versions, not malicious client modifications.
+- Rooms are in-memory; restarting or scaling across unsynchronized workers loses
+  sessions. Use a single relay instance or deliberate sticky-session routing.
+
+Desktop
+- Online: set VITE_WS_URL to a production WSS endpoint, then pnpm run build:desktop.
+- Explicit local-only preview: pnpm run build:desktop --offline --dir.
+- Build version defaults to package version. Assign the release version deliberately;
+  ABROZ_BUILD_VERSION may add a build identifier. Preserve appId to retain settings.
+- Complete publisher/icon metadata before distribution. Configure platform signing
+  and notarization in the secure release environment; never put credentials in VITE_*.
+- An unsigned unpacked build is a smoke-test artifact, not a signed installer.
+- Test installers, upgrades, uninstall behavior, offline startup and actual online
+  connectivity on each target OS. A macOS build does not verify Windows/Linux.
+
+Secrets
+- Only public values belong in VITE_* variables; they are embedded in browser code.
+- .env and .env.* are ignored except .env.example. Ignore rules do not untrack a
+  previously committed secret: remove it from history if required and rotate it.
+- Publish only release output, never the repository, .env files or source archives.
+
+Size and final QA
+- Current web output remains approximately 1.26 GiB. It loads assets on demand, but
+  storage/upload/desktop download budgets must accommodate the full artifact.
+- Do not prune dynamically chosen fighter atlases based only on literal string scans.
+- Verify every fighter/skin/transformation, all arenas, audio, controller-only entry,
+  browser refresh, cold loading, missing-asset failure UI, and multiplayer on the
+  actual host before announcing launch.

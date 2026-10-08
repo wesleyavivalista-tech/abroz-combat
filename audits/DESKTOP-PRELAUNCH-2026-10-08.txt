@@ -1,0 +1,194 @@
+ABROZ COMBAT — DOWNLOADABLE / DESKTOP AUDIT
+Date: 2026-10-08
+Scope: current working tree; Electron macOS ARM64 package built and exercised here.
+Existing uncommitted work was preserved. No gameplay, assets, balance, browser code,
+network protocol, or dependencies changed in this audit.
+
+DOWNLOADABLE RELEASE BLOCKERS
+1. Public distribution artifacts are not validated. This run produced an unsigned
+   macOS ARM64 .app directory, not a signed/notarized installer. Windows NSIS,
+   Linux AppImage, Intel Mac, clean installation and upgrades remain unverified.
+2. No production relay was supplied for this audit. The artifact is explicitly
+   OFFLINE. Online distribution requires the production WSS endpoint and real
+   desktop/browser interoperability tests against the deployed server.
+3. The working tree contains substantial pre-existing uncommitted/untracked game
+   code and assets. A clean clone cannot be certified as this tested release until
+   the intended release inputs are captured. No fresh dependency install was run.
+
+CRITICAL ISSUES
+No new confirmed desktop-specific crash/data-loss vulnerability in the inspected
+paths. This is not proof that all drivers, installers and hardware are safe.
+
+HIGH-PRIORITY ISSUES
+Fixed: release packaging accepted wss://localhost and other loopback destinations.
+That can ship online play pointed at each player's own machine. The previous check
+validated WSS and absence of credentials, but not a development-only host.
+Remaining: signing, deployed relay and clean-machine validation above.
+
+MEDIUM ISSUES
+Fixed: generated buildVersion was not visible to players or included in startup
+logs. Reports could not readily distinguish builds with the same game version.
+ABROZ_BUILD_VERSION must still be set to a unique release identifier; default is
+package version 0.1.0, so builds using that default remain indistinguishable.
+Installer/upgrade interruption and OS-level profile corruption are not tested.
+Package is large (about 1.7 GiB unpacked including runtime); no assets removed.
+No automatic updater exists; manual replacement/update needs release instructions
+and validation that app identity/origin/user-data path stay stable.
+
+LOW ISSUES
+Packaging warns about missing author/publisher and uses the default Electron icon.
+Offline online-mode feedback is clear, but appears after entering the lobby and
+pressing Create Room. Not changed: no menu redesign was requested.
+No dedicated borderless-window mode or Alt+Enter mapping found; native fullscreen
+is supported. Window placement is not persisted, avoiding stale saved offscreen
+coordinates but not proving behavior across monitor changes.
+
+FIXES IMPLEMENTED
+A. Release endpoint validation
+   Files: apps/desktop/policy.mjs, scripts/desktop.mjs,
+   tests/desktop-policy.test.mjs.
+   Reject missing/insecure/credential-bearing URLs and literal loopback hosts,
+   including localhost subdomains. Explicit --offline clears the endpoint.
+   Development loopback flow is unchanged. No protocol or gameplay changes.
+   Regression covers valid production WSS, offline override and rejected inputs;
+   failure messages do not echo the supplied URL/credentials.
+   Limitation: this is a configuration guard, not DNS validation; it cannot prove
+   that an arbitrary hostname is a reachable production service.
+B. Visible build identification
+   Files: apps/desktop/policy.mjs, apps/desktop/main.mjs,
+   tests/desktop-policy.test.mjs.
+   Window title includes game version and optional distinct build identifier.
+   Page title changes cannot erase it. Startup log includes the build identifier;
+   newlines are removed and length bounded. No renderer/UI gameplay changes.
+   Tested title formatting plus real packaged launch showing v0.1.0.
+
+BROWSER/DESKTOP DIFFERENCES FOUND
+Shared renderer, simulation, fighters, modes, input manager and audio engine are
+built from the same source. No separate desktop combat/physics implementation.
+Desktop uses abroz://game assets, native fullscreen, per-user Chromium storage,
+strict local-content policy, single-instance lock and packaged crash handling.
+Browser storage is a different origin/profile and does not migrate automatically.
+Desktop online builds require an explicit endpoint; browser fallback is unchanged.
+Desktop production excludes development pages and has no exposed Node runtime in
+the renderer. Chromium/Electron controller/graphics behavior can differ from other
+browsers despite shared game code. Full gameplay parity is not empirically proven.
+
+COVERAGE OF THE 23 REQUESTED AREAS
+1 Build: production desktop typecheck/build/package passed using installed locked
+  dependencies and bundled Electron; no development server needed at runtime.
+  Clean OS/dependency installation remains manual.
+2 Parity: shared source inspected; prior web smoke evidence retained. Full roster,
+  mode and long-session side-by-side comparison remains manual.
+3 First launch: packaged startup passed on existing local profile. A truly fresh
+  OS user/profile and default hardware detection remain unverified.
+4 Saves: settings use localStorage under Electron userData, not install directory.
+  Parsing/storage failures have fallbacks; platform storage tests passed. Changed
+  mute, quit, relaunched and verified persistence; restored original mute=false.
+  Reboot, damaged on-disk Chromium profile and upgrade migration remain manual.
+  No progression/unlock save system currently identified.
+5 Paths: module/resource-root paths, encoded traversal checks and realpath
+  containment inspected. Policy tests passed. Existing asset manifest audit found
+  no missing literal/roster references. Installed non-ASCII paths remain manual.
+6 Window: native fullscreen enter/exit and continued settings navigation passed.
+  Focus cleanup is covered by input/audio tests. Live combat minimize/restore,
+  resizing, maximize and switching applications require real-machine QA.
+7 Monitors: not tested; no secondary monitor or refresh-rate test performed.
+8 Controllers: shared manager regression tests passed. No physical packaged
+  controller/hotplug/identical-device/6–8-pad test performed in this run.
+9 Online: real local WebSocket tests passed for desktop-origin to browser-origin
+  and desktop-origin to desktop-origin rooms/input/hash/disconnect. These are
+  transport integration tests, not two packaged renderers over the internet.
+  Version/revision compatibility exists in shared network flow; production server
+  origin allowlist must include abroz://game and approved browser origins.
+10 Firewall: no OS permission bypass attempted. Real denied-firewall/TLS/DNS
+   scenarios not exercised. Shared connection failure handling inspected.
+11 Offline: packaged local assets/startup work without a development server.
+   Offline build Create Room displays: Online play is not configured in this
+   desktop build. Local matches and training are available. Machine internet was
+   not disabled; interrupted/restored internet during online play is unverified.
+12 Performance: package size measured; no credible desktop/browser FPS, latency,
+   CPU/GPU or long-session memory benchmark collected. No optimization claimed.
+13 Audio: targeted audio lifecycle tests passed; mute persistence tested live.
+   Headphone/device switching and listening under load remain manual.
+14 Recovery: renderer crash dialog, load-failure handling and bounded logs
+   inspected. Forced crashes/power loss were not induced in the user's profile.
+15 Multiple instances: Electron single-instance lock restores/focuses the first
+   window; reviewed implementation, not a live dual-launch test.
+16 Install/portable: .app startup tested. NSIS custom directory/uninstall and DMG
+   install/quarantine not tested. This app uses per-user saves, not portable saves.
+17 Updates: no updater added. Stable identity and save location must be preserved
+   during manual upgrades. Interrupted updates and old-version installs untested.
+18 Version: fixed as above; supply unique ABROZ_BUILD_VERSION for release builds.
+19 Signing: audit build explicitly unsigned; mac notarization and Windows signing
+   not verified. No signing credentials created, read or changed.
+20 Security: sandbox/context isolation on, Node integration off, preload limited
+   to fullscreen/failure reporting; navigation/popups/downloads blocked. ASAR is
+   inspectable, not a secret vault. Previous source/output heuristic secret scan
+   found no candidates; no full history/environment scan claimed.
+21 Cache: Chromium cache/profile is per-user; startup log rotates at 256 KiB with
+   one previous file and bounded events/process. Long-run cache growth unmeasured.
+22 Shutdown: normal Quit tested twice; no packaged process remained afterward.
+   macOS close-window intentionally leaves main process resident until Quit, as
+   typical macOS behavior; renderer teardown releases its sockets/audio/timers.
+   Closing during online match and OS shutdown remain manual.
+23 Contents: ASAR contains only main.mjs, policy.mjs, preload.cjs, metadata.json
+   and package.json (plus directory entries). Runtime assets are separate game
+   resources. Prior asset audit excluded reviews, authoring metadata and maps.
+   No source tests, environment files or logs found in ASAR. Large older audio
+   retained because deletion was not necessary to fix desktop reliability.
+
+TESTS PERFORMED
+- Desktop policy: 7/7 passed (2 regression tests added).
+- Targeted platform/input/gamepad/network/audio: 67/67 passed.
+- ESLint passed. TypeScript check and desktop production Vite build passed inside
+  the real packaging command. Electron builder --offline --dir exited 0.
+- Native launch, offline online-mode error, fullscreen enter/exit, settings
+  persistence across Quit/relaunch, original setting restored, clean Quit passed.
+- ASAR inventory checked. Final diff whitespace check passed.
+- Previous full-suite results remain recorded in the production audit; they were
+  not rerun or represented as fresh full-suite execution in this desktop audit.
+
+DESKTOP-SPECIFIC MANUAL TESTS
+[ ] Fresh OS account: launch without existing data or development tools.
+[ ] Reboot, missing/corrupted preferences, permission-denied storage, upgrade.
+[ ] Window resize/maximize/minimize, focus loss while holding attack/movement.
+[ ] Multiple monitors/DPI/refresh rates; fullscreen on secondary display.
+[ ] 1/4/6/8 physical controllers; identical models, USB/Bluetooth, reconnect,
+    reassignment and menus/rematch/fullscreen without ownership changes.
+[ ] Two real machines: desktop/desktop and browser/desktop, matching/mismatching
+    versions, disconnect, internet loss/return, latency, results and rematch.
+[ ] Denied firewall/network permissions; offline startup with network disconnected.
+[ ] Headphone/output changes, music transitions and simultaneous combat listening.
+[ ] Long-session FPS/frame-time/memory/profile growth versus browser baseline.
+[ ] Dual launch, forced termination, shutdown during match, restart afterward.
+
+OS-SPECIFIC TESTS
+macOS: ARM64 .app smoke passed. Still sign/notarize and test downloaded DMG with
+quarantine on a clean Mac, Applications install, permissions, Intel if shipped,
+reinstall/upgrade, external displays and controller/audio devices.
+Windows: NSIS configuration exists (x64, custom location, retains app data on
+uninstall). Build and test on Windows: standard user, spaces/non-ASCII paths,
+shortcuts, uninstall/reinstall/upgrade, Defender/SmartScreen, signing, Alt+Tab,
+controller driver/model combinations. No Windows result asserted here.
+Linux: AppImage target exists. Build/test executable permissions, supported distro
+libraries, graphics drivers, Wayland/X11, audio/controllers and desktop launcher.
+No Linux artifact or runtime result asserted here.
+
+PACKAGING RESULT
+PASS: regenerated production offline macOS ARM64 app directory with installed
+local dependencies. Output: release/mac-arm64/abroz-combat.app (~1.7 GiB).
+NOT VERIFIED: clean checkout + fresh dependency installation, distributable
+installers/signing/notarization, other OS/architecture builds, online deployment.
+Warnings: missing author/publisher, default Electron icon, signing skipped.
+
+FINAL DIFF REVIEW
+Compared tracked diff against pre-audit snapshot /tmp/desktop-before.patch.
+Only apps/desktop/main.mjs, apps/desktop/policy.mjs, scripts/desktop.mjs and
+ tests/desktop-policy.test.mjs changed in that comparison. This report and
+ evidence/desktop-version-settings-2026-10-08.png are new audit deliverables.
+No unrelated existing modifications were reset. No dependencies/assets deleted.
+
+DOWNLOADABLE RELEASE VERDICT
+NOT READY FOR DOWNLOADABLE RELEASE
+The local offline macOS app runs, but that does not certify public installability,
+production online connectivity, fresh-machine reproducibility or other platforms.

@@ -1,0 +1,156 @@
+PRE-LAUNCH MULTIPLAYER SECURITY AUDIT — 2026-10-08
+
+CURRENT AUTHORITY / TRUST BOUNDARIES
+Server owns room creation, seat assignment, accepted roster/stage/skin/team IDs,
+start seed, input ordering/relay, disconnect/forfeit frames and tournament brackets.
+Each connection owns only its assigned seat. No client-selected seat is forwarded.
+Regular matches use deterministic client simulation + input prediction/rollback.
+Server relays input masks, not client HP, positions, attacks, entities or snapshots.
+Championship duels additionally run GameSimulation on the server, which determines
+winners and bracket advancement. Client finished messages cannot award a victory.
+Content-version hashes are compatibility checks, not proof of an unmodified client.
+
+CRITICAL VULNERABILITIES
+No confirmed direct arbitrary-state-write, ownership takeover, or arbitrary-code
+execution path found in the inspected message handlers. This is not a security
+certification; availability and client-trust risks below remain significant.
+
+HIGH-RISK CLIENT TRUST — REMAINING
+1. Forged desync hashes can deliberately stop an opponent's match.
+   Locations: RoomService.relayHash, ChampionshipSession.hash,
+   RollbackManager.verifyRemoteHash, main.ts/checkNetworkHealth.
+   Reproduction: send one syntactically valid wrong hash for an eligible confirmed
+   frame. Receiver compares it with local state and stops on mismatch.
+   Root cause: peer checksums are diagnostic claims, but disagreement is fatal;
+   neither the checksum nor content version authenticates the client's execution.
+   Duplicate hash amplification was fixed, but the first false hash still matters.
+   Do not simply ignore mismatches: that would conceal real desynchronization.
+   Recommended follow-up: server-validated simulation/hash history and a tested
+   policy that removes the offending peer while preserving legitimate mismatch
+   diagnostics. Regular modes currently have no server simulation to arbitrate.
+   Championship has server simulation, but authoritative hash-history timing and
+   client recovery still need a dedicated design/test pass. No speculative change.
+
+2. Regular-mode results are client-computed, not independently authoritative.
+   A modified client can falsify its own UI/result screen. It cannot send damage,
+   HP, score or a winner to honest peers, and finished only affects retention.
+   Do not use these results for persistent rankings, rewards or paid competition.
+   Future persistent results should be validated server-side. Championship bracket
+   advancement already uses server simulation rather than client victory claims.
+
+3. Input withholding can stall a room until the existing timeout.
+   Prediction deliberately stops beyond its rollback horizon. A malicious peer can
+   withhold inputs or drip-feed enough progress to keep a match very slow. Existing
+   60s inactivity / 120s initial-loading limits do not ensure a minimum play rate.
+   A stricter policy risks penalizing genuine slow loads or poor connections; left
+   unchanged. Add measured lag/forfeit policy before competitive public play.
+
+4. Multi-connection resource exhaustion is not comprehensively bounded.
+   WebSocket payloads are capped at 1 KiB; send buffers at 1 MiB; rooms at 1,000;
+   each socket has heartbeat and message limits. There is no global socket cap,
+   per-source connection/join-attempt budget, or authenticated identity limit.
+   Attackers can distribute work over many sockets, bypassing per-socket limits.
+   Origin allowlists are browser protection, not authentication; non-browser clients
+   can omit or forge Origin. No-origin clients are intentionally accepted today.
+   Deploy TLS/WSS and connection/request limits at the actual reverse proxy; choose
+   limits with shared NAT/household users in mind. Deployment configuration unverified.
+
+FIXES IMPLEMENTED
+A. Ready-message amplification (medium): repeating ready broadcast a roster to the
+   whole room, even after start; repeating championship acknowledgement published
+   an unchanged full bracket. Added no-op guards for already-ready/started states.
+   Legitimate last-player ready still starts exactly one match.
+B. Hash amplification (medium): identical/stale eligible hashes could be rebroadcast
+   repeatedly. Added one increasing hash watermark per peer / per duel seat.
+   New duel attempts initialize fresh watermarks. WebSocket preserves ordering and
+   existing clients already send increasing hash frames. No packet shape changed.
+C. Arena type confusion (low): ['the-foundry'] passed Object.hasOwn through string
+   coercion and escaped as an array in a nominally string field. Require a string
+   before registry lookup. Rejected creation cannot replace existing membership.
+D. Message-limit enforcement (medium): excess messages generated errors indefinitely
+   while keeping the socket alive. Exceeding the existing 240 messages/sec limit now
+   terminates that socket, invoking the normal leave/forfeit path, rather than
+   continuing an error-response stream. Limit value and gameplay input budget unchanged.
+E. Explicitly reject non-object and array top-level envelopes before dispatch.
+
+VALIDATION ADDED / VERIFIED
+Added: arena string type, top-level envelope type, ready idempotency, monotonic hash
+watermarks, termination on existing connection message-budget exhaustion.
+Existing checks verified: character/skin registry membership; stage membership;
+room-code shape; capacity 2–8 or championship 2–16; team 0/1; supported mode;
+finite integer frames/masks; frame range; sequential input; 120-frame lead window;
+mask 0–2047; membership-derived seat; attempt token for championship messages;
+malformed JSON handling; content compatibility; hash syntax and frame bounds.
+NaN/Infinity cannot be normal JSON numbers; huge exponent 1e999 parses as Infinity
+and is rejected. Direct service tests also exercise NaN, Infinity, fractions,
+negative values, strings, null and objects at frame/mask boundaries.
+
+CHEAT CAPABILITY MATRIX
+HP, healing, energy, damage, cooldowns, movement speed, attack speed, position,
+stats, invulnerability, statuses: no state-update message exists. Forged fields
+are ignored; honest clients apply their own deterministic rules. A modified client
+can lie locally, but those values are not imported by opponents.
+Specials, ultimates, fake attacks: only a bounded button mask is accepted; simulation
+checks ability rules. Macros/bots and frame-perfect legal input remain possible.
+Entity ownership/spawn: derived from simulation/seat; no client spawn/owner command.
+Character/skin/stage: validated at join/create; no mid-match mutation command.
+Winner/score/results: regular modes are local computations; championship server
+simulation controls bracket results. finished is not a winner claim.
+Speed hack: one client cannot force honest peers to simulate missing input or
+change their physics constants. Lead/rate limits bound queues; colluding clients
+can advance their own exchanges faster than wall clock. Server championship
+simulation is input-driven rather than real-time paced. No ranked time rewards exist.
+Reconnect: no resumable identity/token; a new socket cannot reclaim a started seat.
+New-room joins are possible, but active seats remain tied to their original sockets.
+
+ROOM IDENTIFIERS / TEXT / SECRETS
+Five-character room codes use crypto randomInt and collision checks. Codes function
+as bearer invitations, not user authentication. Anyone who knows/guesses a waiting
+room code can occupy an open seat. Consider private-room approval or longer codes
+plus join throttling if publishing broadly; changing code shape needs both sides.
+Networked entrant names are generated by the server. Fighter/skin names derive from
+validated registries. UI error text uses textContent; relevant skin/name HTML paths
+escape markup. No arbitrary online chat/name payload exists in this protocol.
+Heuristic credential scan: 787 source/config/text files (tracked and nonignored,
+plus root .env candidates), excluding dependencies and generated output, scanned
+for private keys, AWS/GitHub/OpenAI key formats and long credential assignments.
+No matches found. Runtime environment, remote secrets, historical Git revisions and
+all possible credential formats were not audited. No rotation is recommended from
+these scan results; this does not prove no secret exists outside the scanned scope.
+VITE_WS_URL is a public endpoint, not a secret. Desktop non-local endpoints require
+WSS. Production web deployment must likewise use WSS. No secret values were printed.
+
+SYSTEMS STILL TRUSTING CLIENTS
+- Legal input selection and honest progress; no macro/bot detection.
+- Peer hashes and ordinary-mode local outcome displays.
+- Client finished notification for room retention, not victory/score.
+- Room-code possession as permission to join waiting rooms.
+- Server messages are trusted by the frontend; configure a trusted WSS endpoint.
+- Content-version equality does not attest client binaries or prevent tampering.
+
+FUTURE SECURITY RECOMMENDATIONS
+Prioritize deployment TLS and aggregate connection/join limits; then server-verified
+regular results and malicious-desync handling before adding ranked rewards. Add
+authenticated seat recovery only if reconnect is a product requirement. Avoid
+kernel anti-cheat, client obfuscation as a trust boundary, and silent mismatch bypass.
+
+TESTS PERFORMED
+New tests/multiplayer-security.test.ts: seven tests.
+Four regression cases failed before fixes: duplicate lobby ready, duplicate bracket
+ready, array arena coercion, duplicate hashes. All now pass.
+Real WebSocket test checks malformed JSON/envelopes, forged heal command/prototype
+character, forged seat/HP/damage/position fields, invalid masks, duplicate frames,
+subsequent valid input, flood disconnect and another peer remaining responsive.
+Unit coverage checks NaN/Infinity/bounds, ownership, attempt scoping, fake finished
+not advancing server simulation, duplicate/stale hashes and single match startup.
+Full suite: 1,066 passed, zero failed, including existing multi-peer delay/jitter,
+reconnect, disconnect, championship and determinism coverage.
+TypeScript, ESLint, client production build and server compile passed.
+Diff whitespace validation passed. Tests used local isolated servers; no external
+service, user lobby, production rate-limit or distributed attack was exercised.
+
+FINAL DIFF REVIEW
+Compared final tracked diff with the start-of-audit snapshot. Production edits are
+limited to apps/server/src/index.ts, rooms.ts and championship.ts. Added regression
+tests and this report. Existing unrelated modifications preserved. No dependencies,
+assets, gameplay rules, prediction windows, message shapes or protocol version changed.

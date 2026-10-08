@@ -13,6 +13,7 @@ export class LobbyClient {
   onClose: () => void = () => {};
   private timers = new Set<ReturnType<typeof setTimeout>>();
   private lastDelivery = 0;
+  private pendingInputs: {message:ClientMessage;ready:boolean}[]=[];
   private cancelConnect?: () => void;
   async connect(): Promise<void> {
     this.disconnect();
@@ -61,16 +62,19 @@ export class LobbyClient {
     });
   }
   send(message: ClientMessage): void {
-    if (message.type === "input" && this.latency > 0) {
+    if (message.type === "input" && (this.latency > 0 || this.timers.size > 0)) {
       const now = performance.now();
       const due = Math.max(
         now + this.latency + (this.jitter ? Math.random() * 20 : 0),
         this.lastDelivery,
       );
       this.lastDelivery = due;
+      const pending={message,ready:false};
+      this.pendingInputs.push(pending);
       const timer = setTimeout(() => {
         this.timers.delete(timer);
-        this.transmit(message);
+        pending.ready=true;
+        while(this.pendingInputs[0]?.ready)this.transmit(this.pendingInputs.shift()!.message);
       }, due - now);
       this.timers.add(timer);
     } else this.transmit(message);
@@ -88,6 +92,7 @@ export class LobbyClient {
     for (const timer of this.timers) clearTimeout(timer);
     this.timers.clear();
     this.lastDelivery = 0;
+    this.pendingInputs=[];
     if (this.socket) {
       this.socket.onclose = null;
       this.socket.onopen = null;

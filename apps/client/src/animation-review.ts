@@ -60,8 +60,8 @@ function draw(now:number){
   f.move=m?m.id:null;f.state=m?m.state:action;f.moveFrame=m?tick%(m.startupFrames+m.activeFrames+m.recoveryFrames):0;f.stateFrame=m?f.moveFrame:tick;
   f.x=900+(action.startsWith('Walk')?Math.sin(tick/120)*200:action.startsWith('Dash')?(tick%12)*9:0);f.y=['Jump','Fall'].includes(action)?Math.max(0,Math.sin(tick/30))*150:0;
   if(action==='meteor')f.meteorStart=game.state.frame-f.moveFrame;
-  accumulator-=1/60;
+  view.complete(game.state);accumulator-=1/60;
  }}else accumulator=0;
- renderer.draw(!paused&&document.querySelector<HTMLInputElement>('#smooth')!.checked?view.view(game.state,accumulator*60):game.state,elapsed,now/1000,false,game.stage);
+ renderer.draw(!paused&&document.querySelector<HTMLInputElement>('#smooth')!.checked?view.view(game.state,accumulator*60):game.state,elapsed,now/1000,false,game.stage,view.seconds(paused?1:accumulator*60));
  requestAnimationFrame(draw);
 }requestAnimationFrame(draw);

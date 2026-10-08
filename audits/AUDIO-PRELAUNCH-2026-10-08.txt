@@ -1,0 +1,122 @@
+PRE-LAUNCH AUDIO AND MUSIC AUDIT — 2026-10-08
+
+AUDIO BUGS FOUND
+1. Fading-source cleanup lost ownership (medium).
+   AudioManager.stopVoice removed sources from its voices map immediately, then
+   deferred stop/disconnection by 24ms. dispose cancelled the deferred timer, so
+   stopEffects could no longer explicitly stop or disconnect those sources.
+   Closing the context still silenced playback, but cleanup was incomplete and
+   pause/reset could not immediately flush these fading tails.
+   Reproduction: start an ability loop, reconcile it away, dispose before 24ms.
+   Fix: retain retiring voices separately until disconnected; stopEffects flushes
+   both sets and removes stale ability-loop handles. Diagnostics show retiring
+   sources separately from admitted voices. Regression risk: low; fade timings
+   and admission limits remain unchanged.
+
+2. Interrupted AudioContext did not resume (medium).
+   unlock handled suspended only, despite other non-running states such as an
+   interrupted context. Reproduction: context enters interrupted, user interacts.
+   Fix: attempt resume for any non-running, non-closed context, preserving the
+   existing pending-resume guard. Fake interrupted-state reproduction passed;
+   real hardware interruption recovery still needs Safari/device testing.
+
+MUSIC SYSTEM PROBLEMS
+3. Autoplay denial permanently disqualified valid music (high).
+   HTMLMediaElement.play NotAllowedError used the same failure path as a corrupt
+   file. This could blacklist menu music and all fallback tracks for the session.
+   Reproduction: deny initial media playback, then allow it and unlock again.
+   Fix: remove denied playback, retain track eligibility and retry on unlock.
+   Gate repeated state updates while waiting, preventing per-frame retry churn.
+   Genuine media errors retain the existing fallback behavior.
+
+No missing registered sound paths found: 1,146 definitions reference 491 distinct
+files (8,143,220 stored bytes). Supplied menu, four arena and victory track hashes
+pass existing tests. Menu/selection share one track. Existing authored final,
+championship, party and defeat selection rules were preserved. Arena ambience
+with no authored URL intentionally stays silent; this is not a broken path.
+
+FIXES IMPLEMENTED
+Only production file changed for this audit:
+  apps/client/src/audio/AudioManager.ts
+- Retain and flush fading-source ownership.
+- Clear stale ability-loop handles during effect cleanup.
+- Recover valid music after autoplay rejection without retrying every frame.
+- Resume interrupted contexts on a subsequent unlock interaction.
+- Include retiring voice count in development diagnostics.
+No sound assets, music choices, mix gains, gameplay events or timings changed.
+
+AUDIO PERFORMANCE FINDINGS
+Existing limits preserved: 24 admitted effects, six scoped ability loops,
+per-sound instance/cooldown limits, bounded 2,048-event dedup history, 512-buffer /
+64 MiB decoded sample cache, at most four streamed sources during transitions.
+Fading tails can briefly exceed the 24 admitted count; they are now explicitly
+tracked until cleanup. No new allocation is added to the per-frame playback path
+except when a source actually starts retiring.
+100 simulated rematch/intro/victory/menu cycles settled to one menu stream;
+disposal disconnected all tracked mock nodes and released all media elements.
+This is lifecycle regression coverage, not an hours-long browser heap profile.
+
+Real OfflineAudioContext, shipped sounds, shared mixing protection, six-second
+stereo scenarios at 44.1 kHz:
+Scenario                         Peak dBFS    Clipped samples
+Menu                             -23.56       0
+1v1                               -9.09       0
+Eight fighters / 24 events        -0.71       0
+Major events                      -9.11       0
+Quiet                            -32.57       0
+Maximum sliders / 24 impacts      -0.38       0
+Countdown                        -14.60       0
+Evidence: audits/evidence/audio-prelaunch-mix-2026-10-08.json
+These measurements verify sample peaks, not perceptual loudness, musical quality
+or absence of audible compression under overload. The stress renderer intentionally
+bypasses admission suppression to exercise the mix protection at high overlap.
+
+BROWSER-SPECIFIC RISKS
+- Browser gesture policies vary, especially for gamepad-only startup. Recovery
+  works on the next accepted unlock; a browser may still require a click/key.
+- Real Safari interruption, OS sleep and output-device changes remain untested.
+- Speech synthesis for the optional DEAD cue depends on an installed local voice;
+  recorded 3/2/1/Fight clips remain separate and unchanged.
+- First-use material samples are asynchronously preloaded. Before decoding finishes,
+  an asset-only cue can be omitted rather than delayed; cold/slow-storage listening
+  should verify this is acceptable. Missing-file playback remains nonfatal.
+- MP3 loop seams, Bluetooth latency and actual speakers cannot be certified by
+  offline peak measurements.
+
+TESTS PERFORMED
+- Added tests/audio-prelaunch.test.ts: four tests covering retiring-source disposal,
+  autoplay rejection plus gesture retry and no retry storm, interrupted context
+  resume, and 100 repeated lifecycle cycles with menu continuity.
+- All three original bug reproductions failed before the fixes and pass afterward.
+- Existing focused audio coverage: move phases for all 16 fighters; swings/misses,
+  sourced impacts and simultaneous block/hit, charged attack cancellation, summons,
+  channels/KO/results cleanup, dedup/priority overload, duck release, settings,
+  mute/focus/pause, failed assets, crossfades, all music states and supplied hashes.
+- Full test suite: 1,059 passed, zero failed.
+- TypeScript, ESLint, client production build, git diff --check: passed.
+- In-app browser: all seven real offline mix renders completed.
+- Running game settings diagnostics: context running, one menu stream, no failures,
+  zero active/retiring voices after effects. Home/settings navigation advanced the
+  same menu stream from 6.6s to 31.1s without restarting or accumulating streams.
+- Browser error logs for the checked game tab: none.
+
+MANUAL LISTENING TESTS
+1. Headphones and speakers: repeated light/heavy/charged misses and hits, eight
+   fighters, concurrent ultimates, countdown and KO. Check intelligibility and
+   unwanted pumping at the user's actual saved volume settings.
+2. Each arena: intro -> fight -> final lives -> victory/defeat -> menu -> rematch;
+   listen for intended transitions, loop seams and stray ability sounds.
+3. Mute/unmute, each volume slider, pause, focus loss/return during a channel and
+   a voice clip. UI currently remains scaled by both SFX and UI controls; this
+   established routing was preserved.
+4. Chrome/Edge/Firefox/Safari fresh startup with mouse, keyboard and controller;
+   test denied autoplay recovery, OS sleep, Bluetooth/output-device reconnect.
+5. Online peers: delayed confirmed impacts, simultaneous KOs and match exit during
+   an ultimate. Existing event/dedup tests passed; real multi-device listening was
+   not performed in this audit.
+
+FINAL DIFF REVIEW
+Compared against a start-of-audit working-tree snapshot. Existing unrelated work
+was preserved. Only AudioManager.ts has new production changes; the regression
+file, this report and measurement evidence are new audit artifacts. No dependencies,
+assets, creative choices, audio levels, gameplay or network protocols changed.

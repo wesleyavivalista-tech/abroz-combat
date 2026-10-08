@@ -1,7 +1,7 @@
 import {basicAttacks} from '../characters/common.js';
 import {characters} from '../characters/registry.js';
 import type {Fighter,MoveDefinition,SimulationSnapshot,StageDefinition} from '../types.js';
-import {actors} from '../simulation/Actors.js';
+import {actors,hostile} from '../simulation/Actors.js';
 import {isActive} from '../simulation/LifeSystem.js';
 import {grounded} from '../simulation/StageCollision.js';
 
@@ -39,7 +39,7 @@ export function advanceBasicMelee(s:SimulationSnapshot,f:Fighter,m:MoveDefinitio
     const vertical=Math.abs(other.y-f.y);
     // Same body separation as pushApart: stop the step before overlap, including allies.
     if(vertical<=125)clearance=Math.min(clearance,Math.max(0,forward-BASIC_MELEE.bodySeparation));
-    if(owner!==undefined&&s.teams[a.owner]!==s.teams[owner]&&forward<=BASIC_MELEE.assistanceRange&&vertical<=BASIC_MELEE.assistanceVerticalTolerance)assist=true;
+    if(owner!==undefined&&hostile(s,owner,a.fighter,a.owner)&&forward<=BASIC_MELEE.assistanceRange&&vertical<=BASIC_MELEE.assistanceVerticalTolerance)assist=true;
   }
   const distance=(BASIC_MELEE.lungeDistance[Math.min(tier,2)]+(assist?BASIC_MELEE.assistanceDistance:0))*fraction;
   f.x=Math.max(40,Math.min(stage.width-40,f.x+f.facing*Math.min(distance,clearance)));

@@ -1,3 +1,4 @@
+import {animationTick} from './AnimationPlayback.js';
 import {renderStage} from './StageCoordinates.js';
 import {surfaceBelow} from '../../../../packages/game-core/simulation/StageCollision.js';
 import {drupaPunchData} from './drupaPunchData.js';
@@ -69,7 +70,7 @@ export class DrupaRenderer implements FighterVisual{
   this.glint=new THREE.Mesh(new THREE.CircleGeometry(.12,16),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));this.root.add(this.glint);
   this.shadow=new THREE.Mesh(new THREE.CircleGeometry(.48,24),new THREE.MeshBasicMaterial({color:0x15121a,transparent:true,opacity:.22,depthWrite:false}));this.shadow.rotation.x=-Math.PI/2;
  }
- update(f:Fighter):void{
+ update(f:Fighter,time=animationTick(f)/60):void{
   const buda=f.weaponUntil>0||f.move==='budaBeam'||f.move==='buda';
   const forwardDash=!buda&&f.state==='DashForward'&&!f.move;
   const move=f.move?characters.drupa.moves[f.move]:undefined;
@@ -105,9 +106,9 @@ export class DrupaRenderer implements FighterVisual{
   // Shared head/body scale and authored hip anchor prevent identity/size jumps between states.
   if(unified&&!punching)this.sprite.position.x=((l+r)/2-drupaMotionData.pivots[pose])*scale;
   if(punching)this.sprite.position.x=((l+r)/2-drupaPunchData.pivots[pose])*scale;
-  if(f.move==='rolling'&&pose===15)this.sprite.rotation.z=-f.stateFrame*.3;
+  if(f.move==='rolling'&&pose===15)this.sprite.rotation.z=-animationTick(f)*.3;
   const m=f.move?characters.drupa.moves[f.move]:undefined;
-  this.aura.visible=buda;this.aura.position.set(0,.95*giant,-.03);this.aura.scale.setScalar(giant*(1+Math.sin(f.stateFrame*.07)*.03));
+  this.aura.visible=buda;this.aura.position.set(0,.95*giant,-.03);this.aura.scale.setScalar(giant*(1+Math.sin(time*60*.07)*.03));
   const ray=lightBeam(f,arenaWidth*100,renderStage.floorHeight);this.beam.visible=!!ray;
   if(ray){
    this.beam.position.set((m?.beam?.originX??0)/100,(ray.y-f.y)/100,.04);this.beam.rotation.z=m?.beam?.downward?-Math.PI/2:m?.beam?.upward?Math.PI/2:f.beamAim*Math.PI/180;

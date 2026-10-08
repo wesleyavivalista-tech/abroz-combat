@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {canReceiveDirectHit} from '../combat/ContactPolicy.js';
 import {recordGameplayEvent} from '../combat/GameplayEvents.js';
 import {Button,type Fighter,type MoveDefinition,type SimulationSnapshot,type StageDefinition,type BeeSwarm} from '../types.js';
@@ -31,7 +32,7 @@ export function beePosition(b:BeeSwarm,frame:number):{x:number;y:number}{
  const lift=((age*3+b.id*11)%b.period)/b.period;
  return {x:b.originX+Math.round(triangle*b.range*b.direction),y:b.originY+Math.round((lift<.5?lift*2:2-lift*2)*b.vertical)};
 }
-export function meteorDamage(distance:number,range:number):number{return Math.round(78+572*Math.pow(Math.max(0,1-distance/range),3));}
+export function meteorDamage(distance:number,range:number):number{const fraction=Math.max(0,1-distance/range);return Math.round(78+572*fraction*fraction*fraction);}
 export function foreheadWave(s:SimulationSnapshot,owner:number,x:number,y:number,range:number,meteor=false):void{
  recordGameplayEvent(s,'GroundImpact',owner,meteor?'meteor':'testada');
  s.foreheadWaves??=[];s.foreheadWaves.push({owner,x,y,born:s.frame,range,speed:meteor?55:28,meteor,hits:[]});
@@ -53,7 +54,7 @@ export function controlMeteor(s:SimulationSnapshot,stage:StageDefinition,f:Fight
  f.x=f.meteorX??f.x;f.vx=f.vy=0;
  if(age<24)f.y=base+age*50;
  else if(age<54)f.y=base+1200;
- else if(age<74)f.y=stage.floorHeight+(base+1200-stage.floorHeight)*(1-Math.pow((age-54)/20,2));
+ else if(age<74){const fraction=(age-54)/20;f.y=stage.floorHeight+(base+1200-stage.floorHeight)*(1-fraction*fraction);}
  else{
   f.y=stage.floorHeight;foreheadWave(s,owner,f.x,f.y,stage.width,true);
   delete f.meteorStart;delete f.meteorX;delete f.meteorY;
@@ -68,8 +69,8 @@ export function advanceNikalz(s:SimulationSnapshot,stage:StageDefinition):void{
   if(!isActive(f)){delete f.beeBoxes;delete f.beeSlowUntil;delete f.nikalzStunUntil;delete f.meteorStart;continue;}
   if(f.beeSlowUntil&&s.frame>=f.beeSlowUntil)delete f.beeSlowUntil;
   if(f.nikalzStunUntil){
-   if(s.frame>=f.nikalzStunUntil){delete f.nikalzStunUntil;f.stun=0;f.dazed=false;enter(f,f.y>surfaceBelow(stage,f.x,f.y)?'Fall':'Idle');}
-   else {f.move=null;f.stun=f.nikalzStunUntil-s.frame+1;f.dazed=true;enter(f,f.y>surfaceBelow(stage,f.x,f.y)?'AirHitStun':'HitStunStanding');}
+   if(s.frame>=f.nikalzStunUntil){delete f.nikalzStunUntil;f.stun=Math.max(f.timedHitReaction??0,(f.loanStunUntil??0)>s.frame?f.loanStunUntil!-s.frame+1:0);if(!f.loanStunUntil)delete f.timedHitReaction;if(!f.stun){f.dazed=false;enter(f,f.y>surfaceBelow(stage,f.x,f.y)?'Fall':'Idle');}}
+   else {f.move=null;f.stun=Math.max(f.timedHitReaction??0,f.nikalzStunUntil-s.frame+1);f.dazed=true;enter(f,f.y>surfaceBelow(stage,f.x,f.y)?'AirHitStun':'HitStunStanding');}
   }
  }
  for(const b of s.structures??[]){
@@ -80,17 +81,17 @@ export function advanceNikalz(s:SimulationSnapshot,stage:StageDefinition):void{
  s.bees=(s.bees??[]).filter(b=>isActive(s.fighters[b.owner]));
  for(const b of s.bees){
   const old={x:b.x,y:b.y};Object.assign(b,beePosition(b,s.frame));b.x=Math.max(25,Math.min(stage.width-25,b.x));
-  const target=actors(s).find(a=>s.teams[a.owner]!==s.teams[b.owner]&&isActive(a.fighter)&&!isInvulnerable(a.fighter,s.frame)&&a.fighter.x>=Math.min(old.x,b.x)-55&&a.fighter.x<=Math.max(old.x,b.x)+55&&a.fighter.y<b.y+30&&a.fighter.y+150>b.y-30);
-  if(target){periodicHit(s,target.fighter,NIKALZ.swarmDamage,Math.sign(target.fighter.x-b.x),10,2,undefined,stage.floorHeight,{source:b.owner,move:"bees"});target.fighter.beeSlowUntil=s.frame+NIKALZ.slowFrames;b.owner=-1;}
+  const target=actors(s).find(a=>hostile(s,b.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isInvulnerable(a.fighter,s.frame)&&a.fighter.x>=Math.min(old.x,b.x)-55&&a.fighter.x<=Math.max(old.x,b.x)+55&&a.fighter.y<b.y+30&&a.fighter.y+150>b.y-30);
+  if(target){periodicHit(s,target.fighter,NIKALZ.swarmDamage,Math.sign(target.fighter.x-b.x),10,2,undefined,stage.floorHeight,{source:b.owner,move:"bees"},stage.width);target.fighter.beeSlowUntil=s.frame+NIKALZ.slowFrames;b.owner=-1;}
  }
  s.bees=s.bees.filter(b=>b.owner>=0);
  for(const w of s.foreheadWaves??[]){
   const radius=Math.min(w.range,(s.frame-w.born+1)*w.speed),previousRadius=Math.max(0,(s.frame-w.born)*w.speed-35);
   for(const a of actors(s)){
    const d=a.fighter,key=a.clone?'clone:'+a.clone.id:'seat:'+a.owner,distance=Math.abs(d.x-w.x);
-   if(w.hits.includes(key)||s.teams[a.owner]===s.teams[w.owner]||!canReceiveDirectHit(d,s.frame)||distance>radius||distance<previousRadius||d.y>w.y+(w.meteor?260:110)||d.y+150<w.y)continue;
+   if(w.hits.includes(key)||!hostile(s,w.owner,a.fighter,a.owner)||!canReceiveDirectHit(d,s.frame)||distance>radius||distance<previousRadius||d.y>w.y+(w.meteor?260:110)||d.y+150<w.y)continue;
    w.hits.push(key);const direction=d.x>=w.x?1:-1,stun=w.meteor?NIKALZ.meteorStun:NIKALZ.stunFrames;
-   const reacts=periodicHit(s,d,w.meteor?meteorDamage(distance,w.range):NIKALZ.shockDamage,direction,stun,w.meteor?24:18,undefined,stage.floorHeight,{source:w.owner,move:w.meteor?"meteor":"testada"});
+   const reacts=periodicHit(s,d,w.meteor?meteorDamage(distance,w.range):NIKALZ.shockDamage,direction,stun,w.meteor?24:18,undefined,stage.floorHeight,{source:w.owner,move:w.meteor?"meteor":"testada"},stage.width);
    if(!reacts)continue;
    d.nikalzStunUntil=s.frame+stun;d.stun=stun;d.move=null;d.dazed=true;d.vx=direction*(w.meteor?24:18);d.vy=w.meteor?15:10;d.y+=1;enter(d,'AirHitStun');
   }

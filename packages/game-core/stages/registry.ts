@@ -34,8 +34,8 @@ export const shoppingMall: StageDefinition = {
   artwork: "/art/shopping-mall-v1.png", theme: "mall",
   width: 2400, floorHeight: 0,
   platforms: [
-    {x: 0, y: 300, width: 480, motion: {from: 0, to: 1920, period: 960}},
-    {x: 1920, y: 600, width: 480, motion: {from: 0, to: 1920, period: 960, phase: 480}},
+    {x: 0, y: 300, width: 960, motion: {from: 0, to: 1440, period: 720}},
+    {x: 1440, y: 600, width: 960, motion: {from: 0, to: 1440, period: 720, phase: 360}},
   ],
   eideLovePlatforms: [0, 1], cameraBounds: [200, 2200], background: "#292333",
   lighting: {ambient: 1.4, key: "#ffe6c4"}, music: "urban",

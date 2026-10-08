@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {initializeProjectile} from './ProjectilePool.js';
 import {type DamageOptions,applyDamage} from '../combat/DamageSystem.js';
 import {finishProjectileMode} from './ReturningProjectileSystem.js';
@@ -8,7 +9,7 @@ import { isActive, isInvulnerable } from "./LifeSystem.js";
 export const BURN_INTERVAL = 30;
 export function igniteTarget(s: SimulationSnapshot, target: Fighter, owner: number, duration: number, damage: number, kind: "normal" | "purple" = "normal"): void {
   const seat = actors(s).find(a=>a.fighter===target)?.owner ?? -1;
-  if (!isActive(target) || isInvulnerable(target, s.frame) || s.teams[seat] === s.teams[owner]) return;
+  if (!isActive(target) || isInvulnerable(target, s.frame) || !hostile(s,owner,target,seat)) return;
   const burning=target.burnUntil>0 && target.burnUntil>=s.frame;
   // Ordinary fire cannot downgrade or extend the stronger super burn.
   if (burning && target.burnKind === "purple" && kind === "normal") return;
@@ -72,7 +73,7 @@ export function advanceStatuses(s: SimulationSnapshot, arenaWidth=2400,floorHeig
     if(h.kind)continue;
     const spec = characters[s.fighters[h.owner].characterId].moves[h.move].hazard!;
     actors(s).forEach(({fighter:f, owner:i, clone}) => {
-      if (s.teams[i] === s.teams[h.owner] || !isActive(f) || isInvulnerable(f, s.frame)) return;
+      if (!hostile(s,h.owner,f,i) || !isActive(f) || isInvulnerable(f, s.frame)) return;
       if(spec.burn&&Math.abs(f.x-h.x)<=spec.radius+25&&Math.abs(f.y-h.y)<=18)
         igniteTarget(s,f,h.owner,spec.burn.duration,spec.burn.damage,spec.burn.kind);
       if (Math.abs(f.x - h.x) <= spec.radius + 25 && Math.abs(f.y - h.y) <= 55 && s.frame >= (h.nextTicks[clone ? s.fighters.length+clone.id : i] ?? 0)) {

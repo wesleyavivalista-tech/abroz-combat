@@ -24,7 +24,8 @@ test('duplicate ids, shared cooldown and per-sound cap are enforced',()=>{
  p.reset();assert.ok(p.admit('hit',d,201,'event'));
 });
 test('music uses arena pool, avoids immediate repeat, uses optional variants and fallback',()=>{
- const original=structuredClone(tracks);
+ const original=structuredClone(tracks),originalPool=arenaAudio['the-foundry'].tracks;
+ arenaAudio['the-foundry'].tracks=['rooftop_01','rooftop_02'];
  delete tracks.rooftop_01.finalVersion;
  tracks.rooftop_01.url='/one.ogg';tracks.rooftop_02.url='/two.ogg';tracks.battle_01.url='/fallback.ogg';
  try{
@@ -35,13 +36,13 @@ test('music uses arena pool, avoids immediate repeat, uses optional variants and
   assert.equal(chooseMusic('match','unknown',undefined,()=>0)?.id,'battle_01');
   tracks.championship_01.url='/champ.ogg';assert.equal(chooseMusic('championship','the-foundry')?.id,'championship_01');
   arenaAudio.test={profile:'tropical'};tracks.beach_01.url='/beach.ogg';assert.equal(chooseMusic('match','test')?.id,'beach_01');
- }finally{for(const key of Object.keys(tracks))delete tracks[key];Object.assign(tracks,original);delete arenaAudio.test;}
+ }finally{for(const key of Object.keys(tracks))delete tracks[key];Object.assign(tracks,original);arenaAudio['the-foundry'].tracks=originalPool;delete arenaAudio.test;}
  assert.ok(chooseMusic('match','the-foundry')?.url);
  assert.ok(musicProfiles.industrial.tracks.includes('factory_01'));
 });
 class Param {value=1;setTargetAtTime(v:number){this.value=v;}setValueAtTime(v:number){this.value=v;}linearRampToValueAtTime(v:number){this.value=v;}exponentialRampToValueAtTime(v:number){this.value=v;}}
 class Node {gain=new Param();pan=new Param();frequency=new Param();playbackRate=new Param();threshold=new Param();knee=new Param();ratio=new Param();attack=new Param();release=new Param();onended:(()=>void)|null=null;connections:Node[]=[];type='sine';connect(n:Node){this.connections.push(n);}disconnect(){this.connections=[];}start(){}stop(){}}
-class Context {static instances=0;state='running';currentTime=0;destination=new Node();nodes:Node[]=[];constructor(){Context.instances++;}node(){const n=new Node();this.nodes.push(n);return n;}createGain(){return this.node();}createDynamicsCompressor(){return this.node();}createStereoPanner(){return this.node();}createOscillator(){return this.node();}createBufferSource(){return this.node();}resume(){this.state='running';return Promise.resolve();}close(){this.state='closed';return Promise.resolve();}}
+class Context {static instances=0;state='running';currentTime=0;destination=new Node();nodes:Node[]=[];constructor(){Context.instances++;}node(){const n=new Node();this.nodes.push(n);return n;}createGain(){return this.node();}createDynamicsCompressor(){return this.node();}createWaveShaper(){return this.node();}createStereoPanner(){return this.node();}createOscillator(){return this.node();}createBufferSource(){return this.node();}resume(){this.state='running';return Promise.resolve();}close(){this.state='closed';return Promise.resolve();}}
 
 test('one context, live settings persistence, bus routing, suppression, focus and disposal',()=>{
  const oldContext=globalThis.AudioContext,oldStorage=globalThis.localStorage;const values=new Map<string,string>();
@@ -49,7 +50,7 @@ test('one context, live settings persistence, bus routing, suppression, focus an
  try{
   const a=new AudioManager();for(let i=0;i<10;i++)a.unlock();assert.equal(Context.instances,1);
   a.play('hit_light',{eventId:'x'});a.play('hit_light',{eventId:'x'});assert.equal(a.diagnostics().active,1);assert.equal(a.diagnostics().suppressed,1);
-  a.master=.2;a.ui=.1;a.muteOnBlur=true;a.update();const restored=new AudioManager();assert.equal(restored.master,.2);assert.equal(restored.ui,.1);
+  a.master=.2;a.ui=.1;a.voice=.23;a.muteOnBlur=true;a.update();const restored=new AudioManager();assert.equal(restored.master,.2);assert.equal(restored.ui,.1);assert.equal(restored.voice,.23);
   a.setFocus(false);assert.equal(a.diagnostics().active,0);a.play('ko');assert.equal(a.diagnostics().active,0);
   a.setFocus(true);a.play('ko');assert.equal(a.diagnostics().active,1);
   a.setPaused(true);assert.equal(a.diagnostics().active,0);a.play('hit_heavy');assert.equal(a.diagnostics().active,0);
@@ -93,7 +94,7 @@ test('music crossfades stay bounded, stale loads clean up, failures select fallb
 
 test('failed sample preload is nonfatal and retried at most once per session',async()=>{
  const oldContext=globalThis.AudioContext,oldFetch=globalThis.fetch;let attempts=0;
- Object.assign(globalThis,{AudioContext:Context,fetch:async()=>{attempts++;throw Error('offline');}});
+ Object.assign(globalThis,{AudioContext:Context,fetch:async(url:string)=>{if(url==='/missing.wav')attempts++;throw Error('offline');}});
  sounds.test_asset={...sounds.hit_light,assets:['/missing.wav']};
  const a=new AudioManager();
  try{a.unlock();await a.preload(['test_asset']);await a.preload(['test_asset']);assert.equal(attempts,1);assert.equal(a.diagnostics().buffers,0);a.play('hit_light');assert.equal(a.diagnostics().active,1);}
@@ -219,4 +220,36 @@ test('every fighter special and ultimate produces activation audio through real 
   for(let i=0;i<6;i++){sim.step([button,0]);bridge.consume(sim.state,sim.events,sim.gameplayEvents,'the-foundry',2400,[]);}
   assert.ok(played.includes(moveAudio(c.id,move)!.start),`${c.id}.${move}`);
  }
+});
+
+test('announcer obeys volume, mute, pause, focus, match reset and disposal',()=>{
+ const oldContext=globalThis.AudioContext,oldSynth=globalThis.speechSynthesis,oldUtterance=globalThis.SpeechSynthesisUtterance;
+ let spoken=0,cancels=0,volume=0;
+ class Utterance {volume=1;constructor(public text:string){}}
+ Object.assign(globalThis,{AudioContext:Context,SpeechSynthesisUtterance:Utterance,speechSynthesis:{getVoices:()=>[{lang:'en-US',localService:true}],speak:(u:Utterance)=>{spoken++;volume=u.volume;},cancel:()=>cancels++}});
+ const a=new AudioManager();
+ try{
+  a.announce('Three');assert.equal(spoken,0);
+  a.unlock();a.master=.5;a.sound=.4;a.ui=.5;a.announce('Three');assert.ok(Math.abs(volume-.36)<1e-9);
+  a.mute=true;a.update(false);assert.equal(cancels,1);a.announce('Two');assert.equal(spoken,1);
+  a.mute=false;a.setPaused(true);a.announce('Two');assert.equal(spoken,1);
+  a.setPaused(false);a.setFocus(false);a.announce('Two');assert.equal(spoken,1);
+  a.setFocus(true);a.announce('One');assert.equal(spoken,2);a.resetMatch();assert.equal(cancels,2);
+  a.announce('Fight!');a.dispose();assert.equal(cancels,3);a.announce('Three');assert.equal(spoken,3);
+ }finally{a.dispose();Object.assign(globalThis,{AudioContext:oldContext,speechSynthesis:oldSynth,SpeechSynthesisUtterance:oldUtterance});}
+});
+
+test('voice remains independent of SFX mute while master mute suppresses both',()=>{
+ const old=globalThis.AudioContext;Object.assign(globalThis,{AudioContext:Context});
+ const a=new AudioManager();
+ try{
+  a.unlock();a.sound=0;a.update(false);
+  assert.equal(a.play('hit_light'),undefined);assert.ok(a.play('countdown_3')!==undefined);
+  a.stopEffects();a.voice=0;a.sound=.65;a.update(false);
+  assert.equal(a.play('countdown_2'),undefined);assert.ok(a.play('hit_heavy')!==undefined);
+  a.stopEffects();a.voice=.8;a.mute=true;a.update(false);
+  assert.equal(a.play('countdown_1'),undefined);assert.equal(a.play('ko'),undefined);
+  a.mute=false;a.master=0;a.update(false);assert.equal(a.play('menu_confirm'),undefined);
+  a.resetMatch();assert.equal(a.diagnostics().duckGain,1);
+ }finally{a.dispose();Object.assign(globalThis,{AudioContext:old});}
 });

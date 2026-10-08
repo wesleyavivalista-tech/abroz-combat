@@ -1,0 +1,44 @@
+[
+  {
+    "name": "menu",
+    "peakDbFS": -23.560638344470473,
+    "rmsDbFS": -44.614378593405334,
+    "clippedSamples": 0
+  },
+  {
+    "name": "1v1",
+    "peakDbFS": -9.089708523100644,
+    "rmsDbFS": -33.15326161737015,
+    "clippedSamples": 0
+  },
+  {
+    "name": "8 fighters",
+    "peakDbFS": -0.712472034580477,
+    "rmsDbFS": -19.462107403240307,
+    "clippedSamples": 0
+  },
+  {
+    "name": "major events",
+    "peakDbFS": -9.106413420768437,
+    "rmsDbFS": -31.002957198200612,
+    "clippedSamples": 0
+  },
+  {
+    "name": "quiet",
+    "peakDbFS": -32.57000996684779,
+    "rmsDbFS": -47.62966469248169,
+    "clippedSamples": 0
+  },
+  {
+    "name": "maximum sliders / 24 simultaneous",
+    "peakDbFS": -0.3818238427486026,
+    "rmsDbFS": -11.433841914973506,
+    "clippedSamples": 0
+  },
+  {
+    "name": "countdown",
+    "peakDbFS": -14.602231659095663,
+    "rmsDbFS": -30.203545228682668,
+    "clippedSamples": 0
+  }
+]

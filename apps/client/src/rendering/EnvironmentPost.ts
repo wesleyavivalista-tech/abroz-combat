@@ -1,0 +1,4 @@
+import * as THREE from 'three';
+import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
+/** Restrained grading and atmosphere, before OutputPass; HUD is a separate DOM layer. */
+export function createEnvironmentPost():ShaderPass{return new ShaderPass({uniforms:{tDiffuse:{value:null},tint:{value:new THREE.Color('#ffffff')},strength:{value:0},vignette:{value:.04},grain:{value:0},clock:{value:0}},vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec2 v;uniform sampler2D tDiffuse;uniform vec3 tint;uniform float strength,vignette,grain,clock;void main(){vec4 c=texture2D(tDiffuse,v);float edge=smoothstep(.15,.8,length(v-.5));float noise=fract(sin(dot(v+floor(clock*12.),vec2(12.9898,78.233)))*43758.5453)-.5;c.rgb=mix(c.rgb,c.rgb*tint,strength*.2)*(1.-edge*vignette)+noise*grain;gl_FragColor=c;}'});}

@@ -62,7 +62,9 @@ export class InputManager {
   get gamepadButtons() { return this.controllers.attackButtons; }
   set gamepadButtons(value:number[]) { this.controllers.attackButtons=value; }
   systemActions: ("pause"|"debug"|"reset")[] = [];
+  private focused = true;
   refresh(allowJoin=true,limit=this.controllers.cap):void {
+    if(!this.focused)return;
     try { this.controllers.update(navigator.getGamepads?.() ?? [], performance.now(),allowJoin,limit); } catch { this.controllers.update([],performance.now(),false); /* Keyboard remains available if the browser blocks gamepads. */ }
   }
   enabled = true;
@@ -81,7 +83,7 @@ export class InputManager {
           ),
         );
       if (typeof saved?.deadzone === "number" && saved.deadzone >= .1 && saved.deadzone <= .4) this.controllers.deadzone=saved.deadzone;
-      if (Array.isArray(saved?.gamepadButtons))
+      if (Array.isArray(saved?.gamepadButtons) && JSON.stringify(saved.gamepadButtons)!==JSON.stringify([0,2,1,3,5,6,7]))
         this.gamepadButtons = this.gamepadButtons.map((button, i) =>
           Number.isInteger(saved.gamepadButtons[i]) && saved.gamepadButtons[i] >= 0 && saved.gamepadButtons[i] < 16
             ? saved.gamepadButtons[i]
@@ -91,9 +93,12 @@ export class InputManager {
       /* Defaults remain available. */
     }
     window.addEventListener("keydown", (e) => {
+      if(!this.focused)return;
       if ((e.target as HTMLElement).matches("input,select,textarea")) return;
       if (e.code === "Escape" || e.code === "F1") { e.preventDefault(); if (!e.repeat) this.systemActions.push(e.code === "Escape" ? "pause" : "debug"); }
-      if (e.code === "KeyR") this.systemActions.push("reset");
+      if (e.code === "KeyR" && !e.repeat) this.systemActions.push("reset");
+      // A key held across a screen reset must be released before gameplay resumes.
+      if(e.repeat&&!this.keys.has(e.code))return;
       this.bindings.forEach((row,i)=>{if(row.includes(e.code))this.controllers.keyboardClaimed.add(i);});
       if (this.enabled && this.bindings.flat().includes(e.code))
         e.preventDefault();
@@ -101,13 +106,14 @@ export class InputManager {
       if (this.enabled) this.pending.add(e.code);
     },{signal:this.lifetime.signal});
     window.addEventListener("gamepadconnected", (e) => this.controllers.discover(e.gamepad),{signal:this.lifetime.signal});
-    window.addEventListener("gamepaddisconnected", (e) => this.controllers.disconnect(e.gamepad.index),{signal:this.lifetime.signal});
+    window.addEventListener("gamepaddisconnected", (e) => {if(this.focused)this.controllers.disconnect(e.gamepad.index);},{signal:this.lifetime.signal});
     window.addEventListener("keyup", (e) => this.keys.delete(e.code),{signal:this.lifetime.signal});
-    window.addEventListener("blur", () => this.clear(),{signal:this.lifetime.signal});
+    window.addEventListener("blur", () => {this.focused=false;this.clear();},{signal:this.lifetime.signal});
+    window.addEventListener("focus", () => {this.clear();this.focused=true;},{signal:this.lifetime.signal});
   }
   dispose():void{this.lifetime.abort();this.enabled=false;this.clear();}
   poll(player: number): number {
-    if (!this.enabled) return 0;
+    if (!this.enabled || !this.focused) return 0;
     let mask = 0;
     this.bindings[player]?.forEach((key, i) => {
       if (this.keys.has(key) || this.pending.has(key)) mask |= bits[i];
@@ -117,6 +123,7 @@ export class InputManager {
     return mask;
   }
   clear(): void {
+    this.systemActions.length=0;
     this.keys.clear();
     this.pending.clear();
     this.controllers.clear();

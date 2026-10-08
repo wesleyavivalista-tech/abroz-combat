@@ -17,7 +17,7 @@ export function dashVariant(id:string,skin:string,f:Fighter){
  let key=id,row=0;
  if(id==='fausto')row=f.weaponUntil>0?2:skin==='casual'?1:0;
  else if(id==='napa'){if(skin==='cookie-monster')key='monster';else row=skin==='gym'?1:0;}
- else if(id==='dodo'){if(/^pain-killer-[012]$/.test(skin)){key='companions';row=Number(skin.slice(-1));}else return;}
+ else if(id==='dodo'){if(/^pain-killer-[012]$/.test(skin)){key='companions';row=Number(skin.slice(-1));}else row=skin==='black'?1:0;}
  else return;
  return {key,row,pose:f.state==='DashForward'?1:2,height:catalog[key].height};
 }

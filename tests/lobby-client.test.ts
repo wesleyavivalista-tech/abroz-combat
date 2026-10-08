@@ -12,7 +12,8 @@ class Socket {
   onmessage: ((event: {data: string}) => void) | null = null;
   constructor(_url: string) { Socket.instances.push(this); }
   close() { this.readyState = 3; this.onclose?.(); }
-  send(_data: string) {}
+  sent: string[] = [];
+  send(data: string) { this.sent.push(data); }
 }
 test("lobby cancels pending connections and ignores stale or malformed messages", async (t) => {
   t.mock.method(globalThis, "setTimeout", setTimeout);
@@ -44,5 +45,32 @@ test("lobby cancels pending connections and ignores stale or malformed messages"
     client.disconnect();
     if(ws) Object.defineProperty(globalThis,"WebSocket",ws);else Reflect.deleteProperty(globalThis,"WebSocket");
     if(location) Object.defineProperty(globalThis,"location",location);else Reflect.deleteProperty(globalThis,"location");
+  }
+});
+
+
+test("delayed input is cancelled across reconnect and never enters a new match", async (t) => {
+  t.mock.timers.enable({apis:['setTimeout']});
+  const ws=Object.getOwnPropertyDescriptor(globalThis,'WebSocket');
+  const location=Object.getOwnPropertyDescriptor(globalThis,'location');
+  Object.defineProperty(globalThis,'WebSocket',{value:Socket,configurable:true});
+  Object.defineProperty(globalThis,'location',{value:{protocol:'http:',hostname:'localhost'},configurable:true});
+  const client=new LobbyClient();
+  try {
+    const first=client.connect(),old=Socket.instances.at(-1)!;
+    old.readyState=1;old.onopen!();await first;
+    client.latency=200;
+    client.send({type:'input',frame:200,mask:512,matchId:'old-match'});
+    client.disconnect();
+    const second=client.connect(),fresh=Socket.instances.at(-1)!;
+    fresh.readyState=1;fresh.onopen!();await second;
+    client.latency=0;client.send({type:'input',frame:2,mask:0,matchId:'new-match'});
+    t.mock.timers.tick(500);
+    assert.equal(old.sent.length,0);
+    assert.deepEqual(fresh.sent.map(s=>JSON.parse(s)),[{type:'input',frame:2,mask:0,matchId:'new-match'}]);
+  } finally {
+    client.disconnect();
+    if(ws)Object.defineProperty(globalThis,'WebSocket',ws);else Reflect.deleteProperty(globalThis,'WebSocket');
+    if(location)Object.defineProperty(globalThis,'location',location);else Reflect.deleteProperty(globalThis,'location');
   }
 });

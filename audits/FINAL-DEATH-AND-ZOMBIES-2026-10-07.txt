@@ -1,0 +1,123 @@
+FINAL DEATH, GRAVES AND ZOMBIES — IMPLEMENTATION NOTES
+
+Behavior
+- Final-life KOs record their position and trigger an 18-simulation-tick
+  cinematic. The shared client fixed-step clock runs at 30% speed during it
+  (approximately one second). Gameplay, status deadlines, platforms, projectiles,
+  fighter animations and effect updates all follow that slowed clock. Network
+  input frames remain ordinary sequential frames; no nondeterministic gameplay
+  timers or extra input messages were introduced.
+- Camera focuses on the eliminated fighter; simultaneous deaths are framed
+  together. The corpse remains visible through the short cinematic. Result UI
+  waits for the sequence and the existing network confirmation requirement.
+- DEAD uses local device speech at a lower pitch/rate, with the existing mute,
+  volume, focus and pause safeguards. Voice availability/quality varies by device.
+  Final-death speech waits for confirmed input frames online; rapid deaths do
+  not repeatedly interrupt the word. The low impact sound and DEAD text also
+  work without an installed local English voice. No proprietary recordings used.
+- Standard two-seat matches do not create graves. Training has no final-life
+  mechanic. Forfeits/disconnections do not create graves or fake killing blows.
+- During continuing 3+ fighter matches, a 500-HP grave appears at the exact
+  death coordinates. Airborne death coordinates are retained, not projected to
+  the floor. Graves stay anchored (including when a moving platform moves away).
+  They have progressive cracks and no health bar or companion health label.
+- Destruction produces fragments and a one-second resurrection. The zombie
+  reuses the original fighter/skin artwork with a sickly tint, slower gait,
+  slouched pose, claw trails, rise/hit/collapse presentation. No independent
+  per-character sprite sheets or duplicated character controllers were added.
+- Zombies retain their source fighter's maximum HP, have one life and no further
+  resurrection. Their AI targets living player fighters irrespective of teams.
+  Zombie visuals use shared original attack poses adapted to the claw timeline.
+- New NPC defaults: 2.2 ground speed / 3.8 air drift, 48-damage claw, 18-tick
+  windup, 84-tick attack interval, 180-tick poison with 10 damage every 30 ticks.
+  Incoming normal attacks, blocking, damage, poison, statuses and stage surfaces
+  reuse existing systems. The original fighters' balance values were not changed.
+- Navigation selects reachable landing areas, double-jumps, follows moving
+  platforms, drops from higher surfaces and jumps when blocked by walls. It is
+  intentionally simple rather than a full tactical pathfinder.
+- Undead reuse combat companion storage/identity, without player input, player
+  respawns, team affiliation or winner eligibility. Neutral target checks are
+  shared across melee, projectiles, beams and area/status interactions. Round
+  cleanup removes them; snapshot/rollback includes their complete AI state.
+
+Validation
+- Full TypeScript test suite, typecheck, lint, client production build, server
+  build. Focused tests cover every fighter's HP/lifetime, melee/projectile
+  contacts, all roster moves through shared hit resolution, former-teammate
+  attacks, poison duration, interrupted claw timing/hitstop, simultaneous KOs,
+  six simultaneous zombies in an eight-seat match, exact grave placement,
+  standard 1v1, forfeits, round reset, all arenas' highest platforms, moving
+  platforms, walls, target changes, delayed-input rollback/hash agreement,
+  voice confirmation/deduplication and visual/material cleanup.
+- Visual tests exercise Three.js scene objects and transforms with a test fighter
+  visual. They do not substitute for inspecting the shipped art in a live match.
+- Live browser visuals, listening to DEAD, two-device online play and GPU/frame
+  rate performance were not verified in this session. Browser access was blocked
+  earlier in this chat; no alternate browser-control path was used to bypass it.
+
+ILLUSTRATED SPRITE REPLACEMENT — 2026-10-07
+The procedural 3D ZombieModel was removed after art-direction review. All 16
+fighters now have dedicated transparent, hand-illustrated zombie sprite sheets
+in apps/client/public/art/zombies. Each sheet has eight poses: idle, three walk
+poses, claw anticipation, contact, hurt and collapse. The existing sprite
+isolation pipeline extracts silhouettes without neighbouring-frame bleed.
+ZombieSpriteRenderer uses unlit transparent planes, like the fighter renderers.
+Pixel scale is anchored to idle; feet are grounded; walk poses advance with
+movement; claw contact follows the existing hit frame. Emergence reveals the
+idle illustration from below the surface. Dedicated jump/fall illustrations
+were added in the follow-up below. No additional simulation changes in this replacement.
+Alternate living skins currently share that character's original-outfit zombie.
+
+Assets were generated with the built-in image_gen tool, using the game's
+Nikalz combat art for the initial style and each fighter's existing victory art
+for identity. Exact prompts and source/output paths: public/art/zombies/prompts-v1.json.
+All 16 sheets were visually inspected and decoded to check transparency and
+8 isolated silhouettes each. 795 tests, full typecheck and lint passed.
+Live browser animation/performance and two-device multiplayer were not verified.
+
+DASH AND AIRBORNE ART FOLLOW-UP — 2026-10-07
+Dodo's normal skins were explicitly bypassing DashVisual, showing upright walk
+frames with a whole-body tilt. Both now use the existing dedicated forward
+lunge/backward retreat sheet, with its per-skin standing scale anchor. Summon
+dash artwork and simulation timing are unchanged.
+
+All 16 zombies now select dedicated illustrated jump and fall frames. Four
+shared air sheets contain three columns (idle scale anchor, jump, fall) and
+four character rows. They are cached once per group, normalized to each row's
+idle, and disposed with the zombie assets. Stun, claw and death retain priority.
+Both match rendering and the lineup use this renderer; no simulation edits.
+Built-in image_gen prompts and output provenance: public/art/zombies/prompts-air-v1.json.
+
+Validated all 48 new silhouettes and Dodo's existing six with the production
+sprite-isolation function. Added coverage for both Dodo skins/directions,
+interruption, zombie jump/fall/landing, airborne scale and complete roster art.
+796 tests, full typecheck, lint and production build passed.
+Live browser animation and performance could not be verified.
+
+GRAVE ART AND MOVEMENT FOLLOW-UP
+Replaced the plain extruded grave with an illustrated weathered stone cross:
+carved inset border, diamond medallion, chipped edges, moss and stepped base.
+Shared cached transparent artwork fits within the existing grave hurtbox;
+damage cracks and emergence debris are preserved. Asset and generation prompt:
+public/art/zombies/grave-cross-v1.png and prompt-grave-v1.json (built-in image_gen).
+Zombie pursuit ground/air horizontal movement is multiplied by 0.7. Attack
+cadence, jump impulse, gravity and knockback are unchanged. Slower movement
+exposed edge reversal while leaving a platform; exit selection now follows the
+target's side and continues across the initial edge step. Navigation tests allow
+longer travel and keep distractors away from the moving-platform test target.
+797 tests, typecheck, lint and production build pass. Live visual playback was
+not verified; art inspected directly and transparency confirmed.
+
+ILLUSTRATED GRAVE DESTRUCTION
+Generated grave-break-v1.png from the approved intact cross, with intact scale
+reference, light damage, heavy damage, critical damage, separating chunks and
+rubble. The original healthy artwork remains in use. Damage stages retain the
+previous 22/48/72-percent damage thresholds; emergence displays critical damage
+for 10 ticks, separating chunks through tick 23, then rubble fading over the
+last 18 rise ticks. Removed procedural crack lines and 3D debris entirely.
+Fixed-cell extraction retains disconnected stone fragments; all stages use the
+same pixel scale and ground anchor, so rubble does not enlarge to tomb height.
+No health, collision, movement, damage or resurrection timing changes.
+Prompt/provenance: public/art/zombies/prompt-grave-break-v1.json (built-in image_gen).
+44 relevant tests, full typecheck, lint and production build passed. Inspected
+art and all six alpha bounds; live browser animation remains unverified.

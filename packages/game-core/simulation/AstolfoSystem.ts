@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {Button,type Fighter,type MoveDefinition,type SimulationSnapshot,type StageDefinition} from '../types.js';
 import {characters} from '../characters/registry.js';
 import {createFighter} from './Fighter.js';
@@ -51,7 +52,7 @@ export function advanceAstolfo(s:SimulationSnapshot,stage:StageDefinition):void{
   const pulse=s.frame>=(f.talkNextPulse??0);
   for(const a of all){
    const d=a.fighter,dx=(d.x-f.x)*f.facing;
-   if(s.teams[a.owner]===s.teams[owner]||!canReceiveDirectHit(d,s.frame)||Math.abs(d.y-f.y)>=ASTOLFO.talkHeight)continue;
+   if(!hostile(s,owner,a.fighter,a.owner)||!canReceiveDirectHit(d,s.frame)||Math.abs(d.y-f.y)>=ASTOLFO.talkHeight)continue;
    const inAura=aura&&Math.abs(dx)<ASTOLFO.auraRange+25,inCone=held&&dx>=-25&&dx<ASTOLFO.talkRange+25;
    if(!inAura&&!inCone)continue;
    d.talkSlow=Math.min(d.talkSlow??1,inAura?.3:.4);
@@ -68,7 +69,7 @@ export function advanceSpiders(s:SimulationSnapshot,stage:StageDefinition,previo
  for(const h of s.hazards){
   if(h.kind!=='spider'||h.expiresAt<=s.frame)continue;
   const x=h.x,y=h.y;h.x+=(h.variant??1)*ASTOLFO.spiderSpeed;h.y=surfaceBelow(stage,h.x,h.y);
-  const contacts=actors(s).filter(a=>s.teams[a.owner]!==s.teams[h.owner]&&canReceiveDirectHit(a.fighter,s.frame)).map(a=>{
+  const contacts=actors(s).filter(a=>hostile(s,h.owner,a.fighter,a.owner)&&canReceiveDirectHit(a.fighter,s.frame)).map(a=>{
    const f=a.fighter,p=previous.get(f)??f;
    return {f,t:sweepEntry({x:f.x-25,y:f.y,w:50,h:145},x+f.x-p.x,y+12+f.y-p.y,h.x,h.y+12,12)};
   }).filter(c=>Number.isFinite(c.t)).sort((a,b)=>a.t-b.t);
@@ -87,7 +88,7 @@ export function burstPersonalities(s:SimulationSnapshot):void{
  for(const c of s.clones){
   if((c.kind!=='sad'&&c.kind!=='angry')||c.fighter.health>0||c.pattern===-1||!isActive(s.fighters[c.owner]))continue;
   c.pattern=-1;
-  for(const a of actors(s))if(s.teams[a.owner]!==s.teams[c.owner]&&canReceiveDirectHit(a.fighter,s.frame)&&Math.abs(a.fighter.x-c.fighter.x)<ASTOLFO.deathRadius&&Math.abs(a.fighter.y-c.fighter.y)<190){
+  for(const a of actors(s))if(hostile(s,c.owner,a.fighter,a.owner)&&canReceiveDirectHit(a.fighter,s.frame)&&Math.abs(a.fighter.x-c.fighter.x)<ASTOLFO.deathRadius&&Math.abs(a.fighter.y-c.fighter.y)<190){
    if(c.kind==='sad')a.fighter.sadnessUntil=Math.max(a.fighter.sadnessUntil??0,s.frame+300);
    else igniteTarget(s,a.fighter,c.owner,300,10);
   }

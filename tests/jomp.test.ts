@@ -31,14 +31,14 @@ test('Perfect Mode adds triple jump, faster movement and exactly 4x dash distanc
 test('Investida crosses arena, hits each enemy once, knocks down and leaves teammates untouched',()=>{
  const g=new GameSimulation(['jomp','gut','gut','gut'],false,undefined,[0,1,0,1]);g.state.phase='fight';g.state.fighters.forEach((f,i)=>{f.state='Idle';f.x=200+i*400;f.meter=100;});
  const f=g.state.fighters[0];g.step([Button.Special2,0,0,0]);for(let n=0;n<180;n++)g.step([0,0,0,0]);
- assert.equal(f.x,g.stage.width-40);assert.equal(g.state.fighters[2].health,1500);
- for(const i of [1,3])assert.equal(g.state.fighters[i].health,1390);
+ assert.equal(f.x,g.stage.width-40);assert.equal(g.state.fighters[2].health,1600);
+ for(const i of [1,3])assert.equal(g.state.fighters[i].health,1490);
 });
 test('Gym Bro locks facing target, follows jumps, deals nine reps and a throw then landing stun',()=>{
  const g=game(['jomp','gut','gut']),[f,d,other]=g.state.fighters;f.x=500;d.x=950;other.x=300;f.facing=1;
  const hp=d.health;g.step([Button.Super1,0,0]);assert.equal(f.gymTarget,1);d.x=1700;d.y=300;d.vy=15;d.state='Jump';
  for(let i=0;i<500&&!d.gymLandingStun;i++)g.step([0,Button.Right|Button.Up,0]);
- assert.equal(d.health,hp-381);assert.ok(d.gymLandingStun);assert.equal(other.health,1500);
+ assert.equal(d.health,hp-381);assert.ok(d.gymLandingStun);assert.equal(other.health,1600);
  for(let i=0;i<150&&d.gymLandingStun;i++)g.step([0,0,0]);
  assert.equal(d.stun,120);assert.equal(d.state,'HitStunStanding');
  const until=d.gymStunnedUntil!;g.hit(0,characters.jomp.moves.jab,0,false,1);

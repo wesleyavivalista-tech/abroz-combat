@@ -13,7 +13,7 @@ export function recordGameplayEvent(s:SimulationSnapshot,type:GameplayEventType,
 }
 export function recordDamage(s:SimulationSnapshot,f:Fighter,amount:number,source:DamageSource={}):void{
  const actor=s.fighters.indexOf(f),clone=actor<0?s.clones.find(c=>c.fighter===f):undefined;
- recordGameplayEvent(s,'DamageApplied',clone?.owner??actor,clone?`summon ${clone.id}`:f.move??f.state,amount,source);
+ recordGameplayEvent(s,'DamageApplied',clone?.owner??actor,clone?`summon ${clone.id}`:f.move??f.state,amount,{x:f.x,...source});
 }
 export function observeFrame(s:SimulationSnapshot){
  const fighters=s.fighters.map(f=>({state:f.state,move:f.move,serial:f.attackSerial,moveFrame:f.moveFrame})),phase=s.phase;

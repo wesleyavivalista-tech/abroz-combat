@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {recordGameplayEvent} from '../combat/GameplayEvents.js';
 import {deterministicHypot} from './DeterministicMath.js';
 import {hitStructureProjectile} from './StructureSystem.js';
@@ -54,21 +55,21 @@ export function advanceReturningProjectiles(s:SimulationSnapshot,stage:StageDefi
   }
   const oldX=p.x,oldY=p.y;p.x+=p.vx;p.y+=p.vy??0;
   hitStructureProjectile(s,p,{x:oldX,y:oldY},stage);
-  hitReturningProjectile(s,p,oldX,oldY,onHit,undefined,stage.floorHeight);
+  hitReturningProjectile(s,p,oldX,oldY,onHit,undefined,stage.floorHeight,stage.width);
 
  }
 }
 
 /** Re-check moving targets after integration using relative motion, without double-hitting stationary contacts. */
-export function hitReturningProjectile(s:SimulationSnapshot,p:Projectile,oldX:number,oldY:number,onHit?: (f:Fighter)=>void,previousTargets?:Map<Fighter,{x:number;y:number}>,floorHeight=0):void{
+export function hitReturningProjectile(s:SimulationSnapshot,p:Projectile,oldX:number,oldY:number,onHit?: (f:Fighter)=>void,previousTargets?:Map<Fighter,{x:number;y:number}>,floorHeight=0,arenaWidth=2400):void{
  const f=s.fighters[p.owner],def=characters[f.characterId],spec=def.returningPaths?.[p.trajectory??''];
  if(!p.active||!spec)return;
  for(const {fighter:d,owner,clone} of actors(s)){
   const key=clone?`c${clone.id}`:`p${owner}`,previous=previousTargets?.get(d);
   if(previousTargets&&(!previous||(previous.x===d.x&&previous.y===d.y)))continue;
-  if(s.teams[owner]===s.teams[p.owner]||!canReceiveDirectHit(d,s.frame)||(p.nextHits?.[key]??0)>s.frame)continue;
+  if(!hostile(s,p.owner,d,owner)||!canReceiveDirectHit(d,s.frame)||(p.nextHits?.[key]??0)>s.frame)continue;
   const x=oldX+(previous?d.x-previous.x:0),y=oldY+(previous?d.y-previous.y:0);
   if(!targetBoxes(d,'move').some(box=>sweptIntersects(box,x,y,p.x,p.y,spec.radius)))continue;
-  periodicHit(s,d,def.moves[p.move].damage,Math.sign(p.vx)||f.facing,18,3,onHit,floorHeight,{source:p.owner,move:p.move});(p.nextHits??={})[key]=s.frame+spec.hitInterval;
+  periodicHit(s,d,def.moves[p.move].damage,Math.sign(p.vx)||f.facing,18,3,onHit,floorHeight,{source:p.owner,move:p.move},arenaWidth);(p.nextHits??={})[key]=s.frame+spec.hitInterval;
  }
 }

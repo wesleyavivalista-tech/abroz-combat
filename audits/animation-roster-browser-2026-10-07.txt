@@ -1,0 +1,62 @@
+Fighter animation review
+Fighter 
+nikalz
+jopa
+biel
+eide
+astolfo
+fausto
+napa
+jomp
+dodo
+drupa
+gut
+tocha
+bozo
+caio
+roms
+luizinho
+Skin 
+Beige sweater
+Palmeiras jersey
+Action 
+Idle
+WalkForward
+WalkBackward
+JumpStartup
+Jump
+Fall
+Land
+DashForward
+DashBackward
+Crouch
+BlockStanding
+BlockCrouching
+HitStunStanding
+HitStunCrouching
+AirHitStun
+Knockdown
+GetUp
+KO
+MatchWin
+MatchLose
+jab
+straight
+cross
+forehead
+heavyHead
+heavyPunch
+low
+air
+foreheadDive
+testada
+bees
+meteor
+beeHouse
+placeBox
+Smooth movementPause
+
+Audit complete: 16 fighters, 245,091 pose updates, 0 failures.
+
+245,091 pose updates checked
+No missing textures, invalid frame access or invalid transforms.

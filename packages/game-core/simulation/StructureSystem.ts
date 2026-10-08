@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {deterministicHypot} from './DeterministicMath.js';
 import type {Box,Fighter,MoveDefinition,Projectile,SimulationSnapshot,StageDefinition,Structure} from '../types.js';
 import {characters} from '../characters/registry.js';
@@ -46,7 +47,7 @@ export function advanceStructures(s:SimulationSnapshot,_stage:StageDefinition):v
  for(const b of s.structures){
   if(b.kind!=='turret'||b.phase!=='built')continue;
   const def=characters[s.fighters[b.owner].characterId],spec=def.moves[b.move].structure!;
-  const target=actors(s).filter(a=>s.teams[a.owner]!==s.teams[b.owner]&&isActive(a.fighter)).sort((a,c)=>deterministicHypot(a.fighter.x-b.x,a.fighter.y-b.y)-deterministicHypot(c.fighter.x-b.x,c.fighter.y-b.y))[0]?.fighter;
+  const target=actors(s).filter(a=>hostile(s,b.owner,a.fighter,a.owner)&&isActive(a.fighter)).sort((a,c)=>deterministicHypot(a.fighter.x-b.x,a.fighter.y-b.y)-deterministicHypot(c.fighter.x-b.x,c.fighter.y-b.y))[0]?.fighter;
   if(!target)continue;
   b.facing=target.x>=b.x?1:-1;
   const pivotX=b.x-b.facing*b.width*.18,pivotY=b.y+85;
@@ -73,7 +74,7 @@ export function damageStructure(s:SimulationSnapshot,b:Structure,amount:number,k
  for(const a of actors(s)){
   const f=a.fighter;
   if(!intersects(hurtbox(f),structureBox(b))||!canReceiveDirectHit(f,s.frame))continue;
-  periodicHit(s,f,spec.collapseDamage??0,0,spec.collapseStun??240,0,undefined,stage.floorHeight,{source:b.owner,move:b.move});
+  periodicHit(s,f,spec.collapseDamage??0,0,spec.collapseStun??240,0,undefined,stage.floorHeight,{source:b.owner,move:b.move},stage.width);
   if(s.frame>=f.hitstunImmuneUntil){f.vx=f.vy=0;f.dazed=true;}
  }
 }
@@ -83,14 +84,18 @@ export function structureSurfaces(b:Structure):Box[]{
  const box=structureBox(b),wall=HOUSE_WALL_THICKNESS;
  return [{x:box.x,y:box.y,w:wall,h:box.h},{x:box.x+box.w-wall,y:box.y,w:wall,h:box.h},{x:box.x,y:box.y+box.h-wall,w:box.w,h:wall}];
 }
-export function hitStructureProjectile(s:SimulationSnapshot,p:Projectile,from:{x:number;y:number},stage:StageDefinition):boolean{
+export function hitStructureProjectile(s:SimulationSnapshot,p:Projectile,from:{x:number;y:number},stage:StageDefinition,previousPositions?:ReadonlyMap<Fighter,{x:number;y:number}>):boolean{
  const move=characters[s.fighters[p.owner].characterId].moves[p.move];
  const radius=move.projectile?.radius??(p.trajectory?characters[s.fighters[p.owner].characterId].returningPaths?.[p.trajectory]?.radius:22)??22;
  if(p.trajectory&&p.returning)return false;
  const candidates=(s.structures??[]).filter(b=>canDamage(s,b,p.owner)).map(b=>({b,time:Math.min(...structureSurfaces(b).map(box=>sweepEntry(box,from.x,from.y,p.x,p.y,radius)))})).filter(c=>c.time<Infinity).sort((a,b)=>a.time-b.time||a.b.id-b.b.id);
  const contact=candidates[0];if(!contact)return false;
  // A normal projectile must hit a fighter standing before the blocking surface first.
- if(!p.trajectory&&actors(s).some(a=>s.teams[a.owner]!==s.teams[p.owner]&&canReceiveDirectHit(a.fighter,s.frame)&&targetBoxes(a.fighter,'move').some(box=>sweepEntry(box,from.x,from.y,p.x,p.y,radius)<contact.time)))return false;
+ if(!p.trajectory&&actors(s).some(a=>{
+  if(!hostile(s,p.owner,a.fighter,a.owner)||!canReceiveDirectHit(a.fighter,s.frame))return false;
+  const previous=previousPositions?.get(a.fighter)??a.fighter;
+  return targetBoxes(a.fighter,'move').some(box=>sweepEntry(box,from.x+a.fighter.x-previous.x,from.y+a.fighter.y-previous.y,p.x,p.y,radius)<contact.time);
+ }))return false;
  const {b,time}=contact;
  damageStructure(s,b,move.damage,projectileKey(p),p.trajectory?24:0,stage,{x:from.x+(p.x-from.x)*time,y:from.y+(p.y-from.y)*time});
  p.x=from.x+(p.x-from.x)*time;p.y=from.y+(p.y-from.y)*time;
@@ -118,14 +123,14 @@ export function attackStructures(s:SimulationSnapshot,stage:StageDefinition):voi
   if(Object.keys(b.hits).length>256){const live=new Set([...actors(s).map(a=>`${actorKey(a.owner,a.clone)}:${a.fighter.attackSerial}`),...s.projectiles.filter(p=>p.active).map(p=>projectileKey(p))]);for(const key of Object.keys(b.hits))if(!live.has(key))delete b.hits[key];}
  }
 }
-export function collideStructures(s:SimulationSnapshot,previous:Map<Fighter,{x:number;y:number}>):Fighter[]{
+export function collideStructures(s:SimulationSnapshot,previous:Map<Fighter,{x:number;y:number}>,width=Infinity):Fighter[]{
  const blocked:Fighter[]=[];
  for(const a of actors(s)){
-  const f=a.fighter;if(!isActive(f))continue;
+  const f=a.fighter;if(f.undead&&f.undead!=='zombie'||!isActive(f))continue;
   const old=previous.get(f)??{x:f.x,y:f.y},body=hurtbox(f),half=body.w/2,attemptedX=f.x;
   for(const b of s.structures??[]){
    if(b.phase!=='built'||b.kind==='turret'||b.kind==='bee-box')continue;
-   if(b.kind==='wall'&&s.teams[a.owner]===s.teams[b.owner])continue;
+   if(b.kind==='wall'&&!hostile(s,b.owner,a.fighter,a.owner))continue;
    const left=b.x-b.width/2,right=b.x+b.width/2,top=b.y+b.height;
    if(b.kind==='house'&&b.trapped.includes(actorKey(a.owner,a.clone))){
     f.x=Math.max(left+HOUSE_WALL_THICKNESS+half,Math.min(right-HOUSE_WALL_THICKNESS-half,f.x));
@@ -138,6 +143,15 @@ export function collideStructures(s:SimulationSnapshot,previous:Map<Fighter,{x:n
    if(old.x<=left-half&&f.x>left-half){f.x=left-half;f.vx=0;}
    else if(old.x>=right+half&&f.x<right+half){f.x=right+half;f.vx=0;}
    else if(f.x+half>left&&f.x-half<right){f.x=f.x<b.x?left-half:right+half;f.vx=0;}
+  }
+  // An edge wall must eject toward the arena, never into the outer boundary.
+  if(f.x<40||f.x>width-40){
+   const surfaces=(s.structures??[]).filter(b=>b.phase==='built'&&(b.kind==='house'||b.kind==='wall'&&hostile(s,b.owner,a.fighter,a.owner))&&f.y<b.y+b.height&&f.y+body.h>b.y);
+   const candidates=[40,width-40,...surfaces.flatMap(b=>[b.x-b.width/2-half,b.x+b.width/2+half])];
+   const valid=candidates.filter(x=>x>=40&&x<=width-40&&surfaces.every(b=>x+half<=b.x-b.width/2||x-half>=b.x+b.width/2));
+   valid.sort((a,b)=>Math.abs(a-attemptedX)-Math.abs(b-attemptedX)||a-b);
+   if(valid.length)f.x=valid[0];
+   else {f.x=Math.max(40,Math.min(width-40,f.x));f.y=Math.max(f.y,...surfaces.map(b=>b.y+b.height));f.vy=0;}
   }
   if(f.x!==attemptedX)blocked.push(f);
  }

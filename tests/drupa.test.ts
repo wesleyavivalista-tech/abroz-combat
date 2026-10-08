@@ -17,7 +17,7 @@ test('belly dive requires double jump and stuns for exactly 120 simulation ticks
  const s=match(),[a,b]=s.state.fighters;a.y=200;b.move='wide';s.hit(0,m.bellyDive,0,true,1);assert.equal(b.stun,120);s.state.hitstop=0;run(s,119);assert.equal(b.stun,1);run(s,1);assert.equal(b.stun,0);
 });
 test('rolling crosses the arena and hits each passed opponent only once',()=>{
- const s=match(3),[a,b,c]=s.state.fighters;a.x=100;b.x=800;c.x=1600;s.step([Button.Special,0,0]);run(s,230);assert.equal(a.x,s.stage.width-40);assert.ok(b.health<1600&&c.health<1600);assert.equal(b.comboDamage,0);assert.ok(b.health>=1085&&c.health>=1085);
+ const s=match(3),[a,b,c]=s.state.fighters;a.x=100;b.x=800;c.x=1600;s.step([Button.Special,0,0]);run(s,230);assert.equal(a.x,s.stage.width-40);assert.ok(b.health<1500&&c.health<1500);assert.equal(b.comboDamage,0);assert.ok(b.health>=1085&&c.health>=1085);
 });
 test('White Buda lasts 26 seconds, reduces all incoming damage 70%, slows movement 20%, permits basics only',()=>{
  const s=match(),f=s.state.fighters[0];s.step([Button.Super2,0]);run(s,36);assert.equal(f.weaponUntil-s.state.frame,1560);assert.equal(protectedDamage(f,s.state.frame,100),30);run(s,30);
@@ -27,7 +27,7 @@ test('White Buda lasts 26 seconds, reduces all incoming damage 70%, slows moveme
  f.weaponUntil=s.state.frame+1;run(s,1);assert.equal(f.weaponUntil,0);assert.equal(f.move,null);assert.equal(protectedDamage(f,s.state.frame,100),100);
 });
 test('heaven light waits one second, descends at the warning, and low kick replaces sky shot',()=>{
- const s=match(),[a,b]=s.state.fighters;a.x=300;b.x=630;a.weaponUntil=2000;s.step([Button.Medium,0]);run(s,59,Button.Medium);assert.equal(b.health,1600);run(s,1,Button.Medium);assert.ok(b.health<1600);
+ const s=match(),[a,b]=s.state.fighters;a.x=300;b.x=630;a.weaponUntil=2000;s.step([Button.Medium,0]);run(s,59,Button.Medium);assert.equal(b.health,1500);run(s,1,Button.Medium);assert.ok(b.health<1500);
  const ray=lightBeam(a,s.stage.width)!;assert.equal(ray.width,300);assert.equal(ray.dy,-1);assert.ok(beamIntersects(ray,{x:610,y:340,w:60,h:150}));assert.equal(beamIntersects(ray,{x:900,y:0,w:60,h:150}),false);
  assert.equal(m.budaSky.beam,undefined);assert.equal(m.budaSky.level,'low');assert.ok(m.budaSky.hitboxes[0].y<30);
 });
@@ -45,7 +45,7 @@ test('steerable beam deals continuous damage for thirteen seconds without hitsto
  a.moveFrame=m.budaBeam.startupFrames+779;assert.ok(lightBeam(a,s.stage.width));run(s,1);assert.equal(lightBeam(a,s.stage.width),null);
 });
 test('beam respects teammates and invulnerability; giant state clears on knockout',()=>{
- const s=new GameSimulation(['drupa','drupa','drupa','drupa'],false,undefined,[0,1,0,1]);s.state.phase='fight';s.state.fighters.forEach((f,i)=>{f.state='Idle';f.x=300+i*200;});const [a,b,c,d]=s.state.fighters;a.move='bald';a.moveFrame=29;d.invulnerableUntil=100;s.step([0,0,0,0]);assert.ok(b.health<1600);assert.equal(c.health,1600);assert.equal(d.health,1600);a.weaponUntil=1000;a.health=0;run(s,1);assert.equal(a.weaponUntil,0);
+ const s=new GameSimulation(['drupa','drupa','drupa','drupa'],false,undefined,[0,1,0,1]);s.state.phase='fight';s.state.fighters.forEach((f,i)=>{f.state='Idle';f.x=300+i*200;});const [a,b,c,d]=s.state.fighters;a.move='bald';a.moveFrame=29;d.invulnerableUntil=100;s.step([0,0,0,0]);assert.ok(b.health<1500);assert.equal(c.health,1500);assert.equal(d.health,1500);a.weaponUntil=1000;a.health=0;run(s,1);assert.equal(a.weaponUntil,0);
 });
 test('Drupa beam aim, giant form and rolling converge after late online input',()=>{
  const a=match(),b=match(),rb=new RollbackManager(b,0,0,8);
@@ -58,13 +58,13 @@ test('Drupa beam aim, giant form and rolling converge after late online input',(
 test('giant punches damage a platform opponent while the low kick hits a grounded opponent',()=>{
  for(const [id,y] of [['budaSwing1',340],['budaSwing2',340],['budaFinish',340],['budaSky',0]] as const){
   const s=match(),[a,b]=s.state.fighters;a.x=500;b.x=730;b.y=y;a.weaponUntil=2000;a.move=id;a.moveFrame=m[id].startupFrames-1;a.state='LightAttack';b.state=y?'Idle':'Idle';
-  run(s,1);const expected={budaSwing1:140,budaSwing2:161,budaFinish:217,budaSky:196};assert.equal(b.health,1600-expected[id],`${id} deals 40% more damage at height ${y}`);
+  run(s,1);const expected={budaSwing1:140,budaSwing2:161,budaFinish:217,budaSky:196};assert.equal(b.health,1500-expected[id],`${id} deals 40% more damage at height ${y}`);
  }
 });
 test('White Buda beam is wider, stronger and lasts thirteen seconds; low kick starts in twelve frames',()=>{
  assert.equal(m.budaBeam.activeFrames,13*60);assert.equal(m.budaBeam.beam?.width,55);assert.equal(m.budaBeam.damage,18);
  const s=match(),[a,b]=s.state.fighters;a.x=300;b.x=700;a.move='budaBeam';a.moveFrame=m.budaBeam.startupFrames-1;a.beamAim=0;
- run(s,1);assert.equal(b.health,1600-18);assert.equal(b.stun,0);
+ run(s,1);assert.equal(b.health,1500-18);assert.equal(b.stun,0);
  assert.equal(m.budaSky.startupFrames,12);assert.equal(m.budaSky.recoveryFrames,18);
 });
 test('held sky beam keeps damaging without hitstop, ends on release, and cancels on transformation expiry',()=>{
@@ -75,7 +75,7 @@ test('held sky beam keeps damaging without hitstop, ends on release, and cancels
  s.step([Button.Medium,0]);run(s,60,Button.Medium);a.weaponUntil=s.state.frame+1;run(s,1,Button.Medium);assert.equal(a.move,null);assert.equal(lightBeam(a,s.stage.width),null);
 });
 test('releasing sky beam during charge produces no beam or damage',()=>{
- const s=match(),[a,b]=s.state.fighters;a.x=300;b.x=630;a.weaponUntil=2000;s.step([Button.Medium,0]);run(s,30,Button.Medium);run(s,80);assert.equal(b.health,1600);assert.equal(a.move,null);
+ const s=match(),[a,b]=s.state.fighters;a.x=300;b.x=630;a.weaponUntil=2000;s.step([Button.Medium,0]);run(s,30,Button.Medium);run(s,80);assert.equal(b.health,1500);assert.equal(a.move,null);
 });
 test('held beam and release replay identically through rollback',()=>{
  const a=match(),b=match();for(const s of [a,b]){s.state.fighters[0].x=300;s.state.fighters[1].x=630;s.state.fighters[1].weaponUntil=2000;}

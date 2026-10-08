@@ -21,7 +21,7 @@ export function arenaMaterial(base: string, kind: 'stone' | 'metal' | 'paint' | 
   }
   if (kind === 'stone') {
     ctx.strokeStyle = '#14202535'; ctx.lineWidth = 2;
-    ctx.strokeRect(1, 1, 254, 254);
+    // Avoid a repeated dark border: it reads as a blockout grid at gameplay scale.
     for (let i = 0; i < 5; i++) {
       const x = random() * 256, y = random() * 256;
       ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 9, y + 5); ctx.lineTo(x + 14, y + 3); ctx.lineTo(x + 22, y + 17); ctx.stroke();

@@ -72,3 +72,38 @@ test('all rendering adapters forward the authoritative frame to the base visual'
  const wrappers=[new CrouchAttackVisual(base),new AirAttackVisual(base,'nikalz','original'),new DashVisual(base,'nikalz','original'),new FallVisual(base,'nikalz','original'),new MountedVisual(base,'nikalz','original')];
  for(const visual of wrappers){seen=undefined;visual.update(f,2,1234);assert.equal(seen,1234);visual.dispose();}
 });
+
+test('cosmetic clock survives every fighter state change and freezes during hitstop, pause and stalled ticks',()=>{
+ for(const id of Object.keys(characters)){
+  const sim=new GameSimulation([id,id]),view=new RenderInterpolation();sim.state.phase='fight';
+  for(const state of ['Idle','WalkForward','DashForward','Jump','Fall','Land','LightAttack','HitStunStanding','Knockdown','GetUp']){
+   const before=view.seconds();view.capture(sim.state);sim.state.frame++;sim.state.fighters[0].state=state;sim.state.fighters[0].stateFrame=0;view.complete(sim.state);
+   assert.ok(Math.abs(view.seconds()-before-1/60)<1e-9,id+state);
+   assert.ok(view.seconds(.75)>view.seconds(.25));
+  }
+  const before=view.seconds();view.capture(sim.state);sim.state.frame++;sim.state.hitstop=4;view.complete(sim.state);
+  assert.equal(view.seconds(.1),before);assert.equal(view.seconds(.9),before);
+  view.reset();assert.equal(view.seconds(.2),before);
+  view.capture(sim.state);assert.equal(view.seconds(.5),before); // No successful network tick.
+  const hash=hashState(sim.state);view.seconds(.4);assert.equal(hashState(sim.state),hash);
+ }
+});
+
+test('all fighters interpolate neutral dash transitions while facing changes and damage stay exact',()=>{
+ for(const id of Object.keys(characters))for(const [from,to] of [['Idle','DashForward'],['WalkBackward','DashBackward'],['DashForward','Idle'],['DashBackward','Fall']]){
+  const sim=new GameSimulation([id,id]),view=new RenderInterpolation();sim.state.phase='fight';const f=sim.state.fighters[0];f.state=from;f.move=null;
+  view.capture(sim.state);sim.state.frame++;f.x+=12;f.state=to;f.stateFrame=0;
+  const display=view.view(sim.state,.5).fighters[0];assert.equal(display.x,f.x-6,id);assert.equal(display.state,to);assert.equal(display.stateFrame,0);
+  f.facing=f.facing===1?-1:1;assert.equal(view.view(sim.state,.5).fighters[0],f);
+ }
+});
+
+test('cosmetic clock counts successful fixed steps, not display refreshes or rollback replay',()=>{
+ const sim=new GameSimulation(),view=new RenderInterpolation();sim.state.phase='fight';
+ for(let i=0;i<60;i++){view.capture(sim.state);sim.state.frame++;view.complete(sim.state);for(let refresh=0;refresh<5;refresh++)view.seconds(refresh/5);}
+ assert.equal(view.seconds(),1);
+ const before=hashState(sim.state);view.capture(sim.state);
+ const restored=structuredClone(sim.state);restored.frame++;view.complete(restored);
+ assert.equal(view.seconds(.5),1);assert.equal(hashState(sim.state),before);
+ view.reset();assert.equal(view.seconds(),1);
+});

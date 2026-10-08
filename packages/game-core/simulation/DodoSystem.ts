@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {grounded} from './StageCollision.js';
 import {deterministicHypot} from './DeterministicMath.js';
 import {characters} from '../characters/registry.js';
@@ -9,7 +10,7 @@ import {periodicHit} from '../combat/PeriodicHit.js';
 export const MUSIC_RADIUS=260;
 export const isLowProfile=(f:Fighter,frame:number)=>isActive(f)&&(f.invisibleUntil??0)>frame;
 /** Music and invisibility use simulation time, including hit stop and rollback. */
-export function advanceDodo(s:SimulationSnapshot,floorHeight:number):void{
+export function advanceDodo(s:SimulationSnapshot,floorHeight:number,arenaWidth=2400):void{
  const contacts:{target:Fighter;owner:number;direction:number}[]=[];
  for(const [owner,f] of s.fighters.entries()){
   if(!characters[f.characterId].musicFighter)continue;
@@ -19,15 +20,15 @@ export function advanceDodo(s:SimulationSnapshot,floorHeight:number):void{
   if(!f.musicNextPulse)f.musicNextPulse=s.frame;
   if(s.frame<f.musicNextPulse)continue;
   f.musicNextPulse=s.frame+30;
-  for(const a of actors(s))if(s.teams[a.owner]!==s.teams[owner]&&canReceiveDirectHit(a.fighter,s.frame)&&deterministicHypot(a.fighter.x-f.x,a.fighter.y-f.y)<=MUSIC_RADIUS){
+  for(const a of actors(s))if(hostile(s,owner,a.fighter,a.owner)&&canReceiveDirectHit(a.fighter,s.frame)&&deterministicHypot(a.fighter.x-f.x,a.fighter.y-f.y)<=MUSIC_RADIUS){
    contacts.push({target:a.fighter,owner,direction:Math.sign(a.fighter.x-f.x)||f.facing});
   }
  }
- for(const c of contacts)periodicHit(s,c.target,22,c.direction,6,10,undefined,floorHeight,{source:c.owner,move:'chord'});
+ for(const c of contacts)periodicHit(s,c.target,22,c.direction,6,10,undefined,floorHeight,{source:c.owner,move:'chord'},arenaWidth);
 }
 export function basketballInput(s:SimulationSnapshot,c:HairClone,stage:StageDefinition):number{
  const f=c.fighter;
- const t=actors(s).filter(a=>s.teams[a.owner]!==s.teams[c.owner]&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-f.x)+Math.abs(a.fighter.y-f.y)-Math.abs(b.fighter.x-f.x)-Math.abs(b.fighter.y-f.y))[0]?.fighter;
+ const t=actors(s).filter(a=>hostile(s,c.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-f.x)+Math.abs(a.fighter.y-f.y)-Math.abs(b.fighter.x-f.x)-Math.abs(b.fighter.y-f.y))[0]?.fighter;
  if(!t)return 0;
  const dx=t.x-f.x,dy=t.y-f.y;
  let input=Math.abs(dx)>80?(dx>0?Button.Right:Button.Left):0;

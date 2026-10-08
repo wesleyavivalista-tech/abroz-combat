@@ -1,3 +1,5 @@
+import {finalDeathActive,matchTimeScale} from '../../../packages/game-core/simulation/UndeadSystem.js';
+import {matchCountdown} from './ui/MatchCountdown.js';
 import {toggleFullscreen} from './platform/runtime.js';
 import {arenaSelection} from './ui/ArenaSelection.js';
 import './ui/arena-selection.css';
@@ -42,7 +44,7 @@ import {GameAudio,screenMusic,actionSound} from "./audio/GameAudio.js";
 import { AssetManager } from "./assets/AssetManager.js";
 import { SceneRenderer } from "./rendering/SceneRenderer.js";
 import { LobbyClient } from "./network.js";
-import { UI } from "./ui/UI.js";
+import { UI, updateMarkup } from "./ui/UI.js";
 const ui = new UI(),
   input = new InputManager(),
   audio = new AudioManager(),
@@ -93,6 +95,8 @@ let championshipEntrants: Entrant[] = [];
 let localElimination:EliminationMode='elimination';
 let eliminationIds:string[]=[],eliminationSkins:string[]=[];
 let hudEliminationFight=0;
+let idleTestMatch=false;
+const developmentBuild=!!(import.meta as ImportMeta & {env?:{DEV?:boolean}}).env?.DEV;
 let localMatchMode:LocalMatchMode='ffa',localIds:string[]=[],localSkins:string[]=[],localTeams:number[]=[];
 const menuNavigation = new MenuNavigation();
 let pauseOwner:number|null=null;
@@ -103,12 +107,13 @@ let controllerLastPaint=0;
 let controllerMessage='';
 let controllerMessageUntil=0;
 const controllerHints=new ControllerHints();
-function displayBindings(player:number){return controllerHints.active?[...['Left','Right','Up','Down'],...input.gamepadButtons.map(b=>controllerHints.button(b))]:input.bindings[player];}
+function displayBindings(player:number){return controllerHints.active?[...['Left','Right',controllerHints.button(0),'Down'],...input.gamepadButtons.map(b=>controllerHints.button(b))]:input.bindings[player];}
 const controllerNotice=document.createElement('div');
 controllerNotice.className='controller-notice';controllerNotice.setAttribute('role','status');document.body.append(controllerNotice);
 function controllerToast(message:string){controllerMessage=message;controllerMessageUntil=performance.now()+4500;}
 function openControllers(){
  if(controllerPanel)return;
+ cancelBinding?.();
  if(screen==='fight'&&!paused&&mode!=='online')pause();
  controllerPanel=true;input.clear();menuNavigation.reset();
  const dialog=document.createElement('dialog');dialog.id='controllers-dialog';dialog.className='controller-dialog';
@@ -116,9 +121,11 @@ function openControllers(){
  dialog.addEventListener('cancel',e=>{e.preventDefault();closeControllers();});
  dialog.querySelector<HTMLSelectElement>('#controller-deadzone')!.onchange=e=>{input.controllers.deadzone=Number((e.target as HTMLSelectElement).value);input.clear();input.save();};
  refreshControllerLabels(dialog,input.controllers);controllerPanelRevision=-1;
+ dialog.querySelector<HTMLElement>('[data-action="controller-assign"]')?.focus();
 }
 function closeControllers(){controllerPanel=false;input.controllers.capture=null;input.controllers.testing=null;document.getElementById('controllers-dialog')?.remove();input.clear();menuNavigation.reset();}
 function toggleOnlineControllerMenu(){
+ if(document.getElementById('disconnect'))return;
  onlineControllerMenu=!onlineControllerMenu;input.clear();input.enabled=!onlineControllerMenu;menuNavigation.reset();
  if(!onlineControllerMenu){document.getElementById('online-controller-menu')?.remove();return;}
  const dialog=document.createElement('dialog');dialog.id='online-controller-menu';dialog.className='controller-dialog';
@@ -126,12 +133,13 @@ function toggleOnlineControllerMenu(){
  ui.root.append(dialog);dialog.showModal();dialog.addEventListener('cancel',e=>{e.preventDefault();toggleOnlineControllerMenu();});
 }
 function controllerBack(){
+ if(document.getElementById('disconnect')){home();return;}
  const editor=document.getElementById('controller-text-entry');if(editor){editor.dispatchEvent(new Event('cancel',{cancelable:true}));return;}
- const settingsDialog=document.getElementById('settings-dialog');if(settingsDialog){settingsDialog.remove();input.clear();return;}
+ if(controllerPanel){if(input.controllers.capture||input.controllers.testing!==null){input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message','Cancelled.');}else closeControllers();return;}
+ const settingsDialog=document.getElementById('settings-dialog');if(settingsDialog){closeSettings();return;}
  if(cancelBinding){cancelBinding();return;}
 
  audio.play("menu_back");
- if(controllerPanel){if(input.controllers.capture||input.controllers.testing!==null){input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message','Cancelled.');}else closeControllers();return;}
  if(onlineControllerMenu){toggleOnlineControllerMenu();return;}
  if(screen==='fight'){if(document.getElementById('match-result'))home();else if(paused)pause();return;}
  if(screen==='select'){if(selectSeat===1){selectSeat=0;selection();}else home();return;}
@@ -141,10 +149,10 @@ function controllerBack(){
 function activeInputSlots(){return mode==='online'||mode==='training'?1:screen==='local-match-setup'?localIds.length:screen==='elimination-setup'?eliminationIds.length:screen==='fight'?simulation.state.fighters.length:2;}
 function updateControllers(now:number){
  const pads=input.controllers;
- const joinAllowed=screen!=='fight'&&screen!=='loading'&&!controllerPanel;
+ const joinAllowed=screen!=='loading'&&(controllerPanel||screen!=='fight')&&!pads.capture&&pads.testing===null;
  input.refresh(joinAllowed,controllerPanel?pads.cap:screen==='home'||screen==='local'?pads.cap:activeInputSlots());
  for(const action of input.systemActions.splice(0)){
-  if(action==='debug')debug=!debug;
+  if(action==='debug'&&(developmentBuild||mode==='training'))debug=!debug;
   if(action==='reset'&&mode==='training'&&screen==='fight'){simulation.resetPositions();recentGameplayEvents.length=0;}
   if(action==='pause'){if(controllerPanel||document.getElementById('settings-dialog')||document.getElementById('controller-text-entry'))controllerBack();else{pauseOwner=null;pause();}}
  }
@@ -229,7 +237,7 @@ function showLocalMatchSetup(kind:LocalMatchMode=localMatchMode,count=kind==='3v
  localMatchMode=kind;
  localIds=Array.from({length:count},(_,i)=>localIds[i]??rosterIds[i%rosterIds.length]);
  localSkins=localIds.map((id,i)=>resolveSkin(characters[id],localSkins[i]));
- navigate('local-match-setup');ui.shell(localMatchSetup(kind,localIds,localSkins,localTeams));addSetupArenaPicker();
+ navigate('local-match-setup');ui.shell(localMatchSetup(kind,localIds,localSkins,localTeams,developmentBuild));addSetupArenaPicker();
  document.getElementById('local-match-count')!.onchange=e=>showLocalMatchSetup(kind,Number((e.target as HTMLSelectElement).value));
  ui.root.querySelectorAll<HTMLSelectElement>('[data-local-fighter]').forEach(el=>el.onchange=()=>{const i=Number(el.dataset.localFighter);localIds[i]=el.value;localSkins[i]=resolveSkin(characters[el.value]);showLocalMatchSetup(kind,count);});
  ui.root.querySelectorAll<HTMLSelectElement>('[data-local-skin]').forEach(el=>el.onchange=()=>localSkins[Number(el.dataset.localSkin)]=el.value);
@@ -326,12 +334,16 @@ function selection(roster = false) {
 }
 
 let selectedArena = trainingRoom.id;
+function randomizeArena(): void {
+  const ids=Object.keys(stages).filter(id=>id!==selectedArena);
+  if(ids.length)selectedArena=ids[Math.floor(Math.random()*ids.length)];
+}
 function arenaPicker(): string {
-  return `<label class="arena-picker">ARENA <select id="arena-choice">${Object.values(stages).map(a=>`<option value="${a.id}" ${a.id===selectedArena?'selected':''}>${a.name} · ${a.platforms?.length??0} platform${a.platforms?.length===1?'':'s'}</option>`).join('')}</select></label>`;
+  return `<label class="arena-picker">ARENA <select id="arena-choice">${Object.values(stages).map(a=>`<option value="${a.id}" ${a.id===selectedArena?'selected':''}>${a.name} · ${a.platforms?.length??0} platform${a.platforms?.length===1?'':'s'}</option>`).join('')}<option value="random">Random arena</option></select></label>`;
 }
 function bindArenaPicker(refresh?:()=>void): void {
   const el=document.getElementById('arena-choice') as HTMLSelectElement|null;
-  if(el)el.onchange=()=>{if(Object.hasOwn(stages,el.value)){selectedArena=el.value;refresh?.();}};
+  if(el)el.onchange=()=>{if(el.value==='random'){randomizeArena();el.value=selectedArena;refresh?.();}else if(Object.hasOwn(stages,el.value)){selectedArena=el.value;refresh?.();}};
 }
 function addSetupArenaPicker(): void {
   const main=ui.root.querySelector('main');
@@ -340,11 +352,18 @@ function addSetupArenaPicker(): void {
 function stage() {
   navigate("stage");
   ui.shell(arenaSelection(selectedArena,mode,selected,selectedSkins));
+  const randomButton=ui.root.querySelector<HTMLButtonElement>('[data-random-arena]');
+  if(randomButton)randomButton.onclick=()=>{
+    randomizeArena();audio.play('menu_confirm');stage();
+    ui.root.querySelector<HTMLButtonElement>('[data-random-arena]')?.focus({preventScroll:true});
+  };
   ui.root.querySelectorAll<HTMLButtonElement>('[data-arena]').forEach(button=>{
     button.onclick=()=>{const id=button.dataset.arena!;if(!Object.hasOwn(stages,id))return;selectedArena=id;audio.play('menu_confirm');stage();ui.root.querySelector<HTMLButtonElement>(`[data-arena="${id}"]`)?.focus({preventScroll:true});};
   });
 }
-async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = selectedArena) {
+async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = selectedArena, idleTest = false) {
+  if(!developmentBuild && mode!=="training")debug=false;
+  idleTestMatch = developmentBuild && mode === "local" && idleTest;
   selectedArena = Object.hasOwn(stages,arenaId) ? arenaId : trainingRoom.id;
   navigate("loading", true);
   const revision = viewRevision;
@@ -365,9 +384,11 @@ async function start(ids: string[] = selected, teams?: number[], skins: string[]
   try {
   renderer.draw(simulation.state,0,0,false,simulation.stage);
   await Promise.all([renderer.stage.ready, renderer.prepareFighters(ids)]);
+  if(revision!==viewRevision||screen!=="loading")return;
   await assets.load(
     Object.assign({}, ...ids.map((id) => characters[id].assets)),
     (p) => {
+      if(revision!==viewRevision||screen!=="loading")return;
       const el = document.getElementById("load-progress");
       if (el) el.style.width = `${p * 100}%`;
     },
@@ -438,7 +459,7 @@ function updateHUD() {
       marker.title=`${marker.dataset.label} · ${cost} energy · ${loanLocked?"LOAN · Energy locked":formLocked?"Unavailable during transformation":ready?"Enough energy":`${Math.ceil(cost-f.meter)} more energy needed`}`;
       marker.setAttribute("aria-label",marker.title);
     });
-    document.getElementById("supers" + i)!.innerHTML = characters[
+    updateMarkup(document.getElementById("supers" + i)!, characters[
       f.characterId
     ].superButtons
       .map((id, n) => {
@@ -448,15 +469,15 @@ function updateHUD() {
         const key = mode === "online" && i !== seat ? "" : (displayBindings(mode === "online" ? 0 : i)?.[9 + n]??"")
           .replace("Key", "")
           .replace("Digit", "");
-        return `<span class="super-slot ${spent ? "spent" : ready ? "ready" : ""}" title="${characters[f.characterId].moves[id].displayName ?? id} · ${marked ? "Press again to build. No additional energy required." : "Full energy required. Once per match."}">${key ? `<b>${escapeMarkup(key)}</b>` : ""} ${s.fighters.length > 2 ? `ULTIMATE ${n + 1}` : (characters[f.characterId].moves[id].displayName ?? id)} <em>${loanLocked ? "LOAN" : spent ? "USED" : formLocked ? "LOCKED" : marked ? "BUILD" : ready ? "READY" : "CHARGE"}</em></span>`;
+        return `<span class="super-slot ${spent ? "spent" : ready ? "ready" : ""}" title="${characters[f.characterId].moves[id].displayName ?? id} · ${marked ? "Press again to build. No additional energy required." : "Full energy required. Once per match."}">${key ? `<b>${escapeMarkup(key)}</b>` : ""} ${s.fighters.length > 2 ? `U${n + 1}` : (characters[f.characterId].moves[id].displayName ?? id)} <em>${loanLocked ? "LOAN" : spent ? "USED" : formLocked ? "LOCKED" : marked ? "BUILD" : ready ? "READY" : "CHARGE"}</em></span>`;
       })
-      .join("");
+      .join(""));
     const lives = document.getElementById("lives" + i)!;
-    lives.innerHTML =
+    updateMarkup(lives,
       Array.from({length:Math.max(3,f.lives)},(_,n)=>n)
         .map((n) => `<i class="${n < f.lives ? "remaining" : ""}"></i>`)
         .join("") +
-      `<span>${s.training ? "∞ LIVES" : f.lives + " " + (f.lives === 1 ? "LIFE" : "LIVES")}</span>`;
+      `<span>${s.training ? "∞ LIVES" : f.lives + " " + (f.lives === 1 ? "LIFE" : "LIVES")}</span>`);
     lives.setAttribute(
       "aria-label",
       s.training ? "Unlimited lives" : `${f.lives} lives remaining`,
@@ -481,11 +502,20 @@ function updateHUD() {
           : "";
   });
   const announcement = document.getElementById("announcement")!;
-  if (s.phase === "intro")
-    announcement.innerHTML =
-      s.phaseFrame < 55 ? "3 LIVES" : s.phaseFrame < 110 ? "READY" : "FIGHT!";
+  const countdown = matchCountdown(s);
+  const finalDeath=finalDeathActive(s);
+  announcement.classList.toggle("final-death",finalDeath);
+  announcement.classList.toggle("match-countdown",!!countdown);
+  announcement.classList.toggle("match-fight",countdown === "FIGHT!");
+  if (countdown) {
+    if(announcement.textContent!==countdown){
+      const word=document.createElement("span");
+      word.className="countdown-word";word.textContent=countdown;
+      announcement.replaceChildren(word);
+    }
+  }
   else
-    announcement.textContent = rollback?.stalled
+    announcement.textContent = finalDeath ? "DEAD." : rollback?.stalled
       ? "WAITING FOR INPUT"
       : s.phase === "result" && rollback && rollback.confirmed < s.endedAt-1
         ? "CONFIRMING RESULT…"
@@ -518,7 +548,7 @@ function updateHUD() {
   if((s.tournament||s.elimination)&&!tournamentHost){tournamentHost=document.createElement("div");tournamentHost.id="tournament-panel-host";ui.root.append(tournamentHost);}
   if(tournamentHost)tournamentHost.innerHTML=s.elimination?eliminationPanel(s,!rollback||rollback.confirmed>=s.endedAt-1):tournamentPanel(s,!rollback||rollback.confirmed>=s.endedAt-1);
   if (
-    s.phase === "result" &&
+    s.phase === "result" && !finalDeathActive(s) &&
     (!s.tournament || s.tournament.complete) &&
     (!s.elimination || s.elimination.complete) &&
     screen === "fight" &&
@@ -551,33 +581,46 @@ function updateHUD() {
     resultDialog.addEventListener("cancel", (event) => event.preventDefault());
   }
 }
+function closeSettings(){
+  cancelBinding?.();
+  document.getElementById('settings-dialog')?.remove();
+  input.clear();menuNavigation.reset();
+}
+function refreshBindings(){
+  ui.root.querySelectorAll<HTMLElement>('[data-action="bind"]').forEach(button=>{
+    button.textContent=input.bindings[Number(button.dataset.player)][Number(button.dataset.index)];
+  });
+}
 function settings(overlay=false) {
   if(!overlay)navigate("settings");
   input.enabled = false;
-  const html=`<main class="page"><div class="eyebrow">MAKE IT YOURS</div><h2>SETTINGS</h2><button class="primary" data-action="controllers">CONTROLLERS →</button><div class="settings-grid"><section><span class="tag">AUDIO & NETWORK</span>${(import.meta as ImportMeta & {env:{DEV:boolean}}).env.DEV?'<details><summary>Audio diagnostics</summary><pre id="audio-debug"></pre></details>':''}${(["master", "music", "sound", "ui"] as const).map((k) => `<label class="setting">${k === "sound" ? "SFX" : k.toUpperCase()} VOLUME<input type="range" min="0" max="1" step=".01" value="${audio[k]}" data-volume="${k}"></label>`).join("")}<label class="setting">Mute all<input id="audio-mute" type="checkbox" ${audio.mute?"checked":""}></label><label class="setting">Mute when unfocused<input id="audio-focus" type="checkbox" ${audio.muteOnBlur?"checked":""}></label><label class="setting">Diagnostics<input id="diagnostics" type="checkbox" ${debug ? "checked" : ""}></label><label class="setting">Simulated outbound delay<select id="latency">${[0, 50, 100, 150, 200].map((n) => `<option ${network.latency === n ? "selected" : ""} value="${n}">${n} ms</option>`).join("")}</select></label><label class="setting">Add 0–20ms jitter<input id="jitter" type="checkbox" ${network.jitter ? "checked" : ""}></label><p>At high latency, the 8-frame prediction limit may pause combat until input arrives.</p><span class="tag">GAMEPAD ATTACK BUTTONS</span>${["Combo attack", "Heavy attack", "Attack 3", "Special 1", "Special 2", "Ultimate 1", "Ultimate 2"].map((a, i) => `<label class="setting">${a}<select data-pad="${i}">${Array.from({ length: 16 }, (_, n) => `<option value="${n}" ${input.gamepadButtons[i] === n ? "selected" : ""}>Button ${n}</option>`).join("")}</select></label>`).join("")}</section><section><span class="tag">KEYBOARD · CLICK A KEY TO REBIND</span>${actions.map((a, i) => `<div class="setting"><span>${a}</span><button class="bind" data-action="bind" data-player="0" data-index="${i}">${input.bindings[0][i]}</button><button class="bind" data-action="bind" data-player="1" data-index="${i}">${input.bindings[1][i]}</button></div>`).join("")}<p>Columns: Player 1 / Player 2.<br>Gamepads use left stick or D-pad. Default attacks: A / X / B / Y / RB / LT / RT. Up to 8 controllers; press a button to join. Manage assignments under Controllers.</p></section></div></main>`
+  const html=`<main class="page"><div class="eyebrow">MAKE IT YOURS</div><h2>SETTINGS</h2><button class="primary" data-action="controllers">CONTROLLERS →</button><div class="settings-grid"><section><span class="tag">VISUAL QUALITY</span><label class="setting">Graphics<select id="visual-quality">${(['low','medium','high'] as const).map(q=>`<option value="${q}" ${renderer.environment.quality===q?'selected':''}>${q.toUpperCase()}</option>`).join('')}</select></label><p>Low: lighter effects. Medium: balanced lighting. High: soft shadows, rim lighting and bloom.</p><span class="tag">AUDIO & NETWORK</span>${(import.meta as ImportMeta & {env:{DEV:boolean}}).env.DEV?'<details><summary>Audio diagnostics</summary><pre id="audio-debug"></pre></details>':''}${(["master", "music", "sound", "ui", "voice"] as const).map((k) => `<label class="setting">${k === "sound" ? "SFX" : k.toUpperCase()} VOLUME<input type="range" min="0" max="1" step=".01" value="${audio[k]}" data-volume="${k}"></label>`).join("")}<label class="setting">Mute all<input id="audio-mute" type="checkbox" ${audio.mute?"checked":""}></label><label class="setting">Mute when unfocused<input id="audio-focus" type="checkbox" ${audio.muteOnBlur?"checked":""}></label>${developmentBuild?`<label class="setting">Diagnostics<input id="diagnostics" type="checkbox" ${debug ? "checked" : ""}></label><label class="setting">Simulated outbound delay<select id="latency">${[0, 50, 100, 150, 200].map((n) => `<option ${network.latency === n ? "selected" : ""} value="${n}">${n} ms</option>`).join("")}</select></label><label class="setting">Add 0–20ms jitter<input id="jitter" type="checkbox" ${network.jitter ? "checked" : ""}></label><p>At high latency, the 8-frame prediction limit may pause combat until input arrives.</p>`:""}<span class="tag">GAMEPAD ATTACK BUTTONS</span>${["Combo attack", "Heavy attack", "Attack 3", "Special 1", "Special 2", "Ultimate 1", "Ultimate 2"].map((a, i) => `<label class="setting">${a}<select data-pad="${i}">${Array.from({ length: 16 }, (_, n) => `<option value="${n}" ${input.gamepadButtons[i] === n ? "selected" : ""}>Button ${n}</option>`).join("")}</select></label>`).join("")}</section><section><span class="tag">KEYBOARD · CLICK A KEY TO REBIND</span>${actions.map((a, i) => `<div class="setting"><span>${a}</span><button class="bind" data-action="bind" data-player="0" data-index="${i}">${input.bindings[0][i]}</button><button class="bind" data-action="bind" data-player="1" data-index="${i}">${input.bindings[1][i]}</button></div>`).join("")}<p>Columns: Player 1 / Player 2.<br>Gamepads use left stick or D-pad. A jumps. Basic attacks: X / Y / B. Specials: RB / RT. Ultimates: LB / LT. Up to 8 controllers; press a button to join. Manage assignments under Controllers.</p></section></div></main>`
 ;
   if(overlay){
     const dialog=document.createElement('dialog');dialog.id='settings-dialog';dialog.className='controller-dialog';
     dialog.innerHTML='<button data-action="settings-close">BACK</button>'+html;ui.root.append(dialog);dialog.showModal();
-    dialog.addEventListener('cancel',e=>{e.preventDefault();dialog.remove();input.clear();});
+    dialog.addEventListener('cancel',e=>{e.preventDefault();closeSettings();});
   }else ui.shell(html);
   ui.root.querySelectorAll<HTMLInputElement>("[data-volume]").forEach(
     (el) =>
       (el.oninput = () => {
-        audio[el.dataset.volume as "master" | "music" | "sound" | "ui"] = Number(
+        audio[el.dataset.volume as "master" | "music" | "sound" | "ui" | "voice"] = Number(
           el.value,
         );
         audio.update();
       }),
   );
+  document.getElementById('visual-quality')!.onchange=e=>renderer.setVisualQuality((e.target as HTMLSelectElement).value as 'low'|'medium'|'high');
   document.getElementById("audio-mute")!.onchange=e=>{audio.mute=(e.target as HTMLInputElement).checked;audio.update();};
   document.getElementById("audio-focus")!.onchange=e=>{audio.muteOnBlur=(e.target as HTMLInputElement).checked;audio.update();};
+  if(developmentBuild){
   document.getElementById("diagnostics")!.onchange = (e) =>
     (debug = (e.target as HTMLInputElement).checked);
   document.getElementById("latency")!.onchange = (e) =>
     (network.latency = Number((e.target as HTMLSelectElement).value));
   document.getElementById("jitter")!.onchange = (e) =>
     (network.jitter = (e.target as HTMLInputElement).checked);
+  }
   ui.root.querySelectorAll<HTMLSelectElement>("[data-pad]").forEach(
     (el) =>
       (el.onchange = () => {
@@ -744,8 +787,14 @@ function disconnectMessage(message: string) {
   viewRevision++;
   network.disconnect();
   if (document.getElementById("disconnect")) return;
+  cancelBinding?.();
+  if(controllerPanel)closeControllers();
+  onlineControllerMenu=false;
+  input.clear();menuNavigation.reset();
   paused = true;
   input.enabled = false;
+  // Remove native modal dialogs too: they otherwise keep recovery controls inert.
+  ui.render('');
   const overlay = document.createElement("div");
   overlay.className = "modal";
   overlay.id = "disconnect";
@@ -761,14 +810,15 @@ function disconnectMessage(message: string) {
   box.append(title, p, button);
   overlay.append(box);
   ui.root.append(overlay);
+  button.focus();
 }
 function pause() {
-  if (screen !== "fight") return;
+  if (screen !== "fight" || document.getElementById("disconnect")) return;
   if (mode === "online") {
     toggleOnlineControllerMenu();
     return;
   }
-  if(paused&&simulation.state.fighters.some((_,i)=>i>=2&&!input.controllers.ready(i))){controllerToast("Reconnect missing controllers before resuming, or use Controllers to reassign them.");return;}
+  if(paused&&!idleTestMatch&&simulation.state.fighters.some((_,i)=>i>=2&&!input.controllers.ready(i))){controllerToast("Reconnect missing controllers before resuming, or use Controllers to reassign them.");return;}
   input.clear();
   paused = !paused;
   audio.setPaused(paused);
@@ -803,13 +853,16 @@ ui.onAction((action, element) => {
     case 'controller-keyboard': input.controllers.release(Number(element.dataset.slot));input.controllers.keyboardClaimed.add(Number(element.dataset.slot));input.clear();break;
     case 'controller-release': input.controllers.release(Number(element.dataset.slot));input.clear();break;
     case 'controller-identify': {const d=input.controllers.device(Number(element.dataset.slot));if(d?.connected){input.controllers.capture={identify:d.key};input.clear();ui.text('controller-message',`Press any button on Player ${d.player!+1}'s controller.`);}else ui.text('controller-message','No connected controller in this slot. Choose Change device.');break;}
-    case 'controller-test': case 'controller-device-test': {const d=action==='controller-test'?input.controllers.device(Number(element.dataset.slot)):input.controllers.devices.get(Number(element.dataset.device));if(d?.connected){input.controllers.testing=d.key;input.controllers.capture=null;input.clear();ui.text('controller-message','Testing inputs. Hold Menu + Back to finish.');}else ui.text('controller-message','Connect and assign a controller first.');break;}
+    case 'controller-test': case 'controller-device-test': {const d=action==='controller-test'?input.controllers.device(Number(element.dataset.slot)):input.controllers.devices.get(Number(element.dataset.device));if(d?.connected){input.controllers.testing=d.key;input.controllers.capture=null;input.clear();ui.text('controller-message','Testing inputs. Press Menu / Options to finish.');document.getElementById('controller-test')?.scrollIntoView({block:'nearest'});}else ui.text('controller-message','Connect and assign a controller first.');break;}
 
     case 'local-ffa': case 'local-2v2': case 'local-3v3': showLocalMatchSetup(action.slice(6) as LocalMatchMode); break;
+    case 'local-match-idle-test':
     case 'local-match-start': {
+      const idleTest=action==='local-match-idle-test';
+      if(screen!=='local-match-setup'||mode!=='local'||(idleTest&&!developmentBuild))break;
       if(localMatchMode!=='ffa'&&localTeams.filter(t=>t===0).length!==localIds.length/2){audio.play('invalid');ui.text('local-match-error',`Choose ${localIds.length/2} players for each team.`);break;}
-      if(localIds.some((_,i)=>!input.controllers.ready(i))){audio.play('invalid');ui.text('local-match-error','Each player needs a connected device. Press a button to join or open Controllers to assign it.');break;}
-      void start(localIds,localTeams,localSkins);break;
+      if(!idleTest&&localIds.some((_,i)=>!input.controllers.ready(i))){audio.play('invalid');ui.text('local-match-error','Each player needs a connected device. Press a button to join or open Controllers to assign it.');break;}
+      void start(localIds,localTeams,localSkins,false,undefined,undefined,idleTest);break;
     }
 
     case 'elimination': case 'elimination-party': showEliminationSetup(action); break;
@@ -859,7 +912,7 @@ ui.onAction((action, element) => {
       selection(true);
       break;
     case "pause-settings": settings(true);break;
-    case "settings-close": document.getElementById('settings-dialog')?.remove();input.clear();break;
+    case "settings-close": closeSettings();break;
     case "settings":
       settings();
       break;
@@ -897,7 +950,7 @@ ui.onAction((action, element) => {
       simulation.resetPositions(); recentGameplayEvents.length=0;
       break;
     case "debug":
-      debug = !debug;
+      if(developmentBuild||mode === "training")debug = !debug;
       break;
     case "rematch":
       if(simulation.state.elimination)void start(simulation.state.fighters.map(f=>f.characterId),undefined,simulation.state.skins,simulation.state.elimination.mode);
@@ -910,7 +963,7 @@ ui.onAction((action, element) => {
       cancelBinding?.();
       const player = Number(element.dataset.player), index = Number(element.dataset.index);
       const original = input.bindings[player][index];
-      if(controllerHints.active){controllerTextEntry(element,code=>{input.bindings.forEach(row=>row.forEach((key,i)=>{if(key===code)row[i]=original;}));input.bindings[player][index]=code;input.save();element.textContent=code;},true);break;}
+      if(controllerHints.active){controllerTextEntry(element,code=>{input.bindings.forEach(row=>row.forEach((key,i)=>{if(key===code)row[i]=original;}));input.bindings[player][index]=code;input.save();refreshBindings();},true);break;}
       element.textContent = "PRESS KEY";
       const handler = (e: KeyboardEvent) => {
         e.preventDefault();
@@ -922,7 +975,8 @@ ui.onAction((action, element) => {
         input.bindings[player][index] = e.code;
         input.save();
         cancelBinding?.();
-        settings();
+        input.clear();
+        refreshBindings();
       };
       cancelBinding = () => {
         window.removeEventListener("keydown", handler, true);
@@ -961,6 +1015,7 @@ if((import.meta as ImportMeta & {env:{DEV:boolean}}).env.DEV)Object.assign(windo
 const pingTimer=setInterval(() => {
   if (rollback) network.measurePing();
 }, 2000);
+let presentationTime=0;
 function loop(now: number) {
   updateControllers(now);
   if(screen==='settings'&&Math.floor(now/250)!==Math.floor(last/250)){const panel=document.getElementById('audio-debug');if(panel)panel.textContent=JSON.stringify(audio.diagnostics(),null,2);}
@@ -974,7 +1029,8 @@ function loop(now: number) {
   if (screen === "fight" && !paused) {
     accumulator += elapsed;
     let ticks = 0;
-    while (accumulator >= 1 / 60 && ticks++ < 6) {
+    while (accumulator >= 1 / (60*matchTimeScale(simulation.state)) && ticks++ < 6) {
+      const stepDuration=1/(60*matchTimeScale(simulation.state));
       input.refresh(false);
       renderInterpolation.capture(simulation.state);
       if (rollback) {
@@ -998,6 +1054,7 @@ function loop(now: number) {
         }
         if (!checkNetworkHealth()) break;
       } else simulation.step(simulation.state.fighters.map((_,i)=>input.poll(i)));
+      renderInterpolation.complete(simulation.state);
       for(const e of simulation.gameplayEvents)recentGameplayEvents.push(`${e.frame} P${e.actor+1} ${e.type} ${e.detail}${e.amount===undefined?'':` ${e.amount}`}`);
       recentGameplayEvents.splice(0,Math.max(0,recentGameplayEvents.length-12));
       renderer.consume(
@@ -1009,9 +1066,9 @@ function loop(now: number) {
             ] ?? e.type,
         })),
       );
-      gameAudio.consume(simulation.state,simulation.events,simulation.gameplayEvents,simulation.stage.id,simulation.stage.width,
-        mode==='online'?[seat]:mode==='training'?[0]:simulation.state.fighters.map((_,i)=>i),!rollback||rollback.confirmed>=simulation.state.endedAt-1,championship?(championship.round===championship.rounds.length-1?'championship-final':'championship'):simulation.state.elimination?.mode==='elimination-party'?'party':'match');
-      accumulator -= 1 / 60;
+      gameAudio.consume(simulation.state,simulation.events,rollback?[...simulation.gameplayEvents.filter(e=>e.type!=='DamageApplied'),...rollback.drainConfirmedImpacts()]:simulation.gameplayEvents,simulation.stage.id,simulation.stage.width,
+        mode==='online'?[seat]:mode==='training'?[0]:simulation.state.fighters.map((_,i)=>i),!rollback||rollback.confirmed>=simulation.state.endedAt-1,championship?(championship.round===championship.rounds.length-1?'championship-final':'championship'):simulation.state.elimination?.mode==='elimination-party'?'party':'match',rollback?rollback.confirmed+1:Infinity);
+      accumulator -= stepDuration;
     }
     if (!paused) updateHUD();
   } else {accumulator = 0;renderInterpolation.reset();}
@@ -1022,12 +1079,15 @@ function loop(now: number) {
     const pad=input.controllers.device(player)?.connected;
     return escapeMarkup(key+(pad?` / Pad ${input.gamepadButtons[1]}`:''));
   });
+  const visualElapsed=elapsed*(screen==='fight'?matchTimeScale(simulation.state):1);
+  presentationTime+=visualElapsed;
   renderer.draw(
-    screen === "fight" && !paused && !debug ? renderInterpolation.view(simulation.state,accumulator * 60) : simulation.state,
-    elapsed,
-    now / 1000,
+    screen === "fight" && !paused && !debug ? renderInterpolation.view(simulation.state,accumulator * 60 * matchTimeScale(simulation.state)) : simulation.state,
+    visualElapsed,
+    presentationTime,
     !["fight", "result"].includes(screen),
     simulation.stage,
+    renderInterpolation.seconds(screen === "fight" && !paused ? accumulator * 60 * matchTimeScale(simulation.state) : 1),
   );
   animationFrame=requestAnimationFrame(loop);
 }

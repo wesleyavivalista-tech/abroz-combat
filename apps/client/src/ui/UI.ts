@@ -24,3 +24,8 @@ export class UI {
     if (element) element.textContent = value;
   }
 }
+
+/** Preserve existing nodes when a frequently refreshed HUD section is unchanged. */
+export function updateMarkup(element: Element, value: string): void {
+  if (element.innerHTML !== value) element.innerHTML = value;
+}

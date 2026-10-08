@@ -36,7 +36,7 @@ for(const c of Object.values(characters)){
  fighterAudio[c.id]={};
  for(const m of Object.values(c.moves)){
   const family=overrides[m.id]??(/kick|sweep/i.test(m.displayName??'')?'kick':'punch');
-  const ultimate=c.superButtons?.includes(m.id),heavy=m.damage>=100;
+  const ultimate=c.superButtons?.includes(m.id),special=c.specialButtons?.includes(m.id),heavy=m.damage>=100;
   const mapping={family} as MoveAudio;
   for(const phase of ['start','active','impact','end'] as const){
    const id=`${c.id}.${m.id}.${phase}`;mapping[phase]=id;
@@ -44,6 +44,8 @@ for(const c of Object.values(characters)){
    const duration=family==='slam'?.32:family==='body'?.22:family==='kick'?.17:.11;
    personalitySounds[id]={bus:'combat',gain:phase==='active'?.025:phase==='impact'?(heavy?.105:.075):.035,priority:phase==='active'?12:ultimate?90:heavy?65:40,maxInstances:phase==='active'?2:3,cooldown:phase==='active'?200:70,variation:phase==='active'?0:.04,spatial:true,loop:phase==='active',
     ...(physical&&(phase==='start'||phase==='impact')?{fallback:{from:phase==='start'?240:family==='head'?180:family==='kick'?130:100,to:phase==='start'?80:30,duration,wave:'triangle' as const}}:{})};
+   if(phase==='start'&&(ultimate||special)){personalitySounds[id].priority=ultimate?95:82;personalitySounds[id].duck=ultimate?'ultimate':'special';}
+   if(phase==='impact'&&heavy)personalitySounds[id].duck='impact';
    assetBriefs[id]=`${c.displayName} / ${m.displayName??m.id} / ${phase}: ${materials[family]}. ${phase==='active'?'Seamless quiet loop; no transient or long tail.':'Short one-shot; compatible variations with matched loudness.'}`;
   }
   fighterAudio[c.id][m.id]=mapping;
@@ -109,7 +111,8 @@ for(const c of Object.values(characters))for(const m of Object.values(c.moves)){
   cue.assets=[1,2,3].map(i=>`/audio/combat-v2/${material}-${weight}-${file}-${i}.wav`);
   cue.gain=phase==='start'?(weight==='light'?.18:.23):(weight==='light'?.29:weight==='heavy'?.36:.43);
   cue.variation=phase==='start'?.035:.025;cue.cooldown=0;cue.maxInstances=5;
-  cue.priority=phase==='impact'?(weight==='charged'?88:78):weight==='charged'?65:35;
+  cue.priority=phase==='impact'?(weight==='charged'?88:weight==='heavy'?80:68):weight==='charged'?65:35;
+  if(phase==='impact'&&weight!=='light')cue.duck='impact';else delete cue.duck;
   // Contact detail is already mixed into the new take; avoid doubling old layers.
   if(phase==='impact')delete cue.layers;
  }

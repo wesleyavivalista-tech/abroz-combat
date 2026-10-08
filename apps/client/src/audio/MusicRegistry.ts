@@ -24,7 +24,19 @@ const supplied:Record<string,[string,number,boolean]>={
  victory_01:['event',120,false],defeat_01:['event',90,false],
 };
 for(const [id,[profile,bpm,loop]] of Object.entries(supplied))tracks[id]={id,profile,bpm,loop,gain:.65,url:`/audio/music/${id}.wav`};
+// User-supplied Abroz Main Menu Theme v8; shared ID keeps menus continuous.
+tracks.menu_01={id:'menu_01',profile:'menu',gain:.65,loop:true,url:'/audio/music/abroz-main-menu-theme-v8.mp3'};
 tracks.battle_01={...tracks.rooftop_01,id:'battle_01'};
+// User-supplied Rooftop theme; keep the generic battle fallback independent.
+tracks.rooftop_01={id:'rooftop_01',profile:'urban',gain:.65,loop:true,url:'/audio/music/rooftop-sunset-showdown.mp3'};
+// User-supplied Church theme, preserved byte-for-byte.
+tracks.church_01={id:'church_01',profile:'church',gain:.65,loop:true,url:'/audio/music/ceremonial-steel.mp3'};
+// User-supplied Mall theme, preserved byte-for-byte.
+tracks.mall_01={id:'mall_01',profile:'mall',gain:.65,loop:true,url:'/audio/music/mall-theme.mp3'};
+// User-supplied Basketball Court theme, preserved byte-for-byte.
+tracks.court_01={id:'court_01',profile:'court',gain:.65,loop:true,url:'/audio/music/basketball-court-theme.mp3'};
+// User-supplied victory screen song, preserved byte-for-byte.
+tracks.victory_01={id:'victory_01',profile:'event',gain:.65,loop:false,url:'/audio/music/victory-theme.mp3'};
 for(const id of ['battle_01','rooftop_01','rooftop_02','court_01','mall_01','church_01']){
  tracks[id].finalVersion='championship_final_01';tracks[id].suddenDeathVersion='sudden_01';
 }
@@ -47,11 +59,11 @@ export const arenaAudio: Record<string, ArenaAudioProfile> = {
   'basketball-court': {profile:'court', tracks:['court_01']},
   'shopping-mall': {profile:'mall',tracks:['mall_01']},
   'aeroporto-church': {profile:'church',tracks:['church_01']},
-  'the-foundry': {profile:'urban', tracks:['rooftop_01','rooftop_02'], ambience:'rooftop_ambience'},
+  'the-foundry': {profile:'urban', tracks:['rooftop_01'], ambience:'rooftop_ambience'},
 };
 export const ambience: Record<string, {url?: string; gain:number}> = {rooftop_ambience:{gain:.15}};
 const stateTracks: Partial<Record<MusicState,string[]>> = {
-  'championship-final':['championship_final_01','championship_01'], menu:['menu_01'], selection:['selection_01'], championship:['championship_01'], party:['party_01'], victory:['victory_01'], defeat:['defeat_01'],
+  'championship-final':['championship_final_01','championship_01'], menu:['menu_01'], selection:['menu_01'], championship:['championship_01'], party:['party_01'], victory:['victory_01'], defeat:['defeat_01'],
 };
 export function chooseMusic(state:MusicState, arena:string, previous?:string, random=Math.random,excluded:ReadonlySet<string>=new Set()):MusicTrack|undefined {
   const a=arenaAudio[arena], profile=musicProfiles[a?.profile];

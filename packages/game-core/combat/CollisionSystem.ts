@@ -15,6 +15,7 @@ export function worldBox(f: Fighter, b: Box): Box {
   };
 }
 export function hurtbox(f: Fighter): Box {
+  if(f.undead==='grave')return {x:f.x-42,y:f.y,w:84,h:112};
   if(f.jopaSummon){const w=f.jopaSummon==='tree'?160:f.jopaSummon==='knight'?140:55;return {x:f.x-w/2,y:f.y,w,h:f.jopaSummon==='tree'?340:f.jopaSummon==='knight'?300:140};}
   const scale=f.cookieBoss?1.8:f.weaponUntil?characters[f.characterId].weaponModifiers?.bodyScale??1:1;
   return {
@@ -37,7 +38,7 @@ export function hitboxes(f: Fighter, m: MoveDefinition | undefined): Box[] {
     : [];
 }
 export function pushApart(a: Fighter, b: Fighter, width: number): void {
-  if([a,b].some(f=>f.loveNpc||f.jopaSummon||f.jopaRide!==undefined||f.jopaTree!==undefined))return;
+  if([a,b].some(f=>f.undead&&f.undead!=='zombie'||f.loveNpc||f.jopaSummon||f.jopaRide!==undefined||f.jopaTree!==undefined))return;
   if([a,b].some(f=>f.move&&characters[f.characterId].moves[f.move].arenaRoll))return;
   if ([a.state,b.state].some(s=>s==="Grappled"||s==="Grappling"))return;
   if (Math.abs(a.y - b.y) > 125) return;

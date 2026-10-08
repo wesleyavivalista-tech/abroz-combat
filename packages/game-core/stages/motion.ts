@@ -26,7 +26,7 @@ export function advancePlatforms(s: SimulationSnapshot, stage: StageDefinition):
   const structures = s.structures ?? [];
   const structureDelta = new Map(structures.map(b => [b.id, delta(support(b.x, b.y))]));
   for (const {fighter: f} of actors(s)) {
-    if (f.vy !== 0 || f.npcEntrance || f.lives <= 0 || f.respawnAt) continue;
+    if (f.undead==='grave' || f.vy !== 0 || f.npcEntrance || f.lives <= 0 || f.respawnAt) continue;
     let dx = delta(support(f.x, f.y));
     // Fighters standing on a constructed wall ride its supporting platform too.
     const roof = structures.find(b => b.phase === 'built' && b.kind !== 'turret' && f.y === b.y + b.height && Math.abs(f.x - b.x) <= b.width / 2);

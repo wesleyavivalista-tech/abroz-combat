@@ -1,0 +1,130 @@
+PRE-LAUNCH PRODUCTION BUILD / RELEASE CONFIGURATION AUDIT — 2026-10-08
+
+RELEASE BLOCKERS
+- The final production multiplayer host/origin has not been supplied or tested.
+  Set VITE_WS_URL to the deployed WSS relay and ALLOWED_ORIGINS to the exact web
+  origin plus abroz://game for desktop. Local relay tests do not verify hosting.
+- Desktop distribution metadata remains incomplete: publisher empty, icon unset,
+  package version 0.1.0. Assign intended release identity/version deliberately.
+- No signed/notarized installer was produced. The macOS ARM64 package tested here
+  is explicitly offline, unsigned and unpacked. Windows/Linux installers and
+  upgrades remain unverified.
+- Existing multiplayer security audit risks remain; a build pass does not resolve
+  peer-hash denial of service or provide authoritative regular-mode results.
+
+DEBUG/DEV ARTIFACTS FOUND
+Fixed: production Settings exposed Diagnostics, Simulated outbound delay and jitter.
+Fixed: F1/system debug could toggle the overlay outside training in production.
+Fixed: Vite copied public/art/reviews plus prompt/generation notes into releases,
+including authoring HTML, older comparison art and metadata with local file paths.
+Preserved: development pages/source files remain available through the dev server.
+Preserved: training dummy, infinite meter, reset, and hitbox display are intended
+practice features. Training debug is cleared before entering a non-training match.
+Preserved: controller Identify/Test are user-facing device troubleshooting tools.
+Preserved: basic-attacks.html is a read-only roster comparison, not a cheat control.
+Existing idle-fighter test actions and audio diagnostics were already DEV-gated.
+No excessive production application console logging found. Bootstrap console error
+is development-only; desktop bounded diagnostic logs record categories, not secrets.
+
+CONFIGURATION ISSUES
+- Web fallback relay is page host :8080; typical public HTTPS hosting needs explicit
+  VITE_WS_URL rather than relying on this fallback.
+- Client art/audio URLs are root-relative. Domain-root hosting supported; deploying
+  under a nested /game/ prefix is not verified or fixed by Vite base alone.
+- Code chunks are hashed; public art/audio paths are generally not. Do not apply
+  immutable caching to all files. Revalidate HTML/unhashed assets, deploy atomically,
+  and retain old hashed chunks briefly to avoid stale-session import failures.
+- pnpm-lock.yaml is the lockfile; use pnpm install --frozen-lockfile for reproducible
+  dependency installation. No clean dependency reinstall was performed in this audit.
+- Environment variants such as .env.production were not covered by the original
+  .gitignore. Added .env.* with an exception for .env.example.
+- Desktop signing/icon/publisher warnings are understood but require release inputs.
+- Total web artifact remains 1,351,076,252 bytes (~1.26 GiB). It is not all loaded at
+  startup, but affects hosting uploads and desktop download/storage size. Remaining
+  legacy variants require a full dynamic asset-use inventory before further pruning.
+  Largest source file is the superseded 21.5 MiB main-menu-user.wav; left untouched
+  in this targeted audit rather than deleting user-supplied source material.
+
+SECURITY ISSUES
+Authoring metadata exposed local machine paths through the public output. Build-only
+exclusions now remove those metadata files and review pages, preserving originals.
+Post-build scan found no local-machine paths in output text/JS/CSS/HTML metadata.
+Heuristic secret scan covered 799 source/config/text and built JS files, checking
+private keys, common provider tokens and long credential assignments. No matches.
+No secret values were printed. Runtime/hosting secrets and Git history were not
+exhaustively audited. Never place private values in VITE_*; they become public JS.
+No production source maps found in web or packaged desktop game output.
+Desktop sandbox, context isolation, no Node integration, restricted custom scheme,
+CSP and navigation policies remain intact; five existing policy tests passed.
+
+FIXES IMPLEMENTED
+- main.ts: development-only Settings diagnostics/latency/jitter markup and handlers;
+  restrict debug actions to development or training; clear training debug for matches.
+- release-assets.ts + vite.config.ts: narrow authoring-asset exclusions after Vite
+  writes production output. Applies to web and desktop builds. No source deletion.
+  Keeps runtime PNG/audio/atlas JSON and license files; removes art/reviews and
+  recognized prompt/generation/authoring notes only.
+- .gitignore: ignore .env variants while preserving .env.example.
+- README.md + docs/RELEASE_CHECKLIST.txt: documented release env, root deployment,
+  caching, server lifecycle, signing, dev exclusions and final QA requirements.
+- tests/release-config.test.ts: targeted exclusion policy regression test.
+
+PRODUCTION BUILD RESULT
+PASS: rebuilt clean Vite output, TypeScript client checks and compiled Node relay.
+The npm executable was absent in the agent environment, so the exact build stages
+from the package script were invoked through the installed Node runtime: revision
+regeneration, TypeScript noEmit, Vite production build, server TypeScript compile.
+No clean checkout/reset was used; unrelated working-tree changes were preserved.
+PASS: actual scripts/desktop.mjs build --offline --dir with signing auto-discovery
+explicitly disabled. Produced release/mac-arm64/abroz-combat.app, Electron 44.5.1.
+Desktop builder warnings: missing author/publisher, default Electron icon, signing
+skipped for this smoke test. Client production build completed without warnings.
+PASS: compiled relay startup and HTTP health endpoint returned 200/status ok.
+PASS: web release served from dist via local production preview (not Vite dev):
+main menu, Settings, fighter selection, arena selection and training match loaded;
+Nikalz/Jopa and Rooftop rendered, no browser error logs. Production Settings lacked
+diagnostics and latency/jitter controls; intended training controls remained.
+PASS: launched packaged macOS app from its bundle; main menu rendered from
+abroz://game/, independent of localhost Vite assets. Closed the temporary app afterward.
+PASS: 1,067 TypeScript tests, five desktop policy tests, ESLint and diff check.
+
+ASSET FINDINGS
+Source public assets: 1,669,843,850 bytes.
+Release output including bundles: 1,351,076,252 bytes / 1,357 files.
+Net output reduction versus source-public size: about 304 MiB despite adding bundles.
+No review files or source maps remain in dist. Desktop game contains 1,353 files;
+no review folder/maps. Source art/reviews and prompt files remain untouched.
+159 literal source asset references and 60 unique fighter registry asset URLs all
+exist in dist. These checks are not exhaustive proof of every dynamic pose/skin.
+The earlier audio audit verified all 491 referenced sound files and supplied hashes.
+Evidence: audits/evidence/release-assets-2026-10-08.json,
+release-web-gameplay-2026-10-08.jpg, release-desktop-startup-2026-10-08.png.
+
+DEPLOYMENT ASSUMPTIONS
+Publish dist at domain root, HTTPS with WSS relay, correct MIME and media ranges.
+Relay behind a WebSocket-capable TLS proxy with explicit origin and connection limits.
+Rooms are in-memory; no automatic multi-worker shared-session persistence exists.
+Deploy matching simulation revisions on client/server. Standard local-only desktop
+build intentionally offers an explanatory error if online play is attempted.
+Asset errors have bootstrap/retry UI and nonfatal audio fallbacks; graphics-driver,
+real-host cache, CDN partial-deploy and cold-network failure behavior still need QA.
+
+REMAINING RELEASE CHECKLIST
+1. Configure and exercise the actual public host/relay, TLS, origins and cache headers.
+2. Set version, publisher, icon; sign/notarize; test installed builds on target OSes.
+3. Run a fresh frozen-lockfile install/build in CI and archive the exact artifacts.
+4. Test all skins, transformations, zombies, arenas, music and controllers from the
+   deployed artifact, including cold loads, reloads and missing-network recovery.
+5. Confirm bandwidth/storage budgets; perform a dynamic asset inventory before any
+   further deletion/exclusion of legacy artwork or supplied music.
+6. Verify rights/credits for distributed assets and fonts before public distribution;
+   this audit checked technical packaging, not licensing provenance certification.
+
+FINAL DIFF REVIEW
+Tracked changes relative to the starting snapshot: .gitignore, README.md,
+apps/client/src/main.ts and apps/client/vite.config.ts. Added release-assets.ts,
+release-config.test.ts, deployment checklist, this report and evidence.
+No gameplay/balance/network-protocol changes, new dependencies or source asset
+removals. Prior audio/security/UI work was preserved. Generated dist, dist-desktop
+and release artifacts are ignored outputs. Temporary preview server and test app
+were stopped after verification.

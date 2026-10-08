@@ -13,6 +13,7 @@ interface Peer {
   ready: boolean;
   connected: boolean;
   lastFrame: number;
+  lastHashFrame: number;
   lastProgress: number;
   warned: boolean;
   finishedFrame?:number;
@@ -46,7 +47,7 @@ export class RoomService {
     if (team !== undefined && team !== 0 && team !== 1) throw new Error("Invalid team");
     if ((mode === "2v2" || mode === "3v3")) capacity = mode === "2v2" ? 4 : 6;
     if(mode === "elimination-party") capacity=6;
-    if (!Object.hasOwn(stages, stage)) throw new Error("Invalid arena");
+    if (typeof stage !== "string" || !Object.hasOwn(stages, stage)) throw new Error("Invalid arena");
     this.validateCharacter(character);
     const selectedSkin = resolveSkin(characters[character], skin);
     if (!Number.isInteger(capacity) || capacity < 2 || capacity > (mode === "championship" ? 16 : 8))
@@ -102,8 +103,10 @@ export class RoomService {
   }
   ready(socket: WebSocket): void {
     const room = this.membership.get(socket);
-    if (!room) return;
-    room.peers.find((p) => p.socket === socket)!.ready = true;
+    if (!room || room.started) return;
+    const peer = room.peers.find((p) => p.socket === socket);
+    if (!peer || peer.ready) return;
+    peer.ready = true;
     this.roster(room);
     if (
       room.peers.length === room.capacity &&
@@ -175,10 +178,12 @@ export class RoomService {
       !Number.isInteger(frame) ||
       frame < 0 ||
       frame > peer.lastFrame ||
+      frame <= peer.lastHashFrame ||
       frame % 60 !== 0 ||
       !/^[a-f0-9]{1,8}$/.test(hash)
     )
       return;
+    peer.lastHashFrame = frame;
     room.peers
       .filter((p) => p !== peer && p.connected)
       .forEach((p) =>
@@ -234,6 +239,10 @@ export class RoomService {
     for(const room of this.rooms.values()){
       if(!room.started)continue;
       if (room.championship) {
+        if(room.championship.completedAt!==undefined&&now-room.championship.completedAt>=RESULT_RETENTION_MS){
+          for(const peer of room.peers.filter(p=>p.connected)){send(peer.socket,{type:'error',message:'Finished tournament closed after 15 minutes. Return to the menu to play again.'});this.leave(peer.socket);peer.socket.close();}
+          continue;
+        }
         for (const socket of room.championship.expired(now)) {
           send(socket, { type: "error", message: "Tournament match forfeited after inactivity." });
           this.leave(socket); socket.close();
@@ -292,6 +301,7 @@ export class RoomService {
       ready: false,
       connected: true,
       lastFrame: 1,
+      lastHashFrame: -1,
       lastProgress: Date.now(),
       warned: false,
       count: 0,

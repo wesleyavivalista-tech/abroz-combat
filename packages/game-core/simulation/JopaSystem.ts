@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {recordGameplayEvent} from '../combat/GameplayEvents.js';
 import {gainEnergy} from './EnergySystem.js';
 import {Button,type Fighter,type HairClone,type MoveDefinition,type SimulationSnapshot,type StageDefinition} from '../types.js';
@@ -83,12 +84,13 @@ export function controlJopa(s:SimulationSnapshot,stage:StageDefinition,f:Fighter
  }
  return false;
 }
-function strike(s:SimulationSnapshot,source:Fighter,owner:number,target:Fighter,damage:number,stun:number,floorHeight:number,move:string):void{
+function strike(s:SimulationSnapshot,source:Fighter,owner:number,target:Fighter,damage:number,stun:number,floorHeight:number,move:string,arenaWidth:number):void{
  if(!canReceiveDirectHit(target,s.frame))return;
  applyDamage(s,target,damage,{combo:'hit',source:owner,move});
- const duration=Math.max(stun,target.stun),eligible=consecutiveHitstun(s,target,stun,Math.sign(target.x-source.x)||source.facing,floorHeight);
+ const duration=Math.max(stun,target.stun),eligible=consecutiveHitstun(s,target,stun,Math.sign(target.x-source.x)||source.facing,floorHeight,arenaWidth);
  if(eligible&&!target.jopaSummon){target.move=null;target.actionUntil=0;target.vx=target.vy=0;target.stun=duration;target.dazed=duration>=120;target.jopaStunUntil=s.frame+duration;target.buffer=[];enter(target,'HitStunStanding');}
- gainEnergy(source,3,s.frame);gainEnergy(s.fighters[owner],3,s.frame);
+ // Main-fighter projectiles use the owner itself as their source. Credit it once.
+ gainEnergy(source,3,s.frame);if(source!==s.fighters[owner])gainEnergy(s.fighters[owner],3,s.frame);
 }
 export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(f:Fighter,owner:number)=>void):void{
  cleanupJopa(s,stage);
@@ -106,7 +108,7 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   if(c.kind==='tree'){
    if(s.frame>=(c.nextAction??0)){spawnTentacle(s,stage,c.owner,f.x+((s.nextCloneId%2)?1:-1)*130,f.y);c.nextAction=s.frame+180;}continue;
   }
-  const enemies=actors(s).filter(a=>s.teams[a.owner]!==s.teams[c.owner]&&canReceiveDirectHit(a.fighter,s.frame));
+  const enemies=actors(s).filter(a=>hostile(s,c.owner,a.fighter,a.owner)&&canReceiveDirectHit(a.fighter,s.frame));
   const target=enemies.sort((a,b)=>Math.abs(a.fighter.x-f.x)-Math.abs(b.fighter.x-f.x))[0]?.fighter;
   if(c.kind==='tentacle'){
    if(target){
@@ -121,7 +123,7 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
    }
    if(!grounded(f,stage)||f.vy>0){const oldY=f.y;f.y+=f.vy;f.vy-=1;const floor=surfaceBelow(stage,f.x,oldY);if(f.vy<=0&&f.y<=floor){f.y=floor;f.vy=0;enter(f,'Idle');}else enter(f,f.vy>0?'Jump':'Fall');}
    if(target){
-    if(Math.abs(target.x-f.x)<155&&Math.abs(target.y-f.y)<170&&s.frame>=(c.nextAction??0)){strike(s,f,c.owner,target,35,18,stage.floorHeight,'tree');c.nextAction=s.frame+60;enter(f,'HeavyAttack');}else if(grounded(f,stage)&&s.frame>(c.nextAction??0)-42)enter(f,'Idle');
+    if(Math.abs(target.x-f.x)<155&&Math.abs(target.y-f.y)<170&&s.frame>=(c.nextAction??0)){strike(s,f,c.owner,target,35,18,stage.floorHeight,'tree',stage.width);c.nextAction=s.frame+60;enter(f,'HeavyAttack');}else if(grounded(f,stage)&&s.frame>(c.nextAction??0)-42)enter(f,'Idle');
    }
    continue;
   }
@@ -142,7 +144,7 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   if(!grounded(f,stage)||f.vy>0){f.y+=f.vy;f.vy-=1;const floor=surfaceBelow(stage,f.x,oldY);
    if(f.vy<=0&&f.y<=floor){
     f.y=floor;f.vy=0;enter(f,'Land');let hit=false;
-    if(s.frame>=(c.landingHitReadyAt??0))for(const a of enemies)if(Math.abs(a.fighter.x-f.x)<140&&Math.abs(a.fighter.y-f.y)<170){strike(s,f,c.owner,a.fighter,JOPA.knightDamage,JOPA.knightStun,stage.floorHeight,'knight');hit=true;}
+    if(s.frame>=(c.landingHitReadyAt??0))for(const a of enemies)if(Math.abs(a.fighter.x-f.x)<140&&Math.abs(a.fighter.y-f.y)<170){strike(s,f,c.owner,a.fighter,JOPA.knightDamage,JOPA.knightStun,stage.floorHeight,'knight',stage.width);hit=true;}
     if(hit){impact?.(f,c.owner);c.impactAt=s.frame;c.reboundUntil=s.frame+30;c.recoveryUntil=s.frame+JOPA.knightRecovery;c.landingHitReadyAt=c.recoveryUntil;f.vx=-f.facing*5;f.vy=12;f.y+=1;enter(f,'Jump');}
    }
    else enter(f,f.vy>0?'Jump':'Fall');
@@ -155,7 +157,7 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   if(p.jopaKind==='chess'){
    const floor=surfaceBelow(stage,p.x,p.y-r)+r;
    if(p.y<=floor&&s.frame>=(p.nextHop??0)){
-    const target=actors(s).filter(a=>s.teams[a.owner]!==s.teams[p.owner]&&canReceiveDirectHit(a.fighter,s.frame)&&Math.abs(a.fighter.x-p.x)<300).sort((a,b)=>Math.abs(a.fighter.x-p.x)-Math.abs(b.fighter.x-p.x))[0]?.fighter;
+    const target=actors(s).filter(a=>hostile(s,p.owner,a.fighter,a.owner)&&canReceiveDirectHit(a.fighter,s.frame)&&Math.abs(a.fighter.x-p.x)<300).sort((a,b)=>Math.abs(a.fighter.x-p.x)-Math.abs(b.fighter.x-p.x))[0]?.fighter;
     p.vy=target?17:10;if(target)p.vx=Math.max(-9,Math.min(9,(target.x-p.x)/28));p.nextHop=s.frame+20;
    }
    p.y+=p.vy??0;p.vy=(p.vy??0)-1;if(p.y<floor){if((p.vy??0)<0)recordGameplayEvent(s,'ObjectImpact',p.owner,p.move,undefined,{x:p.x});p.y=floor;p.vy=0;}
@@ -167,14 +169,14 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
    const time=Math.min(...structureSurfaces(b).map(box=>sweepEntry(box,oldX,oldY,p.x,p.y,r)));if(time<Infinity&&(!contact||time<contact.time))contact={time,key:'structure:'+b.id,structure:b};
   }
   for(const a of actors(s)){
-   const friendly=s.teams[a.owner]===s.teams[p.owner];
+   const friendly=!hostile(s,p.owner,a.fighter,a.owner);
    if(friendly?(p.jopaKind!=='football'||!isActive(a.fighter)||a.fighter.jopaTree!==undefined||a.fighter.jopaRide!==undefined):!canReceiveDirectHit(a.fighter,s.frame))continue;
    const key=a.clone?'clone:'+a.clone.id:'seat:'+a.owner;if((p.nextHits?.[key]??0)>s.frame)continue;
    const time=Math.min(...targetBoxes(a.fighter).map(b=>sweepEntry(b,oldX,oldY,p.x,p.y,r)));if(time<Infinity&&(!contact||time<contact.time))contact={time,target:a.fighter,key,friendly};
   }
   if(contact){
    if(contact.friendly||contact.structure)recordGameplayEvent(s,'ObjectImpact',p.owner,p.move,undefined,{x:p.x});
-   if(contact.target&&!contact.friendly)strike(s,f,p.owner,contact.target,p.jopaKind==='football'?characters.jopa.moves.football.damage:80,p.jopaKind==='football'?12:JOPA.chessStun,stage.floorHeight,p.move);
+   if(contact.target&&!contact.friendly)strike(s,f,p.owner,contact.target,p.jopaKind==='football'?characters.jopa.moves.football.damage:80,p.jopaKind==='football'?12:JOPA.chessStun,stage.floorHeight,p.move,stage.width);
    if(contact.structure&&s.teams[contact.structure.owner]!==s.teams[p.owner]&&(p.nextHits?.[contact.key]??0)<=s.frame){damageStructure(s,contact.structure,p.jopaKind==='football'?characters.jopa.moves.football.damage:65,'jopa:'+p.owner+':'+p.serial,12,stage);}
    if(p.jopaKind==='chess')p.active=false;
    else {p.nextHits??={};p.nextHits[contact.key]=s.frame+12;p.x=oldX+(p.x-oldX)*Math.max(0,contact.time-.02);p.vx=-p.vx;}

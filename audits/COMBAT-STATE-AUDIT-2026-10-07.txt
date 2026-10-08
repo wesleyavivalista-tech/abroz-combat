@@ -1,0 +1,153 @@
+PRE-LAUNCH COMBAT STATE MACHINE AUDIT — 2026-10-07
+
+Scope and evidence
+Reviewed the shared simulation update order, movement/landing and attack transitions,
+direct/periodic hit reactions, blocking, combo escape, grabs, timed modes, death,
+respawn, result cleanup, snapshot restore, and fighter-specific systems. Reviewed
+snapshot-derived audio presence for interrupted channels/modes. No visual redesign,
+stat changes, timing changes, dependency additions, or unrelated cleanup.
+
+STATE BUGS FOUND
+
+1. MEDIUM — Stale daze flag after airborne house-collapse recovery.
+Location: packages/game-core/simulation/GameSimulation.ts, landing into Knockdown.
+Reproduction: build Luizinho's house around an airborne opponent, destroy it while
+that opponent is inside, then let the opponent land and recover. The opponent has
+zero stun and is Idle, but dazed remains true. A subsequent Nikalz forehead dive
+incorrectly treats the recovered opponent as already stunned and skips its stun.
+Confirmed in a failing regression before the fix.
+
+2. HIGH — Gym Bro's deferred landing stun can survive its original flight.
+Location: the same landing branch, gymLandingStun cleanup.
+Reproduction: Jomp completes Gym Bro's throw; five follow-up contacts trigger the
+existing combo escape before the target lands. The target lands in Fall/Land and
+recovers, but retains gymLandingStun. An unrelated later airborne hit can consume
+that obsolete flag and impose Gym Bro's landing stun.
+Confirmed in a failing regression before the fix.
+
+No additional crash, permanent control lock, or multiplayer divergence was confirmed
+by this audit. This is bounded test evidence, not proof that every possible pair of
+abilities and every input sequence is bug-free.
+
+ROOT CAUSES
+1. Landing already ended ordinary airborne hitstun by setting stun=0, but did not
+   clear the associated dazed flag. Forehead-dive protection reads that flag even
+   after the fighter resumes normal movement.
+2. Landing consumed gymLandingStun only in the AirHitStun path. Combo escape changes
+   the state to Fall, bypassing consumption and leaving the deferred effect stale.
+
+FIXES IMPLEMENTED
+- Clear dazed alongside the existing stun=0 transition into Knockdown.
+- Clear any remaining gymLandingStun after landing finishes. The normal Gym Bro
+  landing branch still applies its original stun first. This also leaves the
+  existing combo-escape behavior unchanged while preventing a later stale trigger.
+- Regenerate the deterministic simulation revision used for peer compatibility.
+
+Regression risk: low, localized to landing cleanup. Existing normal Gym Bro landing
+stun, Nikalz's stun through landing, grounded house collapse, knockdown protection,
+combo escape, movement, and timed-mode tests pass. No damage, cooldown, movement,
+animation duration, attack timing, or ability duration was edited.
+
+REGRESSION TESTS ADDED
+New file: tests/combat-state-audit.test.ts — 34 tests.
+- 16 roster tests exercise 223 authored interruptible move definitions at startup,
+  active-start, and recovery-start: 669 hit-interruption cases. Check move/hitbox
+  removal, channel/charge audio presence removal, recovery, movement and reattack.
+  These inject authored phase fixtures to isolate cleanup; they are not 669
+  end-to-end input/animation playthroughs. Projectile-only definitions are included.
+- Seven transformations activated through real input: Eide mutant, Fausto ancestry,
+  Jomp perfection, Dodo guitarStar, Drupa buda, Gut panda, Roms juggle. Exercise expiry
+  during hitstun, input rejection, recovery and snapshot replay. Only expiry is
+  brought forward in these fixtures to isolate its boundary.
+- Seven additional tests activate those modes, then verify KO/respawn cleanup,
+  invulnerability expiry, restored controls, victory cleanup and result input spam.
+- Jomp's two deliberate reaction-armor actions retain damage and release normally.
+- Interrupting Gut's bear hug releases the victim and restores control.
+- Original airborne house-collapse/dive reproduction.
+- Original Gym Bro/combo-escape/later-knockdown reproduction.
+
+Other relevant existing coverage rerun includes all-fighter death during attack input
+sequences, shared startup interruptions, all-arena repeated resets, simultaneous final
+deaths, Biel angel/loan timing, Jopa mount/tree cleanup, Eide NPCs, clones and undead,
+projectile lifetime/return, timed stun overlap, and network replay tests.
+
+Validation completed after the fixes:
+- Full TypeScript test suite: 887 passed, 0 failed.
+- Focused state test file: 34 passed, 0 failed.
+- Focused state + Jomp/Nikalz/Luizinho/escape suite before the final seven coverage
+  additions: 82 passed, 0 failed.
+- Desktop tests: 5 passed.
+- TypeScript client/shared check, server compilation, ESLint: passed.
+- Production client build: passed.
+- V8/JavaScriptCore comparison: 239 existing move/scenario traces match exactly.
+- Deterministic stress harness: 16 eight-fighter scenarios, four arenas, 57,600 ticks.
+  This is simulation stress coverage, not a renderer or real-network soak test.
+
+FIGHTERS/SYSTEMS WITH HIGHEST STATE COMPLEXITY
+- Jopa: rider/tree invulnerability, companion ownership, release on owner/summon
+  death, and early control overrides.
+- Jomp: reservation, homing, grab repetitions, armored actions, throw and deferred
+  landing stun. One of the two confirmed fixes belongs to this path.
+- Biel: loan/repayment locks, overlapping timed hit reactions, flight, held beam,
+  transformation expiry and dropped bills.
+- Nikalz: controlled meteor motion, airborne/fixed stuns and immunity windows,
+  carrying boxes, swarms and moving-surface interactions.
+- Eide: mode-dependent replacements, love NPC entrance/defeat, moving platforms.
+- Roms/Caio: returning weapons, attack capacity, finale and projectile lifetimes.
+
+Roster inspection map (in addition to shared movement/combat/lifecycle):
+Nikalz — meteor, waves, boxes/bees, fixed stun.
+Jopa — chess companions, mount, tree, companion stun/release.
+Biel — loan/stamp, flight, held beam, expiry.
+Eide — mutant, love/NPC lifecycle, appliance projectiles.
+Astolfo — held talking, aura, personality companions.
+Fausto — anger, ancestry, dash, cloud and origami.
+Napa — suction, poison/slow, monster AI and dropped cookies.
+Jomp — reaction armor, charge, reservation/grab/throw, perfect mode.
+Dodo — invisibility, music pulses, charging and guitar mode.
+Drupa — roll/structure blockage, channel healing, Buda replacement attacks.
+Gut — grab release, panda replacements and additional-life rules.
+Tocha — fire/armor modes, burn, trails and owner cleanup.
+Bozo — hair trap, companions and shared attack interruption.
+Caio — returning projectile modes, blood/poison/slow deadlines.
+Roms — juggling, finale, returning axe, timed spin and water beam.
+Luizinho — structures, trapping, collapse, turret ownership/lifetime.
+
+Remaining technical risks, not confirmed bugs:
+- Several states are represented by a state name plus flags/deadlines/references.
+  Adding a fighter still requires checking shared cleanup and specialized overrides.
+- Early returns for meteor, riders, grabs, traps and armored actions make ordering
+  important. A new overlapping effect must explicitly define which system owns
+  control; a generic 'stunned means everything cancels' rule would break intended armor.
+- Several effects intentionally outlive an interrupted animation (projectiles,
+  summons, modes). They must not be removed just because their casting move ends.
+- Hitstop freezes some movement/animation clocks while absolute ability deadlines
+  continue. Existing rules were preserved; no timer architecture was replaced.
+- The intended priority of pre-existing loan locks while riding Jopa's invulnerable
+  mount deserves design confirmation before changing either behavior. The current
+  mount control override was left unchanged; no new rule was invented.
+- Grounded collapse has an authored seven-second stun while airborne ordinary
+  hitstun ends on landing. That existing duration distinction was preserved rather
+  than changing balance under the label of cleanup.
+
+MANUAL TESTS STILL REQUIRED
+- Visually verify every skin/mode's animation and VFX at interruption, expiry and
+  landing. This pass tested simulation and audio-presence state, not rendered frames
+  or audible loop fades in a live match.
+- Physical-controller input spam and full match/rematch flows on target hardware.
+- Multi-machine sessions with real latency, disconnect/reconnect during grabs,
+  transformations and final-death cinematics.
+- Extended rendered multiplayer soak with many summons/effects across rematches;
+  simulation tests do not establish GPU/audio resource behavior over hours.
+- Review ambiguous overlapping control priorities above with intended game rules.
+
+FINAL DIFF REVIEW
+Compared the tracked diff against the working-tree diff saved at audit start.
+Only incremental production changes:
+  packages/game-core/simulation/GameSimulation.ts — the two landing cleanup fixes.
+  packages/shared/simulationRevision.ts — generated compatibility revision.
+New audit artifacts:
+  tests/combat-state-audit.test.ts
+  audits/COMBAT-STATE-AUDIT-2026-10-07.txt
+All pre-existing unrelated edits remain intact. No assets deleted/replaced, no
+network behavior rewritten, no dependency changes, and no broad state refactor.

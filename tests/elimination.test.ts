@@ -1,3 +1,4 @@
+import {MATCH_INTRO_FRAMES} from '../packages/game-core/simulation/MatchIntro.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {GameSimulation,hashState} from '../packages/game-core/simulation/GameSimulation.js';
@@ -8,7 +9,7 @@ import {RoomService} from '../apps/server/src/rooms.js';
 import type {WebSocket} from 'ws';
 const make=(n=4,mode:EliminationMode='elimination',seed=123)=>{const g=new GameSimulation(Array(n).fill('gut'),false,undefined,undefined,undefined,mode,seed);g.state.phase='fight';return g;};
 function win(g:GameSimulation,seat:number){const s=g.state,t=s.elimination!;for(const i of t.active)if(s.teams[i]!==s.teams[seat]){s.fighters[i].lives=1;s.fighters[i].health=0;}g.step(s.fighters.map(()=>0));}
-function next(g:GameSimulation){g.state.phaseFrame=ELIMINATION_BREAK_FRAMES;g.step(g.state.fighters.map(()=>0));for(let i=0;i<151;i++)g.step(g.state.fighters.map(()=>0));}
+function next(g:GameSimulation){g.state.phaseFrame=ELIMINATION_BREAK_FRAMES;g.step(g.state.fighters.map(()=>0));for(let i=0;i<MATCH_INTRO_FRAMES+1;i++)g.step(g.state.fighters.map(()=>0));}
 function out(g:GameSimulation,seats:number[]){for(const i of seats){g.state.fighters[i].lives=1;g.state.fighters[i].health=0;}g.step(g.state.fighters.map(()=>0));}
 test('standard elimination saves successive winners, removes last unsaved, restores saved players, and crowns final champion',()=>{
  const g=make(),t=g.state.elimination!;win(g,0);assert.deepEqual(t.saved,[0]);assert.deepEqual(t.next?.active,[1,2,3]);assert.match(eliminationPanel(g.state,true),/P1 is safe/);next(g);assert.equal(g.state.fighters[0].lives,0);assert.deepEqual(t.active,[1,2,3]);win(g,2);next(g);assert.deepEqual(t.active,[1,3]);win(g,1);assert.deepEqual(t.eliminated,[3]);next(g);assert.deepEqual(t.active,[0,1,2]);assert.equal(t.round,2);assert.ok(t.active.every(i=>g.state.fighters[i].lives===3));assert.deepEqual(t.saved,[]);win(g,2);next(g);win(g,0);next(g);assert.deepEqual(t.remaining,[0,2]);assert.equal(t.stage,'final');win(g,2);assert.equal(t.champion,2);assert.equal(t.complete,true);assert.deepEqual(t.eliminated,[3,1,0]);assert.match(resultScreen(g.state,'local','GUT',()=>''),/CHAMPION/);

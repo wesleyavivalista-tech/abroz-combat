@@ -1,0 +1,1270 @@
+{
+  "screens": [
+    {
+      "name": "home",
+      "controls": [],
+      "h": 1080,
+      "overflow": false,
+      "w": 1920
+    },
+    {
+      "name": "home",
+      "controls": [],
+      "h": 768,
+      "overflow": false,
+      "w": 1366
+    },
+    {
+      "name": "home",
+      "controls": [],
+      "h": 900,
+      "overflow": false,
+      "w": 1440
+    },
+    {
+      "name": "home",
+      "controls": [],
+      "h": 1440,
+      "overflow": false,
+      "w": 2560
+    },
+    {
+      "name": "home",
+      "controls": [],
+      "h": 720,
+      "overflow": false,
+      "w": 1280
+    },
+    {
+      "name": "home",
+      "controls": [],
+      "h": 1440,
+      "overflow": false,
+      "w": 3440
+    },
+    {
+      "name": "home",
+      "controls": [],
+      "h": 540,
+      "overflow": false,
+      "w": 960
+    },
+    {
+      "name": "settings",
+      "controls": [
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 473.390625,
+          "y": 1074.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 473.390625,
+          "y": 1141.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 473.390625,
+          "y": 1208.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 473.390625,
+          "y": 1275.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 473.390625,
+          "y": 1342.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 473.390625,
+          "y": 1409.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 473.390625,
+          "y": 1476.5625
+        }
+      ],
+      "h": 1080,
+      "overflow": false,
+      "w": 1920
+    },
+    {
+      "name": "settings",
+      "controls": [
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 511.890625,
+          "y": 782.78125
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 511.890625,
+          "y": 830.78125
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "0 ms50 ms100 ms150 ms200 ms",
+          "w": 82,
+          "x": 445.890625,
+          "y": 875.78125
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 511.890625,
+          "y": 945.78125
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 434.890625,
+          "y": 1074.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 434.890625,
+          "y": 1141.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 434.890625,
+          "y": 1208.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 434.890625,
+          "y": 1275.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 434.890625,
+          "y": 1342.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 434.890625,
+          "y": 1409.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 434.890625,
+          "y": 1476.5625
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyU",
+          "w": 70,
+          "x": 762.84375,
+          "y": 771
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit9",
+          "w": 70,
+          "x": 940.890625,
+          "y": 771
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyO",
+          "w": 70,
+          "x": 765.109375,
+          "y": 829
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit7",
+          "w": 70,
+          "x": 940.890625,
+          "y": 829
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyP",
+          "w": 70,
+          "x": 766.3125,
+          "y": 887
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit8",
+          "w": 70,
+          "x": 940.890625,
+          "y": 887
+        }
+      ],
+      "h": 768,
+      "overflow": false,
+      "w": 1366
+    },
+    {
+      "name": "settings",
+      "controls": [
+        {
+          "h": 38,
+          "out": true,
+          "text": "0 ms50 ms100 ms150 ms200 ms",
+          "w": 82,
+          "x": 450.796875,
+          "y": 920.78125
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 516.796875,
+          "y": 990.78125
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 439.796875,
+          "y": 1119.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 439.796875,
+          "y": 1186.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 439.796875,
+          "y": 1253.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 439.796875,
+          "y": 1320.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 439.796875,
+          "y": 1387.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 439.796875,
+          "y": 1454.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 439.796875,
+          "y": 1521.5625
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyO",
+          "w": 70,
+          "x": 770.015625,
+          "y": 874
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit7",
+          "w": 70,
+          "x": 945.796875,
+          "y": 874
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyP",
+          "w": 70,
+          "x": 771.21875,
+          "y": 932
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit8",
+          "w": 70,
+          "x": 945.796875,
+          "y": 932
+        }
+      ],
+      "h": 900,
+      "overflow": false,
+      "w": 1440
+    },
+    {
+      "name": "settings",
+      "controls": [
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 518.1875,
+          "y": 1409.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 518.1875,
+          "y": 1476.5625
+        }
+      ],
+      "h": 1440,
+      "overflow": false,
+      "w": 2560
+    },
+    {
+      "name": "settings",
+      "controls": [
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 505.59375,
+          "y": 734.78125
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 505.59375,
+          "y": 782.78125
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 505.59375,
+          "y": 830.78125
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "0 ms50 ms100 ms150 ms200 ms",
+          "w": 82,
+          "x": 439.59375,
+          "y": 875.78125
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 505.59375,
+          "y": 945.78125
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 428.59375,
+          "y": 1074.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 428.59375,
+          "y": 1141.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 428.59375,
+          "y": 1208.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 428.59375,
+          "y": 1275.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 428.59375,
+          "y": 1342.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 428.59375,
+          "y": 1409.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 428.59375,
+          "y": 1476.5625
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyI",
+          "w": 70,
+          "x": 755.328125,
+          "y": 713
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit0",
+          "w": 70,
+          "x": 934.59375,
+          "y": 713
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyU",
+          "w": 70,
+          "x": 756.546875,
+          "y": 771
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit9",
+          "w": 70,
+          "x": 934.59375,
+          "y": 771
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyO",
+          "w": 70,
+          "x": 758.8125,
+          "y": 829
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit7",
+          "w": 70,
+          "x": 934.59375,
+          "y": 829
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyP",
+          "w": 70,
+          "x": 760.015625,
+          "y": 887
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit8",
+          "w": 70,
+          "x": 934.59375,
+          "y": 887
+        }
+      ],
+      "h": 720,
+      "overflow": false,
+      "w": 1280
+    },
+    {
+      "name": "settings",
+      "controls": [
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 958.1875,
+          "y": 1409.5625
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 958.1875,
+          "y": 1476.5625
+        }
+      ],
+      "h": 1440,
+      "overflow": false,
+      "w": 3440
+    },
+    {
+      "name": "settings",
+      "controls": [
+        {
+          "h": 18,
+          "out": true,
+          "text": "",
+          "w": 130,
+          "x": 307.3125,
+          "y": 548.96875
+        },
+        {
+          "h": 18,
+          "out": true,
+          "text": "",
+          "w": 130,
+          "x": 307.3125,
+          "y": 599.96875
+        },
+        {
+          "h": 18,
+          "out": true,
+          "text": "",
+          "w": 130,
+          "x": 307.3125,
+          "y": 650.96875
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 423.3125,
+          "y": 702.96875
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 423.3125,
+          "y": 750.96875
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 423.3125,
+          "y": 798.96875
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "0 ms50 ms100 ms150 ms200 ms",
+          "w": 82,
+          "x": 357.3125,
+          "y": 843.96875
+        },
+        {
+          "h": 13,
+          "out": true,
+          "text": "",
+          "w": 13,
+          "x": 423.3125,
+          "y": 913.96875
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 346.3125,
+          "y": 1042.75
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 346.3125,
+          "y": 1109.75
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 346.3125,
+          "y": 1176.75
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 346.3125,
+          "y": 1243.75
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 346.3125,
+          "y": 1310.75
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 346.3125,
+          "y": 1377.75
+        },
+        {
+          "h": 38,
+          "out": true,
+          "text": "Button 0Button 1Button 2Button 3Button 4Butto",
+          "w": 93,
+          "x": 346.3125,
+          "y": 1444.75
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyK",
+          "w": 70,
+          "x": 652.796875,
+          "y": 565.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit2",
+          "w": 70,
+          "x": 797.21875,
+          "y": 565.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyL",
+          "w": 70,
+          "x": 639.671875,
+          "y": 623.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit3",
+          "w": 70,
+          "x": 797.21875,
+          "y": 623.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyI",
+          "w": 70,
+          "x": 640.6875,
+          "y": 681.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit0",
+          "w": 70,
+          "x": 797.21875,
+          "y": 681.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyU",
+          "w": 70,
+          "x": 641.90625,
+          "y": 739.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit9",
+          "w": 70,
+          "x": 797.21875,
+          "y": 739.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyO",
+          "w": 70,
+          "x": 644.171875,
+          "y": 797.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit7",
+          "w": 70,
+          "x": 797.21875,
+          "y": 797.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "KeyP",
+          "w": 70,
+          "x": 645.375,
+          "y": 855.1875
+        },
+        {
+          "h": 29,
+          "out": true,
+          "text": "Digit8",
+          "w": 70,
+          "x": 797.21875,
+          "y": 855.1875
+        }
+      ],
+      "h": 540,
+      "overflow": false,
+      "w": 960
+    },
+    {
+      "name": "controllers",
+      "controls": [],
+      "h": 1080,
+      "w": 1920
+    },
+    {
+      "name": "controllers",
+      "controls": [],
+      "h": 768,
+      "w": 1366
+    },
+    {
+      "name": "controllers",
+      "controls": [],
+      "h": 900,
+      "w": 1440
+    },
+    {
+      "name": "controllers",
+      "controls": [],
+      "h": 1440,
+      "w": 2560
+    },
+    {
+      "name": "controllers",
+      "controls": [],
+      "h": 720,
+      "w": 1280
+    },
+    {
+      "name": "controllers",
+      "controls": [],
+      "h": 1440,
+      "w": 3440
+    },
+    {
+      "name": "controllers",
+      "controls": [],
+      "h": 540,
+      "w": 960
+    },
+    {
+      "name": "modes",
+      "controls": [],
+      "h": 1080,
+      "w": 1920
+    },
+    {
+      "name": "modes",
+      "controls": [],
+      "h": 768,
+      "w": 1366
+    },
+    {
+      "name": "modes",
+      "controls": [],
+      "h": 900,
+      "w": 1440
+    },
+    {
+      "name": "modes",
+      "controls": [],
+      "h": 1440,
+      "w": 2560
+    },
+    {
+      "name": "modes",
+      "controls": [],
+      "h": 720,
+      "w": 1280
+    },
+    {
+      "name": "modes",
+      "controls": [],
+      "h": 1440,
+      "w": 3440
+    },
+    {
+      "name": "modes",
+      "controls": [],
+      "h": 540,
+      "w": 960
+    },
+    {
+      "name": "fighter-selection",
+      "controls": [],
+      "h": 1080,
+      "w": 1920
+    },
+    {
+      "name": "fighter-selection",
+      "controls": [],
+      "h": 768,
+      "w": 1366
+    },
+    {
+      "name": "fighter-selection",
+      "controls": [],
+      "h": 900,
+      "w": 1440
+    },
+    {
+      "name": "fighter-selection",
+      "controls": [],
+      "h": 1440,
+      "w": 2560
+    },
+    {
+      "name": "fighter-selection",
+      "controls": [],
+      "h": 720,
+      "w": 1280
+    },
+    {
+      "name": "fighter-selection",
+      "controls": [],
+      "h": 1440,
+      "w": 3440
+    },
+    {
+      "name": "fighter-selection",
+      "controls": [],
+      "h": 540,
+      "w": 960
+    },
+    {
+      "name": "arenas",
+      "controls": [],
+      "h": 1080,
+      "w": 1920
+    },
+    {
+      "name": "arenas",
+      "controls": [],
+      "h": 768,
+      "w": 1366
+    },
+    {
+      "name": "arenas",
+      "controls": [],
+      "h": 900,
+      "w": 1440
+    },
+    {
+      "name": "arenas",
+      "controls": [],
+      "h": 1440,
+      "w": 2560
+    },
+    {
+      "name": "arenas",
+      "controls": [],
+      "h": 720,
+      "w": 1280
+    },
+    {
+      "name": "arenas",
+      "controls": [],
+      "h": 1440,
+      "w": 3440
+    },
+    {
+      "name": "arenas",
+      "controls": [],
+      "h": 540,
+      "w": 960
+    },
+    {
+      "name": "hud-two",
+      "controls": [],
+      "h": 1080,
+      "w": 1920
+    },
+    {
+      "name": "hud-two",
+      "controls": [],
+      "h": 768,
+      "w": 1366
+    },
+    {
+      "name": "hud-two",
+      "controls": [],
+      "h": 900,
+      "w": 1440
+    },
+    {
+      "name": "hud-two",
+      "controls": [],
+      "h": 1440,
+      "w": 2560
+    },
+    {
+      "name": "hud-two",
+      "controls": [],
+      "h": 720,
+      "w": 1280
+    },
+    {
+      "name": "hud-two",
+      "controls": [],
+      "h": 1440,
+      "w": 3440
+    },
+    {
+      "name": "hud-two",
+      "controls": [],
+      "h": 540,
+      "w": 960
+    },
+    {
+      "name": "pause",
+      "controls": [],
+      "h": 1080,
+      "w": 1920
+    },
+    {
+      "name": "pause",
+      "controls": [],
+      "h": 768,
+      "w": 1366
+    },
+    {
+      "name": "pause",
+      "controls": [],
+      "h": 900,
+      "w": 1440
+    },
+    {
+      "name": "pause",
+      "controls": [],
+      "h": 1440,
+      "w": 2560
+    },
+    {
+      "name": "pause",
+      "controls": [],
+      "h": 720,
+      "w": 1280
+    },
+    {
+      "name": "pause",
+      "controls": [],
+      "h": 1440,
+      "w": 3440
+    },
+    {
+      "name": "pause",
+      "controls": [],
+      "h": 540,
+      "w": 960
+    },
+    {
+      "name": "championship-setup",
+      "controls": [],
+      "h": 1080,
+      "w": 1920
+    },
+    {
+      "name": "championship-setup",
+      "controls": [],
+      "h": 768,
+      "w": 1366
+    },
+    {
+      "name": "championship-setup",
+      "controls": [],
+      "h": 900,
+      "w": 1440
+    },
+    {
+      "name": "championship-setup",
+      "controls": [],
+      "h": 1440,
+      "w": 2560
+    },
+    {
+      "name": "championship-setup",
+      "controls": [],
+      "h": 720,
+      "w": 1280
+    },
+    {
+      "name": "championship-setup",
+      "controls": [],
+      "h": 1440,
+      "w": 3440
+    },
+    {
+      "name": "championship-setup",
+      "controls": [],
+      "h": 540,
+      "w": 960
+    },
+    {
+      "name": "bracket",
+      "controls": [],
+      "h": 1080,
+      "w": 1920
+    },
+    {
+      "name": "bracket",
+      "controls": [],
+      "h": 768,
+      "w": 1366
+    },
+    {
+      "name": "bracket",
+      "controls": [],
+      "h": 900,
+      "w": 1440
+    },
+    {
+      "name": "bracket",
+      "controls": [],
+      "h": 1440,
+      "w": 2560
+    },
+    {
+      "name": "bracket",
+      "controls": [],
+      "h": 720,
+      "w": 1280
+    },
+    {
+      "name": "bracket",
+      "controls": [],
+      "h": 1440,
+      "w": 3440
+    },
+    {
+      "name": "bracket",
+      "controls": [],
+      "h": 540,
+      "w": 960
+    }
+  ],
+  "results": [
+    {
+      "button": {
+        "bottom": 769.5,
+        "height": 69,
+        "left": 925.453125,
+        "right": 1370.71875,
+        "top": 700.5,
+        "width": 445.265625,
+        "x": 925.453125,
+        "y": 700.5
+      },
+      "dialogWidth": 1920,
+      "h": 1080,
+      "scrollHeight": 1080,
+      "scrollWidth": 1920,
+      "w": 1920
+    },
+    {
+      "button": {
+        "bottom": 611.84375,
+        "height": 69,
+        "left": 658.421875,
+        "right": 974.0625,
+        "top": 542.84375,
+        "width": 315.640625,
+        "x": 658.421875,
+        "y": 542.84375
+      },
+      "dialogWidth": 1366,
+      "h": 768,
+      "scrollHeight": 768,
+      "scrollWidth": 1366,
+      "w": 1366
+    },
+    {
+      "button": {
+        "bottom": 679.5,
+        "height": 69,
+        "left": 694.09375,
+        "right": 1027.046875,
+        "top": 610.5,
+        "width": 332.953125,
+        "x": 694.09375,
+        "y": 610.5
+      },
+      "dialogWidth": 1440,
+      "h": 900,
+      "scrollHeight": 900,
+      "scrollWidth": 1440,
+      "w": 1440
+    },
+    {
+      "button": {
+        "bottom": 949.5,
+        "height": 69,
+        "left": 1233.921875,
+        "right": 1828.953125,
+        "top": 880.5,
+        "width": 595.03125,
+        "x": 1233.921875,
+        "y": 880.5
+      },
+      "dialogWidth": 2560,
+      "h": 1440,
+      "scrollHeight": 1440,
+      "scrollWidth": 2560,
+      "w": 2560
+    },
+    {
+      "button": {
+        "bottom": 585.734375,
+        "height": 69,
+        "left": 616.96875,
+        "right": 912.484375,
+        "top": 516.734375,
+        "width": 295.515625,
+        "x": 616.96875,
+        "y": 516.734375
+      },
+      "dialogWidth": 1280,
+      "h": 720,
+      "scrollHeight": 720,
+      "scrollWidth": 1280,
+      "w": 1280
+    },
+    {
+      "button": {
+        "bottom": 949.5,
+        "height": 69,
+        "left": 1658.09375,
+        "right": 2459.046875,
+        "top": 880.5,
+        "width": 800.953125,
+        "x": 1658.09375,
+        "y": 880.5
+      },
+      "dialogWidth": 3440,
+      "h": 1440,
+      "scrollHeight": 1440,
+      "scrollWidth": 3440,
+      "w": 3440
+    },
+    {
+      "button": {
+        "bottom": 467.859375,
+        "height": 57,
+        "left": 462.734375,
+        "right": 683.359375,
+        "top": 410.859375,
+        "width": 220.625,
+        "x": 462.734375,
+        "y": 410.859375
+      },
+      "dialogWidth": 960,
+      "h": 540,
+      "scrollHeight": 540,
+      "scrollWidth": 960,
+      "w": 960
+    }
+  ]
+}

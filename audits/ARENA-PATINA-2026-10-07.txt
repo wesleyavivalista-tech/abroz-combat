@@ -1,0 +1,54 @@
+ARENA SURFACE AND LIGHTING PASS — 2026-10-07
+
+Inspection
+The existing renderer combines illustrated background planes, a perspective camera,
+painted CanvasTexture floors/materials, and batched decorative geometry. Mall decks
+follow authored platform motion. Perspective already gives depth between layers;
+no extra camera/parallax controller was added. Existing native stage illumination,
+quality-dependent shadows, sprite rim lighting, pooled combat lights and dust remain.
+
+Changes
+- Rooftop established the direction: remove alternating rectangular floor fills and
+  repeating stone texture borders; preserve its concrete/steel identity.
+- Shared deterministic brushwork adds asymmetric perimeter stains, worn patches,
+  outdoor cracks, rooftop drain discoloration and court shoe scuffs.
+- Indoor arenas retain their timber/marble construction with quieter perimeter wear.
+- Baked contact shading under existing rear props adds grounding without shadow lights.
+- One transparent foreground fascia overlay adds chipped highlights and weathering
+  below the fighting lane, with no new silhouettes or obstacles.
+- One shared lightweight shader draws two soft floor-light pools, varying by about
+  3% over roughly ten seconds. Cool court light and warm interior/roof light.
+- Sprite lighting adds a small bounded fixture contribution on Medium/High, retaining
+  the existing minimum illumination. No native stage light was dimmed or replaced.
+- Two additional draw calls, one extra texture per arena. Textures built once per
+  stage, animation updates one uniform, existing stage disposal owns resources.
+- No game-core, collision, platform, spawn, movement, camera or network code changed
+  for this visual pass. No new landmarks, heavy effects, or downloaded assets.
+
+Verification
+- In-game screenshots inspected: Rooftop, Basketball Court, Shopping Mall, Church.
+- Mall movement/camera smoke check; Church jumping dummy; 1024x768 and 1920x1080
+  screenshots. Default viewport restored afterward.
+- Browser console and rendering profiler reported no warnings/errors.
+- 21 synthetic actual-renderer workloads: 1v1, 4/6/8 fighters, projectiles, 24 zombies,
+  large moving arena, each on Low/Medium/High. Approximately 99.7–100 FPS locally.
+  Peak calls increased by two; peak measured draw CPU p95 8.5ms while other checks
+  were running. Not a controlled GPU benchmark or a live network match.
+- TypeScript, changed-file lint, browser build and desktop build passed.
+- Full game suite: 808/809 passed; remaining test was one stale Jomp-versus-Gut HP
+  expectation. Corrected it and reran all 13 Jomp tests successfully.
+
+Health test follow-up
+The earlier requested Gut 1600 / Drupa 1500 change left legacy health assertions and
+behavior hashes stale. Updated affected expected health values and shader cache
+version expectation. Before updating behavior hashes, ran the entire old trace
+with the old HP values in an isolated process: it reproduced the old fixture exactly.
+Then regenerated those same fixture keys at the requested health values. No attack
+or timing expectations were changed and no runtime health code was edited here.
+
+Limits
+No live multiplayer session, packaged desktop runtime, cross-GPU benchmark or long
+resource soak was performed for this pass. Several fighters were tested through
+synthetic rendering workloads; this does not substitute for network combat testing.
+New pools are lightweight visual approximations, not additional physical lights.
+Existing background artwork and authored silhouettes were deliberately preserved.

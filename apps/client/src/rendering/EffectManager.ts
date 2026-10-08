@@ -15,6 +15,7 @@ interface Burst {
   power: number;
 }
 export class EffectManager {
+  particleDensity=1;
   root = new THREE.Group();
   pool: Particle[] = [];
   bursts: Burst[] = [];
@@ -72,7 +73,7 @@ export class EffectManager {
       return;
     }
     const dust = event.type.includes("dust");
-    const count = dust ? 9 : 14 + event.power * 5;
+    const count = Math.max(2,Math.round((dust ? 9 : 14 + event.power * 5)*this.particleDensity));
     if (!dust) {
       const burst = this.bursts.find((b) => b.life <= 0);
       if (burst) {

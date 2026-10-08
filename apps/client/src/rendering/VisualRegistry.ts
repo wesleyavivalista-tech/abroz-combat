@@ -1,3 +1,4 @@
+import {disposeZombieSprites} from './ZombieSpriteRenderer.js';
 import {CrouchAttackVisual} from './CrouchAttackVisual.js';
 import {AirAttackVisual,airAttackCatalog,loadAirAttackArt,disposeAirAttackArt} from './AirAttackVisual.js';
 import {loadNikalz,disposeNikalz} from './NikalzRenderer.js';
@@ -174,5 +175,5 @@ export async function disposeFighterSprites():Promise<void>{
  disposeFausto();
  disposeAstolfo();
  disposeAirAttackArt();disposeFallArt();disposeDashArt();disposeBackwardDashArt();
- loads.clear();factories.clear();skinLoaders.clear();disposeSpriteMasks();disposeTextureCache();
+ loads.clear();factories.clear();skinLoaders.clear();disposeSpriteMasks();disposeZombieSprites();disposeTextureCache();
 }

@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {refreshTrail} from './TrailSystem.js';
 import {characters} from '../characters/registry.js';
 import {applyDamage} from '../combat/DamageSystem.js';
@@ -46,7 +47,7 @@ export function advanceBlood(s:SimulationSnapshot,stage:StageDefinition):void{
    refreshTrail(s,{kind:'blood-trail',owner,x,y:f.y,width:48,createdAt:s.frame,expiresAt:s.frame+120,move:'master',nextTicks:[]},384);
   }
   for(const {fighter:d,owner:other} of all){
-   if(s.teams[owner]!==s.teams[other]&&isActive(d)&&!isInvulnerable(d,s.frame)&&Math.abs(d.x-f.x)<75&&Math.abs(d.y-f.y)<150)d.bloodSlowUntil=s.frame+120;
+   if(hostile(s,owner,d,other)&&isActive(d)&&!isInvulnerable(d,s.frame)&&Math.abs(d.x-f.x)<75&&Math.abs(d.y-f.y)<150)d.bloodSlowUntil=s.frame+120;
   }
  });
  for(const h of s.hazards){
@@ -55,7 +56,7 @@ export function advanceBlood(s:SimulationSnapshot,stage:StageDefinition):void{
    if(!isActive(f))continue;
    const inside=h.kind==='blood-flood'?f.y<h.y+floodHeight(h,s.frame):Math.abs(f.x-h.x)<(h.width??48)/2+25&&Math.abs(f.y-h.y)<18;
    if(inside&&h.kind==='blood-flood'&&owner===h.owner)f.floodSpeed=characters[f.characterId].moves[h.move]?.ownerFloodSpeed??1;
-   if(isInvulnerable(f,s.frame)||s.teams[owner]===s.teams[h.owner])continue;
+   if(isInvulnerable(f,s.frame)||!hostile(s,h.owner,f,owner))continue;
    if(inside)f.areaSlow=Math.min(f.areaSlow,h.kind==='blood-flood'?.1:.5);
   }
  }

@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {cookieMonsterInput} from './NapaSystem.js';
 import {basketballInput,isLowProfile} from './DodoSystem.js';
 import { Button, type SimulationSnapshot, type HairClone } from "../types.js";
@@ -26,7 +27,7 @@ export function cloneInput(s: SimulationSnapshot, clone: HairClone, stage: Stage
   if(clone.kind==='cookie-monster')return cookieMonsterInput(s,clone,stage);
   if(clone.kind==='basketball')return basketballInput(s,clone,stage);
   const f=clone.fighter;
-  const target=actors(s).filter(a=>s.teams[a.owner]!==s.teams[clone.owner]&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-f.x)+Math.abs(a.fighter.y-f.y)-Math.abs(b.fighter.x-f.x)-Math.abs(b.fighter.y-f.y))[0]?.fighter;
+  const target=actors(s).filter(a=>hostile(s,clone.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-f.x)+Math.abs(a.fighter.y-f.y)-Math.abs(b.fighter.x-f.x)-Math.abs(b.fighter.y-f.y))[0]?.fighter;
   if (!target) return 0;
   const dx=target.x-f.x,dy=target.y-f.y;
   let input=Math.abs(dx)>85 ? dx>0?Button.Right:Button.Left : 0;

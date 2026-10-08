@@ -1,0 +1,194 @@
+{
+  "scope": "Node CPU-only manager + particles; excludes GPU shader compilation/draws, browser and Electron frame rate. Synthetic positions/events, not a full game benchmark.",
+  "reports": [
+    {
+      "quality": "low",
+      "scenario": "1v1",
+      "cpuMeanMs": 0.027489788333333726,
+      "cpuP95Ms": 0.03470900000002075,
+      "maxLights": 0,
+      "maxShadows": 2,
+      "particlePool": 180
+    },
+    {
+      "quality": "low",
+      "scenario": "4 players",
+      "cpuMeanMs": 0.005184720000001827,
+      "cpuP95Ms": 0.007875000000012733,
+      "maxLights": 0,
+      "maxShadows": 4,
+      "particlePool": 180
+    },
+    {
+      "quality": "low",
+      "scenario": "6 players",
+      "cpuMeanMs": 0.016149236666667927,
+      "cpuP95Ms": 0.014042000000017651,
+      "maxLights": 0,
+      "maxShadows": 6,
+      "particlePool": 180
+    },
+    {
+      "quality": "low",
+      "scenario": "8 players",
+      "cpuMeanMs": 0.054852041666669606,
+      "cpuP95Ms": 0.010207999999920503,
+      "maxLights": 0,
+      "maxShadows": 8,
+      "particlePool": 180
+    },
+    {
+      "quality": "low",
+      "scenario": "projectile/explosion stress",
+      "cpuMeanMs": 0.08017964333333244,
+      "cpuP95Ms": 0.11758399999996527,
+      "maxLights": 0,
+      "maxShadows": 8,
+      "particlePool": 180
+    },
+    {
+      "quality": "low",
+      "scenario": "summon stress",
+      "cpuMeanMs": 0.14634695166666917,
+      "cpuP95Ms": 0.15945799999997234,
+      "maxLights": 0,
+      "maxShadows": 32,
+      "particlePool": 180
+    },
+    {
+      "quality": "low",
+      "scenario": "large moving arena",
+      "cpuMeanMs": 0.14021041666666179,
+      "cpuP95Ms": 0.35229199999980665,
+      "maxLights": 0,
+      "maxShadows": 32,
+      "particlePool": 180
+    },
+    {
+      "quality": "medium",
+      "scenario": "1v1",
+      "cpuMeanMs": 0.010950705000000577,
+      "cpuP95Ms": 0.01883300000008603,
+      "maxLights": 0,
+      "maxShadows": 2,
+      "particlePool": 180
+    },
+    {
+      "quality": "medium",
+      "scenario": "4 players",
+      "cpuMeanMs": 0.0047585333333332374,
+      "cpuP95Ms": 0.006374999999934516,
+      "maxLights": 0,
+      "maxShadows": 4,
+      "particlePool": 180
+    },
+    {
+      "quality": "medium",
+      "scenario": "6 players",
+      "cpuMeanMs": 0.006953054999998282,
+      "cpuP95Ms": 0.003208000000086031,
+      "maxLights": 0,
+      "maxShadows": 6,
+      "particlePool": 180
+    },
+    {
+      "quality": "medium",
+      "scenario": "8 players",
+      "cpuMeanMs": 0.008009783333334705,
+      "cpuP95Ms": 0.00987499999996544,
+      "maxLights": 0,
+      "maxShadows": 8,
+      "particlePool": 180
+    },
+    {
+      "quality": "medium",
+      "scenario": "projectile/explosion stress",
+      "cpuMeanMs": 0.30300340499999834,
+      "cpuP95Ms": 0.2282910000001266,
+      "maxLights": 4,
+      "maxShadows": 8,
+      "particlePool": 180
+    },
+    {
+      "quality": "medium",
+      "scenario": "summon stress",
+      "cpuMeanMs": 0.14802550166666303,
+      "cpuP95Ms": 0.23062500000014552,
+      "maxLights": 4,
+      "maxShadows": 32,
+      "particlePool": 180
+    },
+    {
+      "quality": "medium",
+      "scenario": "large moving arena",
+      "cpuMeanMs": 0.3084043100000095,
+      "cpuP95Ms": 0.31024999999999636,
+      "maxLights": 4,
+      "maxShadows": 32,
+      "particlePool": 180
+    },
+    {
+      "quality": "high",
+      "scenario": "1v1",
+      "cpuMeanMs": 0.007467723333347749,
+      "cpuP95Ms": 0.007458000000042375,
+      "maxLights": 0,
+      "maxShadows": 2,
+      "particlePool": 180
+    },
+    {
+      "quality": "high",
+      "scenario": "4 players",
+      "cpuMeanMs": 0.011032659999998487,
+      "cpuP95Ms": 0.035874999999577994,
+      "maxLights": 0,
+      "maxShadows": 4,
+      "particlePool": 180
+    },
+    {
+      "quality": "high",
+      "scenario": "6 players",
+      "cpuMeanMs": 0.002904068333334635,
+      "cpuP95Ms": 0.005583000000115135,
+      "maxLights": 0,
+      "maxShadows": 6,
+      "particlePool": 180
+    },
+    {
+      "quality": "high",
+      "scenario": "8 players",
+      "cpuMeanMs": 0.0058587033333257444,
+      "cpuP95Ms": 0.00741699999980483,
+      "maxLights": 0,
+      "maxShadows": 8,
+      "particlePool": 180
+    },
+    {
+      "quality": "high",
+      "scenario": "projectile/explosion stress",
+      "cpuMeanMs": 0.05905162499999809,
+      "cpuP95Ms": 0.20891699999992852,
+      "maxLights": 8,
+      "maxShadows": 8,
+      "particlePool": 180
+    },
+    {
+      "quality": "high",
+      "scenario": "summon stress",
+      "cpuMeanMs": 0.20003805333334032,
+      "cpuP95Ms": 0.24145799999996598,
+      "maxLights": 8,
+      "maxShadows": 32,
+      "particlePool": 180
+    },
+    {
+      "quality": "high",
+      "scenario": "large moving arena",
+      "cpuMeanMs": 0.17428227499999366,
+      "cpuP95Ms": 0.19916699999976117,
+      "maxLights": 8,
+      "maxShadows": 32,
+      "particlePool": 180
+    }
+  ]
+}

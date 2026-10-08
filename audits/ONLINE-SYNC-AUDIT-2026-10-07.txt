@@ -1,0 +1,150 @@
+PRE-LAUNCH ONLINE SYNCHRONIZATION AUDIT — 2026-10-07
+
+CURRENT NETWORK AUTHORITY MODEL
+Normal FFA, team, FFA-tournament and elimination rooms:
+- Server owns room membership, stable seats after start, validated fighter/skin/
+  team/arena selection, common elimination seed, start, and departure frames.
+- Clients own input masks for their assigned seat. The server validates order,
+  range, progress, and rate, then relays masks and state hashes. Clients cannot
+  select the relayed owner seat. The normal room server does not simulate combat.
+- Each client runs the same fixed-frame combat simulation for EVERY fighter.
+  Position/velocity/facing, movement/attack state, move frames, collision, HP,
+  energy, damage/stun/knockback, status deadlines, cooldowns, transformations,
+  projectiles, summons, traps, structures, moving platforms, death/respawn and
+  scores/winners are derived locally, not independently replicated variables.
+- Rollback uses two initial neutral frames / two-frame input delay, at most eight
+  frames beyond confirmed input, and approximately 180 frames of state history.
+  Missing remote input repeats its most recent mask. Late changes restore a deep
+  snapshot and replay all following frames. Entity owner seats, IDs, hit stamps,
+  target references, PRNG state and deadlines reside in simulation snapshots.
+- Damage audio waits for confirmed events. Rendering interpolation is outside the
+  authoritative state; effects/animation presentation may differ while predicting.
+- Clients exchange hashes every 60 confirmed frames. A mismatch or unrecoverable
+  rollback stops the match; no authoritative snapshot replacement exists.
+Championship:
+- Server additionally simulates each duel using confirmed inputs and owns bracket
+  advancement. Clients still predict/replay combat. Per-attempt match tokens
+  reject late packets from prior duels, including draws/retries.
+- Server simulation begins with the same two neutral frames. Ordinary duels do
+  not use the constructor seed; elimination does, using the shared start seed.
+Transport:
+- WebSocket over TCP: ordered, reliable delivery while connected. Packet loss is
+  seen as delay/head-of-line blocking, not independent missing game messages.
+  No reconnect-to-live-seat protocol exists. Closed sockets forfeit; new sockets
+  cannot join a started room. Temporary pauses with the socket alive can recover.
+
+DESYNC RISKS FOUND
+No new confirmed synchronization defect reproduced in this pass.
+Existing risks/limitations, left unchanged deliberately:
+HIGH / architectural trust: normal rooms trust client simulation and input timing;
+  a hash detects disagreement but does not establish a trusted combat outcome.
+  Championship decides brackets server-side, but peer hashes are not compared
+  against server snapshots. An anti-cheat/authoritative recovery change would be
+  substantial and requires separate design rather than a speculative audit fix.
+MEDIUM / latency: more than eight unconfirmed frames pauses play. Background-tab
+  throttling, asset loading or slow devices can block peers. Initial inactivity
+  allows 120s; active input inactivity allows 60s; socket heartbeat is separate.
+MEDIUM / disconnect: no transparent reconnect. Existing stable-seat forfeits are
+  intentional. Do not add a duplicate replacement fighter on reconnect.
+MEDIUM / protocol extension fragility: the server advertises inputDelay=2 and
+  maxRollbackFrames=8, while client start uses those constants directly. Values
+  currently agree; changing server settings alone would be unsafe. No change to
+  current constants or responsiveness was made.
+LOW / diagnostics: full-state hashes are 32-bit FNV, useful for accidental desync
+  detection but neither collision-proof nor an authentication mechanism.
+LOW / defensive handling: duplicate client input messages are rejected by the
+  server; duplicate identical relayed inputs are harmless to rollback. TCP does
+  not duplicate application messages. Conflicting/stale application-level
+  retransmissions require an explicit protocol design, not silent acceptance.
+
+INVESTIGATIONS AND COVERAGE
+- Inspected apps/server/src/{index,rooms,championship}.ts, client network.ts and
+  main.ts producers/consumers, shared protocol/contentVersion, RollbackManager,
+  StateHistory, GameSimulation snapshot/restore/hash/tick paths and random uses.
+- No Math.random, wall-clock or setTimeout found in gameplay simulation paths.
+  Eide's integer PRNG is snapshot-owned; Napa and finance scatter use deterministic
+  frame/entity-derived integers; elimination has a shared snapshot-owned seed.
+  UI arena selection and artificial network jitter may use nondeterministic
+  randomness, but neither independently determines replicated gameplay.
+- Common content handshake includes protocol version, definitions, arena gameplay
+  data, and generated deterministic-source revision. Mismatched clients reject.
+- Existing tests cover interruption/departure at all 225 move boundaries, dead
+  owner cleanup, same-frame hits/deaths, graves/zombies, moving-platform summons,
+  late hit registration and stable ownership. They are fixtures, not exhaustive
+  simultaneous all-ability playthroughs.
+- Existing server suites cover host departure, waiting-room reseating, team
+  capacity, duplicate room membership, input validation, inactivity, bounded
+  buffers, finished-room retention, championship spectators/withdrawal/retries,
+  stale duel tokens and independent server/client simulation.
+
+FIXES IMPLEMENTED
+No production fix was justified by the observed results. No gameplay, timing,
+protocol, assets, networking architecture, or traffic frequency changed.
+Added tests/online-sync-audit.test.ts: 16 regression scenarios, four per arena:
+  two eight-player roster groups covering all 16 fighters; six-player teams;
+  six-player seeded elimination-party. Every peer gets unequal input-stream
+  delays/jitter, duplicate same-frame relays, and a temporary delivery blackout.
+  Reliable stream order is retained to model TCP. Each reaches frame 360 and is
+  compared by full snapshot hash against the same inputs in a no-delay baseline;
+  prediction stalls and duplicates are asserted to actually occur.
+
+NETWORK MESSAGES/PROTOCOLS CHANGED
+None. Protocol remains 45. No schema, producers, consumers, or handshake changes.
+
+TESTS PERFORMED
+New asymmetric matrix: 16 passed (112 simulated clients; 40,320 peer ticks,
+  excluding rollback replay work). Both roster halves, all four arenas.
+Full suite and cross-engine/build results recorded below after completion.
+No new browser UI test or physical multi-device test claimed by this audit.
+
+REMAINING LATENCY-SENSITIVE SYSTEMS
+- Prediction limit stalls and input-to-action feel on unequal connections.
+- Predicted grabs, charging, temporary modes, platform landing and death visuals.
+- Moving-platform mounts/summons and high-entity rollback CPU cost on low-end CPUs.
+- Asset loading, background-tab suspension, final-death slow motion and device
+  frame pacing can affect wall-clock progress even though simulation is frame-based.
+- Rare server-versus-client engine differences beyond existing replay traces.
+
+REAL MULTI-DEVICE TESTS TO PERFORM
+1. Two separate devices: web/web, web/desktop, desktop/desktop, plus Safari versus
+   Chromium where available. Verify the same build; do not bypass version checks.
+2. 0/50/100/150/200ms unequal delay and jitter; observe brief stalls/recovery and
+   confirm identical HP, entities, winners and result screens.
+3. Brief connection interruption, background-tab suspension and a hard disconnect
+   during grabs, ultimates, transformations, moving-platform rides and respawn.
+   Hard disconnect should forfeit its seat; restarting does not reclaim it.
+4. Host departure in a multi-player match; remaining seats and ownership must not
+   shift. Verify championship withdrawal, concurrent duels, draw retry and finals.
+5. Simultaneous lethal hits, multiple summons and maximum players on Mall, followed
+   by repeated new matches. Compare both screens and console diagnostics.
+6. Longer sessions on a low-end client; measure rollback CPU/stalls and resource
+   growth. This bounded deterministic matrix is not a long-running Internet soak.
+
+FINAL DIFF REVIEW
+Starting tracked diff and status captured before edits. Production files remain
+unchanged. Only the new focused regression file and this report were added.
+Unrelated existing work was preserved.
+
+FINAL CHECK RESULTS
+- 975 TypeScript tests passed; zero failures/skips.
+- 239 V8 / JavaScriptCore move/scenario replay traces matched exactly.
+- TypeScript check, ESLint, web production build and server build passed.
+- git diff --check passed. Tracked diff exactly matches the pre-audit snapshot.
+- Status comparison showed only the two new paths listed above.
+
+FOLLOW-UP: REAL SOCKET RECOVERY TESTS
+===================================
+Added tests/online-socket-recovery.test.ts. Starts an actual server process and
+connects eight independent WebSockets on localhost. All peers receive the same
+start payload, simulate the Mall, and exchange actual gameplay packets. Abruptly
+terminates the host during combat. Seven surviving rollback clients reach frame
+320 and match the complete baseline state, with exactly one stable-seat departure
+and no server errors. A new socket cannot rejoin the started room or create a
+duplicate fighter; it can subsequently create a fresh room with seat zero.
+Added a LobbyClient regression using controlled timers: old delayed input is
+cancelled during disconnect, and no old-match packet reaches the replacement
+connection. Existing connection cancellation/malformed/stale message test retained.
+Focused recovery, championship, timeout and network-failure suites: 35 passed.
+The real-socket test also passed alone. No additional production defect reproduced;
+no speculative networking changes were made. These are separate sockets/processes
+on one machine, not a claim of physical multi-device or Internet testing.

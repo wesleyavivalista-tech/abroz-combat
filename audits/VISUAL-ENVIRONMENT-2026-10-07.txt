@@ -1,0 +1,246 @@
+GLOBAL VISUAL ENVIRONMENT — IMPLEMENTATION AND VERIFICATION
+Updated 2026-10-07
+
+AUDIT BEFORE THIS FOLLOW-UP
+The project already had a central StageVisualEnvironment from earlier work.
+The subsequent black-arena regression was corrected by restoring native scene
+lights and excluding MeshStandardMaterial geometry from sprite shader patching.
+This follow-up preserves that corrected appearance, extends configuration and
+diagnostics, and adds actual browser rendering measurements.
+
+Rendering architecture reviewed:
+- SceneRenderer owns one Three WebGL canvas, perspective camera and composer.
+- DOM HUD, player labels and menus are outside post-processing.
+- Fighter factories return layered sprite planes with authored frame selection,
+  isolation and onBeforeCompile hooks. Animation selection/timing is untouched.
+- StageRenderer uses illustrated backdrops plus textured, batched standard-material
+  geometry. Moving decks use stageAtTick(platformTick), shared with simulation.
+- Projectiles/particles use existing pools and character-specific effect groups;
+  summons use FighterVisual, zombies use ZombieSpriteRenderer/UndeadVisuals.
+- Native material lights do not illuminate unlit sprite planes; sprite shading
+  therefore uses a separate, restrained fragment shader.
+- Camera tracking, zoom, shake and final-death views remain in SceneRenderer.
+- Multiplayer already supplies snapshots/combat events. Cosmetics consume them
+  locally and never modify snapshots or transmit lighting data.
+- Browser and Electron use the same client renderer and Vite source. The desktop
+  shell restricts navigation to the game document; the profiling page remains
+  a development-only browser utility, not a new desktop permission exception.
+
+1. FILES / MODULES
+apps/client/src/rendering/StageLighting.ts
+  Client-only profiles, safe defaults/clamps, native geometry light configuration,
+  quality presets, surface bounds and shadow response.
+apps/client/src/rendering/StageVisualEnvironment.ts
+  Central ownership of scene illumination, entity shadows, attack requests,
+  two reusable native ability lights, quality state and debug output.
+apps/client/src/rendering/EnvironmentShader.ts
+  Existing hook composition plus subtle ambient/directional/rim/dynamic sprite
+  illumination; transparent textured MeshBasicMaterial only.
+apps/client/src/rendering/VisualLightPool.ts
+  Fixed 32-request pool, event deduplication, importance/distance prioritization,
+  expiry and eight reusable shader light uniforms.
+apps/client/src/rendering/EnvironmentPost.ts
+  Restrained vignette, color grading and optional grain, before OutputPass.
+apps/client/src/rendering/EnvironmentGuides.ts
+  Development-only world-space main-direction arrow and active light radii.
+apps/client/src/rendering/SceneRenderer.ts
+  Owns the manager, quality/DPR/composer setup and entity integration.
+Earlier integration also touched EffectManager.ts (particle density),
+UndeadVisuals.ts (visual iteration), main.ts (existing Settings dialog).
+apps/client/lighting-lab.html + apps/client/src/dev/lighting-lab.ts
+  Development-only actual-renderer workload profiler, excluded from release inputs.
+scripts/profile-visual-environment.ts
+  Separate synthetic CPU-only manager/particle benchmark.
+tests/visual-environment.test.ts
+  Configuration, shadow receivers, shader isolation, cosmetic state safety,
+  light budgets/lifecycle, native illumination and invalid-color fallback tests.
+tests/audit-codebase-20261004.test.ts
+  Earlier scene teardown fixture adjustment for the manager.
+
+No sprite art, frame coordinates, gameplay timing, collisions, balance,
+network protocol or simulation mechanics changed for this visual work.
+Other unrelated pre-existing workspace modifications remain untouched.
+
+2. ARCHITECTURE
+StageLighting profiles -> StageVisualEnvironment -> native stage lights,
+sprite uniform values, shadows and bounded effect requests. SceneRenderer
+continues to own rendering/camera/composer; the manager owns visual policy.
+Native stage geometry is never patched with the sprite shader. Base lights
+remain active at every quality level. Two additional PointLights can only ADD
+local ability illumination and never cast additional shadow maps.
+Flat sprites use approximate directional shading, not fabricated normal maps.
+Custom ShaderMaterial, additive particles and opaque painted backgrounds keep
+their authored appearance. Eligible fighter, summon, zombie, grave and object
+sprite roots receive the same uniform environment. Standard materials receive
+native scene lighting. Small cosmetic particles are intentionally excluded.
+
+3. CONFIGURING AN ARENA
+Edit stageLighting in StageLighting.ts, keyed by the arena's existing ID.
+Defaults apply to omitted fields; deterministic StageDefinition remains unchanged.
+Sprite settings and native geometry settings are deliberately separate because
+unlit painted artwork and physically lit geometry need different intensity ranges.
+Existing native defaults reproduce each arena's verified appearance.
+
+Example: Rooftop, keep native geometry unchanged:
+stageLighting['the-foundry'] = {
+ mainLightDirection: {x:-0.5,y:-1}, mainLightColor:'#ffd5a0',
+ mainLightIntensity:0.8, ambientColor:'#a9b9d5', ambientIntensity:0.25,
+ shadowDirection:0.6, shadowOpacity:0.30, shadowSoftness:0.65,
+ shadowLength:1.2, shadingStrength:0.10, rimColor:'#ffcc99',
+ rimIntensity:0.12, bloomStrength:0.12, dust:0.08,
+ dynamicLighting:true, dynamicMultiplier:0.7
+};
+
+Example: adjust Church's native illumination as well:
+stageLighting['aeroporto-church'] = {
+ mainLightColor:'#f4ecd9', ambientColor:'#cbd8e8',
+ shadowLength:0.8, shadowOpacity:0.28, bloomStrength:0.06,
+ vignette:0.03, fogColor:'#737b84', fogDistance:18,
+ geometry:{key:'#f4ecd9',keyIntensity:2.2,sky:'#e3e7ed',
+           skyIntensity:1.3,fillIntensity:2,rimIntensity:1.4,
+           direction:{x:-3,y:6,z:5}}
+};
+
+Runtime configuration is also supported:
+renderer.environment.configure(stage, {
+ shadingStrength:0.08, rimIntensity:0.10,
+ geometry:{skyIntensity:1.4,fillIntensity:3}
+});
+renderer.setVisualQuality('high');
+
+Colors use six-digit hex strings; invalid values fall back safely. Bounds:
+shading <=0.22, shadow opacity <=0.45, bloom/rim/tint <=0.30,
+vignette <=0.20, grain <=0.025, dust <=0.18, dynamic multiplier <=1.
+Native sky intensity 0.8–2, key 1.2–3.5, rim 0.3–2, fill 1–6;
+key stays above/in front of the stage. Defaults are much less dramatic than caps.
+Do not use black geometry light colors if readable lighting is desired.
+
+4. GROUND / CONTACT SHADOWS
+One lightweight ellipse plane per visible entity combines a soft ground shadow
+with a smaller contact core. It follows world X and the surface immediately below.
+Height fades opacity, shrinks the ellipse and increases softness; contact fades
+within 20 game units above the surface. Landing restores the contact naturally.
+Low removes directional offset/stretch. Higher presets use the arena direction.
+The footprint is clipped to receiving surface boundaries to avoid floating beyond
+platform edges. Hidden/respawn/stealth/mount rules remain in effect. Unused shadow
+materials are disposed and scene resets clear all owned shadows/lights.
+
+5. PLATFORM DETECTION
+visualShadowSurface reuses the game's surfaceBelow height query, adds the selected
+platform's horizontal bounds, and considers built wall/house roofs. It receives
+the current stageAtTick snapshot, so Mall movement is respected. This is a visual
+query only: no ray tracing, physics objects or collision modifications.
+Ground shadows remain world-anchored under camera movement, zoom and shake.
+
+6. DYNAMIC ATTACK LIGHTS
+Strong existing CombatEvents create bounded local flashes, never full-screen white
+flashes. Active synchronized beam/projectile/meteor state supplies continuous or
+impact requests. An attack renderer can request:
+renderer.environment.spawnDynamicLight({
+ id:'unique-cosmetic-event', x:1200, y:80, radius:350,
+ intensity:0.4, color:'#ff9955', duration:0.18, priority:5
+});
+Coordinates/radius are game units; duration is local render seconds.
+Requests are deduplicated, expire automatically and favor important/nearby sources.
+Maximum request storage: 32. Shader recipients: Low 0, Medium 4, High 8 sources.
+At most TWO native PointLights spill onto geometry; intensity <=1.2 each,
+no shadow maps, constant light count to avoid per-attack shader recompilation.
+Low, non-fight/menu state and resets clear lights. Cosmetic fades may briefly
+outlive the originating impact; continuous sources fade after interruption.
+
+7. QUALITY / ATMOSPHERE
+The existing Settings -> Graphics control saves Low/Medium/High.
+Low: DPR <=1, simple shadows, subtle ambient tint, 40% particle density,
+no dynamic illumination/bloom/post atmosphere/native shadow map.
+Medium: DPR <=1.5, directional soft/contact shadows, sprite shading, four local
+shader lights/two native lights, modest bloom/post, 70% particle density.
+High: DPR <=2, rim lighting, eight shader lights/two native lights, dust where
+authored, optional grain, native stage shadow map, full particle density.
+Base arena lights are independent of these optional effects.
+Supported atmosphere: bloom, fog distance/color, vignette, tint, grain and dust.
+Heat/rain distortion and volumetric rays are NOT implemented or advertised as
+finished effects; no current arena requires them. They can be separate later passes.
+DOM HUD stays outside all of this. No artwork is permanently recolored.
+
+8. PERFORMANCE / OPTIMIZATIONS
+Reusable light uniforms, fixed native light objects, bounded requests/history,
+shared shadow geometry and simple analytical ellipses. No per-light shadow maps.
+Stage meshes retain existing batching. Small particles retain simple materials.
+Debug guides allocate only on first use; their geometry is shared/disposed.
+Debug text updates at most four times per second, not every render frame.
+Removed stage-wide custom shader patching. Corrected CPU harness shadow accounting
+when the two native lights were added. Browser harness clears leftover particles
+between workloads and counts only active projectiles/measured draw-call peaks.
+See attached JSON benchmarks for measured results and explicit scopes.
+
+9. COMPATIBILITY / LIMITS
+No new dependencies or graphics API; existing Three/WebGL/GLSL/composer pipeline.
+Low provides an inexpensive effects path but is not a software-rendering fallback
+for a device with no usable WebGL. Existing initialization failure handling remains.
+GPU timer-query support is not required. Browser profile measures rAF intervals
+and renderer.draw CPU submission, not isolated GPU timings or input/network cost.
+Default profiles intentionally preserve the established art direction.
+
+10. DEBUG / FUTURE REFACTOR CANDIDATES
+Development F1 / Boxes displays current preset, stage/native settings, active
+shader/native light counts, radii, surfaces, shadow count and render resources.
+World-space arrow/rings show direction/radius; cyan footprints show receivers.
+These guides do not appear in ordinary play or production debug-disabled rendering.
+Potential later work: explicit visual-category registration instead of group
+traversals; shared cleanup interfaces for character-specific effects; batch ellipse
+shadows only if profiling warrants it; consolidate hidden legacy per-fighter shadow
+creation after standalone previews migrate; reduce unrelated HUD/DOM rebuilding.
+Do not combine those refactors with changes to combat behavior.
+
+ABILITY ART DIRECTION CANDIDATES (ABILITIES NOT REDESIGNED)
+- Nikalz Meteor Forehead: short warm impact illumination.
+- Drupa White Buda Beam: pale gold local illumination along the active beam.
+- Biel Divine Energy Beam: cool white shaft and restrained contact flash.
+- Tocha Metal Head Banging: violet/orange pentagram illumination.
+- Drupa White Buda Transformation: brief warm reveal rather than permanent glow.
+
+VALIDATION SUMMARY / MEASUREMENTS FOLLOW BELOW
+
+Browser measurements: 960x540 CSS canvas, preset DPR, this machine only.
+Actual renderer/assets; synthetic positioning and events, not full gameplay AI.
+One second warmup plus three seconds measured per workload. Figures are rAF
+cadence and CPU submission, not isolated GPU timings. The near-100 FPS values
+reflect this browser/display environment; they do not predict slower devices.
+Quality | observed FPS range | worst workload draw CPU p95 | peak measured calls
+low | 100.0–100.0 | 3.20 ms | 323
+medium | 100.0–100.0 | 3.30 ms | 337
+high | 98.0–100.0 | 3.60 ms | 359
+
+21 workloads covered 2/4/6/8 fighters, 12 active authored projectiles, repeated
+explosion particles, 24 zombie instances, concurrent shader/native lights, and
+a synthetic 4800-unit moving arena. The oversized arena is a stress fixture;
+its background does not fill the wider camera. Production arena dimensions
+and art remain unchanged. Shader light caps observed: 0/4/8; shadows up to 32.
+No captured browser errors/warnings. Short-run resource counts tracked the
+active workload and quality; this is not an extended leak soak test. Cached
+program variants and bloom targets account for some resource growth across
+quality changes. Compilation failures were absent; cold-start GPU stalls were
+not measured separately.
+
+Native Electron development runtime: launched the actual game shell, entered
+Rooftop training, exercised Meteor Forehead and reset, and inspected F1 lighting
+guides/ground shadow receivers. The existing FPS display sampled 97–100 in that
+1v1 smoke test. Saved audits/evidence/lighting-desktop-rooftop.png. Closed the
+temporary desktop process afterward. Native all-workload stress matrix and
+packaged installer execution were NOT profiled. Browser and desktop production
+bundles build successfully; desktop policy tests pass (5).
+
+Full game suite: 809 tests passed. Final rendering/lifecycle subset: 14 passed.
+TypeScript and ESLint passed. The final small debug-panel adjustment caps its
+height and makes it scrollable so the diagnostic text does not fill the screen.
+
+Earlier live checks confirmed all four production arenas at Low/Medium/High.
+This follow-up additionally rendered all quality levels in the actual-renderer
+browser profiler and inspected native Rooftop. Gameplay/network determinism was
+not changed; exhaustive abilities, remote multiplayer, all GPUs, and long-duration
+memory/thermal tests remain outside this verification.
+
+Run development profiling at http://localhost:5174/lighting-lab.html using
+Run all workloads. Keep the tab visible. It restores the saved graphics quality
+and disposes the test renderer on completion/Stop. No new game UI or network
+permissions were added. The lab is excluded from production entry points.

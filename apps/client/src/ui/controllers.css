@@ -12,3 +12,32 @@ html[data-input-device=controller] :is(button,select,input,summary){min-height:3
 #pause .training{position:static;transform:none;display:flex;flex-wrap:wrap;width:100%;margin-top:18px;font-size:16px}
 .pause-drawer{overflow:auto;max-height:90vh;padding-bottom:65px!important}
 #settings-dialog .page{max-height:72vh;overflow:auto}#settings-dialog{padding-bottom:65px}
+
+/* Dialog controls need explicit surfaces; inherited light text cannot use native button backgrounds. */
+.controller-page button,
+.controller-dialog > button,
+.controller-keyboard button,
+.controller-entry-actions button {
+  appearance:none;
+  background:linear-gradient(145deg,#293b43,#14212b);
+  color:#fff0ce;
+  border:1px solid #a58e60;
+  border-radius:2px;
+  min-height:40px;
+  padding:10px 14px;
+  font-weight:600;
+  line-height:1.25;
+}
+.controller-page button:hover,
+.controller-dialog > button:hover,
+.controller-keyboard button:hover,
+.controller-entry-actions button:hover {
+  background:#374b53;
+  border-color:#f0cf85;
+}
+.controller-page button:disabled,.controller-dialog button:disabled {color:#a8afb3;background:#1b2830;border-color:#52606a;cursor:default}
+#settings-dialog > [data-action="settings-close"] {margin:12px 16px 4px}
+
+.controller-header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:20px;background:#071421;padding:12px 4px;border-bottom:1px solid #456579}
+.controller-header h2{margin:4px 0}.controller-page{padding:8px 20px 90px!important;scroll-padding-top:110px}.controller-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.controller-card{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:20px}.controller-card h3,.controller-card p{grid-column:1/-1}.controller-card p{margin:4px 0 12px;min-height:24px}.controller-card button{margin:0;min-height:48px}.controller-device-details{border-top:1px solid #456579;padding-top:18px}.controller-page summary{cursor:pointer;padding:12px}.controller-header button{min-width:100px}.controller-page #controller-test{scroll-margin-top:110px}
+@media(max-width:600px){.controller-grid{grid-template-columns:1fr}.controller-page{padding-inline:12px!important}}

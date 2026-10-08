@@ -1,3 +1,4 @@
+import {hostile} from './Actors.js';
 import {characters} from '../characters/registry.js';
 import type {Fighter,MoveDefinition,SimulationSnapshot,StageDefinition} from '../types.js';
 import {actors} from './Actors.js';
@@ -25,7 +26,7 @@ export function advanceFausto(s:SimulationSnapshot):void{
   if((f.angerUntil??0)>0&&f.angerUntil!<=s.frame){f.angerUntil=0;f.angerStacks=0;}
   if(f.cloudSlow!==undefined)f.cloudSlow=1;
   if(!isActive(f)||isInvulnerable(f,s.frame))continue;
-  for(const h of s.hazards)if(h.kind==='white-cloud'&&h.expiresAt>s.frame&&s.teams[h.owner]!==s.teams[a.owner]&&Math.abs(f.x-h.x)<(h.width??FAUSTO.cloudWidth)/2+25&&f.y<h.y+(h.height??FAUSTO.cloudHeight)&&f.y+150>h.y)f.cloudSlow=FAUSTO.cloudSlow;
+  for(const h of s.hazards)if(h.kind==='white-cloud'&&h.expiresAt>s.frame&&hostile(s,h.owner,a.fighter,a.owner)&&Math.abs(f.x-h.x)<(h.width??FAUSTO.cloudWidth)/2+25&&f.y<h.y+(h.height??FAUSTO.cloudHeight)&&f.y+150>h.y)f.cloudSlow=FAUSTO.cloudSlow;
  }
 }
 /** Swept contact catches fast dashes over a trap; jumps above it remain safe. */
@@ -33,7 +34,7 @@ export function triggerOrigami(s:SimulationSnapshot,stage:StageDefinition,previo
  const bursts:SimulationSnapshot['hazards']=[];
  for(const h of s.hazards){
   if(h.kind!=='origami'||h.expiresAt<=s.frame)continue;
-  const candidates=actors(s).filter(a=>s.teams[a.owner]!==s.teams[h.owner]&&canReceiveDirectHit(a.fighter,s.frame)).map(a=>{const f=a.fighter,p=previous.get(f)??f;return {a,t:sweepEntry({x:h.x-25,y:h.y-10,w:50,h:35},p.x,p.y,f.x,f.y,20)};}).filter(c=>Number.isFinite(c.t)).sort((a,b)=>a.t-b.t);
+  const candidates=actors(s).filter(a=>hostile(s,h.owner,a.fighter,a.owner)&&canReceiveDirectHit(a.fighter,s.frame)).map(a=>{const f=a.fighter,p=previous.get(f)??f;return {a,t:sweepEntry({x:h.x-25,y:h.y-10,w:50,h:35},p.x,p.y,f.x,f.y,20)};}).filter(c=>Number.isFinite(c.t)).sort((a,b)=>a.t-b.t);
   const a=candidates[0]?.a;if(!a)continue;
   const source=s.fighters[h.owner],target=a.fighter;
   resolveHit(s,stage,emit,h.owner,characters[source.characterId].moves[h.move],target.previousInput,!!target.move,a.owner,Math.sign(target.x-h.x)||source.facing,source,target);

@@ -1,0 +1,23 @@
+{
+  "source": "3 2 1 fight.mp3",
+  "sha256": "88a7be870461cf5f997332678ffdb833a7818bbb647fab0ca7d16b695f6b5f42",
+  "processing": "Decoded to PCM; four cues trimmed at quiet gaps with 5ms edge fades. No pitch or speed change.",
+  "segments": {
+    "three": [
+      0.13,
+      1.22
+    ],
+    "two": [
+      1.23,
+      2.09
+    ],
+    "one": [
+      2.1,
+      2.99
+    ],
+    "fight": [
+      3.0,
+      4.8
+    ]
+  }
+}

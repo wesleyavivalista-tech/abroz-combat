@@ -1,0 +1,239 @@
+PRE-LAUNCH FIGHTER ABILITY INTERACTION AUDIT — 2026-10-07
+
+SCOPE AND EVIDENCE
+All 16 registered fighters and all 225 registered move definitions were included. Removed/unregistered prototype fighters are not part of the playable roster.
+Reviewed move definitions, shared contact/damage/ownership rules, projectile pool reuse, each specialized ability system, lifecycle cleanup, arena/platform integration and deterministic disconnect/forfeit handling. No broad system rewrite.
+The audit uses static inspection, focused integration fixtures, existing fighter suites and deterministic stress/replay checks. It does not establish that every pair of all abilities was played through every possible timing, arena and network condition.
+
+NEW CONFIRMED BUG AND FIX
+MEDIUM — Jopa football/chess duplicate energy credit.
+Root cause: JopaSystem.strike called gainEnergy(source,3) and gainEnergy(owner,3). For football/chess, source IS owner, so one confirmed hit credited the same object twice (6 rather than one existing 3-point credit). Companion source and owner are distinct objects.
+Reproduction: start Jopa at zero meter, make a football/chess projectile hit once. Before the fix meter becomes 6. Both dedicated regression tests failed with 6 != 3 before editing.
+Fix: keep the source credit and perform the separate owner credit only when the references differ. The tentacle regression verifies its distinct owner still gets 3 and the companion still gets 3. Existing contact cooldowns prevent immediate re-credit.
+Location: packages/game-core/simulation/JopaSystem.ts, strike().
+Risk: low; limited to duplicate aliasing in energy attribution. This intentionally changes the accidental double credit, not an authored damage/cooldown/duration value.
+
+ADDITIONAL USER-REQUESTED CHANGES
+- Nikalz maximum health: 1300 -> 1400. Spawn and respawn verified.
+- Preserve bee-box health at 550 by adjusting its max-health ratio denominator to 1400.
+- Tomb maximum health: 500 -> 1000. Resurrection still requires destruction, and damage-art stages use the same health percentages. Nikalz zombies naturally inherit his new 1400 maximum health.
+- Updated three grave-visual test fixtures to represent the same damage percentages at the doubled maximum. No art asset or presentation code changed.
+
+COMMON TEST COVERAGE FOR EVERY FIGHTER
+A. Each authored move against every roster target through the shared contact resolver: ally, dead and invulnerable targets must remain unchanged. 225 x 16 x 3 = 10,800 guard cases.
+B. Each ability primed at its activation boundary, including early startup hazards, mode prerequisites, companion-only actions and Jomp reservations; two owners activate simultaneously. Branch through caster forfeit, target forfeit, ordinary caster death/respawn scheduling, match result, reset and snapshot replay. Check ownership cleanup, unique clone IDs and finite actor state.
+C. Each ability in a four-seat simulation with a nearby ally and invulnerable opponent for 100 ticks. Check health, stun, traps, grabs, burn, poison and slow/loan markers. These bounded layouts verify protection policies, not every possible attack geometry.
+D. Rerun existing per-fighter tests and previous all-roster state tests for startup interruption, recovery, mode expiry while attacking/stunned, death, simultaneous deaths, round transitions and repeated reset.
+Fixture boundaries: activation fixtures bypass input cost/startup routing to reach uncommon states reliably. Those routes have separate existing tests. Forfeit tests exercise the deterministic gameplay path, not actual socket loss on physical machines.
+
+FIGHTER-BY-FIGHTER RESULTS
+
+NIKALZ — 14 definitions
+Abilities checked: Forehead combo and double-jump dive; Testada/meteor wave ownership and hit stamps; bees, box spawning/exhaustion, honey pickups and fixed-stun deadlines.
+Full move inventory: Jab [jab], Straight [straight], Cross [cross], Forehead finish [forehead], Heavy forehead hit [heavyHead], Heavy punch [heavyPunch], Low punch [low], Air punch [air], Double-jump forehead dive [foreheadDive], Testada [testada], Bees [bees], Meteor Forehead [meteor], Bee house [beeHouse], Place bee box [placeBox].
+Problems found / fixes made: No new interaction bug confirmed. Requested fighter HP changed from 1300 to 1400; box ratio adjusted so existing box health stays exactly 550.
+Tests performed: Common A–D coverage above; nikalz.test.ts; dive-stun-recovery.test.ts; shopping-mall.test.ts.
+Remaining risky interactions: Persistent swarms are intentionally bounded rather than timed out. Dense multi-owner swarms, meteor/structure contacts and simultaneous honey pickups still warrant live testing.
+
+JOPA — 11 definitions
+Abilities checked: Football bounce/contact cooldown, chess hops/stuns, tree release/tentacles, knight targeting/mounting/dismounting, allied riders and owner cleanup.
+Full move inventory: Lead punch [jab], Combo kick [comboKick], Finishing cross [cross], Heavy kick [heavyKick], Heavy punch [heavyPunch], Low punch [low], Air kick [air], Football [football], Chess Master [chess], Crying Tree [tree], Chess Knight [knight].
+Problems found / fixes made: CONFIRMED: football/chess hits granted their 3-point energy credit twice because source and owner referenced the same Fighter. Fixed by crediting the distinct owner only when source is a companion. Damage and stun are unchanged.
+Tests performed: Common A–D coverage above; jopa.test.ts; special-energy.test.ts; new football/chess/tentacle credit and allied-rider-forfeit regressions.
+Remaining risky interactions: Mount control overrides interact with pre-existing loan locks; intended priority needs design confirmation. Shared tentacle capacity is intentional in current code and can make crowded matches order-sensitive.
+
+BIEL — 15 definitions
+Abilities checked: Wine slow, delayed Coin Rain, stamp attempts/single success, loan application/repayment, flight, feathers, dive, held beam and angel expiry.
+Full move inventory: Lead punch [jab], Cross [cross], Finishing kick [kick], Heavy kick [heavyKick], Heavy punch [heavyPunch], Low punch [low], Air kick [air], Wine lover [wine], Coin Rain [coins], Selling Loan [loan], LOAN stamp [stamp], MMORPG addicted [angel], Razor Feathers [feathers], Diving Sword Strike [dive], Divine Energy Beam [divine].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; biel.test.ts; audit-fixes-20261005.test.ts.
+Remaining risky interactions: Loan repayment while mounted, grabbed or in an armored action has overlapping control owners. Leave priority rules unchanged pending design confirmation; test real latency around these boundaries.
+
+EIDE — 14 definitions
+Abilities checked: All basics, appliance variants/arcs, love NPC entrance/defeat and platform tracking, mutant attack replacements, charging and flying kick.
+Full move inventory: Lead punch [jab], Cross [cross], Finishing hook [hook], Heavy kick [heavyKick], Heavy punch [heavyPunch], Low punch [low], Air kick [air], Seller [seller], Casas Bahia [bahia], In love [love], Suco lover [mutant], Giant Punch [giantPunch], Charge [charge], Flying Kick [flyingKick].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; eide.test.ts; shopping-mall.test.ts; aeroporto-church.test.ts.
+Remaining risky interactions: Large mutant hitboxes against tiny summons and concurrent NPC entrance/destruction on moving platforms need visual checks. Love intentionally survives the casting animation while NPCs live.
+
+ASTOLFO — 11 definitions
+Abilities checked: Held talking, aura pulses, independent meter drain, spiders/poison, personality targeting, death bursts and owner cleanup.
+Full move inventory: Punch [punch], Combo kick [comboKick], Finishing punch [finishPunch], Heavy kick [heavyKick], Heavy punch [heavyPunch], Low kick [low], Air kick [air], Talking [talking], Spider collection [spider], Bipolar [bipolar], A great idea [idea].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; astolfo.test.ts; new overlapping-slow regression.
+Remaining risky interactions: A personality death and owner death on the same tick follow the current active-owner rule; do not invent a posthumous-burst rule. Dense spider sweeps and simultaneous bursts need live checks.
+
+FAUSTO — 18 definitions
+Abilities checked: Origami placement/capacity/swept trigger, cloud slow, anger stacking, ancestry replacements, charge release and swept Flash Slash.
+Full move inventory: Punch [punch], Combo kick [comboKick], Finishing punch [finishPunch], Heavy kick [heavyKick], Heavy punch [heavyPunch], Low kick [low], Air kick [air], Origami [origami], White Cloud [cloud], Ancestry [ancestry], Bravinho [bravinho], Sword slash [slash], Samurai kick [swordKick], Finishing slash [finishSlash], Charged Flash Slash [flash], Heavy sword attack [swordHeavy], Low sword slash [swordLow], Air sword slash [swordAir].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; fausto.test.ts; new overlapping-slow regression.
+Remaining risky interactions: Multiple co-located traps resolve in deterministic array order. More complex charge/house/platform contacts need live playtesting; no trap cap or dash behavior was changed.
+
+NAPA — 15 definitions
+Abilities checked: Cookie projectile, suction and structure blocking, snot slow, delayed monster summon, boss barrage/slam/chomp, poison cookies and companion ownership.
+Full move inventory: Punch [jab], Cross [cross], Combo kick [comboKick], Heavy kick [heavyKick], Heavy punch [heavyPunch], Low kick [low], Air kick [air], Cookie [cookie], Super Sniff [sniff], Cookie Monster [cookieMonster], Mega Sneeze [sneeze], Cookie Barrage [bossBarrage], Giant cookie [bossCookie], Dough Slam [bossSlam], Cookie Chomp [bossChomp].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; napa.test.ts; new overlapping-slow regression.
+Remaining risky interactions: Released companion projectiles can outlive their companion until their own lifetime or owner cleanup. Do not remove them without deciding intended posthumous-projectile behavior. Test suction near moving platforms and house ceilings.
+
+JOMP — 11 definitions
+Abilities checked: Cool Muscles armor/drain, Investida, Gym Bro target reservation/homing/reps/throw, landing stun and perfection expiry.
+Full move inventory: Punch [jab], Cross [cross], Combo kick [comboKick], Heavy kick [heavyKick], Heavy punch [heavyPunch], Low kick [low], Air kick [air], Cool Muscles [coolMuscles], Investida [investida], Gym Bro [gymBro], Body Perfections [perfection].
+Problems found / fixes made: No new confirmed bug. Existing landing cleanup fixes from the previous audit were preserved.
+Tests performed: Common A–D coverage above; jomp.test.ts; audit-charge-recovery.test.ts; combat-state-audit.test.ts.
+Remaining risky interactions: Grab reservations intentionally prevent conflicting captures. Loan/trap interactions during armor deserve design review rather than blanket cancellation. Multi-player pileups should be tested manually.
+
+DODO — 16 definitions
+Abilities checked: Power Chord, Low-profile, Pain Killers AI/basketballs, Guitar Star aura, charged soundwave, charge release and mode expiry.
+Full move inventory: Punch [jab], Combo kick [comboKick], Guitar swing [guitarSwing], Heavy guitar swing [heavy], Kick [kick], Low kick [low], Air kick [air], Power Chord [chord], Low-profile [lowProfile], Pain Killers [painKillers], Guitar Star [guitarStar], Charged soundwave [starWave], Pain Killer jab [pkJab], Pain Killer cross [pkCross], Pain Killer hook [pkFinish], Basketball throw [ball].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; dodo.test.ts; dodo-companion-jump.test.ts.
+Remaining risky interactions: Low-profile hides AI targeting but is not universal damage invulnerability. Companion projectiles retain their own lifetime. Verify large music/slow/summon combinations in live play.
+
+DRUPA — 17 definitions
+Abilities checked: Belly combo/dive, rolling and structure stop, Bald Head beam, Buda beam, transformed hitboxes and held Heaven Light.
+Full move inventory: Left jab [swing1], Right cross [swing2], Belly finish [bellyFinish], Heavy belly bump [belly], Wide swing punch [wide], Low swing [low], Air kick [air], Belly dive · 2s stun [bellyDive], Rolling [rolling], Bald head [bald], White Buda Beam · aim ↑ / ↓ [budaBeam], White Buda Transformation [buda], White Buda swing [budaSwing1], White Buda return swing [budaSwing2], White Buda finishing swing [budaFinish], Heaven light · hold to channel [budaForward], White Buda low kick [budaSky].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; drupa.test.ts; audit-charge-recovery.test.ts; combat-state-audit.test.ts.
+Remaining risky interactions: Large Buda geometry and held beams across platforms/structures are presentation-sensitive. Beam interaction with solids differs from normal projectiles; do not standardize without design direction.
+
+GUT — 20 definitions
+Abilities checked: Palm chain, hug target binding/release, held meditation, extra life, panda replacements, spear dive and final spear throw.
+Full move inventory: Final spear throw [spearThrow], Palm strike [palm], Cross punch [cross], Turning kick [finish], Heavy axe kick [axe], Wide swing punch [swing], Low sweep [crouch], Air kick [air], Unwanted touching [hug], Meditation (hold) [meditation], Immortal [immortal], Kung Fu Panda [panda], Spear thrust [thrust], Spear sweep [sweep], Driving thrust [spearFinish], Rising spear [spearHeavy], Wide spear swing [spearSwing], Low spear sweep [spearLow], Diving spear [spearDive], Air spear thrust [spearAir].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; gut.test.ts; combat-state-audit.test.ts; supers.test.ts.
+Remaining risky interactions: Extra life intentionally modifies stock count. Multi-attacker contact with a grabbed target and mode expiry during a grab should receive visual/live checks; existing rules retained.
+
+TOCHA — 11 definitions
+Abilities checked: Fire combo, fireball, pentagram tick ownership, ignition aura/trails, startup sigil, homing ultimate, ordinary/purple burn precedence.
+Full move inventory: Fire jab [jab], Fire cross [cross], Flame kick [finisher], Heavy fire kick [heavy], Double inferno [double], Low flame kick [crouch], Air flame kick [air], Fireball [fireball], Heavy Metal pentagram [pentagram], On fire [ignite], Metal Head Banging [satan].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; tocha.test.ts; fire-trail.test.ts; new independent-pentagram-clock regression.
+Remaining risky interactions: Existing poison/burn may outlive the originating caster, unlike owned arena objects. Simultaneous periodic death and effect contacts depend on frame order; changing posthumous damage requires a design decision.
+
+BOZO — 11 definitions
+Abilities checked: Beard combo/spear reach, hair-grip projectile/trap expiry, armor, three companions and clone targeting/cleanup.
+Full move inventory: Jab [jab], Cross [cross], Beard lash [beard], Heavy beard [heavy], Kick [kick], Low kick [crouch], Air kick [air], Body hair [spear], Hair grip [grip], Bunda de Pelucia [armor], Hair clones [clones].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; bozo.test.ts; audit-lifecycle.test.ts.
+Remaining risky interactions: Clones share a player owner while retaining distinct hit identities. Check crowded multi-clone collisions and traps against mounted/large targets visually.
+
+CAIO — 11 definitions
+Abilities checked: Triple jump/dash, held vanish, blood pools/flood/master/trails, dart poison, strongest-slow selection and independent status clocks.
+Full move inventory: crouch [crouch], air [air], Left punch [light], Right punch [chain2], Combo kick [chain3], Into the shadows [vanish], Heavy kick [heavy], Bloody ass [pool], Indigena [dart], Sea of ass blood [flood], Blood master [master].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; caio.test.ts; new overlapping-slow regression.
+Remaining risky interactions: Vanish is concealment, not invulnerability. Poison uses one status slot, not independent stacked instances; mixed-owner poison attribution/refresh priority should not be redesigned without explicit intent.
+
+ROMS — 17 definitions
+Abilities checked: Axe chain/return, armor, timed spin, juggling capacity and paths, expiry finale, steerable water push/damage and lower-body contacts.
+Full move inventory: Axe sweep [chop], Return swing [backhand], Finishing chop [cleave], Heavy axe [heavy], Sky axe [toss], Low axe sweep [low], Air chop [air], Heavy firefighter [gear], Axe spin [spin], Juggling [juggle], Straight throw [straight], Straight throw [straight2], Straight throw [straight3], Upward throw [up], Bouncing ball [bounce], Five-ball finale [finale], Firefighter water · aim ↑ / ↓ [water].
+Problems found / fixes made: No new confirmed bug; no ability changes.
+Tests performed: Common A–D coverage above; roms.test.ts; water-leg-hitbox.test.ts; combat-state-audit.test.ts.
+Remaining risky interactions: Finale intentionally restricts attacks for its existing duration. Projectile-pool saturation and simultaneous water/structure/grab contacts remain important live stress cases.
+
+LUIZINHO — 13 definitions
+Abilities checked: Product variants, wall support/lifetime, turret targeting/shots, marked/built house, trapping, projectile blocking and collapse.
+Full move inventory: Jab [jab], Cross [cross], Finishing kick [comboKick], Heavy kick [heavyKick], Straight punch [punch], Low kick [low], Air kick [air], Seller [seller], Wall [wall], Turret [turret], Turret cannonball [cannon], Your dream home · mark / build [home], Build the house [build].
+Problems found / fixes made: No new confirmed bug. Prior landing/daze cleanup remains intact; no structure values changed.
+Tests performed: Common A–D coverage above; luizinho.test.ts; audit-charge-recovery.test.ts; combat-state-audit.test.ts.
+Remaining risky interactions: Some ability families interact differently with friendly houses and other solids. Existing tests explicitly allow direct house destruction by any player; projectile/wave policies should not be homogenized without confirming intent.
+
+CROSS-FIGHTER INTERACTION RISKS
+- Strongest slow wins: new integration coverage combines Caio flood, Napa snot, Fausto cloud and Astolfo aura, verifies transition from 0.1 to 0.3 when the flood expires, and full restoration after leaving the areas. No multiplier changed.
+- Independent damage clocks: two Tocha pentagrams each damage on cadence and cannot duplicate their own tick when revisited. Existing burn strength precedence and poison clocks remain unchanged.
+- Shared ownership: an allied rider survives and regains movement when the knight owner forfeits. Summons, pooled projectiles and traps retain player ownership but use separate identity/hit stamps.
+- Ambiguous priority left unchanged: loan locks versus mounts/grab armor; posthumous launched projectiles or already-applied statuses; differing house/solid interaction rules across beams, waves and projectiles. These are design-review questions, not newly confirmed defects.
+- Capacity and array order are deterministic, but many players competing for global projectile/trap/summon limits can affect which new entity is admitted. No caps changed.
+- No new critical crash or desynchronization was confirmed in this pass. Passing finite tests is not an exhaustive proof of every timing combination.
+
+REGRESSION TESTS ADDED
+New tests/ability-interaction-audit.test.ts: 56 tests:
+- 48 roster-wide tests, three per fighter (10,800 guarded contacts plus 225 activation/lifecycle scenarios and 225 protected-target scenarios).
+- Football/chess once-only energy credit: two tests that failed before the fix.
+- Distinct tentacle/owner energy credit: one neighboring behavior test.
+- Requested Nikalz/bee-box health and doubled tomb/resurrection health: two tests.
+- Independent Tocha pentagram clocks, four-fighter overlapping slows, allied knight-rider release on owner forfeit: three tests.
+Updated tests/undead-visuals.test.ts damage-stage inputs for the doubled tomb health.
+
+VALIDATION
+- Full TypeScript test suite: 943 passed, 0 failed.
+- New interaction suite: 56 passed.
+- Health/undead/Nikalz focused suite at the health-change checkpoint: 110 passed.
+- Jopa/energy/interactions suite at the duplicate-credit checkpoint: 79 passed.
+- Desktop tests: 5 passed.
+- Client/shared type check, server compilation, ESLint, production client build: passed.
+- V8 / JavaScriptCore: 239 existing move/scenario traces match exactly.
+- Stress harness: 16 eight-fighter scenarios, four arenas, 57,600 ticks passed.
+
+MANUAL TESTS I SHOULD PERFORM
+1. Start a fresh match: confirm Nikalz displays 1400 HP. In 3+ player combat, eliminate a fighter and verify the tomb starts at 1000 and its cracks advance by the existing percentages before zombie resurrection.
+2. Jopa football and chess: observe meter on single hits and repeated bounces; then compare tentacle/knight hits and a teammate mounting/dismounting the knight.
+3. Combine Caio flood, Napa snot, Astolfo aura and Fausto cloud; cross their edges and expire each one while attacking/jumping. Confirm readable effects and restored movement.
+4. Destroy Jopa tree/knight, Napa monster, Nikalz boxes and Luizinho structures while other projectiles and grabs are active, including on Mall moving platforms.
+5. Two physical clients: disconnect caster and target during Gym Bro, hug, angel flight, meteor and mounted combat. Test latency/rollback near simultaneous eliminations and round transitions.
+6. All skins/transforms: visually inspect hitboxes relative to animation, ability interruption effects and audio. No rendered-frame or listening validation was performed in this simulation-focused pass.
+7. Extended 8–16 player sessions and repeated rematches without refreshing, especially projectile/summon saturation. This audit did not measure GPU/audio memory over an hours-long live soak.
+
+FINAL DIFF REVIEW
+Compared the final tracked diff with the working-tree diff saved before this audit; reviewed the edited previously-untracked files directly. Existing unrelated edits were preserved.
+Production files changed in this pass:
+- packages/game-core/simulation/JopaSystem.ts — avoid duplicate energy credit to the same fighter reference.
+- packages/game-core/characters/nikalz/character.ts — requested 1400 HP and preserve 550-HP box ratio.
+- packages/game-core/simulation/UndeadSystem.ts — requested GRAVE_HP=1000.
+- packages/shared/simulationRevision.ts — generated deterministic compatibility revision.
+Test/report files: tests/ability-interaction-audit.test.ts, tests/undead-visuals.test.ts, audits/ABILITY-INTERACTION-AUDIT-2026-10-07.txt.
+No assets, dependencies, UI, networking protocol, attack damage, cooldowns, ability durations or movement values changed. The only energy behavior change is the confirmed duplicate-credit fix. The health changes were explicitly requested during the audit.
+
+FOLLOW-UP: REQUESTED TESTS AND FIXES
+=================================
+Added 16 regression tests (one per fighter, covering all 225 moves) that activate
+an ability, deliver its owner's disconnect six frames late, replay the intervening
+simulation, and compare against an on-time departure. Verified effects are removed
+and stale post-departure input cannot mutate the state. All passed; no additional
+confirmed gameplay bug required a production-code change in this follow-up.
+
+Current verification:
+- Full TypeScript test suite: 959 passed, zero failures.
+- Focused combat/state/network/undead suite: 149 passed before new coverage.
+- Expanded ability suite: 72 passed.
+- Type check, lint, web production build and server build: passed.
+- Stress suite: 16 eight-fighter scenarios across all four arenas, 57,600 ticks.
+- Browser: Nikalz/Rooftop training, movement, confirmed basic hit (35 damage),
+  bee-box mode, training reset, pause/resume, meteor hit (409 displayed), exit to
+  menu and a second match without refresh. Jopa/Mall football and chess hits
+  registered 52 and 80 respectively. No captured browser errors or warnings.
+- Screenshot: audits/evidence/2026-10-07-mall-live.png.
+
+Diff review: no tracked production files changed during this follow-up. Only this
+existing untracked report, the existing untracked ability regression file, and the
+new screenshot were changed. Earlier Jopa energy fix and requested HP changes
+remain intact. No further balance changes.
+
+Remaining limits: automated fixtures do not replace exhaustive visual inspection
+of every skin/ability, physical-controller testing, actual multi-machine Internet
+latency/disconnect testing, listening to audio, or an hours-long GPU/resource soak.
+Grave health and resurrection were tested in simulation; this browser pass did not
+play through final death, all grave crack stages, and resurrection visually.
+
+HARDWARE / LIVE RENDERING FOLLOW-UP
+=================================
+86 targeted controller/input/audio/network tests passed. Network coverage includes
+real local WebSocket connections and simulated 0–200ms input latency with jitter;
+it does not involve a second physical computer or an Internet connection.
+Browser Controllers UI reports: No exposed controllers. Connect one and press a
+button. User hardware availability requested; no physical input was tested.
+Settings showed master volume 0; preserved without changing user preferences.
+
+Actual browser OfflineAudioContext: seven shipped-audio mix scenarios completed,
+zero clipped samples in every scenario; maximum-slider 24-impact peak -0.382 dBFS.
+This measures decoding and mix output, not perceived quality or speaker output.
+Actual SceneRenderer benchmark: 21 workloads completed (7 each at low/medium/high),
+including eight fighters, explosions, 24 zombies, and a large moving arena.
+Observed rAF averages approximately 95–100 FPS at the benchmark's 960x540 CSS
+viewport, with 95th-percentile frame intervals 10.5–11ms. Synthetic workloads,
+1s warm-up + 3s measured per case; not GPU timing or a long-duration soak.
+Neither browser diagnostic page reported captured warnings or errors.
+Evidence saved under audits/evidence/2026-10-07-{audio-mix,render-benchmark}.json
+and 2026-10-07-audio-mix.png. No game-code changes were needed.

@@ -27,7 +27,23 @@ test('dash restores body on interruption, preserves effects and shares texture l
  visual.dispose();assert.equal(disposed,true);assert.equal(textureDisposed,false);
 });
 
-test('Dodo normal skins keep the animated stride instead of a static dash overlay',()=>{
+test('Dodo uses dedicated forward and backward dash art for both skins and facings',()=>{
  const f=createFighter('dodo',1000,1);
- for(const skin of ['original','black'])for(const state of ['DashForward','DashBackward'] as const){f.state=state;assert.equal(dashVariant('dodo',skin,f),undefined);}
+ const frames=Array.from({length:6},()=>({texture:new THREE.CanvasTexture(undefined),width:150,height:120,pivot:70,referenceHeight:180}));
+ for(const skin of ['original','black']){
+  const root=new THREE.Group(),body=new THREE.Group();root.add(body);
+  const visual=new DashVisual({root,fallBodies:[body],update(f){root.scale.x=f.facing;},dispose(){}},'dodo',skin,new Map([['dodo',frames]]));
+  for(const facing of [-1,1] as const)for(const state of ['DashForward','DashBackward'] as const){
+   f.facing=facing;f.state=state;f.weaponUntil=100;visual.update(f,0);
+   const variant=dashVariant('dodo',skin,f)!;
+   assert.equal(variant.row,skin==='black'?1:0);assert.equal(variant.pose,state==='DashForward'?1:2);
+   const sprite=root.getObjectByName('dedicated-dash') as THREE.Mesh<THREE.PlaneGeometry,THREE.MeshBasicMaterial>;
+   assert.equal(sprite.material.map,frames[variant.row*3+variant.pose].texture);
+   assert.equal(sprite.rotation.z,0);assert.equal(body.visible,false);assert.equal(root.scale.x,facing);
+  }
+  f.state='HitStun';visual.update(f,0);assert.equal(body.visible,true);
+  f.state='DashForward';f.move='jab';visual.update(f,0);assert.equal(body.visible,true);f.move=null;
+  visual.dispose();
+ }
+ frames.forEach(frame=>frame.texture.dispose());
 });

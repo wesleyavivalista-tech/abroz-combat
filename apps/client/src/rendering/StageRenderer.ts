@@ -1,3 +1,4 @@
+import {addArenaApron,addArenaLightPools} from './ArenaPatina.js';
 import * as THREE from "three";
 import {buildChurchArena} from "./ChurchArena.js";
 import {buildMallArena} from "./MallArena.js";
@@ -11,6 +12,7 @@ import type {StageDefinition} from "../../../../packages/game-core/types.js";
 /** Distinct urban arenas; all decoration stays outside collision logic. */
 export class StageRenderer {
   private disposed=false;
+  private poolMaterial:THREE.ShaderMaterial;
   private movingDecks:THREE.Group[]=[];
   root = new THREE.Group();
   ready: Promise<void>;
@@ -18,6 +20,8 @@ export class StageRenderer {
     const arenaWidth=definition.width/100;
     const basketball=definition.theme==='basketball', mall=definition.theme==='mall', church=definition.theme==='church';
     this.root.position.y=definition.floorHeight/100;
+    addArenaApron(this.root,church?'church':mall?'mall':basketball?'basketball':'rooftop');
+    this.poolMaterial=addArenaLightPools(this.root,church?'church':mall?'mall':basketball?'basketball':'rooftop');
     this.ready = new THREE.TextureLoader().loadAsync(definition.artwork ?? "/art/rooftop-city-v1.png").then(texture => {
       if(this.disposed){texture.dispose();return;}
       texture.colorSpace = THREE.SRGBColorSpace;
@@ -182,6 +186,7 @@ export class StageRenderer {
     this.root.clear();
   }
   update(tick: number): void {
+    this.poolMaterial.uniforms.time.value=tick/60;
     this.movingDecks.forEach((deck,i)=>{const p=this.definition.platforms![i];deck.position.x=(platformX(p,tick)+p.width/2-this.definition.width/2)/100;});
   }
 }

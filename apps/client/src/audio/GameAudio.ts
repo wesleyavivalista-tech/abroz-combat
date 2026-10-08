@@ -1,3 +1,5 @@
+import {FINAL_DEATH_FRAMES} from '../../../../packages/game-core/simulation/UndeadSystem.js';
+import {COUNTDOWN_BEAT_FRAMES} from '../../../../packages/game-core/simulation/MatchIntro.js';
 import type {CombatEvent,SimulationSnapshot} from '../../../../packages/game-core/types.js';
 import type {GameplayEvent} from '../../../../packages/game-core/combat/GameplayEvents.js';
 import {characters} from '../../../../packages/game-core/characters/registry.js';
@@ -11,10 +13,17 @@ interface Observed {meter:number;health:number;lives:number;poison:boolean;slow:
 export class GameAudio {
   private previous:Observed[]=[];
   private presence=new Map<string,AudioPresence>();
+  private deathCues=new Set<string>();private lastDeathVoice=-Infinity;private undeadPhases=new Map<number,string>();
   private phase='';private countdown=-1;private resultPlayed=false;
   constructor(private audio:AudioManager){}
-  reset():void{this.previous=[];this.presence.clear();this.phase='';this.countdown=-1;this.resultPlayed=false;this.audio.resetMatch();}
-  consume(s:SimulationSnapshot,events:readonly CombatEvent[],journal:readonly GameplayEvent[],arena:string,width:number,localSeats:number[],confirmed=true,musicMode:'match'|'championship'|'championship-final'|'party'='match'):void{
+  reset():void{this.deathCues.clear();this.lastDeathVoice=-Infinity;this.undeadPhases.clear();this.previous=[];this.presence.clear();this.phase='';this.countdown=-1;this.resultPlayed=false;this.audio.resetMatch();}
+  consume(s:SimulationSnapshot,events:readonly CombatEvent[],journal:readonly GameplayEvent[],arena:string,width:number,localSeats:number[],confirmed=true,musicMode:'match'|'championship'|'championship-final'|'party'='match',confirmedFrame=Infinity):void{
+    const deaths=(s.finalDeaths??[]).filter(d=>d.frame<=confirmedFrame&&!this.deathCues.has(`${d.frame}:${d.seat}`));
+    if(deaths.length){for(const d of deaths)this.deathCues.add(`${d.frame}:${d.seat}`);if(deaths[0].frame-this.lastDeathVoice>=FINAL_DEATH_FRAMES){this.lastDeathVoice=deaths[0].frame;this.audio.play('final_death',{eventId:`dead:${deaths[0].frame}`});this.audio.announce?.('DEAD.');this.audio.duck('ko');}}
+    if(this.deathCues.size>64)this.deathCues=new Set([...this.deathCues].slice(-32));
+    const phases=new Map<number,string>();
+    for(const c of s.clones)if(c.undead){phases.set(c.id,c.fighter.undead!);if(c.fighter.undead==='rising'&&this.undeadPhases.get(c.id)==='grave')this.audio.play('grave_break',{eventId:`grave:${c.id}:${c.undead.phaseAt}`,x:c.fighter.x,width});}
+    this.undeadPhases=phases;
     const play=(key:string,actor:number,id:string,x?:number)=>{
       const fighter=s.fighters[actor];
       this.audio.play(characterSounds[fighter?.characterId]?.[key]??key,{eventId:id,x:x??fighter?.x,width});
@@ -40,8 +49,8 @@ export class GameAudio {
       }
       if(e.type==='DamageApplied'&&(e.amount??0)>0&&!e.blocked&&(e.source!==undefined||!blocks.has(e.actor))){
         const profile=e.source===undefined?undefined:moveAudio(s.fighters[e.source]?.characterId,e.move??'');
-        const status=e.move?.startsWith('@')?`${s.fighters[e.source!]?.characterId}.${e.move.slice(1)}`:undefined;
-        const amount=e.amount??0;play(status??profile?.impact??(amount>=400?'ground_slam':specialHits.has(e.actor)?'hit_special':amount>=130?'hit_heavy':'hit_light'),e.actor,`damage:${e.id}`,e.detail.startsWith('summon ')?s.clones.find(c=>`summon ${c.id}`===e.detail)?.fighter.x:undefined);
+        const status=e.move==='@zombie-claw'?'undead_hit':e.move?.startsWith('@')?`${s.fighters[e.source!]?.characterId}.${e.move.slice(1)}`:undefined;
+        const amount=e.amount??0;play(status??profile?.impact??(amount>=400?'ground_slam':specialHits.has(e.actor)?'hit_special':amount>=130?'hit_heavy':'hit_light'),e.actor,`damage:${e.id}`,e.x??(e.detail.startsWith('summon ')?s.clones.find(c=>`summon ${c.id}`===e.detail)?.fighter.x:undefined));
       }
     }
     for(const e of events){
@@ -85,11 +94,11 @@ export class GameAudio {
     });
     if(s.phase==='intro'){
       if(this.phase!=='intro'){this.countdown=-1;this.resultPlayed=false;}
-      const beat=Math.floor(s.phaseFrame/60);
-      if(beat!==this.countdown&&beat<3){this.audio.play('countdown',{eventId:`count:${s.frame-beat*60}:${beat}`});this.countdown=beat;}
+      const beat=Math.floor(s.phaseFrame/COUNTDOWN_BEAT_FRAMES);
+      if(beat!==this.countdown&&beat<3){this.audio.play(`countdown_${3-beat}`,{eventId:`count:${s.frame-s.phaseFrame}:${beat}`});this.audio.duck('voice');this.countdown=beat;}
       this.audio.setMusic('intro',arena);
     }else if(s.phase==='fight'){
-      if(this.phase==='intro')this.audio.play('round_start',{eventId:`start:${s.frame}`});
+      if(this.phase==='intro'){this.audio.play('round_start',{eventId:`start:${s.frame}`});this.audio.duck('voice');}
       const remaining=s.fighters.filter(f=>f.lives>0);
       const final=!s.training&&remaining.length<=2&&remaining.every(f=>f.lives===1);
       const deciding=s.tournament?.wins.some(w=>w>=2);
@@ -102,8 +111,8 @@ export class GameAudio {
   }
 }
 export function screenMusic(screen:string):MusicState{
-  if(screen.includes('championship'))return 'championship';
-  if(screen.includes('elimination'))return 'party';
+  // Bracket and party setup screens share menu music; combat selects its own score.
+  if(screen.includes('championship')||screen.includes('elimination'))return 'menu';
   if(['select','stage','roster','loading','lobby','local-match-setup'].includes(screen))return 'selection';
   return 'menu';
 }

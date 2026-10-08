@@ -19,7 +19,7 @@ const moves={
  budaForward:move('budaForward',{displayName:'Heaven light · hold to channel',cancelRules:[],startupFrames:60,activeFrames:1560,recoveryFrames:22,damage:34,hitboxes:[],beam:{initialAim:-18,width:300,originY:900,originX:330,interval:12,downward:true,continuous:true,holdButton:Button.Medium}}),
  budaSky:move('budaSky',{displayName:'White Buda low kick',cancelRules:[],level:'low',startupFrames:12,activeFrames:8,recoveryFrames:18,damage:196,knockback:20,hitboxes:[{x:15,y:15,w:285,h:95}]}),
 };
-export const character:CharacterDefinition={id:'drupa',displayName:'DRUPA',description:'Belly & light · 1.75 m',color:'#965cce',skins:[{id:'original',name:'Varsity'},{id:'purple',name:'Heavyweight purple'}],stats:{maxHealth: 1600,walkSpeed:4,backwardSpeed:3,jumpVelocity:21,gravity:1,weight:130},moves,
+export const character:CharacterDefinition={id:'drupa',displayName:'DRUPA',description:'Belly & light · 1.75 m',color:'#965cce',skins:[{id:'original',name:'Varsity'},{id:'purple',name:'Heavyweight purple'}],stats:{maxHealth: 1500,walkSpeed:4,backwardSpeed:3,jumpVelocity:21,gravity:1,weight:130},moves,
  basicAttacks:{chain:['swing1','swing2','bellyFinish'],heavy:'belly',kick:'wide',crouch:'low',air:'air',doubleJumpHeavy:'bellyDive'},
  weaponAttacks:{chain:['budaSwing1','budaSwing2','budaFinish'],heavy:'budaForward',kick:'budaSky',crouch:'budaSwing1',air:'budaSwing1'},
  weaponModifiers:{speed:.8,damageTaken:.3,bodyScale:3,basicsOnly:true,label:'WHITE BUDA'},

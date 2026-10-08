@@ -24,3 +24,17 @@ export function contentPolicy(wsURL){
  const connect=wsURL?new URL(wsURL).origin:'';
  return `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self' ${connect}; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none'`;
 }
+/** Packaged online editions must never silently ship a local development relay. */
+export function releaseEndpoint(value,offline=false){
+ if(offline)return '';
+ try{
+  const url=new URL(value);
+  const host=url.hostname.toLowerCase();
+  if(url.protocol!=='wss:'||url.username||url.password||host==='localhost'||host.endsWith('.localhost')||host==='[::1]'||host==='0.0.0.0'||host.startsWith('127.'))throw Error();
+  return url.href;
+ }catch{throw Error('Set VITE_WS_URL to a non-loopback production WSS server, or pass --offline.');}
+}
+export function desktopTitle(name,version,buildVersion){
+ const clean=value=>String(value??'').replace(/[\r\n\t]/g,' ').slice(0,100);
+ return `${name} — v${clean(version)}${buildVersion&&buildVersion!==version?` · ${clean(buildVersion)}`:''}`;
+}
