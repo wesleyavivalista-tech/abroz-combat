@@ -1,8 +1,20 @@
 ABROZ COMBAT — deployment handoff
 
-Status: deployment in progress. Fly app abroz-combat reserved; Cloudflare authenticated.
+Status (2026-10-08): browser beta and multiplayer deployed from aa63456.
+Browser: https://abroz-combat.pages.dev
+Server: wss://abroz-combat.fly.dev (health: HTTPS /healthz)
+Fly: exactly one performance-1x / 2048 MB Machine in gru, health passing.
+Cloudflare Pages deployment: f1a3f265; 1360 files uploaded.
 Owner confirmed billing and domain abrozcombat.com, currently using GoDaddy DNS.
-Provider addresses will be verified before DNS cutover. Signing identities remain pending.
+Custom domain/DNS cutover, R2 downloads, signing and real-device QA remain pending.
+Cloudflare's 16 official skills and authenticated MCP are installed; restart the
+Codex app to load that MCP connection before continuing domain/account setup.
+No optional cf CLI installed; Wrangler 4.148.0 is authenticated.
+Verification: 1108 TS tests, 11 desktop/deployment checks, typecheck and lint passed.
+Production browser build and remote Docker build passed. Eight hosted WebSocket
+clients agreed on 600 combat frames and cleaned all rooms/connections. Public
+browser main menu, fighter/arena selection and actual room creation verified;
+no captured browser warnings/errors. Local 64-client test also passed.
 The agent handles technical configuration after authorization; these commands are
 an operator runbook, not a request for the owner to edit files or run commands.
 
