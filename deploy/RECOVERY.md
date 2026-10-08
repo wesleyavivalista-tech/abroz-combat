@@ -3,8 +3,8 @@
 ## Boundaries
 
 One Fly machine owns all online room, match and tournament state. The recovery
-candidate below adds reservations and durable checkpoints without a replica.
-Until that candidate is deployed, production restarts restore service, not matches.
+release below adds reservations and durable checkpoints without a replica.
+Recovery remains conditional on the freshness and availability of the checkpoint.
 Do not add replicas without room routing; local volume storage is not failover.
 
 ## First response (read-only)
@@ -59,8 +59,8 @@ operator must explicitly accept match loss and communicate it.
 
 ## Crash, hang or OOM recovery
 
-If automatic restart succeeds, verify a fresh private match and counts; lost
-matches cannot be restored. If retries repeat/exhaust, inspect the root cause
+If automatic restart succeeds, verify recovery and a fresh private match and counts.
+Without a valid checkpoint, lost matches cannot be restored. If retries repeat/exhaust, inspect the root cause
 and choose the last compatible release. For a hang, preserve diagnostics before
 an operator-authorized restart. Do not endlessly restart a deterministic fault.
 A provider outage has no configured application failover: communicate status,
@@ -84,7 +84,7 @@ tournament departure and drain/deploy. Record service recovery time and match
 loss, verify menu escape and fresh-room creation, and check room/socket counts.
 Test rollback with matching client versions. Never run these drills on production.
 
-## Recovery candidate (not enabled in production by source changes)
+## Recovery release
 
 `ABROZ_RECOVERY_ENABLED=1` enables optional recovery for clients advertising
 `recovery:1` when creating/joining rooms. Without that setting existing behavior
@@ -130,3 +130,31 @@ Local rehearsal coverage includes controlled child-process crash/restart,
 process suspension/continuation, capacity rejection/cleanup, neutral input,
 automatic client retry/cancel, credential ownership, tournament resume and
 checkpoint freshness/corruption. No production failure is used for validation.
+
+## Deployment verified — 2026-10-08
+
+- Game/network source a037157; compatibility `46-8a66351b`. Browser publishing
+  commit 4002123 adds the matching download links, without simulation changes.
+- Single Fly machine `0807569c9039d8`, replacing the previous machine during the
+  guarded empty-server rollout. No additional game server remains.
+- Encrypted 1 GB volume `vol_vlym3gnldd2kgyd4` mounted at /data. Verified checkpoint
+  directory UID/GID 1000, mode 0700; state file mode 0600, updating each second.
+  Historical volume snapshots are disabled; they exceed the accepted recovery age.
+- 1,149 TypeScript tests, 20 desktop/deployment/guard tests, typecheck, lint,
+  browser build, server image and all three desktop packaging jobs passed.
+- Local crash/restart restored a real browser match and movement input. Absent
+  opponent expired to the victory screen; returning home cleared the room.
+  Serialized replay also matched in eight-player groups across the whole roster
+  and all four arenas. Production servers were not crashed for testing.
+- Production private-room create/join/start/reconnect/leave smoke passed. Its
+  reconnect replaced a half-open transport; neutral continuation after detected
+  disconnection is covered locally. Final health returned zero rooms/connections.
+- All five published installer/checksum/notes links returned 200. Both Mac DMG
+  checksums passed verification; packaged ARM64 assets contain the expected
+  simulation revision and production backend. Windows/macOS installers remain
+  unsigned, and actual installation on each OS still requires manual QA.
+- The Windows link includes a version query to avoid an edge-cached pre-upload
+  404. Do not probe unpublished object paths before uploads finish; a negative
+  response can be cached even after the object exists.
+- Fly reported a lease-clear warning for the replaced machine ID; inventory and
+  health confirmed the old machine was gone and the single replacement healthy.
