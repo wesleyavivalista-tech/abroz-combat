@@ -1,0 +1,47 @@
+[
+  {
+    "bundle": "Abroz Combat Audit 2026-10-08.app",
+    "exit": 1,
+    "diagnostic": "APP: code has no resources but signature indicates they must be present"
+  },
+  {
+    "bundle": "Abroz Combat Helper (GPU).app",
+    "exit": 1,
+    "diagnostic": "APP/Contents/Frameworks/Abroz Combat Helper (GPU).app: code has no resources but signature indicates they must be present"
+  },
+  {
+    "bundle": "Abroz Combat Helper (Plugin).app",
+    "exit": 1,
+    "diagnostic": "APP/Contents/Frameworks/Abroz Combat Helper (Plugin).app: code has no resources but signature indicates they must be present"
+  },
+  {
+    "bundle": "Abroz Combat Helper (Renderer).app",
+    "exit": 1,
+    "diagnostic": "APP/Contents/Frameworks/Abroz Combat Helper (Renderer).app: code has no resources but signature indicates they must be present"
+  },
+  {
+    "bundle": "Abroz Combat Helper.app",
+    "exit": 1,
+    "diagnostic": "APP/Contents/Frameworks/Abroz Combat Helper.app: code has no resources but signature indicates they must be present"
+  },
+  {
+    "bundle": "Electron Framework.framework",
+    "exit": 1,
+    "diagnostic": "APP/Contents/Frameworks/Electron Framework.framework: code has no resources but signature indicates they must be present"
+  },
+  {
+    "bundle": "Mantle.framework",
+    "exit": 1,
+    "diagnostic": "APP/Contents/Frameworks/Mantle.framework: code has no resources but signature indicates they must be present"
+  },
+  {
+    "bundle": "ReactiveObjC.framework",
+    "exit": 1,
+    "diagnostic": "APP/Contents/Frameworks/ReactiveObjC.framework: code has no resources but signature indicates they must be present"
+  },
+  {
+    "bundle": "Squirrel.framework",
+    "exit": 1,
+    "diagnostic": "APP/Contents/Frameworks/Squirrel.framework: code has no resources but signature indicates they must be present"
+  }
+]

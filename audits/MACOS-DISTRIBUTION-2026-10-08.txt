@@ -1,0 +1,227 @@
+ABROZ COMBAT — DEDICATED MACOS DISTRIBUTION AUDIT
+2026-10-08 | Baseline e0e730f | macOS 26.6.2 (25G83), arm64
+Working tree was clean before this audit. No source/gameplay changes made.
+
+MACOS RELEASE BLOCKERS
+1. The produced app and nested bundles fail code-signature verification. The
+   linker ad-hoc signature is not a valid Developer ID distribution signature.
+2. No stapled notarization ticket. Gatekeeper assessment does not pass. Local
+   non-quarantined launch is not proof that a downloaded copy is installable.
+3. Only Apple Silicon has an artifact/runtime test. Do not advertise Intel or
+   Universal support on the evidence from this audit.
+4. The tested artifact is deliberately offline. If online play is advertised,
+   supply production WSS and verify real Mac/browser/Windows complete matches.
+5. Clean-user/OS, physical controller/audio/display and sleep/wake tests remain.
+   Existing-profile testing does not establish a clean-machine certification.
+
+CRITICAL MACOS ISSUES
+No new confirmed macOS gameplay crash or data-loss issue found in tested flows.
+That conclusion is limited to the build, code review and smoke coverage below.
+Signing failure remains a distribution blocker even though the local app runs.
+
+HIGH-PRIORITY ISSUES
+Invalid distribution signatures on the main app, all four helper apps and all
+four framework bundles checked. codesign --verify --strict fails for each with
+'code has no resources but signature indicates they must be present'. Deep
+verification also fails. Do not distribute this artifact as a signed release.
+The app has no notarization ticket; downloaded/quarantined launch remains open.
+Real production cross-platform gameplay and network-denial recovery are untested.
+
+MEDIUM ISSUES
+- Version/build defaults both remain 0.1.0. Set a unique ABROZ_BUILD_VERSION and
+  release version when making distributable releases.
+- Runtime inherits Electron Info.plist usage descriptions for camera, microphone,
+  audio capture and Bluetooth, plus permissive ATS/local-network defaults.
+  A declaration alone does not request access. No capture/WebBluetooth request
+  was found in game code, and permission handlers allow only fullscreen.
+  No corresponding prompt appeared during the tested flows. Revisit inherited
+  metadata before public release; do not remove Bluetooth support speculatively.
+- hardenedRuntime:true is configured, but cannot be certified on an unsigned
+  artifact. Builder defaults include JIT, unsigned executable memory and disabled
+  library validation entitlements. Validate the final signed app and helpers;
+  do not remove runtime entitlements without signed-build compatibility testing.
+- DMG is 1,469,181,769 bytes (~1.37 GiB); install needs additional disk space.
+- No automatic updater exists. Keep app identifier and profile/origin stable
+  during manual updates; version-changing and interrupted updates untested.
+
+LOW ISSUES
+Default Electron icon and empty publisher/author. Bundle display name is Abroz
+Combat, while the actual filename is abroz-combat.app. This is cosmetic, not a
+launch failure. No dedicated borderless mode or Alt+Enter binding implemented.
+
+FIXES IMPLEMENTED
+None: no confirmed macOS-specific functional bug justified changing working code.
+No gameplay, timings, dependencies, assets, Windows/browser behavior, signing
+credentials, Gatekeeper settings or OS privacy settings were modified.
+Added this audit and two evidence files only. Build artifacts are ignored by Git.
+
+MACOS BUILD RESULT
+PASS: actual production DMG build, exit 0:
+ CSC_IDENTITY_AUTO_DISCOVERY=false node scripts/desktop.mjs build --offline --mac --arm64
+This explicitly prevents signing-identity discovery for the audit; it does not
+establish that a production signing identity is available or unavailable.
+Build ran TypeScript noEmit, Vite desktop production and electron-builder.
+Output: release/Abroz Combat-0.1.0-mac-arm64.dmg
+SHA256: c29956390845a83f3c22be1ca7b8b06d243c876d653251ea46819eae9f60ccf2
+Size: 1,469,181,769 bytes. Blockmap also produced; no artifact published.
+Warnings: missing author, default Electron icon, code signing skipped.
+Existing installed dependencies were used; fresh dependency install not repeated.
+
+DMG / INSTALLED APP RESULTS
+- hdiutil verify: valid checksum. Mounted read-only without Finder auto-opening.
+- Contains abroz-combat.app and an Applications -> /Applications shortcut.
+- Copied to the current user's Applications folder under a unique audit name:
+  /Users/nicol/Applications/Abroz Combat Audit 2026-10-08.app
+  No existing installation overwritten. Volume ejected before launching the copy.
+- Verified running executable/helpers came from that installed path, outside the
+  repository. Runtime document is abroz://game/; no development server is used
+  by this artifact. Existing unrelated dev services were not stopped.
+- Main menu, fighter/opponent selection, Rooftop training load, sprites, HUD,
+  keyboard movement and a connected basic attack passed (damage counter 35).
+- Native fullscreen entered during gameplay; Ctrl+Command+F exited successfully.
+- Minimize triggered pause; restored window accepted settings navigation.
+  Focus loss also paused training; resume followed by movement/attack succeeded.
+- Changed Mute all to on, Command+Q, relaunched and observed it remained on.
+  Restored original off setting before ending the test.
+- Closing the window removed renderer while main/helper processes remained, as
+  expected for the macOS app lifecycle. Reopening recreated the main menu.
+- Command+Q twice completed; process inspection found no installed app processes
+  remaining after final Quit. No force quit/logout/shutdown was performed.
+- Test copy remains installed for further manual QA; DMG is unmounted.
+
+BUNDLE / PATH / DATA INSPECTION
+CFBundleIdentifier: com.abrozcombat.game
+Display name: Abroz Combat; executable: abroz-combat; package type: APPL.
+Version: 0.1.0. Declared minimum macOS: 13.0 (metadata, not tested minimum).
+NSHighResolutionCapable:true. Mach-O architecture check: arm64.
+ASAR allowlist contains main, policy, preload, metadata and package.json. Renderer
+assets live in Contents/Resources/game. Compared all 1,353 packaged game files
+against dist-desktop using SHA256: zero mismatches and zero unexpected files.
+No developer-home path candidates in packaged JS/JSON/CSS/HTML checked.
+No full secret/history scan repeated; earlier production audit remains reference.
+Config: offline=true, wsURL empty. Source-root and resources-root lookup avoid cwd
+assumptions. All required observed art loaded from the copied app after eject.
+
+Writable profile observed at:
+ ~/Library/Application Support/Abroz Combat
+Logs/cache/localStorage are outside the signed bundle. Log writes are bounded and
+failure-tolerant. Settings readers catch malformed values and storage errors;
+blocked-storage adapter test passed. Actual corrupt/missing on-disk profile and
+OS read-only permission cases were not induced in the user's existing profile.
+No progression/unlock save system identified. First-ever fresh-user launch is
+not claimed. No writable runtime data was intentionally placed in the bundle.
+
+ARCHITECTURES SUPPORTED
+Verified artifact: Apple Silicon arm64 only.
+Intel x86_64 and Universal are not built or runtime-tested here. Packaging can
+accept architecture targets, but this is not evidence of supported Intel Macs.
+Do not distribute the arm64 DMG as a Universal download.
+
+CODE SIGNING STATUS
+FAIL for distribution. Main codesign display reports ad-hoc/linker-signed,
+identifier Electron, no team identifier and no resource seal. No Developer ID
+identity is bound to this app. Nested verification failures are saved in
+ audits/evidence/macos-signature-checks-2026-10-08.json
+hardenedRuntime is an intended build setting only; final signed entitlements
+and all helper/framework signatures must be checked after real signing.
+No private key, certificate, credential or keychain identity was read or changed.
+
+NOTARIZATION STATUS
+NOT PERFORMED. xcrun stapler validate reports no ticket on the app.
+Installed electron-builder supports notarizeIfProvided, and its notarization
+library staples after a successful submission. No custom disabled-notarization
+setting was found. This configured capability is not a successful submission.
+Remaining release steps:
+1. Release owner supplies an existing Developer ID Application identity securely
+   and chooses a supported notarization credential/profile through the release
+   environment (never committed to the repository).
+2. Rebuild with signing enabled; do not use CSC_IDENTITY_AUTO_DISCOVERY=false.
+   Set release metadata/build ID and enable forceCodeSigning for the release job
+   so signing failure cannot silently produce a release candidate.
+3. Allow builder notarization with its supported keychain-profile or Apple API
+   credential flow; require success. No credential values belong in logs/report.
+4. Verify codesign --verify --deep --strict, stapler validate on final app, and
+   Gatekeeper assessment. Inspect final entitlements and signed nested bundles.
+5. Verify DMG integrity, notarize/staple the final distribution image as applicable
+   to the chosen release workflow, and test the actual downloaded DMG on a clean
+   Mac without removing quarantine or bypassing Gatekeeper.
+
+GATEKEEPER STATUS
+spctl --assess --type execute --verbose=2 on the installed app returns nonzero
+with the invalid-resource-signature diagnostic. Therefore this is NOT a passing
+Gatekeeper result. Local launch succeeded without a prompt in this environment;
+that does not establish behavior for an internet-downloaded quarantined copy.
+No quarantine flags, Gatekeeper policy or OS protection were changed/bypassed.
+
+PERMISSIONS / KEYBOARD / DISPLAY / AUDIO / LIFECYCLE
+No OS privacy prompts observed during launch/selection/training/settings. Renderer
+sandbox/context isolation remain on; Node integration off; trusted IPC limited.
+No camera/microphone/filesystem/input-monitoring access is needed by reviewed game
+code. Denial tests for OS privacy/network permissions were not run.
+Keyboard movement, basic hit, Escape pause path, native fullscreen shortcut and
+Command+Q exercised. Function-key media mapping, Option/Control keyboard layouts,
+held input across Command+Tab and rollover need physical keyboard testing.
+DPR-aware resize code uses logical parent sizes and refreshes renderer/composer
+pixel ratio; fullscreen screenshots showed visible aligned sprites/HUD. This is
+not a measured Retina/mixed-DPI matrix or proof for external displays. Freeform
+resize/maximize, secondary displays, refresh rates and Spaces transitions untested.
+Audio focus/source cleanup covered by automated tests; volume/mute persistence
+observed. No physical listening or output/headphone/Bluetooth switching claim.
+Sleep/wake not performed: do not treat ordinary blur as equivalent to OS sleep.
+Single-instance lock inspected; simultaneous executable launches not exercised.
+
+CONTROLLER TEST RESULTS
+Automated GamepadManager/InputManager tests passed, including simulated devices,
+ownership/reconnect and focus cleanup. No physical Xbox/PlayStation/generic pad,
+Bluetooth/wired or 6–8-pad packaged-Mac test performed in this run. No controller
+ID parity claim versus Windows is made.
+
+MACOS <-> BROWSER MULTIPLAYER RESULT
+Local real WebSocket transport integration passed for abroz://game and browser
+origins, including room/input/hash/disconnect. Line-ending compatibility regression
+passed and preserved the LF revision. This is NOT a played Mac/browser renderer
+match. Artifact is offline; deployed WSS/firewall/network interruption untested.
+
+MACOS <-> WINDOWS MULTIPLAYER RESULT
+NOT VERIFIED on two devices. Windows audit provides separate build/test evidence;
+matching deterministic revision and protocol are prerequisites, not empirical proof
+of identical outcomes in a full cross-OS match.
+
+MACOS VERSIONS VERIFIED
+macOS 26.6.2 build 25G83 on Apple Silicon only. Declared minimum 13.0 not tested.
+No Intel Mac, older macOS version or clean-machine Gatekeeper certification.
+
+TESTS PERFORMED
+Fresh this audit: 8/8 desktop tests; 67/67 platform/input/gamepad/network/audio
+tests; ESLint passed; TypeScript and Vite succeeded inside real DMG packaging.
+DMG integrity/mount/copy/eject, asset byte comparison, installed gameplay/UI,
+fullscreen, minimize/pause, settings persistence, window-close/reopen and Quit.
+The immediately preceding sync check passed all 1,067 game tests; that full suite
+was not rerun for this no-source-change audit. No new regression test needed.
+
+MANUAL MAC TESTS STILL REQUIRED
+[ ] Signed/notarized actual download, clean user/Mac, first save, declared minimum
+    macOS, Intel/Universal only if intended; install into system Applications.
+[ ] Fresh/repaired/missing/read-only/corrupt profile, reboot and version upgrades.
+[ ] Xbox/PlayStation/generic, wired/Bluetooth, identical pads, hotplug, 6–8 devices,
+    assignments through fullscreen, focus changes, menus and rematches.
+[ ] Command+Tab while holding movement/attack, Option/Control/function keys,
+    keyboard layouts/rollover; resizing/maximize, Spaces and pointer alignment.
+[ ] Retina/non-Retina mixed displays, different refresh rates, secondary fullscreen,
+    moving/unplugging displays and checking canvas/HUD coordinates.
+[ ] Audio device/headphones/Bluetooth changes, focus/minimize listening, long combat.
+[ ] Sleep/wake in menu, pause and lobby; input/audio/rendering/timers/network recovery.
+[ ] Real Mac/Mac, Mac/browser, Mac/Windows production matches through results/rematch;
+    latency, network denial, internet loss/return, version mismatch, disconnect.
+[ ] Double launch, force quit during combat, logout/shutdown, subsequent recovery.
+[ ] Long-session performance/resource usage; disk/cache growth and low disk space.
+
+FINAL DIFF REVIEW
+No tracked source modifications. Only this report and gameplay/signature evidence
+added under audits. No unrelated work overwritten, no assets deleted, no changes
+to browser/Windows builds or gameplay. Existing build/test logs remain in /tmp.
+
+FINAL VERDICT
+NOT READY FOR MACOS RELEASE
+The actual offline ARM64 DMG builds, mounts and installs a playable local app.
+Distribution signing/notarization and real-machine/platform QA remain blockers.
