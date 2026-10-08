@@ -86,7 +86,9 @@ export class RoomService {
     if (!room) throw new Error("Room not found");
     if (this.membership.get(socket) === room)
       throw new Error("Already in this room");
-    if (room.peers.length === room.capacity || room.started)
+    if (room.started)
+      throw new Error("This match has already started. Reconnecting isn’t supported yet. Return to the menu to join or create another room.");
+    if (room.peers.length === room.capacity)
       throw new Error("Room is full");
     let team = room.peers.length;
     if ((room.mode === "2v2" || room.mode === "3v3")) {

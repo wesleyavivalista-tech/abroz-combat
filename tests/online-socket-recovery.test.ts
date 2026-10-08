@@ -62,7 +62,7 @@ test('eight real sockets survive host loss; reconnect cannot duplicate a seat; s
    assert.ok(!queues.get(sockets[seat])!.some(m=>m.type==='error'));
   }
   const replacement=await connect();send(replacement,{type:'join',code:room.code,character:ids[0]});
-  const rejected=await next(replacement,'error');assert.equal(rejected.type,'error');if(rejected.type==='error')assert.match(rejected.message,/full/);
+  const rejected=await next(replacement,'error');assert.equal(rejected.type,'error');if(rejected.type==='error')assert.match(rejected.message,/match has already started/);
   assert.ok(!queues.get(replacement)!.some(m=>m.type==='room'||m.type==='start'));
   send(replacement,{type:'create',character:'gut'});const fresh=await next(replacement,'room');
   assert.equal(fresh.type,'room');if(fresh.type==='room'){assert.notEqual(fresh.code,room.code);assert.equal(fresh.seat,0);}

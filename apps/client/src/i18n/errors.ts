@@ -11,6 +11,7 @@ const errorKeys:Readonly<Record<string,MessageKey>> = {
   "Server full": "error.serverFull",
   "Room not found": "error.notFound",
   "Already in this room": "error.alreadyJoined",
+  "This match has already started. Reconnecting isn’t supported yet. Return to the menu to join or create another room.": "error.matchStarted",
   "Room is full": "error.roomFull",
   "That team is full. Choose another team or Auto balance.": "error.teamFull",
   "Match has not started": "error.notStarted",

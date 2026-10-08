@@ -540,6 +540,7 @@ export const ptBR = {
   "error.serverFull": "Servidor lotado",
   "error.notFound": "Sala não encontrada",
   "error.alreadyJoined": "Você já está nesta sala",
+  "error.matchStarted": "Esta partida já começou. Ainda não é possível se reconectar. Volte ao menu para entrar em outra sala ou criar uma nova.",
   "error.roomFull": "A sala está lotada",
   "error.teamFull": "Essa equipe está completa. Escolha outra ou Equilibrar automaticamente.",
   "error.notStarted": "A partida ainda não começou",

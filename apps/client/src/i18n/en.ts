@@ -539,6 +539,7 @@ export const en = {
   "error.serverFull": "Server full",
   "error.notFound": "Room not found",
   "error.alreadyJoined": "Already in this room",
+  "error.matchStarted": "This match has already started. Reconnecting isn’t supported yet. Return to the menu to join or create another room.",
   "error.roomFull": "Room is full",
   "error.teamFull": "That team is full. Choose another team or Auto balance.",
   "error.notStarted": "Match has not started",
