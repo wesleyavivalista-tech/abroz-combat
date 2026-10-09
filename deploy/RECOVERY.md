@@ -173,3 +173,32 @@ review: bump `PROTOCOL_VERSION` when old and new peers cannot safely interoperat
 Those paths are not automatically source-fingerprinted. Cosmetic-only releases
 may retain compatibility. Never relax exact-match room admission to accommodate
 an old installer. Retain the legacy error message alongside structured error fields.
+
+## Compatibility and controls release verified — 2026-10-08
+
+- Release 0.1.1; game build `98860c4`, browser publishing commit `d718830`,
+  compatibility `46-84932811`, protocol 46. Production Pages deployment
+  `5e0181e1.abroz-combat.pages.dev`; server image SHA256
+  `270f3ab11262d9f070337cb77361ceb86896ca2450b795bb94ee61390bd774c3`.
+- Guarded rollout confirmed zero rooms and connections twice before replacing
+  the server. The existing single machine and encrypted recovery volume remain.
+- 1,156 game tests and 22 release/desktop/deployment tests passed, along with
+  typecheck, tracked-source lint, production browser/server builds, and all
+  three native CI packaging jobs (run 37870967669). Lint excluded ignored
+  deploy/local diagnostic scripts, which contain pre-existing explicit-any uses.
+- Both Mac DMGs passed integrity verification and contain matching version,
+  compatibility and production WSS metadata. All three installers, checksums
+  and release notes were uploaded and remote size/hash metadata verified; all
+  five public download links returned HTTP 200.
+- Live browser smoke: main menu, fighter selection, arena loading/rendering,
+  movement, registered 35-damage hit, pause and return to menu passed without
+  console errors. Local production-build smoke also covered training reset,
+  resume and English/PT-BR switching.
+- Private production two-client create/join/start/disconnect/resume/leave passed.
+  A previous compatibility client was rejected with VERSION_MISMATCH. Follow-up
+  health returned zero rooms/connections. Health checks passed and the bounded
+  recent log review found no error/fatal/uncaught entries.
+- Existing desktop installations require a manual download/update to 0.1.1;
+  refresh existing browser tabs. Installers remain unsigned. Actual Windows
+  installation, physical-controller and multi-device visual/audio QA remain
+  manual checks; this smoke test does not establish exhaustive gameplay QA.
