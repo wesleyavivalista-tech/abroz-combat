@@ -202,3 +202,43 @@ an old installer. Retain the legacy error message alongside structured error fie
   refresh existing browser tabs. Installers remain unsigned. Actual Windows
   installation, physical-controller and multi-device visual/audio QA remain
   manual checks; this smoke test does not establish exhaustive gameplay QA.
+
+## Combat and permanent desktop workflow release verified — 2026-10-09
+
+- Release 0.1.2, candidate build a733271, browser publishing commit cff0e90,
+  compatibility `46-4e5ec6cc`, protocol 46. Pages deployment
+  `7452e0f9.abroz-combat.pages.dev`; server image SHA256
+  `1ac800b67f6f2b9aa67fa558fc605f86df61dfbd51a228220e36eee12035a32c`.
+- Includes bee rendering batching, execution-only Special/Ultimate armor, and
+  owned persistent entities surviving non-final life loss. Personal death/reset
+  cleanup and final-elimination cleanup remain covered by regression tests.
+- Permanent desktop workflow retains installers, checksums and compatibility
+  metadata in unpublished draft GitHub releases. Run 37993788024 passed all
+  three native packaging jobs. R2 promotion and production deployment remain
+  deliberate operator steps. No new service or billing plan was introduced.
+- 1,436 game tests passed locally and on Linux CI; final local release/desktop
+  suite passed 27 tests. Typecheck, source lint and production builds passed.
+  Linux CI container check hit Docker Hub authentication HTTP 504 twice; the
+  actual release image built successfully via Fly. Isolated compiled-server
+  two-client combat/hash/cleanup smoke passed before deployment.
+- Both CI Mac DMGs passed hdiutil integrity checks. All three installer downloads
+  from GitHub matched their checksums and metadata; full-body public R2 downloads
+  also matched SHA256. All five public download links returned HTTP 200.
+- Drain was entered only after verifying zero rooms/connections. Guarded rollout
+  preserved machine 0807569c9039d8 and its recovery volume/configuration.
+  Previous server image 270f3ab11262d9f070337cb77361ceb86896ca2450b795bb94ee61390bd774c3,
+  Pages deployment 5e0181e1 and 0.1.1 download assets remain for rollback.
+- Live private two-client combat, matching state hashes, damage, reconnect/seat
+  restoration and leave/cleanup passed. Follow-up health/ready returned zero
+  rooms/connections, and Fly health checks passed. Old compatibility was
+  rejected with VERSION_MISMATCH. Recent structured error/fatal/uncaught count: 0.
+- Live browser fighter/stage selection, rendering, movement, 35-damage hit, pause
+  and return to menu passed without console errors. A local macOS ARM64 package
+  with the matching gameplay revision launched successfully.
+- Desktop users must manually update to 0.1.2; browser users refresh. Installers
+  remain unsigned. Native Windows/Intel-Mac installation, physical controllers,
+  multi-device audio/visual and long-session QA remain manual checks.
+- The initial draft's checksum filenames were normalized after GitHub renamed
+  spaces to dots. The permanent uploader now normalizes names before upload and
+  has regression coverage. Preliminary unlinked local-candidate R2 objects under
+  beta-0.1.2-596e0e5 remain; they are not linked from the production download page.
