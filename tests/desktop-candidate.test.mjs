@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateCandidate} from '../scripts/upload-desktop-candidate.mjs';
+import {candidateAssetName,validateCandidate} from '../scripts/upload-desktop-candidate.mjs';
 const sha='a'.repeat(40),env={GITHUB_SHA:sha,ABROZ_CANDIDATE_TAG:'desktop-candidate-123-1',ABROZ_CANDIDATE_PLATFORM:'windows-x64'};
 const release={isDraft:true,targetCommitish:sha},metadata={buildVersion:sha,offline:false,wsURL:'wss://abroz-combat.fly.dev/',protocolVersion:46,contentVersion:'46-test'};
+test('checksum filenames match GitHub asset naming',()=>{assert.equal(candidateAssetName('Abroz Combat-0.1.2-win-x64.exe'),'Abroz.Combat-0.1.2-win-x64.exe');assert.equal(candidateAssetName('Abroz.Combat-0.1.2-mac-arm64.dmg'),'Abroz.Combat-0.1.2-mac-arm64.dmg');});
 test('matching draft permits each supported platform',()=>{for(const platform of ['windows-x64','macos-arm64','macos-x64'])assert.doesNotThrow(()=>validateCandidate(release,metadata,{...env,ABROZ_CANDIDATE_PLATFORM:platform}));});
 test('public releases and wrong-commit drafts cannot receive candidates',()=>{for(const r of [{...release,isDraft:false},{...release,targetCommitish:'b'.repeat(40)}])assert.throws(()=>validateCandidate(r,metadata,env));});
 test('offline, stale or incompatible build metadata fails closed',()=>{for(const m of [{...metadata,offline:true},{...metadata,buildVersion:'old'},{...metadata,wsURL:'ws://localhost'},{...metadata,contentVersion:'45-test'}])assert.throws(()=>validateCandidate(release,m,env));});

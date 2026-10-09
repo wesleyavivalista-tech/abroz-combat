@@ -1,10 +1,14 @@
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
-import {readFile,readdir,writeFile} from 'node:fs/promises';
+import {readFile,readdir,rename,writeFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import process from 'node:process';
+
+// GitHub normalizes spaces in release-asset names. Normalize before hashing
+// so downloaded files can be verified directly with the published checksum.
+export const candidateAssetName=name=>name.replaceAll(' ','.');
 
 export function validateCandidate(release,metadata,env){
  if(!/^desktop-candidate-\d+-\d+$/.test(env.ABROZ_CANDIDATE_TAG??''))throw Error('Invalid candidate tag');
@@ -21,10 +25,11 @@ export async function uploadCandidate(env=process.env){
  const suffix=platform==='windows-x64'?'win-x64.exe':platform==='macos-arm64'?'mac-arm64.dmg':'mac-x64.dmg';
  const files=(await readdir('release')).filter(name=>name.endsWith(`-${metadata.version}-${suffix}`));
  if(files.length!==1)throw Error('Expected exactly one matching installer');
- const installer=path.join('release',files[0]),hash=createHash('sha256');
+ const assetName=candidateAssetName(files[0]),installer=path.join('release',assetName),hash=createHash('sha256');
+ if(assetName!==files[0])await rename(path.join('release',files[0]),installer);
  for await(const chunk of createReadStream(installer))hash.update(chunk);
  const checksum=path.join('release',`SHA256SUMS-${platform}.txt`),manifest=path.join('release',`metadata-${platform}.json`);
- await writeFile(checksum,`${hash.digest('hex')}  ${files[0]}\n`);
+ await writeFile(checksum,`${hash.digest('hex')}  ${assetName}\n`);
  await writeFile(manifest,JSON.stringify({...metadata,platform,commit:env.GITHUB_SHA},null,2)+'\n');
  // No --clobber: concurrent jobs cannot overwrite each other's output.
  execFileSync('gh',['release','upload',env.ABROZ_CANDIDATE_TAG,installer,checksum,manifest],{stdio:'inherit'});
