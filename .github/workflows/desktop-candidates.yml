@@ -4,7 +4,26 @@ on:
 permissions:
   contents: read
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.draft.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create private draft candidate (never publish)
+        id: draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="desktop-candidate-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          gh release create "$tag" --draft --target "$GITHUB_SHA" --title "Desktop candidate ${GITHUB_SHA:0:7}" --notes "Unsigned QA builds. Not approved for public distribution. Verify all three platforms, compatibility metadata and checksums before uploading to R2."
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
   package:
+    needs: prepare
+    permissions:
+      contents: write
     environment: production
     strategy:
       fail-fast: false
@@ -37,13 +56,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck && pnpm test:desktop
       - run: pnpm build:desktop -- ${{ matrix.target }}
-      - name: Retain unsigned QA candidates (not public releases)
-        uses: actions/upload-artifact@v4
-        with:
-          name: unsigned-qa-${{ matrix.label }}-${{ github.sha }}
-          path: |
-            release/*.exe
-            release/*.dmg
-            release/*.zip
-          if-no-files-found: error
-          retention-days: 7
+      - name: Retain installers and verification metadata in draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ABROZ_CANDIDATE_TAG: ${{ needs.prepare.outputs.tag }}
+          ABROZ_CANDIDATE_PLATFORM: ${{ matrix.label }}
+        run: node scripts/upload-desktop-candidate.mjs

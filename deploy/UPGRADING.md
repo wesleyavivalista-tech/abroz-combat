@@ -39,3 +39,22 @@ cannot start. Back up the profile before any manual settings repair; do not dele
 - Rollback requires quitting and reinstalling the previous artifact. Preserve a profile backup;
   older apps may not understand newer settings. Multiplayer also needs a matching server.
 - Do not promise automatic rollback or preservation of active games across installation.
+
+## Desktop candidate storage
+
+Run the manual **Build desktop candidates** workflow for the reviewed commit.
+It creates an unpublished draft GitHub release named
+`desktop-candidate-<run-id>-<attempt>` before the three packaging jobs. Each job
+uploads its installer, platform checksum, and build/compatibility metadata.
+Drafts replace Actions artifact storage; this workflow never publishes a GitHub
+release or changes R2, download links, browser hosting, or the game server.
+Only the preparation and packaging jobs receive repository contents-write access.
+
+Before promotion, require all three jobs to pass, download all assets with
+`gh release download <tag>`, verify SHA256 and matching commit/contentVersion,
+and upload to the existing immutable R2 release prefix. Keep the previous live
+release for rollback. A partial/failed draft is not an approved release.
+If an upload partially fails, rerun **all jobs** to create a fresh attempt/draft;
+existing assets are never overwritten. Do not publish draft candidates publicly.
+Periodically review abandoned drafts and remove them only after confirming they
+are not needed for release or rollback. No automatic retention deletion is used.
