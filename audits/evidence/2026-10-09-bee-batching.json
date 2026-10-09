@@ -1,0 +1,111 @@
+{
+  "scope": "Isolated Three.js bee rendering, 960x540, 30 warmup + 120 measured frames per count. CPU p95, not full-match FPS or GPU timer query; same local in-app browser.",
+  "before": [
+    {
+      "swarms": 0,
+      "visualBees": 0,
+      "calls": 0,
+      "cpuP95": 0.20000004768371582,
+      "frameP95": 11.100000023841858,
+      "geometries": 0
+    },
+    {
+      "swarms": 10,
+      "visualBees": 180,
+      "calls": 360,
+      "cpuP95": 2.700000047683716,
+      "frameP95": 11,
+      "geometries": 180
+    },
+    {
+      "swarms": 50,
+      "visualBees": 900,
+      "calls": 1800,
+      "cpuP95": 11.199999928474426,
+      "frameP95": 11.399999976158142,
+      "geometries": 900
+    },
+    {
+      "swarms": 100,
+      "visualBees": 1800,
+      "calls": 3600,
+      "cpuP95": 31.100000023841858,
+      "frameP95": 31.40000009536743,
+      "geometries": 1800
+    },
+    {
+      "swarms": 400,
+      "visualBees": 7200,
+      "calls": 14400,
+      "cpuP95": 94.90000009536743,
+      "frameP95": 91.89999997615814,
+      "geometries": 7200
+    },
+    {
+      "swarms": 800,
+      "visualBees": 14400,
+      "calls": 28800,
+      "cpuP95": 184,
+      "frameP95": 184.29999995231628,
+      "geometries": 14400
+    }
+  ],
+  "after": [
+    {
+      "swarms": 0,
+      "visualBees": 0,
+      "calls": 0,
+      "cpuP95": 0.10000002384185791,
+      "frameP95": 11,
+      "geometries": 0
+    },
+    {
+      "swarms": 10,
+      "visualBees": 180,
+      "calls": 2,
+      "cpuP95": 0.2999999523162842,
+      "frameP95": 11,
+      "geometries": 1
+    },
+    {
+      "swarms": 50,
+      "visualBees": 900,
+      "calls": 2,
+      "cpuP95": 0.40000009536743164,
+      "frameP95": 10.899999976158142,
+      "geometries": 1
+    },
+    {
+      "swarms": 100,
+      "visualBees": 1800,
+      "calls": 2,
+      "cpuP95": 0.5,
+      "frameP95": 10.899999976158142,
+      "geometries": 1
+    },
+    {
+      "swarms": 400,
+      "visualBees": 7200,
+      "calls": 2,
+      "cpuP95": 1.3000000715255737,
+      "frameP95": 11,
+      "geometries": 1
+    },
+    {
+      "swarms": 800,
+      "visualBees": 14400,
+      "calls": 2,
+      "cpuP95": 1.5,
+      "frameP95": 11,
+      "geometries": 1
+    }
+  ],
+  "visualComparison": {
+    "fixture": "50 swarms after growing from two, plus honey, shockwave and sting sprites",
+    "channelsCompared": 921600,
+    "maxChannelDifference": 1,
+    "channelsDifferingByMoreThanOne": 0
+  },
+  "gameplayChanged": false,
+  "deployed": false
+}

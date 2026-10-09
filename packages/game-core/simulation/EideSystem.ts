@@ -1,6 +1,6 @@
 import type {Fighter,HairClone,MoveDefinition,SimulationSnapshot,StageDefinition} from '../types.js';
 import {createFighter} from './Fighter.js';
-import {isActive} from './LifeSystem.js';
+import {retainsOwnedEntities,isActive} from './LifeSystem.js';
 import {initializeProjectile} from './ProjectilePool.js';
 export const APPLIANCES=['Washing machine','Sofa','TV','Laptop','Refrigerator','Microwave','Office chair','Vacuum cleaner','Fan','Coffee machine'] as const;
 export const EIDE={npcHealth:400,mutantFrames:1200,loveSpeed:1.4,loveDamage:1.5,loveDefense:.8,loveDash:3} as const;
@@ -33,7 +33,7 @@ export function activateEide(s:SimulationSnapshot,stage:StageDefinition,f:Fighte
  f.loveMode=true;
 }
 export function keepEideNpc(c:HairClone,s:SimulationSnapshot):boolean{
- return c.kind==='blonde'&&isActive(s.fighters[c.owner])&&(c.fighter.npcDefeatedAt===undefined||s.frame-c.fighter.npcDefeatedAt<36);
+ return c.kind==='blonde'&&retainsOwnedEntities(s.fighters[c.owner])&&(c.fighter.npcDefeatedAt===undefined||s.frame-c.fighter.npcDefeatedAt<36);
 }
 export function advanceEide(s:SimulationSnapshot,stage?:StageDefinition):void{
  for(const c of s.clones)if(c.kind==='blonde'){

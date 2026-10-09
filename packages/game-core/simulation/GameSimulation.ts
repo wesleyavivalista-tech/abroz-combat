@@ -64,6 +64,7 @@ import {
 import { enter, locked, isCounterState, allowsMove } from "./StateMachine.js";
 import { createFighter as fighter } from "./Fighter.js";
 import {
+  retainsOwnedEntities,
   advanceRespawns,
   resolveKnockouts,
   isActive,
@@ -233,7 +234,7 @@ export class GameSimulation {
     dropMonsterCookies(s,this.activeStage);
     cleanupJopa(s,this.collisionStage);
     advanceEide(s,this.activeStage);
-    s.clones = s.clones.filter(c => c.undead || (isActive(c.fighter)||keepEideNpc(c,s)) && isActive(s.fighters[c.owner]));
+    s.clones = s.clones.filter(c => c.undead || (isActive(c.fighter)||keepEideNpc(c,s)) && retainsOwnedEntities(s.fighters[c.owner]));
     advanceJopa(s,this.collisionStage,(f,owner)=>{this.emit('impact',f,4,owner);this.emit('landing-dust',f,3,owner);});
     advanceStatuses(s, this.stage.width,this.stage.floorHeight);
     advanceDodo(s,this.stage.floorHeight,this.stage.width);
@@ -347,7 +348,7 @@ export class GameSimulation {
     dropMonsterCookies(s,this.activeStage);
     cleanupJopa(s,this.collisionStage);
     advanceEide(s,this.activeStage);
-    s.clones=s.clones.filter(c=>c.undead||(isActive(c.fighter)||keepEideNpc(c,s))&&isActive(s.fighters[c.owner]));
+    s.clones=s.clones.filter(c=>c.undead||(isActive(c.fighter)||keepEideNpc(c,s))&&retainsOwnedEntities(s.fighters[c.owner]));
     for (const f of s.fighters) {
       if (s.training) {
         if (

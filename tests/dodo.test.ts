@@ -24,11 +24,11 @@ test('Power Chord hits only ahead and pushes away at mid range',()=>{
  const g=game(),[f,t]=g.state.fighters;f.x=700;t.x=1000;g.step([Button.Special,0]);run(g,45);assert.ok(t.health<1600);assert.ok(t.x>1000);
  const h=game();h.state.fighters[0].x=1000;h.state.fighters[1].x=700;h.step([Button.Special,0]);run(h,45);assert.equal(h.state.fighters[1].health,1600);
 });
-test('Pain Killers creates distinct 440 health companions and removes them on owner death',()=>{
+test('Pain Killers creates distinct 440 health companions and removes them on final owner death',()=>{
  const g=game();g.step([Button.Super1,0]);run(g,25);assert.equal(g.state.clones.length,3);assert.deepEqual(g.state.clones.map(c=>c.variant),[0,1,2]);
  for(const c of g.state.clones){assert.equal(c.maxHealth,440);assert.equal(c.kind,'basketball');assert.equal(c.fighter.characterId,'dodo');}
  run(g,150);assert.ok(g.state.fighters[1].health<1400,'companions deal damage');
- g.state.fighters[0].health=0;g.step([0,0]);assert.equal(g.state.clones.length,0);
+ g.state.fighters[0].lives=1;g.state.fighters[0].health=0;g.step([0,0]);assert.equal(g.state.clones.length,0);
 });
 test('Guitar Star pulses both sides, respects teams and ends after 20 seconds including hitstop',()=>{
  const g=new GameSimulation(['dodo','gut','gut','gut'],false,undefined,[0,1,0,1]);g.state.phase='fight';g.state.fighters.forEach(f=>{f.state='Idle';f.meter=100;});

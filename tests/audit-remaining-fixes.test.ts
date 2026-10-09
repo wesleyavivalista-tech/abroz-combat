@@ -23,13 +23,13 @@ test('simultaneous lethal music pulses trade and replay identically',()=>{
  const g=game(['dodo','dodo']);g.state.frame=1;g.state.fighters.forEach(f=>{f.health=20;f.weaponUntil=1000;});
  const before=g.snapshot();advanceDodo(g.state,0);assert.deepEqual(g.state.fighters.map(f=>f.health),[0,0]);const expected=hashState(g.state);g.restore(before);advanceDodo(g.state,0);assert.equal(hashState(g.state),expected);
 });
-test('normal KO and competition forfeits clear persistent combat entities',()=>{
+test('match-ending KO and competition forfeits clear entities; ordinary loss preserves them',()=>{
  for(const mode of [false,true,'elimination'] as const){
   const g=new GameSimulation(['nikalz','gut'],false,undefined,undefined,undefined,mode);g.state.phase='fight';spawnBees(g.state,0,200,85);foreheadWave(g.state,0,200,0,290);
   if(mode)g.step([0,0],[1]);else {g.state.fighters[1].health=0;g.state.fighters[1].lives=1;resolveKnockouts(g.state);}
   assert.equal(g.state.phase,'result');assert.equal(g.state.bees?.length,0);assert.equal(g.state.foreheadWaves?.length,0);
  }
- const g=game();spawnBees(g.state,0,200,85);g.state.fighters[0].health=0;resolveKnockouts(g.state);assert.equal(g.state.bees?.length,0);
+ const g=game();spawnBees(g.state,0,200,85);g.state.fighters[0].health=0;resolveKnockouts(g.state);assert.equal(g.state.bees?.length,1);
 });
 test('generic hazard ticks attribute damage to their own source, not a victim burn',()=>{
  const g=game(['tocha','gut']);g.state.frame=1;g.state.fighters[1].burnOwner=-1;

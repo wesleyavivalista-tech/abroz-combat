@@ -1,3 +1,4 @@
+import {hasExecutionArmor} from '../combat/ExecutionArmor.js';
 import {deterministicHypot,deterministicCos} from './DeterministicMath.js';
 import {characters} from '../characters/registry.js';
 import {Button,type Fighter,type SimulationSnapshot,type StageDefinition} from '../types.js';
@@ -15,7 +16,7 @@ export function gymReserved(s:SimulationSnapshot,target:Fighter,except?:Fighter)
 export function gymTarget(s:SimulationSnapshot,f:Fighter):number{
  if(gymReserved(s,f))return -1;
  const owner=s.fighters.indexOf(f);
- return s.fighters.map((d,i)=>({d,i})).filter(({d,i})=>s.teams[i]!==s.teams[owner]&&isActive(d)&&!gymHolding(d)&&d.grappleUntil<=s.frame&&!isInvulnerable(d,s.frame)&&!gymReserved(s,d,f))
+ return s.fighters.map((d,i)=>({d,i})).filter(({d,i})=>s.teams[i]!==s.teams[owner]&&isActive(d)&&!hasExecutionArmor(d)&&!gymHolding(d)&&d.grappleUntil<=s.frame&&!isInvulnerable(d,s.frame)&&!gymReserved(s,d,f))
  .sort((a,b)=>Number((b.d.x-f.x)*f.facing>=0)-Number((a.d.x-f.x)*f.facing>=0)||deterministicHypot(a.d.x-f.x,a.d.y-f.y)-deterministicHypot(b.d.x-f.x,b.d.y-f.y)||a.i-b.i)[0]?.i??-1;
 }
 export function startJomp(s:SimulationSnapshot,f:Fighter):void{
@@ -41,7 +42,7 @@ export function advanceJomp(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   }
   if((a.gymTarget??-1)<0)continue;
   const d=s.fighters[a.gymTarget!];
-  if(!gymHolding(a)||!isActive(a)||!d||!isActive(d)||isInvulnerable(d,s.frame)||(d.grappleUntil>s.frame&&d.grappleOwner!==s.fighters.indexOf(a))||s.phase!=='fight'){release(s,a,d);continue;}
+  if(!gymHolding(a)||!isActive(a)||!d||!isActive(d)||hasExecutionArmor(d)||isInvulnerable(d,s.frame)||(d.grappleUntil>s.frame&&d.grappleOwner!==s.fighters.indexOf(a))||s.phase!=='fight'){release(s,a,d);continue;}
   a.vx=a.vy=0;a.stun=0;
   if(a.moveFrame<18&&!a.gymStartedAt)continue;
   if(!a.gymStartedAt){

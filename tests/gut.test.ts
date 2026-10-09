@@ -10,10 +10,10 @@ function run(s:GameSimulation,n:number,mask=0){for(let i=0;i<n;i++)s.step([mask,
 test('Gut has two skins and a three-press kung fu chain; heavy and wide swing are standalone',()=>{
  assert.equal(characters.gut.skins?.length,2);const s=match(),f=s.state.fighters[0];s.step([Button.Light,0]);assert.equal(f.move,'palm');run(s,3);s.step([Button.Light,0]);run(s,10);assert.equal(f.move,'cross');s.step([Button.Light,0]);run(s,14);assert.equal(f.move,'finish');run(s,70);s.step([Button.Medium,0]);assert.equal(f.move,'axe');run(s,80);s.step([Button.Heavy,0]);assert.equal(f.move,'swing');
 });
-test('Gut bear hug traps both participants for four seconds and releases; interruption frees victim',()=>{
+test('Gut bear hug traps both participants for four seconds and releases; holder death frees victim',()=>{
  const s=match(),[a,b]=s.state.fighters;a.x=800;b.x=880;a.move='hug';s.hit(0,m.hug,0,false,1);const expiry=b.grappleUntil,hp=b.health;
  assert.equal(expiry-s.state.frame,240);assert.equal(a.state,'Grappling');assert.equal(b.state,'Grappled');run(s,239,Button.Right|Button.Light);assert.equal(a.x,800);assert.equal(b.x,842);assert.ok(b.health<hp);assert.equal(b.move,null);run(s,2);assert.equal(b.grappleUntil,0);assert.notEqual(a.state,'Grappling');
- const t=match(3),[holder,victim]=t.state.fighters;holder.move='hug';t.hit(0,m.hug,0,false,1);t.hit(2,m.swing,0,false,0);run(t,1);assert.equal(victim.grappleUntil,0);
+ const t=match(3),[holder,victim]=t.state.fighters;holder.move='hug';t.hit(0,m.hug,0,false,1);holder.health=1;t.hit(2,m.swing,0,false,0);run(t,1);assert.equal(victim.grappleUntil,0);
 });
 test('grapple cannot take multiple targets or bypass guard, teams or spawn immunity',()=>{
  const s=match(3);s.state.fighters[0].move='hug';s.hit(0,m.hug,0,false,1);s.hit(0,m.hug,0,false,2);assert.equal(s.state.fighters[2].grappleUntil,0);
@@ -33,9 +33,9 @@ test('meditation heals only each two seconds held, caps health and stops on rele
  run(s,119,Button.Special2);assert.equal(f.health,770);run(s,1,Button.Special2);assert.equal(f.health,855);
  run(s,1800,Button.Special2);assert.equal(f.health,1600);
 });
-test('meditation is interrupted by hits and cannot start airborne or resume just by holding',()=>{
+test('meditation survives hits, ends on release, and cannot start airborne',()=>{
  const s=match(),f=s.state.fighters[0];f.health=500;run(s,170,Button.Special2);
- s.hit(1,m.palm,0,false,0);const hp=f.health;run(s,200,Button.Special2);assert.equal(f.health,hp);assert.notEqual(f.move,'meditation');
+ s.hit(1,m.palm,0,false,0);const hp=f.health;run(s,200,Button.Special2);assert.ok(f.health>hp);assert.equal(f.move,'meditation');
  run(s,1);f.y=100;f.state='Fall';s.step([Button.Special2,0]);assert.notEqual(f.move,'meditation');
 });
 test('extended bear hug reaches a slightly farther opponent',()=>{

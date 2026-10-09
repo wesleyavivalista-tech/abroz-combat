@@ -1,10 +1,11 @@
+import {hasExecutionArmor} from '../combat/ExecutionArmor.js';
 import {hostile} from './Actors.js';
 import {deterministicHypot} from './DeterministicMath.js';
 import {Button,type Fighter,type HairClone,type MoveDefinition,type SimulationSnapshot,type StageDefinition} from '../types.js';
 import {characters} from '../characters/registry.js';
 import {createFighter} from './Fighter.js';
 import {actors} from './Actors.js';
-import {isActive,isInvulnerable} from './LifeSystem.js';
+import {retainsOwnedEntities,isActive,isInvulnerable} from './LifeSystem.js';
 import {grounded,surfaceBelow} from './StageCollision.js';
 import {enter,locked} from './StateMachine.js';
 import {initializeProjectile} from './ProjectilePool.js';
@@ -48,7 +49,7 @@ export function advanceNapa(s:SimulationSnapshot,stage:StageDefinition):void{
   if(!isActive(f)||!m?.suction||f.moveFrame<m.startupFrames||f.moveFrame>=m.startupFrames+m.activeFrames)continue;
   for(const a of actors(s)){
    const d=a.fighter,dx=d.x-f.x,dy=d.y-f.y,distance=deterministicHypot(dx,dy);
-   if(!hostile(s,source.owner,a.fighter,a.owner)||!isActive(d)||isInvulnerable(d,s.frame)||isLowProfile(d,s.frame)||d.grappleUntil>s.frame||distance<=85||distance>m.suction.range)continue;
+   if(!hostile(s,source.owner,a.fighter,a.owner)||!isActive(d)||hasExecutionArmor(d)||isInvulnerable(d,s.frame)||isLowProfile(d,s.frame)||d.grappleUntil>s.frame||distance<=85||distance>m.suction.range)continue;
    const amount=Math.min(m.suction.strength,distance-85)/distance;
    const nextX=Math.max(40,Math.min(stage.width-40,d.x-dx*amount));
    const nextY=Math.max(surfaceBelow(stage,nextX,d.y),d.y-dy*amount);
@@ -74,7 +75,7 @@ export function cookieMonsterInput(s:SimulationSnapshot,c:HairClone,stage:StageD
 /** Call before pruning dead companions, exactly once per defeat. */
 export function dropMonsterCookies(s:SimulationSnapshot,stage:StageDefinition):void{
  for(const c of s.clones){
-  if(c.kind!=='cookie-monster'||c.fighter.health>0||!isActive(s.fighters[c.owner])||c.pattern===-1)continue;
+  if(c.kind!=='cookie-monster'||c.fighter.health>0||!retainsOwnedEntities(s.fighters[c.owner])||c.pattern===-1)continue;
   c.pattern=-1;
   let seed=(Math.imul(c.id+1,1103515245)+s.frame)>>>0;
   for(let i=0;i<5;i++){

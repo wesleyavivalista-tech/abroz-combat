@@ -38,8 +38,8 @@ test('three one-life clones pursue enemies, use basic attacks, die permanently a
 test('clone damage is not protected by training immortality, and reset clears companions',()=>{
  const s=new GameSimulation(['bozo','prototype-a'],true);summonClones(s.state,0,s.stage);const c=s.state.clones[0];s.hit(1,{...m.kick,damage:9999},0,false,0,1,s.state.fighters[1],c.fighter);assert.equal(c.fighter.health,0);s.step([0,0]);assert.equal(s.state.clones.length,2);s.resetPositions();assert.equal(s.state.clones.length,0);
 });
-test('both supers require full meter, cannot repeat, and defeat/forfeit clears effects and summons',()=>{
- for(const key of [Button.Super1,Button.Super2]){const s=match(),f=s.state.fighters[0];f.meter=99;s.step([key,0]);assert.equal(f.move,null);run(s,15);f.meter=100;s.step([key,0]);run(s,80);const id=key===Button.Super1?'armor':'clones';assert.deepEqual(f.usedSupers,[id]);f.meter=100;s.step([key,0]);assert.equal(f.move,null);f.health=0;run(s,1);assert.equal(f.armorUntil,0);assert.equal(s.state.clones.length,0);run(s,120);assert.deepEqual(f.usedSupers,[id]);}
+test('both supers require full meter, cannot repeat, and life loss clears armor, preserves summons, and forfeit clears them',()=>{
+ for(const key of [Button.Super1,Button.Super2]){const s=match(),f=s.state.fighters[0];f.meter=99;s.step([key,0]);assert.equal(f.move,null);run(s,15);f.meter=100;s.step([key,0]);run(s,80);const id=key===Button.Super1?'armor':'clones';assert.deepEqual(f.usedSupers,[id]);f.meter=100;s.step([key,0]);assert.equal(f.move,null);f.health=0;run(s,1);assert.equal(f.armorUntil,0);assert.equal(s.state.clones.length,key===Button.Super2?3:0);run(s,120);assert.deepEqual(f.usedSupers,[id]);}
  const s=match(4);summonClones(s.state,0,s.stage);s.step([0,0,0,0],[0]);assert.equal(s.state.clones.length,0);assert.equal(s.state.phase,'fight');
 });
 test('Bozo clone, armor and grip inputs converge after online rollback in 2v2 and 3v3',()=>{

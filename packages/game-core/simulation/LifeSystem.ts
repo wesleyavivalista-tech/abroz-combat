@@ -1,5 +1,5 @@
 import {FINAL_DEATH_FRAMES} from './UndeadSystem.js';
-import {clearCombatEntities,clearFighterCombat} from './CombatLifecycle.js';
+import {clearCombatEntities,clearFighterCombat,clearOwnedEntities} from './CombatLifecycle.js';
 import type { Fighter, SimulationSnapshot } from "../types.js";
 import { TICK_RATE } from "../types.js";
 import { createFighter } from "./Fighter.js";
@@ -8,6 +8,11 @@ export const RESPAWN_FRAMES = 2 * TICK_RATE;
 export const INVULNERABLE_FRAMES = 2 * TICK_RATE;
 export function isActive(f: Fighter): boolean {
   return f.lives > 0 && f.health > 0 && f.respawnAt === 0;
+}
+/** Ownership survives a lost life, including the frame before KO resolution.
+ * A pending final death cannot emit new effects before permanent cleanup. */
+export function retainsOwnedEntities(f:Fighter|undefined):boolean {
+  return !!f && f.lives>0 && (f.health>0||f.respawnAt>0||f.lives>1);
 }
 export function isInvulnerable(f: Fighter, frame: number): boolean {
   return f.undead==='rising'||f.undead==='dying'||f.jopaTree!==undefined || f.jopaRide!==undefined || frame < f.invulnerableUntil;
@@ -52,12 +57,9 @@ export function resolveKnockouts(s: SimulationSnapshot,cinematic=true): number[]
       s.finalDeaths=s.finalDeaths.filter(d=>s.frame-d.frame<=FINAL_DEATH_FRAMES);
     }
     clearFighterCombat(f);
-    s.clones = s.clones.filter(c => c.owner !== i);
-    if(s.bees)s.bees=s.bees.filter(b=>b.owner!==i);
-    if(s.foreheadWaves)s.foreheadWaves=s.foreheadWaves.filter(w=>w.owner!==i);
-    if(s.structures){s.structures=s.structures.filter(b=>b.owner!==i);for(const b of s.structures)b.trapped=b.trapped.filter(key=>key!==`seat:${i}`);}
+    if(!f.lives)clearOwnedEntities(s,i);
+    if(s.structures)for(const b of s.structures)b.trapped=b.trapped.filter(key=>key!==`seat:${i}`);
     if(f.productIndex!==undefined)f.productIndex=0;
-    s.hazards = s.hazards.filter(h => h.owner !== i || h.kind==='cookie-drop');
     f.health = 0;
     f.move = null;
     f.stun = 0;
@@ -71,7 +73,6 @@ export function resolveKnockouts(s: SimulationSnapshot,cinematic=true): number[]
     f.invulnerableUntil = 0;
     f.respawnAt = f.lives > 0 ? s.frame + RESPAWN_FRAMES : 0;
     enter(f, f.lives > 0 ? "Respawning" : "KO");
-    for (const p of s.projectiles) if (p.owner === i) p.active = false;
     lost.push(i);
   }
   if (lost.length && new Set(s.fighters.flatMap((f, i) => f.lives > 0 ? [s.teams[i]] : [])).size <= 1) {

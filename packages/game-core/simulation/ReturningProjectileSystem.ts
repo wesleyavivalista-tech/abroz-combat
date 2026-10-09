@@ -8,7 +8,7 @@ import type {Fighter,SimulationSnapshot,StageDefinition,Projectile} from '../typ
 import {characters} from '../characters/registry.js';
 import {actors} from './Actors.js';
 import {periodicHit} from '../combat/PeriodicHit.js';
-import {isActive} from './LifeSystem.js';
+import {retainsOwnedEntities} from './LifeSystem.js';
 import {targetBoxes,sweptIntersects} from '../combat/CollisionSystem.js';
 export function canSpawnReturningProjectile(s:SimulationSnapshot,owner:number,kind:string):boolean {
  const def=characters[s.fighters[owner].characterId],spec=def.returningPaths?.[kind];if(!spec)return false;
@@ -34,7 +34,7 @@ export function advanceReturningProjectiles(s:SimulationSnapshot,stage:StageDefi
   if(!p.active||!p.trajectory)continue;
   const f=s.fighters[p.owner],def=characters[f.characterId],spec=def.returningPaths?.[p.trajectory];
   if(!spec){p.active=false;continue;}
-  if(!isActive(f)||--p.life<=0){p.active=false;if(spec.weapon)f.returningWeaponOut=false;continue;}
+  if(!retainsOwnedEntities(f)||--p.life<=0){p.active=false;if(spec.weapon)f.returningWeaponOut=false;continue;}
   p.age=(p.age??0)+1;
   if(p.returning){
    const dx=f.x-p.x,dy=f.y+110-p.y,d=deterministicHypot(dx,dy);

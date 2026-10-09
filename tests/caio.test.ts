@@ -40,10 +40,10 @@ test('poison lasts 4 seconds, slows only movement and clean hits cannot poison a
   if(mode==='hit'){assert.equal(movementSlow(b,1),.8);assert.equal(attackSlow(b,1),1);g.state.frame=240;advanceBlood(g.state,g.stage);assert.equal(movementSlow(b,240),1);}
  }
 });
-test('specials spend energy, blood ignores allies and invulnerability, death clears effects',()=>{
+test('specials spend energy, blood ignores allies and invulnerability, final death clears effects',()=>{
  const g=match(),[a,b]=g.state.fighters;a.meter=24;run(g,1,Button.Special);assert.equal(a.move,null);run(g,10);a.meter=25;run(g,1,Button.Special);assert.equal(a.meter,0);run(g,20);assert.equal(g.state.hazards[0].expiresAt-g.state.frame,600);
  b.x=a.x;g.state.teams[1]=0;advanceBlood(g.state,g.stage);assert.equal(b.areaSlow,1);g.state.teams[1]=1;b.invulnerableUntil=100;advanceBlood(g.state,g.stage);assert.equal(b.areaSlow,1);
- a.bloodMasterUntil=2000;a.poisonUntil=200;a.health=0;run(g,1);assert.equal(g.state.hazards.length,0);assert.equal(a.bloodMasterUntil,0);assert.equal(a.poisonUntil,0);
+ a.bloodMasterUntil=2000;a.poisonUntil=200;a.lives=1;a.health=0;run(g,1);assert.equal(g.state.hazards.length,0);assert.equal(a.bloodMasterUntil,0);assert.equal(a.poisonUntil,0);
 });
 test('blood clocks continue through hitstop and complete snapshots replay deterministically',()=>{
  const g=match();g.state.fighters[0].meter=100;run(g,1,Button.Super1);run(g,36);const h=g.state.hazards[0];assert.equal(h.expiresAt-g.state.frame,1800);

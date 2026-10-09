@@ -1,3 +1,4 @@
+import {hasExecutionArmor} from '../combat/ExecutionArmor.js';
 import {hostile} from './Actors.js';
 import {characters} from '../characters/registry.js';
 import {Button,type Fighter,type MoveDefinition,type SimulationSnapshot,type StageDefinition} from '../types.js';
@@ -40,6 +41,7 @@ export function applyLoan(s:SimulationSnapshot,f:Fighter):void{
  f.loanUntil=s.frame+FINANCE.loanFrames;stunLoan(s,f);
 }
 function stunLoan(s:SimulationSnapshot,f:Fighter):void{
+ if(hasExecutionArmor(f))return;
  f.loanStunUntil=s.frame+FINANCE.stunFrames;f.stun=FINANCE.stunFrames;f.move=null;f.actionUntil=0;f.vx=f.vy=0;f.buffer=[];f.dazed=true;enter(f,'HitStunStanding');
 }
 /** Called only after an unblocked contact; one success consumes the whole stamp mode. */

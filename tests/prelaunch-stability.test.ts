@@ -7,7 +7,7 @@ import {Button} from '../packages/game-core/types.js';
 import {RESPAWN_FRAMES} from '../packages/game-core/simulation/LifeSystem.js';
 
 const attacks=[Button.Light,Button.Medium,Button.Heavy,Button.Special,Button.Special2,Button.Super1,Button.Super2];
-for(const id of Object.keys(characters))test(`${id}: death during attack input sequences clears owned effects and restores control`,()=>{
+for(const id of Object.keys(characters))test(`${id}: death during attack input sequences clears personal modes and restores control`,()=>{
  for(const button of attacks)for(const age of [1,20,90]){
   const g=new GameSimulation([id,'gut','drupa']);g.state.phase='fight';
   g.state.fighters.forEach((f,i)=>Object.assign(f,{state:'Idle',x:500+i*350,meter:100}));
@@ -16,8 +16,7 @@ for(const id of Object.keys(characters))test(`${id}: death during attack input s
   const lives=f.lives;f.health=0;g.step([0,0,0]);
   assert.equal(f.lives,lives-1,`${button}/${age}: KO`);
   assert.equal(f.move,null);assert.equal(f.stun,0);
-  assert.ok(!g.state.projectiles.some(p=>p.active&&p.owner===0));
-  assert.ok(!g.state.clones.some(c=>c.owner===0));
+  assert.equal(f.weaponUntil,0);assert.equal(f.armorUntil,0);assert.equal(f.onFireUntil,0);
   for(let i=0;i<RESPAWN_FRAMES+180;i++)g.step([0,0,0]);
   assert.equal(f.respawnAt,0);assert.equal(f.move,null);assert.equal(f.stun,0);
   const x=f.x;g.step([f.x<g.stage.width/2?Button.Right:Button.Left,0,0]);

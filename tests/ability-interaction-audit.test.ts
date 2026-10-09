@@ -103,7 +103,7 @@ for(const [id,c] of Object.entries(characters)){
    assert.equal(new Set(g.state.clones.map(c=>c.id)).size,g.state.clones.length);
    assert.equal(g.state.fighters[0].grappleUntil,0);
    // Ordinary death uses a respawn, whereas a disconnect forfeits the seat.
-   g.restore(snapshot);g.state.fighters[0].health=0;g.step([0,0,0,0]);ownedCleared(g,0);assert.ok(g.state.fighters[0].respawnAt);
+   g.restore(snapshot);g.state.fighters[0].health=0;g.step([0,0,0,0]);assert.equal(g.state.fighters[0].move,null);assert.equal(g.state.fighters[0].weaponUntil,0);assert.ok(g.state.fighters[0].respawnAt);
    g.restore(snapshot);g.step([0,0,0,0],[1,2,3]);assert.equal(g.state.phase,'result');
    for(let owner=0;owner<4;owner++)ownedCleared(g,owner);
    g.resetPositions();for(let owner=0;owner<4;owner++)ownedCleared(g,owner);

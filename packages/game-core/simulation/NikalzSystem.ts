@@ -4,7 +4,7 @@ import {recordGameplayEvent} from '../combat/GameplayEvents.js';
 import {Button,type Fighter,type MoveDefinition,type SimulationSnapshot,type StageDefinition,type BeeSwarm} from '../types.js';
 import {bufferedButton} from '../input/InputBuffer.js';
 import {actors} from './Actors.js';
-import {isActive,isInvulnerable} from './LifeSystem.js';
+import {retainsOwnedEntities,isActive,isInvulnerable} from './LifeSystem.js';
 import {surfaceBelow} from './StageCollision.js';
 import {enter} from './StateMachine.js';
 import {periodicHit} from '../combat/PeriodicHit.js';
@@ -74,11 +74,11 @@ export function advanceNikalz(s:SimulationSnapshot,stage:StageDefinition):void{
   }
  }
  for(const b of s.structures??[]){
-  if(b.kind!=='bee-box'||b.phase!=='built'||!isActive(s.fighters[b.owner])||s.frame<b.nextShot)continue;
+  if(b.kind!=='bee-box'||b.phase!=='built'||!retainsOwnedEntities(s.fighters[b.owner])||s.frame<b.nextShot)continue;
   if(b.shots<NIKALZ.boxSpawnLimit){spawnBees(s,b.owner,b.x,b.y+50,b);b.shots++;b.nextShot=s.frame+NIKALZ.spawnInterval;}
   if(b.shots>=NIKALZ.boxSpawnLimit)damageStructure(s,b,b.health,'bee-box-exhausted',0,stage);
  }
- s.bees=(s.bees??[]).filter(b=>isActive(s.fighters[b.owner]));
+ s.bees=(s.bees??[]).filter(b=>retainsOwnedEntities(s.fighters[b.owner]));
  for(const b of s.bees){
   const old={x:b.x,y:b.y};Object.assign(b,beePosition(b,s.frame));b.x=Math.max(25,Math.min(stage.width-25,b.x));
   const target=actors(s).find(a=>hostile(s,b.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isInvulnerable(a.fighter,s.frame)&&a.fighter.x>=Math.min(old.x,b.x)-55&&a.fighter.x<=Math.max(old.x,b.x)+55&&a.fighter.y<b.y+30&&a.fighter.y+150>b.y-30);
@@ -97,7 +97,7 @@ export function advanceNikalz(s:SimulationSnapshot,stage:StageDefinition):void{
   }
   for(const b of s.structures??[])if(b.phase==='built'&&s.teams[b.owner]!==s.teams[w.owner]&&Math.abs(b.x-w.x)<=radius&&Math.abs(b.x-w.x)>=previousRadius&&Math.abs(b.y-w.y)<260)damageStructure(s,b,w.meteor?meteorDamage(Math.abs(b.x-w.x),w.range):NIKALZ.shockDamage,`forehead:${w.owner}:${w.born}`,0,stage);
  }
- s.foreheadWaves=(s.foreheadWaves??[]).filter(w=>isActive(s.fighters[w.owner])&&s.frame-w.born<Math.ceil(w.range/w.speed)+(w.meteor?100:35));
+ s.foreheadWaves=(s.foreheadWaves??[]).filter(w=>retainsOwnedEntities(s.fighters[w.owner])&&s.frame-w.born<Math.ceil(w.range/w.speed)+(w.meteor?100:35));
  for(const h of s.hazards){
   if(h.kind!=='honey'||s.frame-(h.createdAt??0)<24)continue;
   const seat=s.fighters.findIndex(f=>isActive(f)&&!isInvulnerable(f,s.frame)&&Math.abs(f.x-h.x)<40&&Math.abs(f.y-h.y)<50);

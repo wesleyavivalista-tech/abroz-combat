@@ -5,6 +5,24 @@ import {worldX} from './StageCoordinates.js';
 type Icon='box'|'bee'|'honey'|'wood'|'crack'|'wave'|'bar'|'dust'|'rock'|'crater'|'streak';
 export class NikalzEffects{
  root=new THREE.Group();private textures=new Map<Icon,THREE.CanvasTexture>();private meshes:THREE.Mesh<THREE.PlaneGeometry,THREE.MeshBasicMaterial>[]=[];private used=0;
+ private swarmMesh?:THREE.InstancedMesh<THREE.PlaneGeometry,THREE.MeshBasicMaterial>;
+ private beeTransform=new THREE.Object3D();
+ private prepareSwarms(count:number){
+  if(!this.swarmMesh){
+   const mesh=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:this.texture('bee'),transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide}),Math.max(32,2**Math.ceil(Math.log2(Math.max(1,count)))));
+   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+   // Positions change every frame; a stale batch bounding sphere can hide live bees.
+   mesh.frustumCulled=false;
+   // Sort the batch at the original sprite depth, alongside the other effects.
+   mesh.position.z=.36;this.swarmMesh=mesh;this.root.add(mesh);
+  }else if(count>this.swarmMesh.instanceMatrix.count){
+   // Keep the object/material identity (and transparent draw order), but release
+   // the old GPU instance buffer before replacing it with a larger reusable one.
+   this.swarmMesh.dispose();
+   this.swarmMesh.instanceMatrix=new THREE.InstancedBufferAttribute(new Float32Array(2**Math.ceil(Math.log2(count))*16),16).setUsage(THREE.DynamicDrawUsage);
+  }
+  if(this.swarmMesh){this.swarmMesh.count=count;this.swarmMesh.visible=count>0;}
+ }
  private texture(kind:Icon){
   const cached=this.textures.get(kind);if(cached)return cached;
   const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d')!;x.lineWidth=3;x.lineJoin='round';x.strokeStyle='#423523';
@@ -40,8 +58,17 @@ export class NikalzEffects{
  }
  update(s:SimulationSnapshot,menu:boolean){
   this.root.visible=!menu;this.used=0;
+  this.prepareSwarms(menu?0:(s.bees?.length??0)*18);
   if(!menu){
-   for(const b of s.bees??[]){for(let i=0;i<18;i++){const a=s.frame*.0275+i*2.399+b.id,r=12+(i%5)*7;const flap=.7+.3*Math.abs(Math.sin(s.frame*.9+i));this.draw('bee',b.x+Math.cos(a)*r,b.y+Math.sin(a*1.17)*r*.65,10+(i%3)*2,(8+(i%3))*flap,Math.sin(a)*.16);}}
+   let instance=0;
+   for(const b of s.bees??[]){for(let i=0;i<18;i++){
+    const a=s.frame*.0275+i*2.399+b.id,r=12+(i%5)*7,flap=.7+.3*Math.abs(Math.sin(s.frame*.9+i));
+    const transform=this.beeTransform;
+    transform.position.set(worldX(b.x+Math.cos(a)*r),(b.y+Math.sin(a*1.17)*r*.65)/100,0);
+    transform.scale.set((10+(i%3)*2)/100,((8+(i%3))*flap)/100,1);transform.rotation.z=Math.sin(a)*.16;transform.updateMatrix();
+    this.swarmMesh!.setMatrixAt(instance++,transform.matrix);
+   }}
+   if(instance)this.swarmMesh!.instanceMatrix.needsUpdate=true;
    for(const b of s.structures??[]){
     if(b.kind!=='bee-box')continue;
     if(b.phase==='built'){
@@ -114,5 +141,5 @@ export class NikalzEffects{
   }
   for(let i=this.used;i<this.meshes.length;i++)this.meshes[i].visible=false;
  }
- dispose(){for(const m of this.meshes){m.geometry.dispose();m.material.dispose();}this.textures.forEach(t=>t.dispose());this.root.clear();}
+ dispose(){if(this.swarmMesh){this.swarmMesh.dispose();this.swarmMesh.geometry.dispose();this.swarmMesh.material.dispose();this.swarmMesh=undefined;}for(const m of this.meshes){m.geometry.dispose();m.material.dispose();}this.textures.forEach(t=>t.dispose());this.root.clear();}
 }

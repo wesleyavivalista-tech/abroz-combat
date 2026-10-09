@@ -5,7 +5,7 @@ import {Button,type Fighter,type HairClone,type MoveDefinition,type SimulationSn
 import {characters} from '../characters/registry.js';
 import {createFighter} from './Fighter.js';
 import {actors} from './Actors.js';
-import {isActive} from './LifeSystem.js';
+import {retainsOwnedEntities,isActive} from './LifeSystem.js';
 import {grounded,surfaceBelow} from './StageCollision.js';
 import {enter,locked} from './StateMachine.js';
 import {consumeButtons} from '../input/InputBuffer.js';
@@ -24,14 +24,14 @@ function summon(s:SimulationSnapshot,stage:StageDefinition,owner:number,kind:'tr
  const c:HairClone={id:s.nextCloneId++,owner,fighter:f,kind,maxHealth:f.health,nextAction:s.frame+(kind==='tree'?180:45),bornAt:s.frame};s.clones.push(c);return c;
 }
 function spawnTentacle(s:SimulationSnapshot,stage:StageDefinition,owner:number,x:number,y:number):void{
- if(s.clones.filter(c=>c.kind==='tentacle'&&isActive(c.fighter)&&isActive(s.fighters[c.owner])).length<JOPA.maxTentacles)summon(s,stage,owner,'tentacle',x,y);
+ if(s.clones.filter(c=>c.kind==='tentacle'&&isActive(c.fighter)&&retainsOwnedEntities(s.fighters[c.owner])).length<JOPA.maxTentacles)summon(s,stage,owner,'tentacle',x,y);
 }
 function mount(s:SimulationSnapshot,c:HairClone,seat:number):void{
  const f=s.fighters[seat];c.rider=seat;f.jopaRide=c.id;f.move=null;f.stun=0;f.vx=f.vy=0;f.buffer=[];f.grappleUntil=f.trappedUntil=0;syncRider(s,c);
 }
 function release(s:SimulationSnapshot,c:HairClone,stage:StageDefinition):void{
  if(c.rider===undefined)return;const f=s.fighters[c.rider];
- delete f.jopaRide;f.x=clamp(c.fighter.x+c.fighter.facing*135,stage);f.y=Math.max(stage.floorHeight,c.fighter.y+30);f.vy=5;f.vx=0;f.move=null;f.buffer=[];enter(f,'Fall');delete c.rider;c.nextAction=s.frame+45;
+ delete f.jopaRide;if(isActive(f)){f.x=clamp(c.fighter.x+c.fighter.facing*135,stage);f.y=Math.max(stage.floorHeight,c.fighter.y+30);f.vy=5;f.vx=0;f.move=null;f.buffer=[];enter(f,'Fall');}delete c.rider;c.nextAction=s.frame+45;
 }
 function syncRider(s:SimulationSnapshot,c:HairClone):void{
  if(c.rider===undefined)return;const f=s.fighters[c.rider],k=c.fighter;f.x=k.x-35*k.facing;f.y=k.y+115;f.facing=k.facing;f.vx=f.vy=0;f.move=null;enter(f,'Idle');
@@ -53,10 +53,10 @@ export function cleanupJopa(s:SimulationSnapshot,stage:StageDefinition):void{
  for(const c of [...s.clones]){
   if(!c.fighter.jopaSummon)continue;
   if(c.kind==='tree'&&s.frame-(c.bornAt??s.frame)>=JOPA.treeLifetime)c.fighter.health=0;
-  if(isActive(c.fighter)&&isActive(s.fighters[c.owner]))continue;
+  if(isActive(c.fighter)&&retainsOwnedEntities(s.fighters[c.owner]))continue;
   if(c.kind==='tree'&&c.pattern!==-1){
-   c.pattern=-1;(s.treeDeaths??=[]).push({id:c.id,x:c.fighter.x,y:c.fighter.y,facing:c.fighter.facing,startedAt:s.frame});const f=s.fighters[c.owner];delete f.jopaTree;
-   if(isActive(f)){f.move=null;f.buffer=[];enter(f,'Idle');for(let i=0;i<5;i++)spawnTentacle(s,stage,c.owner,c.fighter.x+(i-2)*100,c.fighter.y);}
+   c.pattern=-1;(s.treeDeaths??=[]).push({id:c.id,x:c.fighter.x,y:c.fighter.y,facing:c.fighter.facing,startedAt:s.frame});const f=s.fighters[c.owner],possessed=f.jopaTree===c.id;if(possessed)delete f.jopaTree;
+   if(possessed&&isActive(f)){f.move=null;f.buffer=[];enter(f,'Idle');}if(retainsOwnedEntities(f)){for(let i=0;i<5;i++)spawnTentacle(s,stage,c.owner,c.fighter.x+(i-2)*100,c.fighter.y);}
   }
   if(c.kind==='knight')release(s,c,stage);
  }
@@ -69,7 +69,7 @@ export function cleanupJopa(s:SimulationSnapshot,stage:StageDefinition):void{
 export function mountableKnight(s:SimulationSnapshot,stage:StageDefinition,seat:number):HairClone|undefined{
  const f=s.fighters[seat];
  if(!isActive(f)||locked(f)||f.grappleUntil>s.frame||f.trappedUntil>s.frame||f.move||f.jopaRide!==undefined||f.jopaTree!==undefined||!grounded(f,stage))return;
- return s.clones.find(c=>c.kind==='knight'&&c.rider===undefined&&isActive(c.fighter)&&isActive(s.fighters[c.owner])&&s.teams[c.owner]===s.teams[seat]&&Math.abs(c.fighter.y-f.y)<45&&(f.x-c.fighter.x)*c.fighter.facing>=0&&Math.abs(c.fighter.x-f.x)<=170);
+ return s.clones.find(c=>c.kind==='knight'&&c.rider===undefined&&isActive(c.fighter)&&retainsOwnedEntities(s.fighters[c.owner])&&s.teams[c.owner]===s.teams[seat]&&Math.abs(c.fighter.y-f.y)<45&&(f.x-c.fighter.x)*c.fighter.facing>=0&&Math.abs(c.fighter.x-f.x)<=170);
 }
 /** The second basic is a fresh press; holding it cannot repeatedly mount/dismount. */
 export function controlJopa(s:SimulationSnapshot,stage:StageDefinition,f:Fighter,seat:number):boolean{
@@ -99,7 +99,7 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   f.stun=Math.max(0,f.jopaStunUntil-s.frame);if(!f.stun){delete f.jopaStunUntil;f.dazed=false;enter(f,grounded(f,stage)?'Idle':'Fall');}
  }
  for(const p of s.projectiles)if(p.active&&p.jopaKind){
-  p.life=Math.max(0,(p.expiresAt??s.frame)-s.frame);if(!p.life||!isActive(s.fighters[p.owner]))p.active=false;
+  p.life=Math.max(0,(p.expiresAt??s.frame)-s.frame);if(!p.life||!retainsOwnedEntities(s.fighters[p.owner]))p.active=false;
  }
  if(s.hitstop)return;
  for(const c of [...s.clones]){

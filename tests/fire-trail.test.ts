@@ -25,7 +25,7 @@ test('abandoned ground fire ignites opponents, not airborne enemies, teammates o
 test('platform trail stays on the platform, never appears below an airborne Tocha and clears on reset',()=>{
  const s=match(),a=s.state.fighters[0];a.x=500;a.y=340;a.vy=0;a.onFireUntil=1000;s.step([0,0]);assert.equal(s.state.hazards[0].y,340);
  a.x=1000;a.y=500;a.vy=5;const n=s.state.hazards.length;s.step([0,0]);assert.equal(s.state.hazards.length,n);
- a.health=0;s.step([0,0]);assert.equal(s.state.hazards.length,0);
+ a.health=0;s.step([0,0]);assert.equal(s.state.hazards.length,n);assert.equal(a.onFireUntil,0);s.resetPositions();assert.equal(s.state.hazards.length,0);
 });
 test('fire trail positions, expiration and ignition converge through rollback',()=>{
  const a=match(),b=match();for(const s of [a,b]){s.state.fighters[0].onFireUntil=1000;s.state.fighters[1].x=650;}

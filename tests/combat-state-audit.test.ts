@@ -1,3 +1,4 @@
+import {hasExecutionArmor} from '../packages/game-core/combat/ExecutionArmor.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {GameSimulation,hashState} from '../packages/game-core/simulation/GameSimulation.js';
@@ -21,7 +22,7 @@ function controllable(g:GameSimulation,seat=0){
 }
 
 // Inject an authored action phase to isolate interruption cleanup from input routing.
-// Deliberate Jomp superarmor has separate coverage below and must not be interrupted.
+// Special/Ultimate execution protection has exhaustive coverage in execution-armor.test.ts.
 for(const [id,c] of Object.entries(characters))test(`${id}: every authored interruptible action exits startup, active and recovery on hit`,()=>{
  for(const m of Object.values(c.moves)){
   if(c.muscleFighter&&['coolMuscles','gymBro'].includes(m.id))continue;
@@ -29,6 +30,7 @@ for(const [id,c] of Object.entries(characters))test(`${id}: every authored inter
    const g=game([id,'gut']),f=g.state.fighters[0],label=`${id}/${m.id}/${age}`;
    Object.assign(f,{move:m.id,state:m.state,moveFrame:age,attackSerial:1});
    if(m.state==='AirAttack'){f.y+=140;f.vy=-2;}
+   if(hasExecutionArmor(f))continue;
    g.hit(1,characters.gut.moves.palm,0,true,0,-1);
    assert.equal(f.move,null,label);assert.ok(f.stun>0,label);assert.equal(hitboxes(f,f.move?c.moves[f.move]:undefined).length,0,label);
    assert.ok(!audioPresence(g.state).some(p=>p.id.startsWith('fighter:0:channel:')||p.id.startsWith('fighter:0:charge:')),label);
@@ -60,11 +62,12 @@ test('Jomp stance and Gym Bro retain intentional reaction armor and release cont
  }
 });
 
-test('interrupted bear hug releases victim and holder; victim can move and attack again',()=>{
+test('holder death releases bear hug; victim can move and attack again',()=>{
  const g=game(['gut','nikalz','tocha']),[holder,victim]=g.state.fighters;
  victim.x=holder.x+70;
  g.hit(0,characters.gut.moves.hug,0,false,1,1);
  assert.equal(holder.state,'Grappling');assert.equal(victim.state,'Grappled');
+ holder.health=1;
  g.hit(2,characters.tocha.moves[characters.tocha.basicAttacks!.chain[0]],0,false,0,-1);
  run(g,180);assert.equal(victim.grappleUntil,0);assert.equal(victim.grappleOwner,-1);
  controllable(g,1);

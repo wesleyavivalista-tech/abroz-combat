@@ -175,7 +175,7 @@ test("equal-priority final-life attacks can trade into a draw", () => {
   assert.equal(sim.state.phase, "result");
   assert.equal(sim.state.winner, -1);
 });
-test("defeat removes owned projectiles while preserving opponent projectiles", () => {
+test("life loss preserves both owned and opponent projectiles", () => {
   const sim = match();
   sim.state.projectiles.slice(0, 2).forEach((p, i) =>
     Object.assign(p, {
@@ -190,7 +190,7 @@ test("defeat removes owned projectiles while preserving opponent projectiles", (
   );
   defeat(sim, 1);
   assert.equal(sim.state.projectiles[0].active, true);
-  assert.equal(sim.state.projectiles[1].active, false);
+  assert.equal(sim.state.projectiles[1].active, true);
 });
 test("snapshot restore spans respawn and protection expiry identically", () => {
   const sim = match();

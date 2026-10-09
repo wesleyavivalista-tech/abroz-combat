@@ -1,3 +1,4 @@
+import {hasExecutionArmor} from '../combat/ExecutionArmor.js';
 import {hostile} from './Actors.js';
 import {deterministicSin,deterministicCos} from './DeterministicMath.js';
 import {canReceiveDirectHit} from '../combat/ContactPolicy.js';
@@ -50,7 +51,13 @@ export function advanceBeams(s:SimulationSnapshot,width:number,hit?:(owner:numbe
    const d=target.fighter;
    if(!hostile(s,source.owner,d,target.owner)||!canReceiveDirectHit(d,s.frame)||!beamHitsFighter(ray,d))continue;
    if(!b.continuous&&hit){hit(source.owner,target.owner,m,f,d);continue;}
-   if(b.push){d.x=Math.max(40,Math.min(width-40,d.x+ray.dx*b.push));d.y=Math.max(floorHeight,d.y+ray.dy*b.push);if(s.frame%b.interval)continue;}
+   if(b.push){
+    if(!hasExecutionArmor(d)){
+     d.x=Math.max(40,Math.min(width-40,d.x+ray.dx*b.push));
+     d.y=Math.max(floorHeight,d.y+ray.dy*b.push);
+    }
+    if(s.frame%b.interval)continue;
+   }
    applyDamage(s,d,m.damage,{receivedHit:true,source:source.owner,move:m.id});
    // Continuous light never causes hitstop, hitstun or movement interruption.
   }

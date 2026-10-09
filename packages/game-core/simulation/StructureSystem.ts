@@ -4,7 +4,7 @@ import type {Box,Fighter,MoveDefinition,Projectile,SimulationSnapshot,StageDefin
 import {characters} from '../characters/registry.js';
 import {actors} from './Actors.js';
 import {surfaceBelow} from './StageCollision.js';
-import {isActive} from './LifeSystem.js';
+import {retainsOwnedEntities,isActive} from './LifeSystem.js';
 import {hurtbox,hitboxes,intersects,sweepEntry,targetBoxes} from '../combat/CollisionSystem.js';
 import {canReceiveDirectHit} from '../combat/ContactPolicy.js';
 import {periodicHit} from '../combat/PeriodicHit.js';
@@ -42,7 +42,7 @@ export function advanceStructures(s:SimulationSnapshot,_stage:StageDefinition):v
  if(!s.structures)return;
  // Expired wall/turret debris is visual only: collision and firing stop immediately.
  for(const b of s.structures)if(b.phase==='built'&&b.kind!=='house'&&b.expiresAt&&s.frame>=b.expiresAt){b.phase='collapsed';b.createdAt=b.expiresAt;b.expiresAt+=45;}
- s.structures=s.structures.filter(b=>isActive(s.fighters[b.owner])&&(!b.expiresAt||s.frame<b.expiresAt));
+ s.structures=s.structures.filter(b=>retainsOwnedEntities(s.fighters[b.owner])&&(!b.expiresAt||s.frame<b.expiresAt));
  if(s.phase!=='fight'){s.structures=[];return;}
  for(const b of s.structures){
   if(b.kind!=='turret'||b.phase!=='built')continue;
@@ -74,8 +74,8 @@ export function damageStructure(s:SimulationSnapshot,b:Structure,amount:number,k
  for(const a of actors(s)){
   const f=a.fighter;
   if(!intersects(hurtbox(f),structureBox(b))||!canReceiveDirectHit(f,s.frame))continue;
-  periodicHit(s,f,spec.collapseDamage??0,0,spec.collapseStun??240,0,undefined,stage.floorHeight,{source:b.owner,move:b.move},stage.width);
-  if(s.frame>=f.hitstunImmuneUntil){f.vx=f.vy=0;f.dazed=true;}
+  const reacts=periodicHit(s,f,spec.collapseDamage??0,0,spec.collapseStun??240,0,undefined,stage.floorHeight,{source:b.owner,move:b.move},stage.width);
+  if(reacts&&s.frame>=f.hitstunImmuneUntil){f.vx=f.vy=0;f.dazed=true;}
  }
 }
 /** Authoritative surfaces shared by projectile blocking and fighter collision. */

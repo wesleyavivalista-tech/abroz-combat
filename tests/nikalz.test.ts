@@ -46,8 +46,8 @@ test('Meteor ascends offscreen, lands, spreads arena-wide and has continuous dis
  const g=game(),f=g.state.fighters[0],d=g.state.fighters[1];d.x=1900;g.step([Button.Super1,0]);run(g,50);assert.ok(f.y>=1000);run(g,49);assert.equal(f.y,0);assert.ok(g.state.foreheadWaves?.some(w=>w.meteor));run(g,40);assert.ok(d.health<characters.gut.stats.maxHealth);assert.ok(d.nikalzStunUntil!>g.state.frame+300);
  assert.ok(meteorDamage(0,2400)>meteorDamage(600,2400));assert.ok(meteorDamage(600,2400)>meteorDamage(1800,2400));assert.equal(meteorDamage(2400,2400),78);
 });
-test('Nikalz new snapshot state replays deterministically and cleans owned entities on KO',()=>{
- const g=game();activateStructure(g.state,g.stage,g.state.fighters[0],0,characters.nikalz.moves.placeBox);activateNikalz(g.state,g.stage,g.state.fighters[0],0,characters.nikalz.moves.bees);const snap=g.snapshot();run(g,500);const hash=hashState(g.state);g.restore(snap);run(g,500);assert.equal(hashState(g.state),hash);g.state.fighters[0].health=0;run(g,1);assert.equal(g.state.bees!.length,0);assert.equal(g.state.structures!.length,0);
+test('Nikalz new snapshot state replays deterministically and cleans owned entities on final KO',()=>{
+ const g=game();activateStructure(g.state,g.stage,g.state.fighters[0],0,characters.nikalz.moves.placeBox);activateNikalz(g.state,g.stage,g.state.fighters[0],0,characters.nikalz.moves.bees);const snap=g.snapshot();run(g,500);const hash=hashState(g.state);g.restore(snap);run(g,500);assert.equal(hashState(g.state),hash);g.state.fighters[0].lives=1;g.state.fighters[0].health=0;run(g,1);assert.equal(g.state.bees!.length,0);assert.equal(g.state.structures!.length,0);
 });
 
 test('swarm travel takes twice as long and Testada uses the reduced range only on impact',()=>{

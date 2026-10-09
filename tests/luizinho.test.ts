@@ -59,10 +59,10 @@ test('structure attacks deduplicate one swing, reset after a new swing, and boun
  const g=match('luizinho'),b=make(g,'wall'),d=g.state.fighters[1];d.x=b.x+80;d.facing=-1;d.move='punch';d.moveFrame=12;d.attackSerial=1;attackStructures(g.state,g.stage);assert.equal(b.health,350);attackStructures(g.state,g.stage);assert.equal(b.health,350);d.attackSerial++;attackStructures(g.state,g.stage);assert.equal(b.health,280);
  for(let i=0;i<300;i++)b.hits[`projectile:1:seller:${i}`]=Number.MAX_SAFE_INTEGER;attackStructures(g.state,g.stage);assert.ok(Object.keys(b.hits).length<10);
 });
-test('interruption before startup creates nothing; activated structures persist until death, forfeit or reset',()=>{
+test('interruption before startup creates nothing; activated structures survive life loss and clear on forfeit or reset',()=>{
  const g=match(),f=g.state.fighters[0];f.meter=100;run(g,1,Button.Special2);f.move=null;f.stun=20;run(g,40);assert.equal(g.state.structures,undefined);
  const b=make(g,'home'),d=g.state.fighters[1];d.x=b.x;make(g,'build');d.health=0;run(g,1);assert.ok(!b.trapped.includes('seat:1'));assert.equal(g.state.structures!.length,1);
- f.health=0;run(g,1);assert.equal(g.state.structures!.length,0);make(g,'turret');g.resetPositions();assert.equal(g.state.structures!.length,0);make(g,'turret');g.step([0,0],[0]);assert.equal(g.state.structures!.length,0);
+ f.health=0;run(g,1);assert.equal(g.state.structures!.length,1);make(g,'turret');g.resetPositions();assert.equal(g.state.structures!.length,0);make(g,'turret');g.step([0,0],[0]);assert.equal(g.state.structures!.length,0);
 });
 test('six builders have bounded structures and deterministic snapshot replay',()=>{
  const g=new GameSimulation(Array(6).fill('luizinho'));g.state.phase='fight';g.state.fighters.forEach(f=>{f.state='Idle';f.meter=100;});

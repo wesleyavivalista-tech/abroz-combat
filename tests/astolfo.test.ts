@@ -13,10 +13,10 @@ test('Talking drains energy, follows free movement and stops on release even in 
  const x=f.x,meter=f.meter;run(g,12,Button.Special|Button.Right);assert.ok(f.x>x);assert.ok(f.meter<meter);
  const hp=d.health;s.hitstop=5;g.step([0,0]);assert.equal(f.move,null);assert.equal(d.health,hp);assert.equal(movementSlow(d,s.frame),1);
 });
-test('Talking direction, range and teams are respected; exhaustion and interruption cancel it',()=>{
+test('Talking direction, range and teams are respected; exhaustion and death cancel it',()=>{
  const g=game(['astolfo','gut','napa']),s=g.state,[f,d,ally]=s.fighters;d.x=140;ally.x=490;s.teams[2]=s.teams[0];g.step([Button.Special,0,0]);run(g,18,Button.Special);assert.equal(d.health,1600);assert.equal(ally.health,1400);
  d.x=500;f.meter=1;f.talkNextDrain=s.frame+1;const hp=d.health;g.step([Button.Special,0,0]);assert.equal(f.move,null);assert.equal(f.meter,0);assert.equal(d.health,hp);
- f.meter=100;g.step([0,0,0]);g.step([Button.Special,0,0]);run(g,12,Button.Special);g.hit(1,characters.gut.moves.palm,0,false,0,-1,d,f);assert.equal(f.move,null);const after=d.health;run(g,3,Button.Special);assert.equal(d.health,after);
+ f.meter=100;g.step([0,0,0]);g.step([Button.Special,0,0]);run(g,12,Button.Special);f.health=1;g.hit(1,characters.gut.moves.palm,0,false,0,-1,d,f);assert.equal(f.health,0);const after=d.health;run(g,3,Button.Special);assert.equal(f.move,null);assert.equal(d.health,after);
 });
 test('Talking permits a jump and follows airborne movement',()=>{const g=game(),f=g.state.fighters[0];g.step([Button.Special,0]);run(g,12,Button.Special);g.step([Button.Special|Button.Up|Button.Right,0]);assert.ok(f.y>0);assert.equal(f.move,'talking');const x=f.x;run(g,4,Button.Special|Button.Right);assert.ok(f.x>x);});
 test('A great idea lasts exactly 18 seconds, slows on both sides, permits basic attacks and expires cleanly',()=>{
@@ -42,8 +42,8 @@ test('Personality death bursts once, with 5 second sadness or burn, ignoring all
  const [sad,angry]=s.clones;d.x=sad.fighter.x;ally.x=d.x;sad.fighter.health=0;burstPersonalities(s);burstPersonalities(s);assert.equal(d.sadnessUntil,300);assert.equal(movementSlow(d,0),.4);assert.equal(ally.sadnessUntil,undefined);assert.equal(s.hazards.length,1);
  d.x=angry.fighter.x;angry.fighter.health=0;burstPersonalities(s);assert.equal(d.burnUntil,300);assert.equal(ally.burnUntil,0);assert.equal(s.hazards.length,2);s.frame=300;advanceAstolfo(s,g.stage);assert.equal(movementSlow(d,300),1);
 });
-test('Owner defeat and match reset remove aura, spiders and personalities without bursts',()=>{
- const g=game(),s=g.state,f=s.fighters[0];for(const m of [moves.idea,moves.bipolar,moves.spider])activateAstolfo(s,g.stage,f,0,m);f.health=0;run(g,1);assert.equal(s.clones.length,0);assert.equal(s.hazards.length,0);assert.equal(f.talkUntil,0);g.resetPositions();assert.equal(g.state.fighters[0].talkUntil,undefined);
+test('Owner elimination and match reset remove aura, spiders and personalities without bursts',()=>{
+ const g=game(),s=g.state,f=s.fighters[0];for(const m of [moves.idea,moves.bipolar,moves.spider])activateAstolfo(s,g.stage,f,0,m);f.lives=1;f.health=0;run(g,1);assert.equal(s.clones.length,0);assert.equal(s.hazards.length,0);assert.equal(f.talkUntil,0);g.resetPositions();assert.equal(g.state.fighters[0].talkUntil,undefined);
 });
 test('All Astolfo effects reproduce after rollback, including clone AI and death bursts',()=>{
  const g=game(),s=g.state,f=s.fighters[0];for(const m of [moves.idea,moves.bipolar,moves.spider])activateAstolfo(s,g.stage,f,0,m);const snap=g.snapshot();const play=()=>{run(g,80,Button.Right);g.state.clones[0].fighter.health=0;run(g,100);};play();const hash=hashState(g.state);g.restore(snap);play();assert.equal(hashState(g.state),hash);

@@ -20,6 +20,7 @@ function check(g:GameSimulation,label:string){
  }
  for(const [seat,f] of s.fighters.entries())if(f.lives===0||f.respawnAt){
   assert.equal(f.move,null,label+': dead attacking');assert.equal(f.weaponUntil,0,label+': dead transformed');
+  if(f.lives>0)continue; // Respawning owners retain independent entities.
   assert.ok(!s.projectiles.some(p=>p.active&&p.owner===seat),label+': orphan projectile');
   assert.ok(!s.clones.some(c=>c.owner===seat&&!c.undead),label+': orphan summon');
  }

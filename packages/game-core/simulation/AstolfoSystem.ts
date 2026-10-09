@@ -3,7 +3,7 @@ import {Button,type Fighter,type MoveDefinition,type SimulationSnapshot,type Sta
 import {characters} from '../characters/registry.js';
 import {createFighter} from './Fighter.js';
 import {actors} from './Actors.js';
-import {isActive} from './LifeSystem.js';
+import {retainsOwnedEntities,isActive} from './LifeSystem.js';
 import {grounded,surfaceBelow} from './StageCollision.js';
 import {canReceiveDirectHit} from '../combat/ContactPolicy.js';
 import {applyDamage} from '../combat/DamageSystem.js';
@@ -86,7 +86,7 @@ export function advanceSpiders(s:SimulationSnapshot,stage:StageDefinition,previo
 /** Run before removing dead clones; pattern is a snapshot-owned once-only flag. */
 export function burstPersonalities(s:SimulationSnapshot):void{
  for(const c of s.clones){
-  if((c.kind!=='sad'&&c.kind!=='angry')||c.fighter.health>0||c.pattern===-1||!isActive(s.fighters[c.owner]))continue;
+  if((c.kind!=='sad'&&c.kind!=='angry')||c.fighter.health>0||c.pattern===-1||!retainsOwnedEntities(s.fighters[c.owner]))continue;
   c.pattern=-1;
   for(const a of actors(s))if(hostile(s,c.owner,a.fighter,a.owner)&&canReceiveDirectHit(a.fighter,s.frame)&&Math.abs(a.fighter.x-c.fighter.x)<ASTOLFO.deathRadius&&Math.abs(a.fighter.y-c.fighter.y)<190){
    if(c.kind==='sad')a.fighter.sadnessUntil=Math.max(a.fighter.sadnessUntil??0,s.frame+300);
