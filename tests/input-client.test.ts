@@ -104,3 +104,12 @@ test('saved old defaults migrate, custom attack bindings remain intact',()=>{
  inputFixture(input=>assert.deepEqual(input.gamepadButtons,expected));
  }}finally{if(old)Object.defineProperty(globalThis,'localStorage',old);else Reflect.deleteProperty(globalThis,'localStorage');}
 });
+
+test('saving controls records schema without writing during load or overwriting a future schema',()=>{
+ const old=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
+ try{for(const schemaVersion of [undefined,1,9]){
+  const writes:string[]=[];
+  Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:()=>JSON.stringify({schemaVersion}),setItem:(_key:string,value:string)=>writes.push(value)}});
+  inputFixture(input=>{assert.equal(writes.length,0);input.save();assert.equal(writes.length,schemaVersion===9?0:1);if(writes.length)assert.equal(JSON.parse(writes[0]).schemaVersion,1);});
+ }}finally{if(old)Object.defineProperty(globalThis,'localStorage',old);else Reflect.deleteProperty(globalThis,'localStorage');}
+});

@@ -38,3 +38,5 @@ export function desktopTitle(name,version,buildVersion){
  const clean=value=>String(value??'').replace(/[\r\n\t]/g,' ').slice(0,100);
  return `${name} — v${clean(version)}${buildVersion&&buildVersion!==version?` · ${clean(buildVersion)}`:''}`;
 }
+
+export function isUpdateLink(address){return address==='https://abrozcombat.com/download';}

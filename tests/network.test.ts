@@ -135,7 +135,7 @@ test(`real WebSocket create/join/ready/input/hash/disconnect: ${peerOrigins.join
       throw new Error("Missing message " + type);
     };
     a.send(JSON.stringify({type:"create",character:"gut",contentVersion:"obsolete"}));
-    const incompatible=await next(a,"error");assert.equal(incompatible.type,"error");if(incompatible.type==='error')assert.match(incompatible.message,/versions differ/);
+    const incompatible=await next(a,"error");assert.equal(incompatible.type,"error");if(incompatible.type==='error'){assert.match(incompatible.message,/versions differ/);assert.equal(incompatible.code,'VERSION_MISMATCH');assert.equal(incompatible.expected,contentVersion());assert.equal(incompatible.received,'obsolete');}
     a.send(JSON.stringify({ type: "create", contentVersion:contentVersion(), character: "gut" }));
     const room = await next(a, "room");
     assert.equal(room.type, "room");

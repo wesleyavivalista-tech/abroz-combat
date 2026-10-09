@@ -1,3 +1,4 @@
+import {compatibilityMetadata} from './compatibility-metadata.mjs';
 /* global fetch */
 import {spawn} from 'node:child_process';
 import {releaseEndpoint} from '../apps/desktop/policy.mjs';
@@ -40,7 +41,7 @@ try{
   await run('node_modules/typescript/bin/tsc',['--noEmit']);
   await run('node_modules/vite/bin/vite.js',['build','--config','apps/client/vite.config.ts','--mode','desktop'],{VITE_WS_URL:wsURL});
   const pkg=JSON.parse(readFileSync('package.json','utf8'));
-  writeFileSync('dist-desktop/desktop-config.json',JSON.stringify({version:pkg.version,buildVersion:env.ABROZ_BUILD_VERSION||pkg.version,wsURL,offline},null,2));
+  writeFileSync('dist-desktop/desktop-config.json',JSON.stringify({...compatibilityMetadata(),version:pkg.version,buildVersion:env.ABROZ_BUILD_VERSION||pkg.version,wsURL,offline},null,2));
   await run('node_modules/electron-builder/cli.js',['--config','apps/desktop/builder.cjs','--publish','never',...desktopBuildArgs(args)]);
  }else throw Error('Usage: node scripts/desktop.mjs dev | run | build [--offline] [--dir | --win | --mac | --linux]');
 }catch(error){stop();process.stderr.write(`${error.message}\n`);process.exitCode=1;}

@@ -1,11 +1,11 @@
 import {createDesktopLogger} from './diagnostics.mjs';
 /* global Response, Headers */
-import {app,BrowserWindow,Menu,dialog,ipcMain,net,protocol,session} from 'electron';
+import {app,BrowserWindow,Menu,dialog,ipcMain,net,protocol,session,shell} from 'electron';
 import {readFileSync,realpathSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import process from 'node:process';
-import {APP_ORIGIN,assetPath,trustedDocument,safeDevURL,contentPolicy,desktopTitle} from './policy.mjs';
+import {APP_ORIGIN,assetPath,trustedDocument,safeDevURL,contentPolicy,desktopTitle,isUpdateLink} from './policy.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url));
 const metadata=JSON.parse(readFileSync(path.join(here,'metadata.json'),'utf8'));
 app.setName(metadata.productName);app.setAppUserModelId(metadata.appId);
@@ -46,7 +46,10 @@ else {
   const create=async()=>{
    window=new BrowserWindow({title,width:1280,height:800,minWidth:800,minHeight:500,backgroundColor:'#080e12',show:false,autoHideMenuBar:true,webPreferences:{preload:path.join(here,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true,allowRunningInsecureContent:false,webviewTag:false,devTools:!app.isPackaged}});
    window.on('page-title-updated',event=>{event.preventDefault();window.setTitle(title);});
-   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
+   window.webContents.setWindowOpenHandler(({url})=>{
+    if(isUpdateLink(url)&&trustedDocument(window.webContents.getURL(),devURL))void shell.openExternal('https://abrozcombat.com/download').catch(()=>log('update-link-failed'));
+    return {action:'deny'};
+   });
    window.webContents.on('will-navigate',(event,url)=>{if(!trustedDocument(url,devURL))event.preventDefault();});
    window.webContents.on('will-redirect',(event,url)=>{if(!trustedDocument(url,devURL))event.preventDefault();});
    window.webContents.on('will-attach-webview',event=>event.preventDefault());

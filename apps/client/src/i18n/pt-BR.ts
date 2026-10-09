@@ -564,6 +564,8 @@ export const ptBR = {
   "error.roomClosed": "A sala encerrada foi fechada após 15 minutos. Volte ao menu para jogar novamente.",
   "error.idle": "Nenhum comando foi recebido antes do limite de inatividade. Volte ao menu para jogar novamente.",
   "error.unknownFighter": "Lutador desconhecido",
+  "error.downloadUpdate": "Baixar atualização",
+  "error.versionDesktop": "As versões do jogo são diferentes. Baixe e instale a versão mais recente em https://abrozcombat.com/download antes de entrar em uma sala.",
   "error.version": "As versões do jogo são diferentes. Atualize o jogo antes de entrar em uma sala.",
   "error.cancelled": "Conexão cancelada",
   "error.noResponse": "O servidor de salas não respondeu",

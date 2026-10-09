@@ -1,3 +1,4 @@
+import {CONTROL_SCHEMA_VERSION,readControlSettings} from './ControlSettings.js';
 import {storage} from '../platform/storage.js';
 import { Button } from "../../../../packages/game-core/types.js";
 import { GamepadManager } from "./GamepadManager.js";
@@ -69,26 +70,11 @@ export class InputManager {
   }
   enabled = true;
   private lifetime=new AbortController();
+  private settingsWritable=true;
   constructor() {
     try {
-      const saved = JSON.parse(
-        storage.getItem("afterglow-controls") ?? "null",
-      );
-      if (saved?.bindings?.length === 2)
-        this.bindings = this.bindings.map((row, p) =>
-          row.map((key, i) =>
-            typeof saved.bindings[p]?.[i] === "string"
-              ? saved.bindings[p][i]
-              : key,
-          ),
-        );
-      if (typeof saved?.deadzone === "number" && saved.deadzone >= .1 && saved.deadzone <= .4) this.controllers.deadzone=saved.deadzone;
-      if (Array.isArray(saved?.gamepadButtons) && JSON.stringify(saved.gamepadButtons)!==JSON.stringify([0,2,1,3,5,6,7]))
-        this.gamepadButtons = this.gamepadButtons.map((button, i) =>
-          Number.isInteger(saved.gamepadButtons[i]) && saved.gamepadButtons[i] >= 0 && saved.gamepadButtons[i] < 16
-            ? saved.gamepadButtons[i]
-            : button,
-        );
+      const loaded=readControlSettings(storage.getItem('afterglow-controls'),{bindings:this.bindings,gamepadButtons:this.gamepadButtons,deadzone:this.controllers.deadzone});
+      this.bindings=loaded.settings.bindings;this.gamepadButtons=loaded.settings.gamepadButtons;this.controllers.deadzone=loaded.settings.deadzone;this.settingsWritable=loaded.writable;
     } catch {
       /* Defaults remain available. */
     }
@@ -129,9 +115,11 @@ export class InputManager {
     this.controllers.clear();
   }
   save(): void {
+    if(!this.settingsWritable)return; // Do not downgrade a newer settings schema.
     try { storage.setItem(
       "afterglow-controls",
       JSON.stringify({
+        schemaVersion: CONTROL_SCHEMA_VERSION,
         bindings: this.bindings,
         gamepadButtons: this.gamepadButtons,
         deadzone: this.controllers.deadzone,

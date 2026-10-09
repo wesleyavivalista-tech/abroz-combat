@@ -97,7 +97,7 @@ export class LobbyClient {
         if(message.type==='resume-token'){this.resumeToken=message.token;return;}
         if(this.recovering){
           if(message.type==='resume'){this.recovering=false;this.resumeResult?.(true);}
-          else if(message.type==='error'){this.resumeToken=undefined;this.resumeResult?.(false);return;}
+          else if(message.type==='error'){this.resumeResult?.(false);this.disconnect();this.onMessage(message);return;}
           else return;
         }
         if (message.type === "pong") {

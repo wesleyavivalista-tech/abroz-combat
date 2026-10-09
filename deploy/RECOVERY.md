@@ -158,3 +158,18 @@ checkpoint freshness/corruption. No production failure is used for validation.
   response can be cached even after the object exists.
 - Fly reported a lease-clear warning for the replaced machine ID; inventory and
   health confirmed the old machine was gone and the single replacement healthy.
+
+### Compatibility release gate
+
+Browser release metadata and desktop `desktop-config.json` include `contentVersion`
+and `protocolVersion`. Set `ABROZ_EXPECTED_CONTENT_VERSION` to the **candidate server's**
+identifier when building every release artifact; a mismatch fails the build before
+publishing/packaging. For incompatible updates, do not use the old live server's identifier.
+Compare every candidate artifact before coordinating server/browser/desktop publication.
+
+Changes to message meaning, ordering, admission or recovery behavior in
+`apps/server/src` or `apps/client/src/network.ts` require an explicit compatibility
+review: bump `PROTOCOL_VERSION` when old and new peers cannot safely interoperate.
+Those paths are not automatically source-fingerprinted. Cosmetic-only releases
+may retain compatibility. Never relax exact-match room admission to accommodate
+an old installer. Retain the legacy error message alongside structured error fields.

@@ -33,7 +33,7 @@ function fixture(){
  const input={enabled:false,bindings:[['KeyA'],['ArrowLeft']],clears:0,saves:0,clear(){this.clears++;},save(){this.saves++;}};
  const ui={root:Object.assign(root,{querySelectorAll:()=>[binding,other]}),render:()=>{root.children=[];},onAction:(fn:unknown)=>{context.action=fn;}};
  const context=createContext({ui,input,window:new BrowserEvents(),document:{getElementById:(id:string)=>find(root,id),createElement:()=>new Element()},audio:{unlock(){},play(){}},actionSound:()=>'',controllerHints:{active:false},menuNavigation:{reset(){}},network:{disconnect(){}},cancelBinding:undefined,controllerPanel:false,onlineControllerMenu:true,paused:true,screen:'fight',mode:'online',viewRevision:0,home:()=>{context.wentHome=true;},settings:()=>{throw new Error('Must not navigate away from the paused match');}});
- Object.assign(context,{t,errorMessage});
+ Object.assign(context,{t,errorMessage,desktopBridge:()=>undefined});
  runInContext(script,context);
  const key=(code:string)=>{const event=new Event('keydown',{cancelable:true});Object.defineProperties(event,{code:{value:code},repeat:{value:false}});context.window.dispatchEvent(event);};
  return {context,input,root,settings,binding,other,key};
@@ -61,4 +61,11 @@ test('disconnect clears old menus and capture, locks gameplay and focuses recove
  c.pause();c.toggleOnlineControllerMenu();assert.equal(input.enabled,false);assert.equal(c.onlineControllerMenu,false);
  c.disconnectMessage('Repeated loss');assert.equal(root.children.length,1);
  c.controllerBack();assert.equal(c.wentHome,true);
+});
+
+test('desktop mismatch dialog offers only the official update destination',()=>{
+ const {context:c,root}=fixture();c.desktopBridge=()=>({});
+ c.disconnectMessage('Game versions differ. Refresh the game before joining a room.');
+ const link=root.children[0].children[0].children[3] as Element & {href:string;target:string;rel:string};
+ assert.equal(link.href,'https://abrozcombat.com/download');assert.equal(link.target,'_blank');assert.equal(link.rel,'noopener noreferrer');
 });

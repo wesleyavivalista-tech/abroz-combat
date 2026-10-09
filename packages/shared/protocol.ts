@@ -42,5 +42,5 @@ export type ServerMessage =
   // Server-generated checksum; seat -1 is the authority, never a player.
   | { type: "hash"; matchId?: string; seat: -1; frame: number; hash: string }
   | { type: "pong"; sent: number }
-  | { type: "error"; message: string }
+  | { type: "error"; message: string; code?: "VERSION_MISMATCH"; expected?: string; received?: string }
   | { type: "left"; seat: number; frame: number };

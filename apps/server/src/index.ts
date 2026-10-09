@@ -6,7 +6,7 @@ import {allowedOrigins,clientAddress} from './deployment.js';
 import {contentVersion} from '../../../packages/shared/contentVersion.js';
 import {monitorEventLoopDelay} from 'node:perf_hooks';
 import {Admission,positiveLimit} from './admission.js';
-import {assertCompatibleContent} from '../../../packages/shared/contentVersion.js';
+import {assertCompatibleContent,VersionMismatchError} from '../../../packages/shared/contentVersion.js';
 import { createServer, type IncomingMessage } from "node:http";
 import { WebSocketServer } from "ws";
 import { RoomService, send } from "./rooms.js";
@@ -136,6 +136,7 @@ wss.on("connection", (socket,request) => {
       send(socket, {
         type: "error",
         message: error instanceof Error ? error.message : "Invalid message",
+        ...(error instanceof VersionMismatchError?{code:error.code,expected:error.expected,received:error.received}:{}),
       });
     }
   });

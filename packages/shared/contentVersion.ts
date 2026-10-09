@@ -13,6 +13,11 @@ export function contentVersion():string{
  const stageData=Object.values(stages).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0).map(({id,width,floorHeight,platforms,eideLovePlatforms,eideLoveOffsets})=>({id,width,floorHeight,platforms,eideLovePlatforms,eideLoveOffsets}));
  const text=canonical({definitions,stages:stageData,revision:SIMULATION_REVISION});let hash=2166136261;for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}return `${PROTOCOL_VERSION}-${(hash>>>0).toString(16)}`;
 }
+export class VersionMismatchError extends Error {
+ readonly code='VERSION_MISMATCH';
+ readonly expected=contentVersion();
+ constructor(readonly received?:string){super('Game versions differ. Refresh the game before joining a room.');}
+}
 export function assertCompatibleContent(version:unknown):void{
- if(version!==contentVersion())throw new Error('Game versions differ. Refresh the game before joining a room.');
+ if(version!==contentVersion())throw new VersionMismatchError(typeof version==='string'?version.slice(0,80):undefined);
 }

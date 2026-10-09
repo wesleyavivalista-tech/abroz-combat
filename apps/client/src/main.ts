@@ -5,7 +5,7 @@ import {arenaName, skinName} from './i18n/content.js';
 import {getLocale, formatNumber, setLocale, languageOptions, t, th, inputLabelKeys} from './i18n/index.js';
 import {finalDeathActive,matchTimeScale} from '../../../packages/game-core/simulation/UndeadSystem.js';
 import {matchCountdown} from './ui/MatchCountdown.js';
-import {toggleFullscreen} from './platform/runtime.js';
+import {toggleFullscreen,desktopBridge} from './platform/runtime.js';
 import {arenaSelection} from './ui/ArenaSelection.js';
 import './ui/arena-selection.css';
 import {ControllerHints} from './input/ControllerHints.js';
@@ -811,7 +811,8 @@ network.onMessage = (message) => {
       break;
     case "error":
       audio.play("invalid");
-      if (screen === "lobby") ui.text("network-status", errorMessage(message.message));
+      if (desktopBridge() && (message.code==='VERSION_MISMATCH'||message.message==='Game versions differ. Refresh the game before joining a room.')) disconnectMessage(message.message);
+      else if (screen === "lobby") ui.text("network-status", errorMessage(message.message));
       else disconnectMessage(message.message);
       break;
     case "left":
@@ -872,6 +873,9 @@ function disconnectMessage(message: string) {
   button.dataset.action = "home";
   button.textContent = t("nav.menu");
   box.append(title, p, button);
+  if(desktopBridge()&&message==='Game versions differ. Refresh the game before joining a room.'){
+    const update=document.createElement('a');update.href='https://abrozcombat.com/download';update.target='_blank';update.rel='noopener noreferrer';update.className='primary';update.textContent=t('error.downloadUpdate');box.append(update);
+  }
   overlay.append(box);
   ui.root.append(overlay);
   button.focus();

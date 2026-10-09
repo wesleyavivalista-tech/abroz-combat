@@ -1,3 +1,4 @@
+import {desktopBridge} from '../platform/runtime.js';
 import {t} from './index.js';
 import type {MessageKey} from './en.js';
 
@@ -40,6 +41,7 @@ const errorKeys:Readonly<Record<string,MessageKey>> = {
 
 /** Translate only at the UI boundary; unknown errors retain their diagnostic text. */
 export function errorMessage(message:string):string {
+  if(errorKeys[message]==='error.version'&&desktopBridge())return t('error.versionDesktop');
   if(Object.hasOwn(errorKeys,message))return t(errorKeys[message]);
   const capacity=message.match(/^Room size must be 2–(8|16) fighters$/);
   if(capacity)return t('error.capacity',{count:Number(capacity[1])});

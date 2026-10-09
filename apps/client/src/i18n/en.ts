@@ -563,6 +563,8 @@ export const en = {
   "error.roomClosed": "Finished room closed after 15 minutes. Return to the menu to play again.",
   "error.idle": "No gameplay input received before the inactivity deadline. Return to the menu to play again.",
   "error.unknownFighter": "Unknown character",
+  "error.downloadUpdate": "Download update",
+  "error.versionDesktop": "Game versions differ. Download and install the latest version from https://abrozcombat.com/download before joining a room.",
   "error.version": "Game versions differ. Refresh the game before joining a room.",
   "error.cancelled": "Connection cancelled",
   "error.noResponse": "Room server did not respond",
