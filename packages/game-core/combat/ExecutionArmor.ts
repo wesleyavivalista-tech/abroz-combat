@@ -12,3 +12,8 @@ export function hasExecutionArmor(f:Fighter):boolean {
   def.superButtons.some(id=>def.moves[id].reactivation===f.move)||
   def.weaponExpiryMove===f.move||!!m.loanStamp||m.nikalzAbility==='place';
 }
+
+/** Giant Buda explicitly retains hit-reaction armor after its activation finishes. */
+export function hasHitReactionArmor(f:Fighter,frame:number):boolean {
+ return hasExecutionArmor(f)||(!!characters[f.characterId].weaponModifiers?.hitReactionArmor&&f.weaponUntil>frame&&f.health>0&&f.lives>0&&f.respawnAt===0);
+}

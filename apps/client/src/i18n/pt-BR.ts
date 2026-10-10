@@ -376,6 +376,7 @@ export const ptBR = {
   "match.fight": "LUTEM!",
   "match.dead": "MORTO.",
   "match.waitInput": "AGUARDANDO COMANDOS",
+  "match.waitPlayers": "AGUARDANDO OS JOGADORES CARREGAREM",
   "match.confirm": "CONFIRMANDO RESULTADO…",
   "match.safeWatching": "SALVO · ASSISTINDO À LUTA",
   "match.outWatching": "ELIMINADO · ASSISTINDO À LUTA",

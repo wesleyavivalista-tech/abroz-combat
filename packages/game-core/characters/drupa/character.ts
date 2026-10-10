@@ -22,5 +22,5 @@ const moves={
 export const character:CharacterDefinition={id:'drupa',displayName:'DRUPA',description:'Belly & light · 1.75 m',color:'#965cce',skins:[{id:'original',name:'Varsity'},{id:'purple',name:'Heavyweight purple'}],stats:{maxHealth: 1500,walkSpeed:4,backwardSpeed:3,jumpVelocity:21,gravity:1,weight:130},moves,
  basicAttacks:{chain:['swing1','swing2','bellyFinish'],heavy:'belly',kick:'wide',crouch:'low',air:'air',doubleJumpHeavy:'bellyDive'},
  weaponAttacks:{chain:['budaSwing1','budaSwing2','budaFinish'],heavy:'budaForward',kick:'budaSky',crouch:'budaSwing1',air:'budaSwing1'},
- weaponModifiers:{speed:.8,damageTaken:.3,bodyScale:3,basicsOnly:true,label:'WHITE BUDA'},
+ weaponModifiers:{hitReactionArmor:true,speed:.8,damageTaken:.3,bodyScale:3,basicsOnly:true,label:'WHITE BUDA'},
  specialButtons:['rolling','bald'],superButtons:['budaBeam','buda'],specialMoves:[],animations:Object.fromEntries(Object.keys(moves).map(id=>[id,{kind:'sprite',duration:30}])),sounds:{hit:'impact'},effects:{hit:'impact'},assets:{portrait:'/art/drupa/portrait-1-guard-v2.png',atlas:'/art/drupa/atlas-1.png'},states:{}};

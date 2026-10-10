@@ -512,7 +512,8 @@ function updateHUD(presentationOnly=false) {
           : "";
   });
   const announcement = document.getElementById("announcement")!;
-  const countdown = matchCountdown(s);
+  const waitingForPeers = rollback?.waitingForPeers ?? false;
+  const countdown = waitingForPeers ? '' : matchCountdown(s);
   const finalDeath=finalDeathActive(s);
   announcement.classList.toggle("final-death",finalDeath);
   announcement.classList.toggle("match-countdown",!!countdown);
@@ -525,7 +526,7 @@ function updateHUD(presentationOnly=false) {
     }
   }
   else
-    announcement.textContent = finalDeath ? t('match.dead') : rollback?.stalled
+    announcement.textContent = waitingForPeers ? t('match.waitPlayers') : finalDeath ? t('match.dead') : rollback?.stalled
       ? t('match.waitInput')
       : s.phase === "result" && rollback && rollback.confirmed < s.endedAt-1
         ? t('match.confirm')
@@ -1108,7 +1109,7 @@ function loop(now: number) {
         rollback.schedule(input.poll(0), (frame, mask) =>
           network.send({ type: "input", frame, mask, matchId: championshipMatch }),
         );
-        if (!rollback.tick()) {
+        if (rollback.waitingForPeers || !rollback.tick()) {
           accumulator = 0;
           break;
         }

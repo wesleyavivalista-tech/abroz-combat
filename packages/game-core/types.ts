@@ -180,7 +180,7 @@ export interface CharacterDefinition {
   muscleFighter?: boolean;
   companionStyle?: "basketball";
   companionHealth?: {ratio:number;offset:number};
-  weaponModifiers?: {damage?:number;attackSpeed?:number;dash?:number;airJumps?:number;speed:number;damageTaken:number;bodyScale:number;basicsOnly:boolean;label:string};
+  weaponModifiers?: {hitReactionArmor?:boolean;damage?:number;attackSpeed?:number;dash?:number;airJumps?:number;speed:number;damageTaken:number;bodyScale:number;basicsOnly:boolean;label:string};
   specialMoves: { motion: string; move: string }[];
   specialButtons: [string, string];
   superButtons: [string, string];

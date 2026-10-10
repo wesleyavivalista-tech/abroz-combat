@@ -1,4 +1,4 @@
-import {hasExecutionArmor} from './ExecutionArmor.js';
+import {hasHitReactionArmor} from './ExecutionArmor.js';
 import {hurtbox} from './CollisionSystem.js';
 import {structureSurfaces} from '../simulation/StructureSystem.js';
 import {hostile} from '../simulation/Actors.js';
@@ -9,7 +9,7 @@ export const HIT_SEQUENCE_WINDOW = 60;
 export const HITSTUN_IMMUNITY_FRAMES = 45;
 /** Returns zero when a contact must deal damage without interrupting control. */
 export function consecutiveHitstun(s:SimulationSnapshot,f:Fighter,stun:number,direction:number,floorHeight=0,arenaWidth=2400):number {
- if(f.undead==='grave'||hasExecutionArmor(f))return 0;
+ if(f.undead==='grave'||hasHitReactionArmor(f,s.frame))return 0;
  if(characters[f.characterId].muscleFighter&&(f.move==='coolMuscles'||f.move==='gymBro')||f.grappleUntil>s.frame&&s.fighters[f.grappleOwner]?.move==='gymBro')return 0;
  if(s.frame<(f.gymStunnedUntil??0))return 0;
  if(s.frame<f.hitstunImmuneUntil)return 0;

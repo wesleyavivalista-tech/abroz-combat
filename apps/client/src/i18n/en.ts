@@ -375,6 +375,7 @@ export const en = {
   "match.fight": "FIGHT!",
   "match.dead": "DEAD.",
   "match.waitInput": "WAITING FOR INPUT",
+  "match.waitPlayers": "WAITING FOR PLAYERS TO LOAD",
   "match.confirm": "CONFIRMING RESULT…",
   "match.safeWatching": "SAFE · WATCHING THE FIGHT",
   "match.outWatching": "ELIMINATED · WATCHING THE FIGHT",

@@ -8,7 +8,7 @@ import {isActive,isInvulnerable} from './LifeSystem.js';
 import {grounded,surfaceBelow} from './StageCollision.js';
 /** Strongest slow wins. Poison only affects movement; blood also affects attacks. */
 export const attackSlow=(f:Fighter,frame:number):number=>Math.min(f.areaSlow,f.bloodSlowUntil>frame?.5:1);
-export const movementSlow=(f:Fighter,frame:number):number=>Math.min(attackSlow(f,frame),(f.beeSlowUntil??0)>frame?.7:1,(f.movementSlowUntil??0)>frame?.8:1,f.poisonUntil>frame?.8:1,f.cloudSlow??1,f.talkSlow??1,(f.sadnessUntil??0)>frame?.4:1)*f.floodSpeed*(f.bloodMasterUntil>frame?1.05:1);
+export const movementSlow=(f:Fighter,frame:number):number=>Math.min(attackSlow(f,frame),(f.beeSlowUntil??0)>frame?.65:1,(f.movementSlowUntil??0)>frame?.8:1,f.poisonUntil>frame?.8:1,f.cloudSlow??1,f.talkSlow??1,(f.sadnessUntil??0)>frame?.4:1)*f.floodSpeed*(f.bloodMasterUntil>frame?1.05:1);
 export function activateBlood(s:SimulationSnapshot,stage:StageDefinition,f:Fighter,owner:number,m:MoveDefinition):void{
  if(m.bloodMasterFrames)f.bloodMasterUntil=s.frame+m.bloodMasterFrames;
  if(m.bloodPoolFrames && s.hazards.filter(h=>h.kind==='blood-pool').length<96){

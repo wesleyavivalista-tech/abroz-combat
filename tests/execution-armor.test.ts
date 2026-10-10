@@ -11,6 +11,7 @@ import {advanceNapa} from '../packages/game-core/simulation/NapaSystem.js';
 import {gymTarget,startJomp,advanceJomp} from '../packages/game-core/simulation/JompSystem.js';
 import {activateStructure,damageStructure} from '../packages/game-core/simulation/StructureSystem.js';
 import {advanceStatuses} from '../packages/game-core/simulation/StatusSystem.js';
+import {activateJopa} from '../packages/game-core/simulation/JopaSystem.js';
 import {VerifiedMatch} from '../apps/server/src/verifiedMatch.js';
 import {RollbackManager} from '../packages/networking/RollbackManager.js';
 
@@ -69,7 +70,7 @@ for(const [id,c] of Object.entries(characters))for(const move of [...c.specialBu
  });
 }
 
-test('persistent transformations and buffs never protect their idle or basic execution states',()=>{
+test('persistent effects do not grant execution armor; only Giant Buda retains reaction armor',()=>{
  for(const [id,c] of Object.entries(characters)){
   const g=game([id,'gut']),f=g.state.fighters[0];
   Object.assign(f,{weaponUntil:5000,armorUntil:5000,onFireUntil:5000,bloodMasterUntil:5000,angelUntil:5000,beeBoxes:5,stampAttempts:5,modeFinaleUntil:5000});
@@ -80,7 +81,7 @@ test('persistent transformations and buffs never protect their idle or basic exe
    if(!move||!c.moves[move])continue;
    cast(g,move);assert.equal(hasExecutionArmor(f),false,`${id}/${move}`);
    f.stun=0;f.consecutiveHits=0;
-   g.hit(1,characters.gut.moves.palm,0,false,0,-1);assert.equal(f.move,null,`${id}/${move}`);assert.ok(f.stun>0);
+   g.hit(1,characters.gut.moves.palm,0,false,0,-1);if(id==='drupa'){assert.equal(f.move,move);assert.equal(f.stun,0);}else{assert.equal(f.move,null,`${id}/${move}`);assert.ok(f.stun>0);}
   }
  }
 });
@@ -166,4 +167,37 @@ test('lethal hits during an active channel, grapple or transformation clean up n
   g.hit(1,characters.nikalz.moves[characters.nikalz.basicAttacks!.chain[0]],0,false,0,-1);g.step([0,0]);
   assert.equal(f.move,null);assert.equal(f.weaponUntil,0);assert.equal(g.state.fighters[1].grappleUntil,0);assert.ok(f.respawnAt>0);
  }
+});
+
+test('Giant Buda resists normal, fixed and loan stun, but still takes damage and can die',()=>{
+ const g=game(['drupa','jopa','jomp']),f=g.state.fighters[0];f.weaponUntil=1000;
+ for(const move of [null,'budaSwing1','budaForward']){
+  f.move=move;f.state=move?characters.drupa.moves[move].state:'Idle';
+  const hp=f.health;g.hit(1,characters.jopa.moves.chess,0,false,0,-1);
+  assert.ok(f.health<hp);assert.equal(f.stun,0);assert.equal(f.move,move);
+  assert.equal(periodicHit(g.state,f,10,-1,120,30),false);
+  applyLoan(g.state,f);assert.equal(f.loanStunUntil,undefined);
+  assert.equal(gymTarget(g.state,g.state.fighters[2]),1);
+ }
+ f.move=null;f.state='Idle';g.state.frame=f.weaponUntil;
+ g.hit(1,characters.jopa.moves.chess,0,false,0,-1);assert.ok(f.stun>0);
+ f.weaponUntil=g.state.frame+1000;f.health=1;g.hit(1,characters.jopa.moves.chess,0,false,0,-1);
+ g.step([0,0,0]);assert.equal(f.weaponUntil,0);assert.ok(f.respawnAt>0);
+});
+
+test('server verification and rollback agree on Giant Buda and rapid football ricochets',()=>{
+ const local=game(['jopa','drupa']);const [a,d]=local.state.fighters;
+ d.weaponUntil=1000;d.x=local.stage.width-190;
+ activateJopa(local.state,local.stage,a,0,characters.jopa.moves.football);
+ const ball=local.state.projectiles.find(p=>p.active)!;ball.x=d.x+120;ball.vx=-16;
+ const initial=local.snapshot(),server=new VerifiedMatch(game(['jopa','drupa']),()=>{}),predicted=game(['jopa','drupa']);
+ server.simulation.restore(initial);predicted.restore(initial);
+ const peer=new RollbackManager(predicted,0,0,8);peer.confirmed=initial.frame-1;
+ for(let n=0;n<110;n++){
+  const frame=local.state.frame,input=n===8?Button.Light:0;
+  local.step([0,input]);server.receive(0,frame,0);server.receive(1,frame,input);
+  peer.local.set(frame,0);assert.equal(peer.tick(),true);peer.receive(frame,input,1);
+ }
+ assert.ok(d.health<characters.drupa.stats.maxHealth-16);assert.equal(d.stun,0);assert.ok(peer.rollbackCount>0);
+ assert.equal(hashState(local.state),hashState(server.simulation.state));assert.equal(hashState(local.state),hashState(predicted.state));
 });

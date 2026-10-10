@@ -34,6 +34,15 @@ export class RollbackManager {
   remoteFrame = -1;
   confirmed = -1;
   stalled = false;
+  /** The first non-bootstrap input is sent only after that client finishes loading.
+   * Keep the countdown at frame zero until every remaining peer has reached it.
+   * This is a client presentation gate; normal rollback prediction stays unchanged.
+   */
+  get waitingForPeers(): boolean {
+    return this.simulation.state.frame === 0 && this.remotes.some((remote, seat) =>
+      seat !== this.seat && !this.departures.has(seat) && !remote.has(this.inputDelay),
+    );
+  }
   desync = "OK";
   constructor(
     public simulation: GameSimulation,

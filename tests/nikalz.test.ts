@@ -19,9 +19,9 @@ test('double jump second basic is the forehead dive; a hit stuns exactly two sec
  const g=game(),f=g.state.fighters[0],d=g.state.fighters[1];f.y=300;f.airJumpUsed=true;f.airJumpsUsed=1;f.state='Jump';g.step([Button.Medium,0]);assert.equal(f.move,'foreheadDive');
  resolveHit(g.state,g.stage,()=>{},0,characters.nikalz.moves.foreheadDive,0,false,1);assert.equal(d.nikalzStunUntil,g.state.frame+120);run(g,119);assert.ok(d.stun>0);run(g,1);assert.equal(d.stun,0);
 });
-test('regular swarm persists, loops, hits one enemy once and slows movement 30% for 3 seconds',()=>{
+test('regular swarm persists, loops, hits one enemy once and slows movement 35% for 3 seconds',()=>{
  const g=game(),d=g.state.fighters[1];spawnBees(g.state,0,700,85);const b=g.state.bees![0];run(g,400);assert.equal(g.state.bees!.length,1);
- assert.deepEqual(beePosition(b,b.born),beePosition(b,b.born+b.period));d.x=b.x;d.y=0;const hp=d.health;g.step([0,0]);assert.equal(g.state.bees!.length,0);assert.equal(d.health,hp-25);assert.equal(movementSlow(d,g.state.frame),.7);const end=d.beeSlowUntil!;run(g,end-g.state.frame);assert.equal(movementSlow(d,g.state.frame),1);
+ assert.deepEqual(beePosition(b,b.born),beePosition(b,b.born+b.period));d.x=b.x;d.y=0;const hp=d.health;g.step([0,0]);assert.equal(g.state.bees!.length,0);assert.equal(d.health,hp-40);assert.equal(movementSlow(d,g.state.frame),.65);const end=d.beeSlowUntil!;run(g,end-g.state.frame);assert.equal(movementSlow(d,g.state.frame),1);
 });
 test('five placements use every basic button, keep five 550 HP boxes, then restore normal moves',()=>{
  const g=game(),f=g.state.fighters[0];g.step([Button.Super2,0]);run(g,55);assert.equal(f.beeBoxes,5);
@@ -88,4 +88,17 @@ test('meteor deals its increased damage once to fighters and destroys a nearby 5
  assert.equal(meteorDamage(0,g.stage.width),650);
  assert.equal(d.health,hp-meteorDamage(10,g.stage.width));assert.equal(box.phase,'collapsed');
  advanceNikalz(g.state,g.stage);assert.equal(d.health,hp-meteorDamage(10,g.stage.width));
+});
+
+test('special and box swarms both deal 40 damage and slow by 35 percent',()=>{
+ assert.equal(characters.nikalz.moves.bees.damage,40);assert.equal(NIKALZ.swarmDamage,40);assert.equal(NIKALZ.slowMultiplier,.65);
+ for(const box of [false,true]){
+  const g=game(),f=g.state.fighters[0],d=g.state.fighters[1];
+  if(box){activateStructure(g.state,g.stage,f,0,characters.nikalz.moves.placeBox);g.state.frame=NIKALZ.spawnInterval;advanceNikalz(g.state,g.stage);}
+  else activateNikalz(g.state,g.stage,f,0,characters.nikalz.moves.bees);
+  const bee=g.state.bees![0];assert.ok(bee);d.x=bee.x;d.y=0;const hp=d.health;
+  advanceNikalz(g.state,g.stage);assert.equal(d.health,hp-40);assert.equal(movementSlow(d,g.state.frame),.65);
+  assert.equal(d.beeSlowUntil,g.state.frame+180);assert.equal(g.state.bees!.length,0);
+  advanceNikalz(g.state,g.stage);assert.equal(d.health,hp-40);
+ }
 });

@@ -11,7 +11,7 @@ import {periodicHit} from '../combat/PeriodicHit.js';
 import {gainEnergy} from './EnergySystem.js';
 import {damageStructure} from './StructureSystem.js';
 export const MAX_BEE_SWARMS_PER_OWNER=100;
-export const NIKALZ={boxHealth:550,boxSpawnLimit:10,spawnInterval:240,slowFrames:180,slowMultiplier:.7,swarmDamage:25,shockRange:290,shockDamage:125,stunFrames:120,meteorStun:360,honeyEnergy:25,honeyPoisonFrames:300,honeyPoisonDamage:10};
+export const NIKALZ={boxHealth:550,boxSpawnLimit:10,spawnInterval:240,slowFrames:180,slowMultiplier:.65,swarmDamage:40,shockRange:290,shockDamage:125,stunFrames:120,meteorStun:360,honeyEnergy:25,honeyPoisonFrames:300,honeyPoisonDamage:10};
 export function nikalzRequest(f:Fighter,frame:number):string|null|undefined{
  if(!f.beeBoxes)return undefined;
  return [Button.Light,Button.Medium,Button.Heavy].some(b=>bufferedButton(f.buffer,frame,b))?'placeBox':null;

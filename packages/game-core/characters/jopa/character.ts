@@ -11,7 +11,7 @@ const moves={
  low:hit('low',{displayName:'Low punch',state:'CrouchingAttack',level:'low',damage:60,hitboxes:[{x:20,y:5,w:110,h:45}]}),
  air:hit('air',{displayName:'Air kick',state:'AirAttack',damage:75,startupFrames:7,activeFrames:9,recoveryFrames:14,hitboxes:[{x:10,y:25,w:115,h:65}]}),
  football:hit('football',{displayName:'Football',state:'SpecialMove',damage:52,meterCost:25,startupFrames:18,activeFrames:1,recoveryFrames:22,hitboxes:[],jopaAbility:'football'}),
- chess:hit('chess',{displayName:'Chess Master',state:'SpecialMove',damage:80,meterCost:25,startupFrames:20,activeFrames:1,recoveryFrames:24,hitboxes:[],hitstun:120,fixedStun:true,jopaAbility:'chess'}),
+ chess:hit('chess',{displayName:'Chess Master',state:'SpecialMove',damage:80,meterCost:25,startupFrames:20,activeFrames:1,recoveryFrames:24,hitboxes:[],hitstun:60,fixedStun:true,jopaAbility:'chess'}),
  tree:hit('tree',{displayName:'Crying Tree',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:100,startupFrames:60,activeFrames:1,recoveryFrames:20,hitboxes:[],jopaAbility:'tree'}),
  knight:hit('knight',{displayName:'Chess Knight',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:100,startupFrames:45,activeFrames:1,recoveryFrames:20,hitboxes:[],jopaAbility:'knight'}),
 };

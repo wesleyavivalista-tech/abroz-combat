@@ -13,7 +13,7 @@ const activate=(g:GameSimulation,id:string)=>activateJopa(g.state,g.stage,g.stat
 test('Jopa has approved skin order, a punch/kick/punch chain and all roster mounted art',()=>{assert.deepEqual(characters.jopa.skins?.map(s=>s.name),['Santos jersey','White tee']);assert.deepEqual(characters.jopa.basicAttacks?.chain,['jab','comboKick','cross']);for(const id of Object.keys(characters))assert.ok(id==='jopa'||mountedCatalog.flat().includes(id));});
 test('football has a two-second absolute lifetime even during hitstop and bounces from arena edges',()=>{const g=game();activate(g,'football');const p=g.state.projectiles.find(p=>p.active)!;p.x=g.stage.width-24;g.step([0,0]);assert.ok(p.vx<0);g.state.hitstop=200;run(g,118);assert.equal(p.active,true);run(g,1);assert.equal(p.active,false);});
 test('football rebounds and can damage the same opponent again',()=>{const g=game(),d=g.state.fighters[1];d.x=450;activate(g,'football');const p=g.state.projectiles.find(p=>p.active)!;g.state.fighters[0].x=100;run(g,8);assert.equal(d.health,1600-52);assert.ok(p.vx<0);const hp=d.health;run(g,13);p.x=d.x-65;p.y=d.y+24;p.vx=16;run(g,3);assert.ok(d.health<hp);});
-test('five deterministic chess variants hop, target, and stun for two seconds',()=>{const g=game();for(let i=0;i<5;i++)activate(g,'chess');assert.deepEqual(g.state.projectiles.filter(p=>p.active).map(p=>p.variant),[0,1,2,3,4]);g.state.projectiles.forEach(p=>p.active=false);g.state.fighters[1].x=410;activate(g,'chess');run(g,1);const d=g.state.fighters[1];assert.ok(d.health<1600);assert.equal(d.jopaStunUntil! - g.state.frame,120);run(g,120);assert.equal(d.jopaStunUntil,undefined);assert.equal(d.stun,0);});
+test('five deterministic chess variants hop straight and stun for one second',()=>{const g=game();for(let i=0;i<5;i++)activate(g,'chess');assert.deepEqual(g.state.projectiles.filter(p=>p.active).map(p=>p.variant),[0,1,2,3,4]);g.state.projectiles.forEach(p=>p.active=false);g.state.fighters[1].x=410;activate(g,'chess');run(g,1);const d=g.state.fighters[1];assert.ok(d.health<1600);assert.equal(d.jopaStunUntil! - g.state.frame,60);run(g,60);assert.equal(d.jopaStunUntil,undefined);assert.equal(d.stun,0);});
 test('tree protects and locks Jopa, spawns on cadence, and releases five tentacles exactly once',()=>{const g=game(),f=g.state.fighters[0];activate(g,'tree');const tree=g.state.clones[0];assert.equal(tree.fighter.health,980);assert.equal(canReceiveDirectHit(f,g.state.frame),false);applyDamage(g.state,f,999);assert.equal(f.health,1400);run(g,179,[Button.Right|Button.Light,0]);assert.equal(f.x,300);assert.equal(g.state.clones.length,1);run(g,1);assert.equal(g.state.clones.filter(c=>c.kind==='tentacle').length,1);assert.equal(g.state.clones[1].fighter.health,140);tree.fighter.health=0;cleanupJopa(g.state,g.stage);assert.equal(f.jopaTree,undefined);assert.equal(g.state.clones.filter(c=>c.kind==='tentacle').length,6);cleanupJopa(g.state,g.stage);assert.equal(g.state.clones.filter(c=>c.kind==='tentacle').length,6);});
 test('knight protects rider, moves and double jumps, then dismounts on second basic',()=>{const g=game(),f=g.state.fighters[0];activate(g,'knight');const c=g.state.clones[0];assert.equal(c.fighter.health,700);assert.equal(c.rider,0);applyDamage(g.state,f,100);assert.equal(c.fighter.health,600);assert.equal(f.health,1400);run(g,10,[Button.Right,0]);assert.equal(c.fighter.x,300);g.step([Button.Up|Button.Right,0]);assert.equal(c.fighter.x,305.4);assert.ok(c.fighter.vy>0);run(g,4);g.step([Button.Up,0]);assert.equal(c.fighter.airJumpsUsed,1);run(g,4);g.step([Button.Up,0]);assert.equal(c.fighter.airJumpsUsed,1);g.step([Button.Medium,0]);assert.equal(f.jopaRide,undefined);assert.equal(c.rider,undefined);assert.equal(f.move,null);});
 test('allied riders can mount, enemies cannot, and occupied mounts cannot be stolen',()=>{const g=new GameSimulation(['jopa','gut','tocha','bozo'],false,undefined,[0,0,1,1]);g.state.phase='fight';g.state.fighters.forEach(f=>f.state='Idle');activate(g,'knight');const c=g.state.clones[0];g.step([Button.Medium,0,0,0]);c.fighter.x=600;c.fighter.y=0;c.fighter.vy=0;c.nextAction=1000;const ally=g.state.fighters[1],enemy=g.state.fighters[2];ally.x=700;enemy.x=730;g.step([0,Button.Medium,Button.Medium,0]);assert.equal(c.rider,1);assert.equal(ally.jopaRide,c.id);assert.equal(enemy.jopaRide,undefined);c.fighter.health=0;g.step([0,0,0,0]);assert.equal(ally.jopaRide,undefined);});
@@ -102,4 +102,40 @@ test('knight recovery halves air steering and survives snapshot replay',()=>{
  const g=game();activate(g,'knight');const c=g.state.clones[0];c.fighter.y=100;c.fighter.vy=-1;c.recoveryUntil=90;
  const x=c.fighter.x;g.step([Button.Right,0]);assert.ok(Math.abs(c.fighter.x-x-2.7)<1e-9);
  const snap=g.snapshot();run(g,120,[Button.Right,0]);const hash=hashState(g.state);g.restore(snap);run(g,120,[Button.Right,0]);assert.equal(hashState(g.state),hash);
+});
+
+// A close rebound can return before the former twelve-frame target cooldown.
+test('football damages a separated return hit within twelve frames',()=>{
+ const g=game(),d=g.state.fighters[1];d.x=450;activate(g,'football');
+ const p=g.state.projectiles.find(p=>p.active)!;p.x=390;
+ advanceJopa(g.state,g.stage);assert.equal(d.health,1548);
+ const hp=d.health;g.state.frame++;p.x=380;p.vx=16;
+ for(let i=0;i<3;i++){g.state.frame++;advanceJopa(g.state,g.stage);}
+ assert.equal(d.health,hp-52);assert.ok(p.vx<0);
+});
+test('football cannot repeatedly damage an overlapping target before separating',()=>{
+ const g=game(),d=g.state.fighters[1];d.x=450;activate(g,'football');
+ const p=g.state.projectiles.find(p=>p.active)!;p.x=d.x;p.vx=1;
+ advanceJopa(g.state,g.stage);const hp=d.health;
+ for(let i=0;i<20;i++){g.state.frame++;p.x=d.x;p.vx=1;advanceJopa(g.state,g.stage);}
+ assert.equal(d.health,hp);
+});
+test('chess keeps its launch direction with enemies behind or moving past it',()=>{
+ for(const facing of [-1,1] as const){
+  const g=game(),f=g.state.fighters[0],d=g.state.fighters[1];f.x=1000;f.facing=facing;activate(g,'chess');
+  const p=g.state.projectiles.find(p=>p.active)!;
+  for(let i=0;i<60;i++){d.x=p.x-facing*150;g.state.frame++;advanceJopa(g.state,g.stage);assert.equal(p.vx,facing*5);}
+ }
+});
+test('football wall ricochets register every separated impact, including rapid returns',()=>{
+ const g=game(),d=g.state.fighters[1];d.x=g.stage.width-120;activate(g,'football');
+ const p=g.state.projectiles.find(p=>p.active)!;p.x=d.x+60;p.vx=-16;
+ const hp=d.health;
+ for(let i=0;i<12;i++){g.state.frame++;advanceJopa(g.state,g.stage);}
+ assert.ok(d.health<=hp-104);assert.ok(p.active);
+ const snapshot=g.snapshot();
+ for(let i=0;i<30;i++){g.state.frame++;advanceJopa(g.state,g.stage);}
+ const expected=hashState(g.state);g.restore(snapshot);
+ for(let i=0;i<30;i++){g.state.frame++;advanceJopa(g.state,g.stage);}
+ assert.equal(hashState(g.state),expected);
 });

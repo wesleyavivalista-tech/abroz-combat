@@ -39,16 +39,19 @@ for(const [id,c] of Object.entries(characters))test(`${id}: every authored inter
  }
 });
 
-for(const [id,c] of Object.entries(characters))for(const mode of Object.values(c.moves).filter(m=>m.weaponFrames))test(`${id}/${mode.id}: actual transformation expires during hitstun without unlocking input`,()=>{
+for(const [id,c] of Object.entries(characters))for(const mode of Object.values(c.moves).filter(m=>m.weaponFrames))test(`${id}/${mode.id}: actual transformation expiry respects its hit-reaction policy`,()=>{
  const g=game([id,'gut']),f=g.state.fighters[0];
  const index=c.superButtons.indexOf(mode.id);assert.ok(index>=0);
  g.step([index===0?Button.Super1:Button.Super2,0]);run(g,mode.startupFrames+mode.activeFrames+mode.recoveryFrames+5);
  assert.ok(f.weaponUntil>g.state.frame);
- g.hit(1,characters.gut.moves.palm,0,false,0,-1);assert.ok(f.stun>0);
+ g.hit(1,characters.gut.moves.palm,0,false,0,-1);
+ const armored=!!c.weaponModifiers?.hitReactionArmor;assert.equal(f.stun>0,!armored);
  f.weaponUntil=g.state.frame+1;
- const snapshot=g.snapshot();g.step([Button.Right|Button.Light,0]);
- assert.equal(f.weaponUntil,0);assert.equal(f.move,null);assert.ok(f.stun>0);
- const hash=hashState(g.state);g.restore(snapshot);g.step([Button.Right|Button.Light,0]);assert.equal(hashState(g.state),hash);
+ const input=armored?0:Button.Right|Button.Light;
+ const snapshot=g.snapshot();g.step([input,0]);
+ assert.equal(f.weaponUntil,0);assert.equal(f.move,null);assert.equal(f.stun>0,!armored);
+ const hash=hashState(g.state);g.restore(snapshot);g.step([input,0]);assert.equal(hashState(g.state),hash);
+ if(armored){g.hit(1,characters.gut.moves.palm,0,false,0,-1);assert.ok(g.state.fighters[0].stun>0);}
  run(g,Math.max(240,(c.modeFinale?.duration??0)+60));controllable(g);
 });
 
