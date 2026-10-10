@@ -242,3 +242,48 @@ an old installer. Retain the legacy error message alongside structured error fie
   spaces to dots. The permanent uploader now normalizes names before upload and
   has regression coverage. Preliminary unlinked local-candidate R2 objects under
   beta-0.1.2-596e0e5 remain; they are not linked from the production download page.
+
+## Combat adjustments and startup readiness release verified — 2026-10-10
+
+- Release 0.1.3, candidate build 03e5b30890746182fe96255f6b7dd5e309ddccff,
+  browser publishing commit f0bfb185a0f99c8c99904ed1fe3fdc3113f5b34b,
+  compatibility `46-ba730a68`, protocol 46. Publishing commit differs only in
+  a capacity-test delivery wait; runtime source matches the desktop candidate.
+- Includes Drupa Giant Buda hit-reaction armor; straight-travelling Jopa chess
+  piece with one-second stun; soccer-ball repeat-contact registration; Nikalz
+  bees at 40 damage and 35% slow; online countdown waiting for peer loading.
+  Drupa beam timing received regression coverage without a gameplay change.
+- 1,453 game tests and 25 desktop/release checks passed, with typecheck, source
+  lint and production browser/server builds. Broad lint still reports two
+  pre-existing explicit-any uses in the ignored recovery diagnostic helper;
+  it is excluded from release artifacts. One flaky capacity assertion was
+  fixed by awaiting trailing socket delivery, preserving its exact count.
+- All three native packaging jobs passed in run 38086472555. GitHub candidate
+  installers matched their checksums and compatibility metadata. Both Mac DMGs
+  passed integrity verification. Full public downloads of all three installers
+  matched SHA256; notes and checksum links returned HTTP 200.
+- Pages production deployment: `22b5c081.abroz-combat.pages.dev`.
+  Server immutable image SHA256:
+  `70f5fe652f84816208ac50c777e15fe3fc9bfe2b3be4e18de421b3500adfcc0c`.
+  Guarded rollout checked empty rooms/connections and preserved machine
+  0807569c9039d8 and encrypted volume vol_vlym3gnldd2kgyd4/configuration.
+- Rollback retained: Pages 7452e0f9, 0.1.2 downloads, and server image SHA256
+  `1ac800b67f6f2b9aa67fa558fc605f86df61dfbd51a228220e36eee12035a32c`.
+  No migration or new infrastructure was required.
+- Live private two-client combat matched simulation hashes, registered damage,
+  and cleaned up; reconnect restored seat 1 and a frame-122 snapshot; old 0.1.2
+  was rejected with VERSION_MISMATCH. Follow-up health/ready and Fly checks
+  passed with zero rooms/connections. Recent new-release structured logs had
+  no exceptions, fatal errors or recovery failures; the expected old-version
+  rejection was recorded as validation.
+- Live browser fighter/arena selection, graphics, movement, a 35-damage hit,
+  pause and return to menu passed without captured console errors. The actual
+  packaged Apple Silicon Mac app also loaded gameplay, moved, registered a
+  45-damage Gut hit, paused and returned to menu.
+- A temporary R2 credential expired between Mac and Windows uploads; no
+  production switch occurred until the owner renewed it and every installer
+  was verified. All release files are under beta-0.1.3; old files remain.
+- Desktop users must manually install 0.1.3; browser/PWA users reload. Installers
+  remain unsigned beta builds. Windows/Intel-Mac installation and upgrades,
+  physical controllers, multi-device visual/audio and long-session QA remain
+  manual checks; this release smoke test is not exhaustive gameplay QA.
