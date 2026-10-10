@@ -48,7 +48,11 @@ test('beta admission: 64 real sockets, eight rooms, settled combat hashes and cl
     for(let i=0;i<64;i++)assert.equal(receivedHashes[i].get(frame+1),hashState(simulations[Math.floor(i/8)].state));
    }
   }
-  assert.equal(errors.length,0,errors.join('; '));assert.equal(inputMessages,600*64*7);
+  // The last hash settles frame 600; the trailing inputs through 601 can still
+  // be in flight on other sockets. Await delivery, retaining the exact count.
+  const expectedInputs=600*64*7;
+  for(let attempt=0;attempt<400&&inputMessages<expectedInputs;attempt++)await pause(5);
+  assert.equal(errors.length,0,errors.join('; '));assert.equal(inputMessages,expectedInputs);
   sockets.forEach(s=>s.terminate());
   for(let attempt=0;attempt<100&&(await health()).connections;attempt++)await pause(10);
   assert.deepEqual({connections:(await health()).connections,rooms:(await health()).rooms},{connections:0,rooms:0});
