@@ -287,3 +287,43 @@ an old installer. Retain the legacy error message alongside structured error fie
   remain unsigned beta builds. Windows/Intel-Mac installation and upgrades,
   physical controllers, multi-device visual/audio and long-session QA remain
   manual checks; this release smoke test is not exhaustive gameplay QA.
+
+## Invasion, championship and online lobby release verified — 2026-10-11
+
+- Release 0.1.4, game candidate aa47587333a0fd36ebb88ef60f8ff18f959d953e,
+  browser publishing commit fabbb177e29cf78725794b8f3ec40d8582cd6559.
+  Compatibility `49-8f68f503`, protocol 49. Publishing commit only updates downloads.
+- Includes the completed invasion/timer/audio and hose/beam work, existing combat
+  adjustments, generic controller mapping and local player management, championship
+  brackets/winner artwork, restart, FFA statistics and full online room/lobby flow.
+- 1,553 game tests passed locally and in release-check CI (38192263515). Local
+  release/desktop suite: 27 passed. Full lint, client/server types, web/desktop
+  builds and CI container health passed. Minimal preparation fixes: document an
+  intentional test loop, type a local diagnostic helper, and exclude two new
+  sprite-generation notes from release output. No combat changes during deployment.
+- Native Windows x64, Mac ARM64 and Mac x64 candidates passed workflow 38192261261.
+  All metadata matched candidate compatibility; all three full public downloads
+  matched SHA256. Both Mac DMGs passed integrity checks and contained expected
+  metadata. The packaged ARM64 app launched and created/left a private live room.
+- Owner explicitly approved publishing matching installers before the rollout.
+  Downloads are under beta-0.1.4; previous versioned downloads remain untouched.
+- Pages production: `52e662b7-a355-4a4e-ac2d-0bc917c27388`.
+  Server image: `registry.fly.io/abroz-combat@sha256:abb6497c4eb3a0d64b9daf9b574c72b32c9a06c4d28987271b2f01cb8761b96c`.
+  The guarded drain verified zero rooms/connections twice. Machine
+  0807569c9039d8 and encrypted volume vol_vlym3gnldd2kgyd4 were preserved.
+  No migration, new service, replica, or production secret change was needed.
+- Rollback pair: Pages `22b5c081-e2fe-4f4d-8ddc-fd0d9cfff845`, 0.1.3 downloads,
+  server image `registry.fly.io/abroz-combat@sha256:70f5fe652f84816208ac50c777e15fe3fc9bfe2b3be4e18de421b3500adfcc0c`.
+  Six previous hashed browser chunks remain in the new output for loading tabs.
+- Live browser pair: private create/join, fighter selection, ready/owner start,
+  combat, 3:05 invasion with red timer, synchronized restart, result/menu exit
+  passed without page errors. Live reconnect restored seat 1 at frame 122.
+  Thirty page/critical asset requests passed. Final health: zero rooms/connections;
+  Fly checks passing. Bounded new-release log review found no exceptions.
+  Previous desktop compatibility is rejected with VERSION_MISMATCH by design.
+- Browser/PWA users reload; desktop users must manually install 0.1.4 for online
+  play. Unsigned beta status remains unchanged. Windows/Intel Mac installation
+  and upgrades, physical controllers, multi-device audio and long-session QA
+  remain manual. Existing >500 kB web bundle warning remains.
+- Evidence: audits/evidence/2026-10-11-release-014.json. Detailed transfer logs,
+  checksums, compatibility metadata and rollback config: deploy/local/release-014.

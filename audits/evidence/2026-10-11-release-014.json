@@ -1,0 +1,66 @@
+{
+  "version": "0.1.4",
+  "candidate": "aa47587333a0fd36ebb88ef60f8ff18f959d953e",
+  "contentVersion": "49-8f68f503",
+  "serverImage": "registry.fly.io/abroz-combat@sha256:abb6497c4eb3a0d64b9daf9b574c72b32c9a06c4d28987271b2f01cb8761b96c",
+  "desktopWorkflow": 38192261261,
+  "releaseChecksWorkflow": 38192263515,
+  "rollback": {
+    "version": "0.1.3",
+    "contentVersion": "46-ba730a68",
+    "pages": "22b5c081-e2fe-4f4d-8ddc-fd0d9cfff845",
+    "serverImage": "registry.fly.io/abroz-combat@sha256:70f5fe652f84816208ac50c777e15fe3fc9bfe2b3be4e18de421b3500adfcc0c"
+  },
+  "published": true,
+  "pages": "52e662b7-a355-4a4e-ac2d-0bc917c27388",
+  "publishingCommit": "fabbb177e29cf78725794b8f3ec40d8582cd6559",
+  "gameTests": 1553,
+  "releaseTests": 27,
+  "ciChecks": "success",
+  "nativePackaging": [
+    "Windows x64",
+    "macOS ARM64",
+    "macOS x64"
+  ],
+  "publicDownloads": [
+    {
+      "file": "Abroz.Combat-0.1.4-mac-arm64.dmg",
+      "bytes": 1508455359,
+      "sha256": "7730a5d794077eb4aca03918bddcb77b406dc0856927cbd1478c47c756d7ac82",
+      "verified": true
+    },
+    {
+      "file": "Abroz.Combat-0.1.4-mac-x64.dmg",
+      "bytes": 1512253998,
+      "sha256": "966308ea1e219c24ba57528bf9b9851f724ed1ccd8ecec88e45e8eca697ee3b9",
+      "verified": true
+    },
+    {
+      "file": "Abroz.Combat-0.1.4-win-x64.exe",
+      "bytes": 1459929305,
+      "sha256": "20c42a38050e963e81ab0b1364fedc2547d31f6f04bf0ee0450a92849b9c9891",
+      "verified": true
+    }
+  ],
+  "liveBrowser": "private create/join/fighter/ready/manual start/combat/3:05 invasion/synchronized restart/results/menu exit passed",
+  "liveRecovery": "seat 1, frame 122 restored",
+  "nativeMac": "packaged ARM64 started and created/left private live room",
+  "liveAssets": 30,
+  "liveExceptions": 0,
+  "health": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-8f68f503"
+  },
+  "manualQA": [
+    "native Windows and Intel Mac installation/upgrade",
+    "physical controllers",
+    "multi-device audio and long-session testing"
+  ]
+}
