@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><meta charset="UTF-8"><title>Roms hose aiming preview</title><style>body{background:#18232e;color:white;font:16px system-ui;margin:24px}canvas{width:100%;max-width:1200px;display:block}p{color:#bcc9d7}</style><h1>Roms — 360° hose aiming</h1><p>Actual game sprites and shared beam origins. Sixteen full-body poses; last two rows mirrored. White lines mark the water direction.</p><div id="status">Loading…</div><script type="module">
+import * as THREE from 'three';
+import {loadRomsPresentation} from './src/characters/roms/presentation.ts';
+import {createFighter} from '../../packages/game-core/simulation/Fighter.ts';
+import {hoseVisualOrigin} from '../../packages/game-core/simulation/HoseAim.ts';
+import {lightBeam} from '../../packages/game-core/simulation/LightBeamSystem.ts';
+let factory;await loadRomsPresentation((id,f,skin)=>{if(!skin)factory=f;});
+const r=new THREE.WebGLRenderer({alpha:true,antialias:true});r.setSize(1200,1100);document.body.append(r.domElement);
+const scene=new THREE.Scene(),cam=new THREE.OrthographicCamera(-2,20,5.5,-13,.1,50);cam.position.z=10;
+for(let row=0;row<4;row++)for(let i=0;i<8;i++){
+ const f=createFighter('roms',1200,row>=2?-1:1);f.move='water';f.moveFrame=31;f.state='SpecialMove';f.beamAim=((row%2)*8+i)*22.5;
+ const v=factory();v.update(f,0);const group=new THREE.Group();group.position.set(i*2.4,-row*4,0);group.add(v.root);
+ const ray=lightBeam(f,2400),nozzle=hoseVisualOrigin(f.beamAim);ray.x=f.x+f.facing*nozzle.x;ray.y=f.y+nozzle.y;const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3((ray.x-1200)/100,ray.y/100,.1),new THREE.Vector3((ray.x-1200)/100+ray.dx*1.5,ray.y/100+ray.dy*1.5,.1)]),new THREE.LineBasicMaterial({color:0x9eeaff}));group.add(line);scene.add(group);
+}
+r.render(scene,cam);document.querySelector('#status').textContent='32 poses loaded — both facing directions';
+</script></html>

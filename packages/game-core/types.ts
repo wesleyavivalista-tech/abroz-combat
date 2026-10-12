@@ -95,7 +95,7 @@ export interface MoveDefinition {
   structure?: StructureDefinition;
   reactivation?: string;
   buildMarkedStructure?: boolean;
-  projectile?: { variants?: number; originX?: number; originY?: number; speed: number; lifetime: number; radius?: number; visual?: "appliance" | "wine" | "feather" | "fire" | "pentagram" | "hair" | "spear" | "poison" | "product" | "cannonball" | "sound" | "basketball" | "cookie"; homing?: boolean };
+  projectile?: { arenaRange?:boolean; cardinal?:boolean; variants?: number; originX?: number; originY?: number; speed: number; lifetime: number; radius?: number; visual?: "appliance" | "wine" | "feather" | "fire" | "pentagram" | "hair" | "spear" | "poison" | "product" | "cannonball" | "sound" | "basketball" | "cookie"; homing?: boolean };
   burn?: { duration: number; damage: number; kind?: "normal" | "purple" };
   hazard?: { duration: number; radius: number; damage: number; interval: number; startFrame?: number; burn?: {duration:number;damage:number;kind?: "normal" | "purple"} };
   returningProjectile?: string;
@@ -125,15 +125,17 @@ export interface MoveDefinition {
   summonClones?: number;
   summonCookieMonster?: boolean;
   snotFrames?: number;
-  suction?: {range:number;strength:number};
+  suction?: {range:number;strength:number;holdButton?:number;drainInterval?:number;drainAmount?:number};
   grappleFrames?: number;
   weaponFrames?: number;
   extraLife?: boolean;
+  /** Explicit exception to the shared Special/Ultimate execution armor. */
+  executionArmor?: false;
   /** Hold the input to channel; healing uses simulation ticks, not animation speed. */
   channelHeal?: { button: number; interval: number; amount: number };
   fixedStun?: boolean;
   arenaRoll?: boolean;
-  beam?: {initialAim?:number;clipToArena?:boolean;targetProfile?:"body"|"lower-stance";push?:number;width:number;originY:number;originX?:number;interval:number;steerable?:boolean;float?:number;continuous?:boolean;upward?:boolean;downward?:boolean;holdButton?:number};
+  beam?: {originProfile?:"hose";initialAim?:number;clipToArena?:boolean;targetProfile?:"body"|"lower-stance";push?:number;width:number;originY:number;originX?:number;interval:number;steerable?:boolean;fullCircle?:boolean;float?:number;continuous?:boolean;upward?:boolean;downward?:boolean;holdButton?:number};
   piercing?: boolean;
   advance?: number;
   selfLaunch?: number;
@@ -241,6 +243,8 @@ export interface Fighter {
   burnNextTick: number;
   burnDamage: number;
   burnOwner: number;
+  burnOwned?:boolean;
+  burnNeutral?:boolean;
   onFireUntil: number;
   speedRemainder: number;
   x: number;
@@ -256,6 +260,8 @@ export interface Fighter {
   poisonNextTick: number;
   poisonDamage: number;
   poisonOwner: number;
+  poisonOwned?:boolean;
+  poisonNeutral?:boolean;
   floodSpeed: number;
   bloodSlowUntil: number;
   bloodMasterUntil: number;
@@ -286,6 +292,7 @@ export interface Fighter {
   projectileSpawned: boolean;
 }
 export interface Projectile {
+  owned?:boolean;
   jopaKind?: "football"|"chess";
   expiresAt?: number;
   nextHop?: number;
@@ -316,7 +323,7 @@ export interface Hazard {
   height?: number;
   owner: number; x: number; y: number; expiresAt: number; move: string; nextTicks: number[];
 }
-export interface HairClone { id: number; owner: number; fighter: Fighter; undead?: {phaseAt:number; target:number; nextAttack:number; attackAt:number; attackFrame:number; hit:boolean; stuck:number; lastX:number; spawnX:number; spawnY:number}; kind?: "undead" | "blonde" | "sad" | "angry" | "basketball" | "cookie-monster" | "tree" | "tentacle" | "knight"; rider?:number; bornAt?:number; nextJump?:number; reboundUntil?:number; recoveryUntil?:number; landingHitReadyAt?:number; impactAt?:number; nextAction?:number; pattern?:number; variant?: number; maxHealth?: number; }
+export interface HairClone { invasion?: import('./simulation/InvasionSystem.js').InvasionVariant; id: number; owner: number; fighter: Fighter; undead?: {phaseAt:number; target:number; nextAttack:number; attackAt:number; attackFrame:number; hit:boolean; stuck:number; lastX:number; spawnX:number; spawnY:number}; kind?: "undead" | "blonde" | "sad" | "angry" | "basketball" | "cookie-monster" | "tree" | "tentacle" | "knight"; rider?:number; bornAt?:number; nextJump?:number; reboundUntil?:number; recoveryUntil?:number; landingHitReadyAt?:number; impactAt?:number; nextAction?:number; pattern?:number; variant?: number; maxHealth?: number; }
 export interface StructureDefinition {
  kind: "wall"|"turret"|"house"|"bee-box"; width:number; height:number; healthRatio:number; duration:number; offset:number;
  shotMove?:string; interval?:number; collapseDamage?:number; collapseStun?:number;
@@ -330,6 +337,8 @@ export interface BeeSwarm {id:number;owner:number;x:number;y:number;originX:numb
 export interface ForeheadWave {owner:number;x:number;y:number;born:number;range:number;speed:number;meteor:boolean;hits:string[];}
 export interface FinalDeath {seat:number; x:number; y:number; frame:number; facing:1|-1; spawned?:boolean;}
 export interface SimulationSnapshot {
+  statistics?:import('./simulation/MatchStatistics.js').MatchStatistics;
+  invasion?: import('./simulation/InvasionSystem.js').InvasionState;
   finalDeaths?: FinalDeath[];
   platformTick?: number;
   bees?:BeeSwarm[]; nextBeeId?:number; foreheadWaves?:ForeheadWave[];

@@ -11,7 +11,7 @@ import {periodicHit} from '../combat/PeriodicHit.js';
 import {gainEnergy} from './EnergySystem.js';
 import {damageStructure} from './StructureSystem.js';
 export const MAX_BEE_SWARMS_PER_OWNER=100;
-export const NIKALZ={boxHealth:550,boxSpawnLimit:10,spawnInterval:240,slowFrames:180,slowMultiplier:.65,swarmDamage:40,shockRange:290,shockDamage:125,stunFrames:120,meteorStun:360,honeyEnergy:25,honeyPoisonFrames:300,honeyPoisonDamage:10};
+export const NIKALZ={boxHealth:550,boxSpawnLimit:10,spawnInterval:240,slowFrames:180,slowMultiplier:.6,swarmDamage:44,shockRange:290,shockDamage:125,stunFrames:120,meteorStun:360,honeyEnergy:25,honeyPoisonFrames:300,honeyPoisonDamage:10};
 export function nikalzRequest(f:Fighter,frame:number):string|null|undefined{
  if(!f.beeBoxes)return undefined;
  return [Button.Light,Button.Medium,Button.Heavy].some(b=>bufferedButton(f.buffer,frame,b))?'placeBox':null;
@@ -82,7 +82,7 @@ export function advanceNikalz(s:SimulationSnapshot,stage:StageDefinition):void{
  for(const b of s.bees){
   const old={x:b.x,y:b.y};Object.assign(b,beePosition(b,s.frame));b.x=Math.max(25,Math.min(stage.width-25,b.x));
   const target=actors(s).find(a=>hostile(s,b.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isInvulnerable(a.fighter,s.frame)&&a.fighter.x>=Math.min(old.x,b.x)-55&&a.fighter.x<=Math.max(old.x,b.x)+55&&a.fighter.y<b.y+30&&a.fighter.y+150>b.y-30);
-  if(target){periodicHit(s,target.fighter,NIKALZ.swarmDamage,Math.sign(target.fighter.x-b.x),10,2,undefined,stage.floorHeight,{source:b.owner,move:"bees"},stage.width);target.fighter.beeSlowUntil=s.frame+NIKALZ.slowFrames;b.owner=-1;}
+  if(target){periodicHit(s,target.fighter,NIKALZ.swarmDamage,Math.sign(target.fighter.x-b.x),10,2,undefined,stage.floorHeight,{owned:true,source:b.owner,move:"bees"},stage.width);target.fighter.beeSlowUntil=s.frame+NIKALZ.slowFrames;b.owner=-1;}
  }
  s.bees=s.bees.filter(b=>b.owner>=0);
  for(const w of s.foreheadWaves??[]){
@@ -103,8 +103,8 @@ export function advanceNikalz(s:SimulationSnapshot,stage:StageDefinition):void{
   const seat=s.fighters.findIndex(f=>isActive(f)&&!isInvulnerable(f,s.frame)&&Math.abs(f.x-h.x)<40&&Math.abs(f.y-h.y)<50);
   if(seat<0)continue;
   const f=s.fighters[seat];
-  if(s.teams[seat]===s.teams[h.owner])gainEnergy(f,NIKALZ.honeyEnergy,s.frame);
-  else {f.poisonUntil=s.frame+NIKALZ.honeyPoisonFrames;f.poisonNextTick=s.frame+30;f.poisonDamage=NIKALZ.honeyPoisonDamage;f.poisonOwner=h.owner;}
+  if(s.teams[seat]===s.teams[h.owner])gainEnergy(f,NIKALZ.honeyEnergy,s.frame,s);
+  else {f.poisonUntil=s.frame+NIKALZ.honeyPoisonFrames;f.poisonNextTick=s.frame+30;f.poisonDamage=NIKALZ.honeyPoisonDamage;f.poisonOwner=h.owner;f.poisonOwned=true;f.poisonNeutral=false;}
   h.expiresAt=s.frame;
  }
 }

@@ -40,7 +40,7 @@ test('music uses arena pool, avoids immediate repeat, uses optional variants and
  assert.ok(chooseMusic('match','the-foundry')?.url);
  assert.ok(musicProfiles.industrial.tracks.includes('factory_01'));
 });
-class Param {value=1;setTargetAtTime(v:number){this.value=v;}setValueAtTime(v:number){this.value=v;}linearRampToValueAtTime(v:number){this.value=v;}exponentialRampToValueAtTime(v:number){this.value=v;}}
+class Param {value=1;targets:{value:number;time:number}[]=[];setTargetAtTime(v:number,_at=0,time=.04){this.targets.push({value:v,time});this.value=v;}setValueAtTime(v:number){this.value=v;}linearRampToValueAtTime(v:number){this.value=v;}exponentialRampToValueAtTime(v:number){this.value=v;}}
 class Node {gain=new Param();pan=new Param();frequency=new Param();playbackRate=new Param();threshold=new Param();knee=new Param();ratio=new Param();attack=new Param();release=new Param();onended:(()=>void)|null=null;connections:Node[]=[];type='sine';connect(n:Node){this.connections.push(n);}disconnect(){this.connections=[];}start(){}stop(){}}
 class Context {static instances=0;state='running';currentTime=0;destination=new Node();nodes:Node[]=[];constructor(){Context.instances++;}node(){const n=new Node();this.nodes.push(n);return n;}createGain(){return this.node();}createDynamicsCompressor(){return this.node();}createWaveShaper(){return this.node();}createStereoPanner(){return this.node();}createOscillator(){return this.node();}createBufferSource(){return this.node();}resume(){this.state='running';return Promise.resolve();}close(){this.state='closed';return Promise.resolve();}}
 
@@ -88,6 +88,11 @@ test('music crossfades stay bounded, stale loads clean up, failures select fallb
   await new Promise(resolve=>setTimeout(resolve,900));assert.equal(a.diagnostics().loops,1);
   a.setMusic('final');await Promise.resolve();assert.equal(a.diagnostics().track,'championship_final_01');
   a.setMusic('match');await Promise.resolve();assert.equal(a.diagnostics().track,'rooftop_02');
+  a.setMusic('invasion');await Promise.resolve();assert.equal(a.diagnostics().track,'invasion_01');
+  for(let i=0;i<60;i++)a.setMusic('invasion');
+  await new Promise(resolve=>setTimeout(resolve,3400));assert.equal(a.diagnostics().loops,1);
+  a.setMusic('menu');await Promise.resolve();
+  await new Promise(resolve=>setTimeout(resolve,900));assert.equal(a.diagnostics().track,'menu_01');assert.equal(a.diagnostics().loops,1);
   a.dispose();assert.equal(a.diagnostics().loops,0);assert.equal(a.diagnostics().active,0);
  }finally{a.dispose();for(const key of Object.keys(tracks))delete tracks[key];Object.assign(tracks,original);Object.assign(globalThis,{AudioContext:oldContext,Audio:oldAudio});}
 });
@@ -252,4 +257,72 @@ test('voice remains independent of SFX mute while master mute suppresses both',(
   a.mute=false;a.master=0;a.update(false);assert.equal(a.play('menu_confirm'),undefined);
   a.resetMatch();assert.equal(a.diagnostics().duckGain,1);
  }finally{a.dispose();Object.assign(globalThis,{AudioContext:old});}
+});
+
+
+test('invasion warning sounds once at confirmed 3:00, survives rollback, and resets for each round/match',()=>{
+ const sim=new GameSimulation(['nikalz','jopa']),heard:string[]=[];
+ const bridge=new GameAudio({syncAbilityLoops:()=>{},play:(id:string)=>heard.push(id),setMusic:()=>{},duck:()=>{},resetMatch:()=>{}} as unknown as AudioManager);
+ const consume=(age:number,confirmed=Infinity,start=180)=>{
+  sim.state.phaseFrame=age;sim.state.frame=start+age;
+  bridge.consume(sim.state,[],[],'the-foundry',2400,[0],true,'match',confirmed);
+ };
+ const count=()=>heard.filter(id=>id==='invasion_danger').length;
+ sim.state.phase='fight';consume(10799);assert.equal(count(),0);
+ consume(10800,10979);assert.equal(count(),0,'wait for authoritative confirmation');
+ consume(10801,10980);assert.equal(count(),1,'crossing is not lost if confirmation arrives late');
+ consume(10799);consume(10800);consume(11400);assert.equal(count(),1,'no repeat on rollback or later waves');
+ consume(10800,Infinity,20000);assert.equal(count(),2,'new round');
+ bridge.reset();consume(10800);assert.equal(count(),3,'new match');
+ bridge.reset();sim.state.training=true;consume(10800);assert.equal(count(),3);
+ sim.state.training=false;sim.state.phase='result';consume(10800);assert.equal(count(),3);
+ assert.equal(sounds.invasion_danger.maxInstances,1);assert.equal(sounds.invasion_danger.loop,undefined);
+});
+
+
+test('invasion music replaces every combat score after confirmed threshold and resets with rounds',()=>{
+ const sim=new GameSimulation(['nikalz','jopa']),music:string[]=[];
+ const bridge=new GameAudio({syncAbilityLoops:()=>{},play:()=>{},setMusic:(state:string)=>music.push(state),duck:()=>{},resetMatch:()=>{}} as unknown as AudioManager);
+ const consume=(age:number,confirmed=Infinity)=>{
+  sim.state.phaseFrame=age;sim.state.frame=180+age;
+  bridge.consume(sim.state,[],[],'the-foundry',2400,[0],true,'championship-final',confirmed);
+  return music.at(-1);
+ };
+ sim.state.phase='fight';
+ assert.equal(consume(10799),'championship-final');
+ assert.equal(consume(10800,10979),'championship-final');
+ assert.equal(consume(10801,10980),'invasion');
+ assert.equal(consume(10799),'invasion','rollback does not restart the music');
+ assert.equal(consume(12000),'invasion');
+ sim.state.phase='intro';assert.equal(consume(0),'intro');
+ bridge.reset();sim.state.phase='fight';assert.equal(consume(0),'championship-final');
+ sim.state.training=true;assert.equal(consume(10800),'championship-final');
+ for(const arena of ['the-foundry','basketball-court','shopping-mall','aeroporto-church'])assert.equal(chooseMusic('invasion',arena)?.id,'invasion_01');
+ assert.equal(tracks.invasion_01.loop,true);assert.ok(tracks.invasion_01.gain>tracks.rooftop_01.gain);
+});
+
+
+test('invasion starts at full track gain and fades arena only after playback is ready; stale starts are ignored',async()=>{
+ const oldContext=globalThis.AudioContext,oldAudio=globalThis.Audio;
+ let resolveInvasion:()=>void=()=>{};
+ const sources:{element:Media;source:Node}[]=[];
+ class Media {src='';crossOrigin='';preload='';loop=false;onerror:(()=>void)|null=null;play(){return this.src.includes('invasion-dark-horror')?new Promise<void>(resolve=>{resolveInvasion=resolve;}):Promise.resolve();}pause(){}removeAttribute(){this.src='';}load(){}}
+ class MusicContext extends Context {createMediaElementSource(element:Media){const source=this.node();sources.push({element,source});return source;}}
+ Object.assign(globalThis,{AudioContext:MusicContext,Audio:Media});
+ const a=new AudioManager();
+ try{
+  a.unlock();await Promise.resolve();a.setMusic('match');await Promise.resolve();
+  const arena=sources.at(-1)!.source.connections[0].gain,previousTargets=arena.targets.length;
+  a.setMusic('invasion');
+  const invasion=sources.at(-1)!.source.connections[0].gain;
+  assert.equal(invasion.value,tracks.invasion_01.gain,'no invasion fade-in');assert.equal(invasion.targets.length,0);
+  assert.equal(arena.targets.length,previousTargets,'arena keeps playing while new track loads');
+  resolveInvasion();await Promise.resolve();
+  assert.deepEqual(arena.targets.at(-1),{value:0,time:.6});assert.equal(invasion.targets.length,0);
+  a.setMusic('menu');await Promise.resolve();
+  a.setMusic('invasion');a.setMusic('menu');await Promise.resolve();
+  const menu=sources.at(-1)!.source.connections[0].gain,n=menu.targets.length;
+  resolveInvasion();await Promise.resolve();assert.equal(menu.targets.length,n,'stale completion cannot fade new menu music');
+  assert.equal(a.diagnostics().track,'menu_01');
+ }finally{a.dispose();Object.assign(globalThis,{AudioContext:oldContext,Audio:oldAudio});}
 });

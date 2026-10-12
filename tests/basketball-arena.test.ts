@@ -71,7 +71,7 @@ test('host arena is shared by every peer and championship authority; invalid are
   assert.throws(()=>service.create(a.socket,'eide',2,mode,undefined,undefined,'unknown'),/Invalid arena/);
   service.create(a.socket,'eide',2,mode,undefined,undefined,arena.id);
   const room=[...service.rooms.values()][0];service.join(b.socket,room.code,'gut');
-  service.ready(a.socket);service.ready(b.socket);
+  service.ready(a.socket);service.ready(b.socket);service.startMatch(a.socket);
   for(const c of [a,b])assert.ok(c.messages.some(m=>m.type==='roster'&&m.stage===arena.id));
   if(mode==='championship'){
    const session=room.championship!,m=currentMatches(session.bracket)[0];

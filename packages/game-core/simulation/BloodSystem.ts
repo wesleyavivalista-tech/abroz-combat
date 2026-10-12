@@ -8,7 +8,7 @@ import {isActive,isInvulnerable} from './LifeSystem.js';
 import {grounded,surfaceBelow} from './StageCollision.js';
 /** Strongest slow wins. Poison only affects movement; blood also affects attacks. */
 export const attackSlow=(f:Fighter,frame:number):number=>Math.min(f.areaSlow,f.bloodSlowUntil>frame?.5:1);
-export const movementSlow=(f:Fighter,frame:number):number=>Math.min(attackSlow(f,frame),(f.beeSlowUntil??0)>frame?.65:1,(f.movementSlowUntil??0)>frame?.8:1,f.poisonUntil>frame?.8:1,f.cloudSlow??1,f.talkSlow??1,(f.sadnessUntil??0)>frame?.4:1)*f.floodSpeed*(f.bloodMasterUntil>frame?1.05:1);
+export const movementSlow=(f:Fighter,frame:number):number=>Math.min(attackSlow(f,frame),(f.beeSlowUntil??0)>frame?.6:1,(f.movementSlowUntil??0)>frame?.8:1,f.poisonUntil>frame?.8:1,f.cloudSlow??1,f.talkSlow??1,(f.sadnessUntil??0)>frame?.4:1)*f.floodSpeed*(f.bloodMasterUntil>frame?1.05:1);
 export function activateBlood(s:SimulationSnapshot,stage:StageDefinition,f:Fighter,owner:number,m:MoveDefinition):void{
  if(m.bloodMasterFrames)f.bloodMasterUntil=s.frame+m.bloodMasterFrames;
  if(m.bloodPoolFrames && s.hazards.filter(h=>h.kind==='blood-pool').length<96){
@@ -32,7 +32,7 @@ export function advanceBlood(s:SimulationSnapshot,stage:StageDefinition):void{
   if(f.poisonUntil && s.frame<=f.poisonUntil && f.poisonNextTick>0 && s.frame>=f.poisonNextTick){
    if(isActive(f)&&!isInvulnerable(f,s.frame)){
     const source=s.fighters[f.poisonOwner];
-    applyDamage(s,f,f.poisonDamage*(source&&source.bloodMasterUntil>s.frame?1.05:1),{source:f.poisonOwner,move:'@poison'});
+    applyDamage(s,f,f.poisonDamage*(source&&source.bloodMasterUntil>s.frame?1.05:1),{owned:f.poisonOwned,neutral:f.poisonNeutral,source:f.poisonOwner,move:'@poison'});
    }
    f.poisonNextTick+=30;
   }
@@ -57,7 +57,7 @@ export function advanceBlood(s:SimulationSnapshot,stage:StageDefinition):void{
    const inside=h.kind==='blood-flood'?f.y<h.y+floodHeight(h,s.frame):Math.abs(f.x-h.x)<(h.width??48)/2+25&&Math.abs(f.y-h.y)<18;
    if(inside&&h.kind==='blood-flood'&&owner===h.owner)f.floodSpeed=characters[f.characterId].moves[h.move]?.ownerFloodSpeed??1;
    if(isInvulnerable(f,s.frame)||!hostile(s,h.owner,f,owner))continue;
-   if(inside)f.areaSlow=Math.min(f.areaSlow,h.kind==='blood-flood'?.1:.5);
+   if(inside)f.areaSlow=Math.min(f.areaSlow,h.kind==='blood-flood'?.2:.5);
   }
  }
 }

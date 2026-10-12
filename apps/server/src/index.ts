@@ -65,6 +65,7 @@ wss.on("connection", (socket,request) => {
   log('connection-open',{connectionId});
   let alive = true;
   let budget = 0;
+  let lastBrowse=0,lobbyChanges=0,lobbyWindow=Date.now();
   let window = Date.now();
   socket.on("pong", () => (alive = true));
   const timer = setInterval(() => {
@@ -87,7 +88,11 @@ wss.on("connection", (socket,request) => {
       if (++budget > 240) { closeReason='message-rate-limit';socket.terminate(); return; }
       const m = JSON.parse(data.toString());
       if (!m || typeof m !== "object" || Array.isArray(m) || typeof m.type !== "string") throw new Error("Invalid message");
-      operation=['create','join','ready','championship-ready','finished','input','hash','ping'].includes(m.type)?m.type:'unknown';
+      operation=['create','join','ready','championship-ready','restart-fight','return-room','finished','input','hash','ping'].includes(m.type)?m.type:'unknown';
+      if(['ready','room-settings','choose-fighter','start-match','spectate','return-room'].includes(m.type)){
+        if(Date.now()-lobbyWindow>1000){lobbyWindow=Date.now();lobbyChanges=0;}
+        if(++lobbyChanges>20)throw Error(LOBBY_RATE_ERROR);
+      }
       switch (m.type) {
         case 'leave': rooms.leave(socket,'intentional-leave');break;
         case 'resume':
@@ -100,7 +105,7 @@ wss.on("connection", (socket,request) => {
           assertCompatibleContent(m.contentVersion);
           rooms.allowRecovery(socket,m.recovery===1);
           if (m.type === "create")
-            rooms.create(socket, m.character, m.capacity, m.mode, m.team, m.skin, m.stage);
+            rooms.create(socket, m.character, m.capacity, m.mode, m.team, m.skin, m.stage, m.name, m.visibility);
           else {
             if (typeof m.code !== "string" || !/^[A-Z0-9]{5}$/i.test(m.code))
               throw new Error("Invalid room code");
@@ -111,11 +116,24 @@ wss.on("connection", (socket,request) => {
         case "championship-ready":
           if (typeof m.matchId === "string") rooms.championshipReady(socket, m.matchId);
           break;
-        case "finished":
-          rooms.finished(socket,m.frame);
+        case "return-room":
+          if(m.matchId!==undefined&&(typeof m.matchId!=="string"||m.matchId.length>100))throw new Error("Invalid match ID");
+          rooms.returnToRoom(socket,m.matchId);break;
+        case "restart-fight":
+          if(m.matchId!==undefined&&(typeof m.matchId!=="string"||m.matchId.length>100))throw new Error("Invalid match ID");
+          rooms.restart(socket,m.matchId);
           break;
+        case "finished":
+          rooms.finished(socket,m.frame,m.matchId);
+          break;
+        case 'list-rooms':
+          assertCompatibleContent(m.contentVersion);if(Date.now()-lastBrowse<1000)break;lastBrowse=Date.now();roomless.expired(true);rooms.list(socket);break;
+        case 'spectate': if(m.matchId!==undefined&&(typeof m.matchId!=='string'||m.matchId.length>100))throw Error('Invalid match ID');rooms.spectate(socket,m.matchId);break;
+        case 'room-settings': rooms.configure(socket,m.settings);break;
+        case 'choose-fighter': rooms.choose(socket,m.character,m.skin);break;
+        case 'start-match': rooms.startMatch(socket);break;
         case "ready":
-          rooms.ready(socket);
+          rooms.ready(socket,m.ready);
           break;
         case "input":
           rooms.input(socket, m.frame, m.mask, m.matchId);

@@ -1,3 +1,4 @@
+import {hoseOrigin} from './HoseAim.js';
 import {hasExecutionArmor} from '../combat/ExecutionArmor.js';
 import {hostile} from './Actors.js';
 import {deterministicSin,deterministicCos} from './DeterministicMath.js';
@@ -14,7 +15,8 @@ export function lightBeam(f:Fighter,width:number,floorHeight=0):BeamRay|null{
  if(!m||!b||f.moveFrame<m.startupFrames||f.moveFrame>=m.startupFrames+m.activeFrames)return null;
  const angle=b.downward?-Math.PI/2:b.upward?Math.PI/2:f.beamAim*Math.PI/180;
  const dx=deterministicCos(angle)*f.facing,dy=deterministicSin(angle),length=width+1000;
- const ray:BeamRay={x:f.x+(b.originX??0)*f.facing,y:f.y+b.originY,dx,dy,length,width:b.width};
+ const origin=b.originProfile==='hose'?hoseOrigin(f.beamAim):{x:b.originX??0,y:b.originY};
+ const ray:BeamRay={x:f.x+origin.x*f.facing,y:f.y+origin.y,dx,dy,length,width:b.width};
  if(b.clipToArena){
   ray.water=b.targetProfile==='lower-stance';
   if(dx>0)ray.length=Math.min(ray.length,(width-ray.x)/dx);else if(dx<0)ray.length=Math.min(ray.length,-ray.x/dx);
@@ -58,7 +60,7 @@ export function advanceBeams(s:SimulationSnapshot,width:number,hit?:(owner:numbe
     }
     if(s.frame%b.interval)continue;
    }
-   applyDamage(s,d,m.damage,{receivedHit:true,source:source.owner,move:m.id});
+   applyDamage(s,d,m.damage,{owned:!!source.clone,neutral:!!f.undead,receivedHit:true,source:source.owner,move:m.id});
    // Continuous light never causes hitstop, hitstun or movement interruption.
   }
  }

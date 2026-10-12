@@ -4,7 +4,7 @@ import {GameSimulation,hashState} from '../packages/game-core/simulation/GameSim
 import {characters} from '../packages/game-core/characters/registry.js';
 import {Button} from '../packages/game-core/types.js';
 import {protectedDamage} from '../packages/game-core/simulation/HairSystem.js';
-import {lightBeam,beamIntersects} from '../packages/game-core/simulation/LightBeamSystem.js';
+import {lightBeam,beamIntersects,advanceBeams} from '../packages/game-core/simulation/LightBeamSystem.js';
 import {RollbackManager} from '../packages/networking/RollbackManager.js';
 const m=characters.drupa.moves;
 function match(n=2){const s=new GameSimulation(Array(n).fill('drupa'));s.state.phase='fight';s.state.fighters.forEach(f=>{f.state='Idle';f.meter=100;});return s;}
@@ -90,4 +90,42 @@ test('only second basic after double jump selects belly dive; every other air ba
   s.step([button,0]);assert.equal(f.move,double&&button===Button.Medium?'bellyDive':'air');
  }
  assert.equal(m.air.dive,undefined);assert.equal(m.air.damage,75);
+});
+
+
+test('ultimate beam rotates through 360 degrees in both directions without moving its origin',()=>{
+ for(const facing of [1,-1] as const){
+  const s=match(),f=s.state.fighters[0];f.x=1200;f.facing=facing;
+  s.step([Button.Super1,0]);run(s,40);
+  const y=f.y,initial=f.beamAim;
+  for(const input of [Button.Up,Button.Down]){
+   const seen=new Set<number>();
+   for(let i=0;i<360;i++){
+    run(s,1,input);seen.add(f.beamAim);
+    const ray=lightBeam(f,s.stage.width)!;assert.ok(ray);
+    assert.equal(ray.x,f.x);assert.equal(ray.y,y+80);
+   }
+   assert.equal(seen.size,360);assert.equal(f.beamAim,initial);
+  }
+ }
+});
+
+test('ultimate beam hits behind, above and below in either facing without extra damage pulses',()=>{
+ for(const facing of [1,-1] as const)for(const angle of [0,90,-90,-180]){
+  const s=match(),[f,d]=s.state.fighters;
+  Object.assign(f,{x:1200,y:600,facing,move:'budaBeam',moveFrame:40,state:'SpecialMove',beamAim:angle});
+  const ray=lightBeam(f,s.stage.width)!;
+  d.x=ray.x+ray.dx*300;d.y=ray.y+ray.dy*300-70;
+  const hp=d.health;advanceBeams(s.state,s.stage.width);assert.equal(d.health,hp-18);
+  advanceBeams(s.state,s.stage.width);assert.equal(d.health,hp-18);assert.equal(d.stun,0);
+ }
+});
+
+test('full-circle ultimate aiming converges after remote-input rollback',()=>{
+ const a=match(),b=match(),rb=new RollbackManager(b,0,0,8);
+ for(let frame=0;frame<790;frame++){
+  const input=frame===0?Button.Super1:frame<410?Button.Up:Button.Down;
+  a.step([0,input]);rb.local.set(frame,0);rb.tick();rb.receive(frame,input,1);
+ }
+ assert.ok(rb.rollbackCount>0);assert.equal(hashState(a.state),hashState(b.state));
 });

@@ -18,7 +18,7 @@ test('real sockets retain join behavior and emit private lifecycle diagnostics',
  peers[1].send(JSON.stringify({type:'join',code:'ZZZZZ',character:'jopa',contentVersion:contentVersion()}));await wait(()=>messages[1].some(m=>m.type==='error'));
  assert.equal(messages[1].find(m=>m.type==='error')?.message,'Room not found');
  peers[1].send(JSON.stringify({type:'join',code,character:'jopa',contentVersion:contentVersion()}));await wait(()=>messages[1].some(m=>m.type==='room'));
- peers.forEach(p=>p.send(JSON.stringify({type:'ready'})));await wait(()=>messages.every(ms=>ms.some(m=>m.type==='start')));
+ peers.forEach(p=>p.send(JSON.stringify({type:'ready'})));peers[1].send(JSON.stringify({type:'ping',sent:1}));await wait(()=>messages[1].some(m=>m.type==='pong'));peers[0].send(JSON.stringify({type:'start-match'}));await wait(()=>messages.every(ms=>ms.some(m=>m.type==='start')));
  peers[0].send('{"private":"do-not-log-secret"');await wait(()=>output.includes('SyntaxError'));
  peers.forEach(p=>p.close());await wait(()=>output.includes('room-closed'));
  assert.doesNotMatch(output,new RegExp(code+'|ZZZZZ|do-not-log-secret'));

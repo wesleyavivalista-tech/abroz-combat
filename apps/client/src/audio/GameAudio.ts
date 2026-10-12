@@ -1,3 +1,4 @@
+import {INVASION} from '../../../../packages/game-core/simulation/InvasionSystem.js';
 import {FINAL_DEATH_FRAMES} from '../../../../packages/game-core/simulation/UndeadSystem.js';
 import {COUNTDOWN_BEAT_FRAMES} from '../../../../packages/game-core/simulation/MatchIntro.js';
 import type {CombatEvent,SimulationSnapshot} from '../../../../packages/game-core/types.js';
@@ -14,10 +15,16 @@ export class GameAudio {
   private previous:Observed[]=[];
   private presence=new Map<string,AudioPresence>();
   private deathCues=new Set<string>();private lastDeathVoice=-Infinity;private undeadPhases=new Map<number,string>();
+  private invasionRound:number|null=null;
   private phase='';private countdown=-1;private resultPlayed=false;
   constructor(private audio:AudioManager){}
-  reset():void{this.deathCues.clear();this.lastDeathVoice=-Infinity;this.undeadPhases.clear();this.previous=[];this.presence.clear();this.phase='';this.countdown=-1;this.resultPlayed=false;this.audio.resetMatch();}
+  reset():void{this.invasionRound=null;this.deathCues.clear();this.lastDeathVoice=-Infinity;this.undeadPhases.clear();this.previous=[];this.presence.clear();this.phase='';this.countdown=-1;this.resultPlayed=false;this.audio.resetMatch();}
   consume(s:SimulationSnapshot,events:readonly CombatEvent[],journal:readonly GameplayEvent[],arena:string,width:number,localSeats:number[],confirmed=true,musicMode:'match'|'championship'|'championship-final'|'party'='match',confirmedFrame=Infinity):void{
+    const roundStart=s.frame-s.phaseFrame;
+    if(!s.training&&s.phase==='fight'&&s.phaseFrame>=INVASION.startFrames&&confirmedFrame>=roundStart+INVASION.startFrames&&this.invasionRound!==roundStart){
+      this.invasionRound=roundStart;
+      this.audio.play('invasion_danger',{eventId:`invasion:${roundStart}`});
+    }
     const deaths=(s.finalDeaths??[]).filter(d=>d.frame<=confirmedFrame&&!this.deathCues.has(`${d.frame}:${d.seat}`));
     if(deaths.length){for(const d of deaths)this.deathCues.add(`${d.frame}:${d.seat}`);if(deaths[0].frame-this.lastDeathVoice>=FINAL_DEATH_FRAMES){this.lastDeathVoice=deaths[0].frame;this.audio.play('final_death',{eventId:`dead:${deaths[0].frame}`});this.audio.announce?.('DEAD.');this.audio.duck('ko');}}
     if(this.deathCues.size>64)this.deathCues=new Set([...this.deathCues].slice(-32));
@@ -49,7 +56,7 @@ export class GameAudio {
       }
       if(e.type==='DamageApplied'&&(e.amount??0)>0&&!e.blocked&&(e.source!==undefined||!blocks.has(e.actor))){
         const profile=e.source===undefined?undefined:moveAudio(s.fighters[e.source]?.characterId,e.move??'');
-        const status=e.move==='@zombie-claw'?'undead_hit':e.move?.startsWith('@')?`${s.fighters[e.source!]?.characterId}.${e.move.slice(1)}`:undefined;
+        const status=(e.move==='@zombie-claw'||e.move?.startsWith('@invasion-'))?'undead_hit':e.move?.startsWith('@')?`${s.fighters[e.source!]?.characterId}.${e.move.slice(1)}`:undefined;
         const amount=e.amount??0;play(status??profile?.impact??(amount>=400?'ground_slam':specialHits.has(e.actor)?'hit_special':amount>=130?'hit_heavy':'hit_light'),e.actor,`damage:${e.id}`,e.x??(e.detail.startsWith('summon ')?s.clones.find(c=>`summon ${c.id}`===e.detail)?.fighter.x:undefined));
       }
     }
@@ -102,7 +109,7 @@ export class GameAudio {
       const remaining=s.fighters.filter(f=>f.lives>0);
       const final=!s.training&&remaining.length<=2&&remaining.every(f=>f.lives===1);
       const deciding=s.tournament?.wins.some(w=>w>=2);
-      this.audio.setMusic(deciding||musicMode==='championship-final'?'championship-final':final?'final':musicMode,arena);
+      this.audio.setMusic(!s.training&&this.invasionRound===roundStart?'invasion':deciding||musicMode==='championship-final'?'championship-final':final?'final':musicMode,arena);
       this.resultPlayed=false;
     }else if(confirmed&&!this.resultPlayed){
       this.resultPlayed=true;this.audio.play('round_end',{eventId:`end:${s.endedAt}`});

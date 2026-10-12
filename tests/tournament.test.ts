@@ -30,5 +30,5 @@ test('tournament scores and round transitions replay deterministically after rol
 });
 test('eight-player tournament room broadcasts tournament mode and unique FFA teams',()=>{
  const r=new RoomService();const messages:Record<string,unknown>[]=[];const sockets=Array.from({length:8},()=>({readyState:1,send:(data:string)=>messages.push(JSON.parse(data))}) as unknown as WebSocket);
- r.create(sockets[0],'dodo',8,'ffa-tournament');const code=[...r.rooms.keys()][0];for(let i=1;i<8;i++)r.join(sockets[i],code,'dodo');sockets.forEach(s=>r.ready(s));const start=messages.find(m=>m.type==='start');assert.equal(start?.mode,'ffa-tournament');assert.deepEqual(start?.teams,[0,1,2,3,4,5,6,7]);
+ r.create(sockets[0],'dodo',8,'ffa-tournament');const code=[...r.rooms.keys()][0];for(let i=1;i<8;i++)r.join(sockets[i],code,'dodo');sockets.forEach(s=>r.ready(s));r.startMatch(sockets[0]);const start=messages.find(m=>m.type==='start');assert.equal(start?.mode,'ffa-tournament');assert.deepEqual(start?.teams,[0,1,2,3,4,5,6,7]);
 });

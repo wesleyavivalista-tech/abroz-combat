@@ -5,7 +5,7 @@ import type {Fighter} from '../types.js';
 export function hasExecutionArmor(f:Fighter):boolean {
  if(!f.move||f.health<=0||f.lives<=0||f.respawnAt!==0)return false;
  const def=characters[f.characterId],m=def.moves[f.move];
- if(!m||!(f.state===m.state||f.state==='Grappling'||f.state==='GymBro'))return false;
+ if(!m||m.executionArmor===false||!(f.state===m.state||f.state==='Grappling'||f.state==='GymBro'))return false;
  // Follow-up casts and a dedicated ending animation belong to the ability;
  // transformed basic attacks do not, even when they use SpecialMove state.
  return def.specialButtons.includes(f.move)||def.superButtons.includes(f.move)||

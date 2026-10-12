@@ -1,3 +1,4 @@
+import {trackKnockout} from './MatchStatistics.js';
 import {FINAL_DEATH_FRAMES} from './UndeadSystem.js';
 import {clearCombatEntities,clearFighterCombat,clearOwnedEntities} from './CombatLifecycle.js';
 import type { Fighter, SimulationSnapshot } from "../types.js";
@@ -51,6 +52,7 @@ export function resolveKnockouts(s: SimulationSnapshot,cinematic=true): number[]
     const f = s.fighters[i];
     if (f.health > 0 || f.respawnAt !== 0 || f.lives === 0) continue;
     f.lives--;
+    trackKnockout(s,i);
     if(cinematic&&!f.lives&&!s.training){
       s.finalDeaths??=[];
       s.finalDeaths.push({seat:i,x:f.x,y:f.y,frame:s.frame,facing:f.facing});

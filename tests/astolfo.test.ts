@@ -9,12 +9,12 @@ const moves=characters.astolfo.moves;
 function game(ids=['astolfo','gut']){const g=new GameSimulation(ids);g.state.phase='fight';g.state.fighters.forEach((f,i)=>{f.state='Idle';f.meter=100;f.x=300+i*800;});return g;}
 function run(g:GameSimulation,n:number,input=0){for(let i=0;i<n;i++)g.step([input,0,0]);}
 test('Talking drains energy, follows free movement and stops on release even in hitstop',()=>{
- const g=game(),s=g.state,[f,d]=s.fighters;d.x=530;g.step([Button.Special,0]);run(g,12,Button.Special);assert.ok(isTalking(f));assert.ok(d.health<1600);assert.equal(movementSlow(d,s.frame),.4);assert.equal(attackSlow(d,s.frame),1);
+ const g=game(),s=g.state,[f,d]=s.fighters;d.x=530;g.step([Button.Special,0]);run(g,12,Button.Special);assert.ok(isTalking(f));assert.ok(d.health<1500);assert.equal(movementSlow(d,s.frame),.4);assert.equal(attackSlow(d,s.frame),1);
  const x=f.x,meter=f.meter;run(g,12,Button.Special|Button.Right);assert.ok(f.x>x);assert.ok(f.meter<meter);
  const hp=d.health;s.hitstop=5;g.step([0,0]);assert.equal(f.move,null);assert.equal(d.health,hp);assert.equal(movementSlow(d,s.frame),1);
 });
 test('Talking direction, range and teams are respected; exhaustion and death cancel it',()=>{
- const g=game(['astolfo','gut','napa']),s=g.state,[f,d,ally]=s.fighters;d.x=140;ally.x=490;s.teams[2]=s.teams[0];g.step([Button.Special,0,0]);run(g,18,Button.Special);assert.equal(d.health,1600);assert.equal(ally.health,1400);
+ const g=game(['astolfo','gut','napa']),s=g.state,[f,d,ally]=s.fighters;d.x=140;ally.x=490;s.teams[2]=s.teams[0];g.step([Button.Special,0,0]);run(g,18,Button.Special);assert.equal(d.health,1500);assert.equal(ally.health,1400);
  d.x=500;f.meter=1;f.talkNextDrain=s.frame+1;const hp=d.health;g.step([Button.Special,0,0]);assert.equal(f.move,null);assert.equal(f.meter,0);assert.equal(d.health,hp);
  f.meter=100;g.step([0,0,0]);g.step([Button.Special,0,0]);run(g,12,Button.Special);f.health=1;g.hit(1,characters.gut.moves.palm,0,false,0,-1,d,f);assert.equal(f.health,0);const after=d.health;run(g,3,Button.Special);assert.equal(f.move,null);assert.equal(d.health,after);
 });
@@ -27,14 +27,14 @@ test('A great idea lasts exactly 18 seconds, slows on both sides, permits basic 
 test('Spider sweeps across a target once and applies 3 seconds of poison, not to allies or high jumpers',()=>{
  const g=game(),s=g.state,[f,d]=s.fighters;activateAstolfo(s,g.stage,f,0,moves.spider);const h=s.hazards[0];d.x=h.x+90;d.y=120;
  advanceSpiders(s,g.stage,new Map([[d,{x:h.x-90,y:120}]]));assert.equal(d.poisonUntil,0);d.y=0;s.teams[1]=s.teams[0];advanceSpiders(s,g.stage,new Map([[d,{x:h.x-90,y:0}]]));assert.equal(d.poisonUntil,0);
- s.teams[1]=1;advanceSpiders(s,g.stage,new Map([[d,{x:h.x-90,y:0}]]));assert.equal(d.poisonUntil,180);assert.equal(d.health,1545);assert.equal(s.hazards.filter(h=>h.kind==='spider').length,0);const hp=d.health;advanceSpiders(s,g.stage,new Map());assert.equal(d.health,hp);
+ s.teams[1]=1;advanceSpiders(s,g.stage,new Map([[d,{x:h.x-90,y:0}]]));assert.equal(d.poisonUntil,180);assert.equal(d.health,1445);assert.equal(s.hazards.filter(h=>h.kind==='spider').length,0);const hp=d.health;advanceSpiders(s,g.stage,new Map());assert.equal(d.health,hp);
  d.x=1800;run(g,180);assert.equal(d.health,hp-60);
 });
 test('Spider travels in cast direction and is removed at arena edge',()=>{const g=game(),s=g.state,f=s.fighters[0];f.x=50;f.facing=-1;activateAstolfo(s,g.stage,f,0,moves.spider);for(let i=0;i<10;i++)advanceSpiders(s,g.stage,new Map());assert.equal(s.hazards.length,0);});
 test('Split creates exactly two distinct companions with requested HP and damage ratios',()=>{
  const g=game(),s=g.state,[f,d]=s.fighters;activateAstolfo(s,g.stage,f,0,moves.bipolar);activateAstolfo(s,g.stage,f,0,moves.bipolar);assert.equal(s.clones.length,2);
  const [sad,angry]=s.clones;assert.equal(sad.fighter.health,1400);assert.equal(angry.fighter.health,440);
- g.hit(0,moves.punch,0,false,1,1,sad.fighter,d);assert.equal(d.health,1600-24);d.combo=0;d.stun=0;d.state='Idle';g.hit(0,moves.punch,0,false,1,1,angry.fighter,d);assert.equal(d.health,1600-24-Math.round(48*1.4));
+ g.hit(0,moves.punch,0,false,1,1,sad.fighter,d);assert.equal(d.health,1500-24);d.combo=0;d.stun=0;d.state='Idle';g.hit(0,moves.punch,0,false,1,1,angry.fighter,d);assert.equal(d.health,1500-24-Math.round(48*1.4));
  const a=angry.fighter,b=sad.fighter;a.x=100;b.x=100;g.updateFighter(a,Button.Right,0);g.updateFighter(b,Button.Right,0);assert.equal(a.x-100,7.5);assert.ok(Math.abs(b.x-100-3.2)<1e-9);
 });
 test('Personality death bursts once, with 5 second sadness or burn, ignoring allies',()=>{

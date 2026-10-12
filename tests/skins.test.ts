@@ -43,7 +43,7 @@ test("server validates skins and distributes each seat's choice in team rooms",(
   rooms.create(c[0].socket,character.id,4,"2v2",0,"night");const code=[...rooms.rooms.keys()][0];
   assert.throws(()=>rooms.join(c[1].socket,code,character.id,1,"missing"),/Unknown skin/);
   rooms.ready(c[0].socket);
-  for(let i=1;i<4;i++){rooms.join(c[i].socket,code,character.id,i%2,i===1?"street":"original");rooms.ready(c[i].socket);}
+  for(let i=1;i<4;i++){rooms.join(c[i].socket,code,character.id,i%2,i===1?"street":"original");rooms.ready(c[i].socket);}rooms.startMatch(c[0].socket);
   for(const peer of c){const start=peer.messages.find(m=>m.type==="start");assert.equal(start?.type,"start");if(start?.type==="start")assert.deepEqual(start.skins,["night","street","original","original"]);}
  }finally{delete characters[character.id];}
 });

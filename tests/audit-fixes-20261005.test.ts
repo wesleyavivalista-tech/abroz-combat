@@ -43,7 +43,7 @@ test('switching delay to zero preserves FIFO and disconnect cancels queued input
 });
 test('completed championships retain results briefly then release room and membership',()=>{
  const rooms=new RoomService(),a=new Socket(),b=new Socket();const sa=a as unknown as WebSocket,sb=b as unknown as WebSocket;
- rooms.create(sa,'drupa',2,'championship');const room=[...rooms.rooms.values()][0];rooms.join(sb,room.code,'gut');rooms.ready(sa);rooms.ready(sb);rooms.leave(sb);
+ rooms.create(sa,'drupa',2,'championship');const room=[...rooms.rooms.values()][0];rooms.join(sb,room.code,'gut');rooms.ready(sa);rooms.ready(sb);rooms.startMatch(sa);rooms.leave(sb);
  assert.equal(room.championship!.bracket.complete,true);const completed=room.championship!.completedAt!;
  rooms.expireInactive(completed+RESULT_RETENTION_MS-1);assert.equal(rooms.rooms.size,1);
  rooms.expireInactive(completed+RESULT_RETENTION_MS);assert.equal(rooms.rooms.size,0);assert.equal(rooms.membership.size,0);assert.equal(a.readyState,3);

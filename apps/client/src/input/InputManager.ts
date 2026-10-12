@@ -68,6 +68,7 @@ export class InputManager {
     if(!this.focused)return;
     try { this.controllers.update(navigator.getGamepads?.() ?? [], performance.now(),allowJoin,limit); } catch { this.controllers.update([],performance.now(),false); /* Keyboard remains available if the browser blocks gamepads. */ }
   }
+  localKeyboardSeats:ReadonlySet<number>|null=null;
   enabled = true;
   private lifetime=new AbortController();
   private settingsWritable=true;
@@ -94,14 +95,14 @@ export class InputManager {
     window.addEventListener("gamepadconnected", (e) => this.controllers.discover(e.gamepad),{signal:this.lifetime.signal});
     window.addEventListener("gamepaddisconnected", (e) => {if(this.focused)this.controllers.disconnect(e.gamepad.index);},{signal:this.lifetime.signal});
     window.addEventListener("keyup", (e) => this.keys.delete(e.code),{signal:this.lifetime.signal});
-    window.addEventListener("blur", () => {this.focused=false;this.clear();},{signal:this.lifetime.signal});
+    window.addEventListener("blur", () => {this.focused=false;if(this.controllers.mappings.wizard)this.controllers.cancelMapping();this.clear();},{signal:this.lifetime.signal});
     window.addEventListener("focus", () => {this.clear();this.focused=true;},{signal:this.lifetime.signal});
   }
   dispose():void{this.lifetime.abort();this.enabled=false;this.clear();}
   poll(player: number): number {
     if (!this.enabled || !this.focused) return 0;
     let mask = 0;
-    this.bindings[player]?.forEach((key, i) => {
+    (this.localKeyboardSeats===null||this.localKeyboardSeats.has(player)&&!this.controllers.device(player)?this.bindings[player]:undefined)?.forEach((key, i) => {
       if (this.keys.has(key) || this.pending.has(key)) mask |= bits[i];
       this.pending.delete(key);
     });

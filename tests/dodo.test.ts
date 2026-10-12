@@ -21,8 +21,8 @@ test('Low-profile is immediate, lasts 240 simulation frames and never reveals on
  g.state.hitstop=150;while(g.state.frame<end)g.step([0,0]);assert.equal(f.invisibleUntil,0);assert.equal(f.lowProfileNoticeUntil,0);
 });
 test('Power Chord hits only ahead and pushes away at mid range',()=>{
- const g=game(),[f,t]=g.state.fighters;f.x=700;t.x=1000;g.step([Button.Special,0]);run(g,45);assert.ok(t.health<1600);assert.ok(t.x>1000);
- const h=game();h.state.fighters[0].x=1000;h.state.fighters[1].x=700;h.step([Button.Special,0]);run(h,45);assert.equal(h.state.fighters[1].health,1600);
+ const g=game(),[f,t]=g.state.fighters;f.x=700;t.x=1000;g.step([Button.Special,0]);run(g,45);assert.ok(t.health<1500);assert.ok(t.x>1000);
+ const h=game();h.state.fighters[0].x=1000;h.state.fighters[1].x=700;h.step([Button.Special,0]);run(h,45);assert.equal(h.state.fighters[1].health,1500);
 });
 test('Pain Killers creates distinct 440 health companions and removes them on final owner death',()=>{
  const g=game();g.step([Button.Super1,0]);run(g,25);assert.equal(g.state.clones.length,3);assert.deepEqual(g.state.clones.map(c=>c.variant),[0,1,2]);
@@ -34,7 +34,7 @@ test('Guitar Star pulses both sides, respects teams and ends after 20 seconds in
  const g=new GameSimulation(['dodo','gut','gut','gut'],false,undefined,[0,1,0,1]);g.state.phase='fight';g.state.fighters.forEach(f=>{f.state='Idle';f.meter=100;});
  const [f,left,friend,right]=g.state.fighters;f.x=1000;left.x=1000-MUSIC_RADIUS+20;right.x=1000+MUSIC_RADIUS-20;friend.x=1100;
  g.step([Button.Super2,0,0,0]);for(let i=0;i<20;i++)g.step([0,0,0,0]);const end=f.weaponUntil;
- assert.ok(end>g.state.frame);assert.ok(left.health<1600&&right.health<1600);assert.equal(friend.health,1600);
+ assert.ok(end>g.state.frame);assert.ok(left.health<1500&&right.health<1500);assert.equal(friend.health,1500);
  g.state.hitstop=1500;while(g.state.frame<end)g.step([0,0,0,0]);assert.equal(f.weaponUntil,0);
 });
 test('charged wave requires 60 held frames, rejects early release and replaces every basic',()=>{

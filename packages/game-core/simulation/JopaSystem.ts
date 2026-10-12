@@ -86,11 +86,11 @@ export function controlJopa(s:SimulationSnapshot,stage:StageDefinition,f:Fighter
 }
 function strike(s:SimulationSnapshot,source:Fighter,owner:number,target:Fighter,damage:number,stun:number,floorHeight:number,move:string,arenaWidth:number):void{
  if(!canReceiveDirectHit(target,s.frame))return;
- applyDamage(s,target,damage,{combo:'hit',source:owner,move});
+ applyDamage(s,target,damage,{owned:true,combo:'hit',source:owner,move});
  const duration=Math.max(stun,target.stun),eligible=consecutiveHitstun(s,target,stun,Math.sign(target.x-source.x)||source.facing,floorHeight,arenaWidth);
  if(eligible&&!target.jopaSummon){target.move=null;target.actionUntil=0;target.vx=target.vy=0;target.stun=duration;target.dazed=duration>=120;target.jopaStunUntil=s.frame+duration;target.buffer=[];enter(target,'HitStunStanding');}
  // Main-fighter projectiles use the owner itself as their source. Credit it once.
- gainEnergy(source,3,s.frame);if(source!==s.fighters[owner])gainEnergy(s.fighters[owner],3,s.frame);
+ gainEnergy(source,3,s.frame,s);if(source!==s.fighters[owner])gainEnergy(s.fighters[owner],3,s.frame,s);
 }
 export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(f:Fighter,owner:number)=>void):void{
  cleanupJopa(s,stage);

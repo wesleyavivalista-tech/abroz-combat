@@ -3,7 +3,7 @@ import type {CharacterDefinition,MoveDefinition} from '../../types.js';
 const hit=(id:string,p:Partial<MoveDefinition>={})=>move(id,{cancelRules:[],...p});
 const standing=['Idle','WalkForward','WalkBackward','Crouch','DashForward','DashBackward'];
 const moves={
- jab:hit('jab',{displayName:'Jab',damage:35}),
+ jab:hit('jab',{displayName:'Jab',damage:45}),
  straight:hit('straight',{displayName:'Straight',damage:40,startupFrames:6,activeFrames:4,recoveryFrames:14}),
  cross:hit('cross',{displayName:'Cross',damage:45,startupFrames:7,activeFrames:4,recoveryFrames:16}),
  forehead:hit('forehead',{displayName:'Forehead finish',damage:65,startupFrames:9,activeFrames:5,recoveryFrames:20,knockback:16,hitboxes:[{x:15,y:80,w:110,h:55}]}),
@@ -13,7 +13,7 @@ const moves={
  air:hit('air',{displayName:'Air punch',state:'AirAttack',damage:65,activeFrames:9,hitboxes:[{x:10,y:20,w:100,h:70}]}),
  foreheadDive:hit('foreheadDive',{displayName:'Double-jump forehead dive',nikalzAbility:'dive',state:'AirAttack',damage:110,startupFrames:10,activeFrames:1,recoveryFrames:25,dive:{speed:26,drift:3},fixedStun:true,hitstun:120,knockback:5,hitboxes:[{x:-30,y:-20,w:90,h:100}]}),
  testada:hit('testada',{displayName:'Testada',state:'SpecialMove',allowedStates:standing,damage:125,meterCost:25,startupFrames:28,activeFrames:1,recoveryFrames:30,hitboxes:[],nikalzAbility:'shock'}),
- bees:hit('bees',{displayName:'Bees',state:'SpecialMove',damage:40,meterCost:25,startupFrames:22,activeFrames:1,recoveryFrames:20,hitboxes:[],nikalzAbility:'bees'}),
+ bees:hit('bees',{displayName:'Bees',state:'SpecialMove',damage:44,meterCost:25,startupFrames:22,activeFrames:1,recoveryFrames:20,hitboxes:[],nikalzAbility:'bees'}),
  meteor:hit('meteor',{displayName:'Meteor Forehead',state:'SpecialMove',allowedStates:standing,damage:650,meterCost:100,startupFrames:24,activeFrames:1,recoveryFrames:40,hitboxes:[],nikalzAbility:'meteor'}),
  beeHouse:hit('beeHouse',{displayName:'Bee house',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:100,startupFrames:30,activeFrames:1,recoveryFrames:20,hitboxes:[],nikalzAbility:'boxes'}),
  placeBox:hit('placeBox',{displayName:'Place bee box',state:'LightAttack',allowedStates:standing,damage:0,meterGain:0,startupFrames:12,activeFrames:1,recoveryFrames:16,hitboxes:[],nikalzAbility:'place',structure:{kind:'bee-box',width:62,height:92,healthRatio:550/1400,duration:0,offset:0,interval:240}}),

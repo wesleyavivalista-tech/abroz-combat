@@ -7,7 +7,7 @@ import type { Fighter, SimulationSnapshot } from "../types.js";
 import { characters } from "../characters/registry.js";
 import { isActive, isInvulnerable } from "./LifeSystem.js";
 export const BURN_INTERVAL = 30;
-export function igniteTarget(s: SimulationSnapshot, target: Fighter, owner: number, duration: number, damage: number, kind: "normal" | "purple" = "normal"): void {
+export function igniteTarget(s: SimulationSnapshot, target: Fighter, owner: number, duration: number, damage: number, kind: "normal" | "purple" = "normal",owned=false,neutral=false): void {
   const seat = actors(s).find(a=>a.fighter===target)?.owner ?? -1;
   if (!isActive(target) || isInvulnerable(target, s.frame) || !hostile(s,owner,target,seat)) return;
   const burning=target.burnUntil>0 && target.burnUntil>=s.frame;
@@ -19,9 +19,9 @@ export function igniteTarget(s: SimulationSnapshot, target: Fighter, owner: numb
   if (!target.burnUntil || target.burnUntil < s.frame) target.burnNextTick = s.frame + BURN_INTERVAL;
   target.burnUntil = Math.max(target.burnUntil, s.frame + duration);
   target.burnDamage = Math.max(target.burnDamage, damage);
-  target.burnOwner = owner;
+  target.burnOwner = owner;target.burnOwned=owned;target.burnNeutral=neutral;
 }
-function damage(s: SimulationSnapshot, f: Fighter, amount: number, source:DamageOptions={source:f.burnOwner,move:'@burn'}): void {
+function damage(s: SimulationSnapshot, f: Fighter, amount: number, source:DamageOptions={owned:f.burnOwned,neutral:f.burnNeutral,source:f.burnOwner,move:'@burn'}): void {
   if (!isActive(f) || isInvulnerable(f, s.frame)) return;
   applyDamage(s,f,amount,source);
 }
@@ -75,9 +75,9 @@ export function advanceStatuses(s: SimulationSnapshot, arenaWidth=2400,floorHeig
     actors(s).forEach(({fighter:f, owner:i, clone}) => {
       if (!hostile(s,h.owner,f,i) || !isActive(f) || isInvulnerable(f, s.frame)) return;
       if(spec.burn&&Math.abs(f.x-h.x)<=spec.radius+25&&Math.abs(f.y-h.y)<=18)
-        igniteTarget(s,f,h.owner,spec.burn.duration,spec.burn.damage,spec.burn.kind);
+        igniteTarget(s,f,h.owner,spec.burn.duration,spec.burn.damage,spec.burn.kind,true);
       if (Math.abs(f.x - h.x) <= spec.radius + 25 && Math.abs(f.y - h.y) <= 55 && s.frame >= (h.nextTicks[clone ? s.fighters.length+clone.id : i] ?? 0)) {
-        damage(s, f, spec.damage,{source:h.owner,move:h.move});
+        damage(s, f, spec.damage,{owned:true,source:h.owner,move:h.move});
         h.nextTicks[clone ? s.fighters.length+clone.id : i] = s.frame + spec.interval;
       }
     });

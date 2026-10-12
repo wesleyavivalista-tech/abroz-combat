@@ -1,0 +1,32 @@
+<!doctype html><html lang="en"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Zombie invasion preview</title><style>body{margin:24px;background:#17232c;color:#eee;font:16px system-ui}button,select{padding:10px;background:#243b4b;color:#fff;border:1px solid #7494ab;border-radius:5px}canvas{width:100%;max-width:1300px}p{max-width:1000px;line-height:1.5}.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}a{color:#ffd18b}</style><h1>Zombie invasion — six variants</h1><p>PT: normal, flag, scythe + hammer. Bolsonaro: normal, flag, revolver. These are the actual game sprites. Choose an animation to inspect all six.</p><div class="controls"><label>Animation <select id="pose"><option>Walk</option><option>Idle</option><option>Attack</option><option>Spawn</option><option>Hit</option><option>Death</option><option>Jump</option><option>Fall</option></select></label><button id="flip">Flip facing</button><button id="mode">Test invasion waves</button><button id="reset">Reset</button><a href="/play.html">Back to game</a></div><p id="status">Loading six sprite sheets…</p><script type="module">
+import * as THREE from 'three';
+import {loadInvasionSprites,ZombieSpriteRenderer} from './src/rendering/ZombieSpriteRenderer.ts';
+import {UndeadVisuals} from './src/rendering/UndeadVisuals.ts';
+import {GameSimulation} from '../../packages/game-core/simulation/GameSimulation.ts';
+import {INVASION_VARIANTS,spawnInvader,INVASION,INVADER_STATS} from '../../packages/game-core/simulation/InvasionSystem.ts';
+import {withRenderStage,worldX} from './src/rendering/StageCoordinates.ts';
+const status=document.querySelector('#status');
+try{
+ await loadInvasionSprites();
+ const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.setSize(1300,420,false);document.body.append(renderer.domElement);
+ const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-13,13,5,-1,.1,50);camera.position.z=10;
+ let g,showcase=[],views=[],frame=0,facing=1,waves=false;const undead=new UndeadVisuals(()=>undefined);scene.add(undead.root);
+ const ground=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-13,0,-.1),new THREE.Vector3(13,0,-.1)]),new THREE.LineBasicMaterial({color:0x527080}));scene.add(ground);
+ // Test targets are deliberately separate from the sprite gallery, clearly marked practice dummies.
+ const targets=[0,1].map(()=>{const mesh=new THREE.Mesh(new THREE.PlaneGeometry(.6,1.54),new THREE.MeshBasicMaterial({color:0x829cb0,transparent:true,opacity:.35}));scene.add(mesh);return mesh;});
+ function reset(){for(const v of views){scene.remove(v.root,v.shadow);v.dispose();}views=[];g=new GameSimulation(['gut','drupa']);g.state.phase='fight';g.state.phaseFrame=INVASION.startFrames-120;g.state.fighters.forEach((f,i)=>{f.state='Idle';f.x=1050+i*300;f.health=100000;});showcase=[];frame=0;
+ if(!waves){showcase=INVASION_VARIANTS.map((id,i)=>{const c=spawnInvader(g.state,g.stage,id);c.fighter.x=230+i*395;c.fighter.facing=facing;c.fighter.undead='zombie';const v=new ZombieSpriteRenderer(id,undefined,id);views.push(v);scene.add(v.root,v.shadow);return c;});}
+ }
+ reset();document.querySelector('#flip').onclick=()=>{facing*=-1;};document.querySelector('#reset').onclick=reset;
+ document.querySelector('#mode').onclick=()=>{waves=!waves;document.querySelector('#mode').textContent=waves?'Show sprite gallery':'Test invasion waves';reset();};
+ let previous=0,accumulator=0;
+ function draw(now){accumulator+=Math.min(100,now-previous);previous=now;while(accumulator>=1000/60){frame++;if(waves)g.step([0,0]);accumulator-=1000/60;}
+ withRenderStage(g.stage,()=>{
+ if(waves){views.forEach(v=>v.root.visible=false);undead.update(g.state,false);targets.forEach((v,i)=>{v.visible=true;v.position.set(worldX(g.state.fighters[i].x),.77,0);});status.textContent=`Wave test · ${(g.state.phaseFrame/60).toFixed(1)} seconds · ${g.state.clones.length} invaders · ${g.state.invasion?.bullets.length??0} bullets · first wave at 180 seconds; then every 10 seconds.`;}
+ else {undead.update({...g.state,clones:[],invasion:undefined},true);targets.forEach(v=>v.visible=false);const selected=document.querySelector('#pose').value;
+ showcase.forEach((c,i)=>{const f=c.fighter,u=c.undead;f.facing=facing;f.undead=selected==='Death'?'dying':selected==='Spawn'?'rising':'zombie';f.stun=selected==='Hit'?1:0;f.state=({Walk:'WalkForward',Attack:'LightAttack',Jump:'Jump',Fall:'Fall'})[selected]??'Idle';u.attackFrame=frame%INVADER_STATS[c.invasion].end;u.phaseAt=frame-frame%60;f.x=230+i*395+(selected==='Walk'?(frame%120)*.5:0);f.y=0;views[i].update(f,u,frame);views[i].root.visible=true;});
+ status.textContent=`Six variants loaded · ${selected} · 16 authored frames per variant · shared zombie movement speed`;}
+ renderer.render(scene,camera);});requestAnimationFrame(draw);}
+ requestAnimationFrame(draw);
+}catch(error){status.textContent=String(error);throw error;}
+</script></html>

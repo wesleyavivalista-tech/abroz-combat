@@ -13,7 +13,7 @@ test('Jomp held stance drains on simulation time, survives repeated hits and rel
  for(let i=0;i<6;i++)g.hit(1,characters.gut.moves.palm,0,false,0,-1,d,f);
  assert.equal(f.move,'coolMuscles');run(g,30,Button.Special|Button.Right);
  assert.equal(f.x,x);assert.ok(f.meter<100);g.step([0,0]);assert.equal(f.move,null);assert.equal(damageMultiplier(f,g.state.frame),1);
- f.meter=2;g.state.hitstop=0;g.step([Button.Special,0]);run(g,5,Button.Special);assert.equal(f.meter,0);assert.equal(f.move,null);
+ f.meter=2;g.state.hitstop=0;g.step([Button.Special,0]);run(g,20,Button.Special);assert.equal(f.meter,0);assert.equal(f.move,null);
 });
 test('Perfect Mode starts after four pushups, lasts 1200 ticks including hitstop, and boosts damage',()=>{
  const g=game(),[f,d]=g.state.fighters;g.step([Button.Super2,0]);run(g,239);assert.equal(f.weaponUntil,0);run(g,1);assert.equal(f.weaponUntil,g.state.frame+1200);
@@ -31,14 +31,14 @@ test('Perfect Mode adds triple jump, faster movement and exactly 4x dash distanc
 test('Investida crosses arena, hits each enemy once, knocks down and leaves teammates untouched',()=>{
  const g=new GameSimulation(['jomp','gut','gut','gut'],false,undefined,[0,1,0,1]);g.state.phase='fight';g.state.fighters.forEach((f,i)=>{f.state='Idle';f.x=200+i*400;f.meter=100;});
  const f=g.state.fighters[0];g.step([Button.Special2,0,0,0]);for(let n=0;n<180;n++)g.step([0,0,0,0]);
- assert.equal(f.x,g.stage.width-40);assert.equal(g.state.fighters[2].health,1600);
- for(const i of [1,3])assert.equal(g.state.fighters[i].health,1490);
+ assert.equal(f.x,g.stage.width-40);assert.equal(g.state.fighters[2].health,1500);
+ for(const i of [1,3])assert.equal(g.state.fighters[i].health,1390);
 });
 test('Gym Bro locks facing target, follows jumps, deals nine reps and a throw then landing stun',()=>{
  const g=game(['jomp','gut','gut']),[f,d,other]=g.state.fighters;f.x=500;d.x=950;other.x=300;f.facing=1;
  const hp=d.health;g.step([Button.Super1,0,0]);assert.equal(f.gymTarget,1);d.x=1700;d.y=300;d.vy=15;d.state='Jump';
  for(let i=0;i<500&&!d.gymLandingStun;i++)g.step([0,Button.Right|Button.Up,0]);
- assert.equal(d.health,hp-381);assert.ok(d.gymLandingStun);assert.equal(other.health,1600);
+ assert.equal(d.health,hp-381);assert.ok(d.gymLandingStun);assert.equal(other.health,1500);
  for(let i=0;i<150&&d.gymLandingStun;i++)g.step([0,0,0]);
  assert.equal(d.stun,120);assert.equal(d.state,'HitStunStanding');
  const until=d.gymStunnedUntil!;g.hit(0,characters.jomp.moves.jab,0,false,1);

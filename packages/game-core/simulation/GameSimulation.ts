@@ -1,3 +1,5 @@
+import {newMatchStatistics,beginStatisticsFrame,finishStatistics,spendEnergy,healTo,trackActivation} from './MatchStatistics.js';
+import {advanceInvasionWaves,advanceInvasionBullets} from './InvasionSystem.js';
 import {advanceAfterlife,advanceUndead} from './UndeadSystem.js';
 import {hostile} from './Actors.js';
 import {MATCH_INTRO_FRAMES} from './MatchIntro.js';
@@ -11,7 +13,7 @@ import {activateJopa,advanceJopa,cleanupJopa,controlJopa} from './JopaSystem.js'
 import {activateAstolfo,advanceAstolfo,advanceSpiders,burstPersonalities,personalitySpeed,personalityMovementSpeed} from './AstolfoSystem.js';
 import {angerMultiplier} from './AngerSystem.js';
 import {activateFausto,advanceFausto,triggerOrigami,isFlashDashing,FAUSTO} from './FaustoSystem.js';
-import {activateNapa,advanceNapa,dropMonsterCookies} from './NapaSystem.js';
+import {activateNapa,advanceNapa,sniffSuppresses,dropMonsterCookies} from './NapaSystem.js';
 import {advanceJomp,startJomp,gymTarget,coolMuscles,gymHolding,JOMP} from './JompSystem.js';
 import {advanceTournament,scoreTournament} from './TournamentSystem.js';
 import {advanceDodo,isLowProfile,lowProfileMove} from './DodoSystem.js';
@@ -118,6 +120,7 @@ export class GameSimulation {
     };
     if(typeof tournament==='string')initializeElimination(this.state,tournament,seed,()=>this.resetPositions());
     else if(tournament){if(training||teamMatch)throw new Error("Tournament requires free-for-all");this.state.tournament={wins:ids.map(()=>0),round:1,scoredRound:0,withdrawn:[],complete:false,champion:-1,byForfeit:false};}
+    if(!training&&!teamMatch&&typeof tournament!=='string')this.state.statistics=newMatchStatistics(ids.length);
     if (training) this.state.fighters.forEach((f) => enter(f, "Idle"));
   }
   private spawnFighters(ids: string[], teams = ids.map((_, i) => i), teamMatch = false): Fighter[] {
@@ -163,6 +166,7 @@ export class GameSimulation {
     s.hazards = [];
     s.clones = [];
     delete s.finalDeaths;
+    delete s.invasion;
     s.treeDeaths = [];
     s.nextCloneId = 0;
     if(s.structures){s.structures=[];s.nextStructureId=0;}
@@ -183,11 +187,12 @@ export class GameSimulation {
   get gameplayEvents(){return gameplayEvents(this.state);}
   clearPresentationEvents():void{this.events=[];clearGameplayEvents(this.state);}
   step(inputs: number[], forfeits: number[] = []): void {
+    beginStatisticsFrame(this.state,forfeits);
     clearGameplayEvents(this.state);const finish=observeFrame(this.state);
     advanceTournament(this.state,forfeits,()=>this.resetPositions());
     advanceElimination(this.state,forfeits,()=>this.resetPositions());
     this.advanceFrame(inputs,forfeits);
-    scoreTournament(this.state);scoreElimination(this.state);finish();
+    scoreTournament(this.state);scoreElimination(this.state);finish();finishStatistics(this.state);
   }
   private advanceFrame(inputs: number[], forfeits: number[]): void {
     const s = this.state;
@@ -215,6 +220,7 @@ export class GameSimulation {
       }
       return;
     }
+    advanceInvasionWaves(s,this.stage);
     advancePlatforms(s,this.stage);
     const spawned = advanceRespawns(s,this.stage.floorHeight);
     for (const player of spawned) {
@@ -261,6 +267,7 @@ export class GameSimulation {
       return;
     }
     advanceUndead(s,this.collisionStage);
+    advanceInvasionBullets(s,this.collisionStage);
     const previousPositions=new Map(actors(s).map(a=>[a.fighter,{x:a.fighter.x,y:a.fighter.y}]));
     for (let i = 0; i < s.fighters.length; i++) {
       const f = s.fighters[i];
@@ -332,7 +339,7 @@ export class GameSimulation {
       if(c.projectile===undefined&&melee.some(o=>o.attacker===c.defender&&o.defender===c.attacker&&o.move.priority>c.move.priority))continue;
       const a=combatants[c.attacker],d=combatants[c.defender];
       if(c.move.grappleFrames&&a.fighter.state==="Grappling")continue;
-      this.hit(a.owner,c.move,d.clone?d.fighter.previousInput:inputs[d.owner],counters[c.defender],d.owner,c.projectile===undefined?a.fighter.facing:Math.sign(s.projectiles[c.projectile].vx),a.fighter,d.fighter);
+      this.hit(a.owner,c.move,d.clone?d.fighter.previousInput:inputs[d.owner],counters[c.defender],d.owner,c.projectile===undefined?a.fighter.facing:Math.sign(s.projectiles[c.projectile].vx),a.fighter,d.fighter,c.projectile!==undefined&&(s.projectiles[c.projectile].owned===true||s.projectiles[c.projectile].companionId!==undefined));
       if(c.move.flashDash)s.hazards.push({kind:"flash-slash",owner:a.owner,x:d.fighter.x,y:d.fighter.y,createdAt:s.frame,expiresAt:s.frame+24,move:c.move.id,nextTicks:[]});
       if(c.projectile!==undefined)s.projectiles[c.projectile].active=false;
       else {a.fighter.connected=true;a.fighter.hitTargets.push(d.clone?`clone:${d.clone.id}`:`seat:${d.owner}`);}
@@ -400,10 +407,12 @@ export class GameSimulation {
   updateFighter(f: Fighter, input: number, player: number): void {
     const base = characters[f.characterId];
     const def = f.cookieBoss ? {...base,stats:{...base.stats,walkSpeed:1.8,backwardSpeed:1.8,jumpVelocity:0}} : base;
+    const companionSpeed=f.companionVariant!==undefined&&base.companionStyle==='basketball'?.85:1;
     const basics = basicAttacks(def,f);
     const boosted = f.onFireUntil > this.state.frame;
-    const speed = (inLove(f)?EIDE.loveSpeed:1)*personalityMovementSpeed(f)*angerMultiplier(f,this.state.frame)*movementSlow(f,this.state.frame)*(boosted ? 1.5 : 1)*(f.weaponUntil ? def.weaponModifiers?.speed??1 : 1);
+    const speed = companionSpeed*(inLove(f)?EIDE.loveSpeed:1)*personalityMovementSpeed(f)*angerMultiplier(f,this.state.frame)*movementSlow(f,this.state.frame)*(boosted ? 1.5 : 1)*(f.weaponUntil ? def.weaponModifiers?.speed??1 : 1);
     f.stateFrame++;
+    if(sniffSuppresses(this.state,f)){f.buffer=[];input&=Button.Left|Button.Right|Button.Up|Button.Down;}
     if(controlMeteor(this.state,this.collisionStage,f,player))return;
     if(controlJopa(this.state,this.collisionStage,f,player))return;
     if(coolMuscles(f)||gymHolding(f)&&f.moveFrame>=18)return;
@@ -510,7 +519,9 @@ export class GameSimulation {
           f.projectileSpawned = false;
           f.attackSerial++;
           f.hitTargets=[];
-          f.meter -= cost;
+          spendEnergy(this.state,f,cost);
+          if(superMove)trackActivation(this.state,f,'ultimates');
+          else if(def.specialButtons.includes(request)||def.specialMoves.some(v=>v.move===request))trackActivation(this.state,f,'specials');
           if (superMove) f.usedSupers.push(request);
           enter(f, m.state);
           consumeButtons(f.buffer);
@@ -531,8 +542,16 @@ export class GameSimulation {
           consumeButtons(f.buffer);
         }
         if(m.chargeFrames && f.moveFrame<m.startupFrames && !(input&(f.chargeButton??0))){f.moveFrame=m.startupFrames+m.activeFrames;consumeButtons(f.buffer);}
+        if(m.suction?.holdButton&&f.moveFrame>=m.startupFrames&&f.moveFrame<m.startupFrames+m.activeFrames){
+          if(!(input&m.suction.holdButton)||f.meter<=0)f.moveFrame=m.startupFrames+m.activeFrames;
+          else {
+            if(f.stateFrame%(m.suction.drainInterval??36)===0)spendEnergy(this.state,f,m.suction.drainAmount??5);
+            if(f.meter<=0)f.moveFrame=m.startupFrames+m.activeFrames;
+            else f.moveFrame=m.startupFrames;
+          }
+        }
         const previousFrame = f.moveFrame;
-        f.speedRemainder += m.channelHeal ? 100 : Math.round(personalitySpeed(f)*(boosted ? 150 : 100)*(f.weaponUntil>this.state.frame?def.weaponModifiers?.attackSpeed??1:1)*attackSlow(f,this.state.frame)*angerMultiplier(f,this.state.frame));
+        f.speedRemainder += m.channelHeal ? 100 : Math.round(companionSpeed*personalitySpeed(f)*(boosted ? 150 : 100)*(f.weaponUntil>this.state.frame?def.weaponModifiers?.attackSpeed??1:1)*attackSlow(f,this.state.frame)*angerMultiplier(f,this.state.frame));
         const advance = Math.floor(f.speedRemainder / 100);
         f.speedRemainder %= 100;
         f.moveFrame += advance;
@@ -557,7 +576,7 @@ export class GameSimulation {
         if (m.channelHeal) {
           f.vx = f.vy = 0;
           if ((f.moveFrame + 1) % m.channelHeal.interval === 0) {
-            f.health = Math.min(def.stats.maxHealth, f.health + m.channelHeal.amount);
+            healTo(this.state,f,Math.min(def.stats.maxHealth, f.health + m.channelHeal.amount));
             this.emit("heal", f, 1, player);
           }
         }
@@ -572,7 +591,8 @@ export class GameSimulation {
           else {f.x=edge;f.moveFrame=m.startupFrames+m.activeFrames;}
         }
         if(m.beam?.steerable){
-          f.beamAim=Math.max(-70,Math.min(70,f.beamAim+((input&Button.Up?1:0)-(input&Button.Down?1:0))));
+          const aim=f.beamAim+((input&Button.Up?1:0)-(input&Button.Down?1:0));
+          f.beamAim=m.beam.fullCircle?((aim+180+360)%360)-180:Math.max(-70,Math.min(70,aim));
         }
         const activates = frameCrossed(previousFrame,f.moveFrame,m.startupFrames);
         if(activates&&m.beam?.float){f.y+=m.beam.float;f.vx=f.vy=0;}
@@ -616,6 +636,8 @@ export class GameSimulation {
           activates &&
           !f.projectileSpawned
         ) {
+          const directions=m.projectile.cardinal?[[f.facing,0],[0,1],[-f.facing,0],[0,-1]]:[[f.facing,0]];
+          for(const [dx,dy] of directions){
           const slot = this.state.projectiles.find((p) => !p.active);
           if (slot) {
             initializeProjectile(slot, {
@@ -624,13 +646,15 @@ export class GameSimulation {
               trajectory: undefined,
               active: true,
               owner: player,
-              x: f.x + f.facing * (m.projectile.originX ?? 70),
+              x: f.x + dx * (m.projectile.originX ?? 70),
               y: f.y + (m.projectile.originY ?? (m.projectile.visual === "pentagram" ? 165 : 100)),
-              vx: m.projectile.speed * f.facing,
-              life: m.projectile.lifetime,
+              vx: m.projectile.speed * dx,
+              vy: m.projectile.speed * dy,
+              life: m.projectile.arenaRange?Math.ceil((this.stage.width+2*(m.projectile.radius??22))/m.projectile.speed)+1:m.projectile.lifetime,
               move: m.id,
               serial: f.attackSerial,
             });
+          }
           }
           if(m.projectile.variants)f.productIndex=((f.productIndex??0)+1)%m.projectile.variants;
           f.projectileSpawned = true;
@@ -718,6 +742,7 @@ export class GameSimulation {
   requestMove(f: Fighter, input: number): string | null {
     const frame = this.state.frame,
       def = characters[f.characterId];
+    if(sniffSuppresses(this.state,f))return null;
     const nikalz=nikalzRequest(f,frame);if(nikalz!==undefined)return nikalz;
     const finance=financeRequest(f,frame);if(finance!==undefined)return finance;
     const basics = basicAttacks(def,f);
@@ -771,8 +796,9 @@ export class GameSimulation {
     impactDirection: number = this.state.fighters[attacker].facing,
     source?: Fighter,
     target?: Fighter,
+    sourceOwned=false,
   ): void {
-    resolveHit(this.state,this.collisionStage,(...args)=>this.emit(...args),attacker,m,input,counter,defender,impactDirection,source,target);
+    resolveHit(this.state,this.collisionStage,(...args)=>this.emit(...args),attacker,m,input,counter,defender,impactDirection,source,target,sourceOwned);
   }
 }
 export function hashState(s: SimulationSnapshot): string {

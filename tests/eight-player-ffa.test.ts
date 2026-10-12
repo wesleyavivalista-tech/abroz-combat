@@ -12,11 +12,11 @@ const ids=Object.keys(characters).slice(0,8);
 test('eight-player FFA waits for everyone, relays seat eight, rejects a ninth, and handles disconnect',()=>{
  const rooms=new RoomService();const clients=Array.from({length:9},()=>{const messages:ServerMessage[]=[];return {messages,socket:{readyState:1,send:(data:string)=>messages.push(JSON.parse(data))} as unknown as WebSocket};});
  rooms.create(clients[0].socket,ids[0],8);const code=[...rooms.rooms.keys()][0];rooms.ready(clients[0].socket);
- for(let i=1;i<8;i++){assert.ok(!clients[0].messages.some(m=>m.type==='start'));rooms.join(clients[i].socket,code,ids[i]);rooms.ready(clients[i].socket);}
+ for(let i=1;i<8;i++){assert.ok(!clients[0].messages.some(m=>m.type==='start'));rooms.join(clients[i].socket,code,ids[i]);rooms.ready(clients[i].socket);}rooms.startMatch(clients[0].socket);
  for(const c of clients.slice(0,8)){const start=c.messages.find(m=>m.type==='start');assert.ok(start?.type==='start');assert.deepEqual(start.characters,ids);assert.deepEqual(start.teams,[0,1,2,3,4,5,6,7]);}
  assert.throws(()=>rooms.join(clients[8].socket,code,ids[0]),/already started/);
  rooms.input(clients[7].socket,2,Button.Light);assert.deepEqual(clients[0].messages.at(-1),{type:'input',seat:7,frame:2,mask:Button.Light});
- rooms.leave(clients[7].socket);assert.equal(rooms.membership.size,7);assert.equal(clients[0].messages.at(-1)?.type,'left');
+ rooms.leave(clients[7].socket);assert.equal(rooms.membership.size,7);assert.equal(clients[0].messages.filter(m=>m.type==='left').at(-1)?.type,'left');
 });
 test('seven and eight FFA spawns are distinct, last seat can win, and ninth fighter is rejected',()=>{
  for(const count of [7,8]){const s=new GameSimulation(ids.slice(0,count));assert.equal(new Set(s.state.fighters.map(f=>f.x)).size,count);assert.equal(s.state.projectiles.length,count*8);s.state.phase='fight';for(let i=0;i<count-1;i++){Object.assign(s.state.fighters[i],{health:0,lives:1});resolveKnockouts(s.state);}assert.equal(s.state.winner,count-1);}

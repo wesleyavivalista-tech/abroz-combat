@@ -5,7 +5,7 @@ import type {Fighter,SimulationSnapshot} from '../types.js';
 export function clearCombatEntities(s:SimulationSnapshot):void{
  s.fighters.forEach(f=>{clearFighterCombat(f);f.respawnAt=0;if(!['MatchWin','KO'].includes(f.state))enter(f,f.lives>0?'Idle':'KO');});
  s.projectiles.forEach(p=>p.active=false);
- s.hazards=[];s.clones=[];
+ s.hazards=[];s.clones=[];delete s.invasion;
  if(s.structures)s.structures=[];
  if(s.bees)s.bees=[];
  if(s.foreheadWaves)s.foreheadWaves=[];
@@ -31,6 +31,7 @@ export function clearFighterCombat(f:Fighter):void{
  f.areaSlow = 1;
  f.poisonNextTick=f.poisonDamage=0;f.poisonOwner=-1;f.floodSpeed=1;
  f.returningWeaponOut=false;f.modeFinaleUntil=f.actionUntil=0;
+ delete f.burnOwned;delete f.burnNeutral;delete f.poisonOwned;delete f.poisonNeutral;
  f.burnOwner = -1;
  f.burnKind = "normal";
  f.trappedUntil = f.armorUntil = f.weaponUntil = f.grappleUntil = f.grappleNextTick = 0;

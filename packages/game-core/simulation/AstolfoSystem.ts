@@ -1,3 +1,4 @@
+import {spendEnergy} from './MatchStatistics.js';
 import {hostile} from './Actors.js';
 import {Button,type Fighter,type MoveDefinition,type SimulationSnapshot,type StageDefinition} from '../types.js';
 import {characters} from '../characters/registry.js';
@@ -41,11 +42,11 @@ export function advanceAstolfo(s:SimulationSnapshot,stage:StageDefinition):void{
   const move=f.move?characters[f.characterId].moves[f.move]:undefined;
   if(move?.talking){
    if(!(f.previousInput&Button.Special)||f.meter<=0||f.stun||f.grappleUntil>s.frame||f.trappedUntil>s.frame){f.move=null;f.talkNextDrain=0;consumeButtons(f.buffer);if(!f.stun&&f.grappleUntil<=s.frame&&f.trappedUntil<=s.frame){f.state=grounded(f,stage)?'Idle':'Fall';f.stateFrame=0;}}
-   else if(isTalking(f,s.frame)&&s.frame>=(f.talkNextDrain??s.frame)){f.meter=Math.max(0,f.meter-ASTOLFO.drainAmount);f.talkNextDrain=s.frame+ASTOLFO.drainInterval;if(!f.meter){f.move=null;consumeButtons(f.buffer);f.state=grounded(f,stage)?'Idle':'Fall';f.stateFrame=0;}}
+   else if(isTalking(f,s.frame)&&s.frame>=(f.talkNextDrain??s.frame)){spendEnergy(s,f,ASTOLFO.drainAmount);f.talkNextDrain=s.frame+ASTOLFO.drainInterval;if(!f.meter){f.move=null;consumeButtons(f.buffer);f.state=grounded(f,stage)?'Idle':'Fall';f.stateFrame=0;}}
   }else if(f.talkNextDrain)f.talkNextDrain=0;
  }
  // Compute contacts first so simultaneous talking pulses do not favor seat order.
- const damage:{target:Fighter;amount:number;source:number;move:string}[]=[];
+ const damage:{owned:boolean;target:Fighter;amount:number;source:number;move:string}[]=[];
  for(const {fighter:f,owner} of all){
   if(!isActive(f))continue;
   const aura=(f.talkUntil??0)>s.frame,held=isTalking(f,s.frame);if(!aura&&!held)continue;
@@ -57,11 +58,11 @@ export function advanceAstolfo(s:SimulationSnapshot,stage:StageDefinition):void{
    if(!inAura&&!inCone)continue;
    d.talkSlow=Math.min(d.talkSlow??1,inAura?.3:.4);
    const spec=inAura?Object.values(characters[f.characterId].moves).find(m=>m.talkAuraFrames):f.move?characters[f.characterId].moves[f.move]:undefined;
-   if(pulse&&spec)damage.push({target:d,amount:spec.damage,source:owner,move:spec.id});
+   if(pulse&&spec)damage.push({owned:!s.fighters.includes(f),target:d,amount:spec.damage,source:owner,move:spec.id});
   }
   if(pulse)f.talkNextPulse=s.frame+ASTOLFO.pulseInterval;
  }
- for(const d of damage)applyDamage(s,d.target,d.amount,{receivedHit:true,source:d.source,move:d.move});
+ for(const d of damage)applyDamage(s,d.target,d.amount,{owned:d.owned,receivedHit:true,source:d.source,move:d.move});
 }
 /** Swept floor contact catches a dash across the spider between ticks. */
 export function advanceSpiders(s:SimulationSnapshot,stage:StageDefinition,previous:Map<Fighter,{x:number;y:number}>):void{
@@ -75,9 +76,9 @@ export function advanceSpiders(s:SimulationSnapshot,stage:StageDefinition,previo
   }).filter(c=>Number.isFinite(c.t)).sort((a,b)=>a.t-b.t);
   const d=contacts[0]?.f;
   if(d){
-   const m=characters[s.fighters[h.owner].characterId].moves[h.move];applyDamage(s,d,m.damage,{receivedHit:true,source:h.owner,move:h.move});
+   const m=characters[s.fighters[h.owner].characterId].moves[h.move];applyDamage(s,d,m.damage,{owned:true,receivedHit:true,source:h.owner,move:h.move});
    if(d.poisonUntil<s.frame||!d.poisonUntil)d.poisonNextTick=s.frame+30;
-   d.poisonUntil=Math.max(d.poisonUntil,s.frame+(m.poisonFrames??180));d.poisonDamage=Math.max(d.poisonDamage,m.poisonDamage??10);d.poisonOwner=h.owner;
+   d.poisonUntil=Math.max(d.poisonUntil,s.frame+(m.poisonFrames??180));d.poisonDamage=Math.max(d.poisonDamage,m.poisonDamage??10);d.poisonOwner=h.owner;d.poisonOwned=true;d.poisonNeutral=false;
    h.expiresAt=s.frame;bites.push({...h,kind:'spider-bite',x:d.x,y:d.y,createdAt:s.frame,expiresAt:s.frame+18});
   }else if(h.x<0||h.x>stage.width)h.expiresAt=s.frame;
  }
@@ -90,7 +91,7 @@ export function burstPersonalities(s:SimulationSnapshot):void{
   c.pattern=-1;
   for(const a of actors(s))if(hostile(s,c.owner,a.fighter,a.owner)&&canReceiveDirectHit(a.fighter,s.frame)&&Math.abs(a.fighter.x-c.fighter.x)<ASTOLFO.deathRadius&&Math.abs(a.fighter.y-c.fighter.y)<190){
    if(c.kind==='sad')a.fighter.sadnessUntil=Math.max(a.fighter.sadnessUntil??0,s.frame+300);
-   else igniteTarget(s,a.fighter,c.owner,300,10);
+   else igniteTarget(s,a.fighter,c.owner,300,10,'normal',true);
   }
   s.hazards.push({kind:c.kind==='sad'?'sad-burst':'angry-burst',owner:c.owner,x:c.fighter.x,y:c.fighter.y,createdAt:s.frame,expiresAt:s.frame+30,move:'bipolar',nextTicks:[]});
  }

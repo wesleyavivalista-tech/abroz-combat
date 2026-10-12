@@ -1,3 +1,4 @@
+import {spendEnergy} from './MatchStatistics.js';
 import {hasHitReactionArmor} from '../combat/ExecutionArmor.js';
 import {deterministicHypot,deterministicCos} from './DeterministicMath.js';
 import {characters} from '../characters/registry.js';
@@ -38,7 +39,7 @@ export function advanceJomp(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   }
   if(coolMuscles(a)){
    if(!isActive(a)||!(a.previousInput&Button.Special)||a.meter<=0){a.move=null;a.flexNextDrain=0;a.buffer=[];enter(a,'Idle');}
-   else{a.vx=a.vy=0;if(s.frame>=(a.flexNextDrain??0)){a.meter=Math.max(0,a.meter-1);a.flexNextDrain=s.frame+JOMP.drainInterval;if(a.meter===0){a.move=null;enter(a,'Idle');}}}
+   else{a.vx=a.vy=0;if(s.frame>=(a.flexNextDrain??0)){spendEnergy(s,a,.3,true);a.flexNextDrain=s.frame+JOMP.drainInterval;if(a.meter===0){a.move=null;enter(a,'Idle');}}}
   }
   if((a.gymTarget??-1)<0)continue;
   const d=s.fighters[a.gymTarget!];

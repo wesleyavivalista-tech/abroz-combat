@@ -19,7 +19,7 @@ export function advanceFireTrails(s:SimulationSnapshot,stage:StageDefinition):vo
  for(const h of s.hazards){
   if(h.kind!=='fire-trail')continue;
   for(const {fighter:f} of actors(s)){
-   if(Math.abs(f.x-h.x)<=FIRE_TRAIL_WIDTH/2+25&&Math.abs(f.y-h.y)<=18)igniteTarget(s,f,h.owner,240,10);
+   if(Math.abs(f.x-h.x)<=FIRE_TRAIL_WIDTH/2+25&&Math.abs(f.y-h.y)<=18)igniteTarget(s,f,h.owner,240,10,'normal',true);
   }
  }
 }

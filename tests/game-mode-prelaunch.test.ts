@@ -64,7 +64,7 @@ for(let count=2;count<=16;count++)test(`${count}-player online championship adva
  const rooms=new RoomService();
  const clients=Array.from({length:count},()=>({readyState:1,bufferedAmount:0,send(){},close(){},terminate(){}} as unknown as WebSocket));
  rooms.create(clients[0],'jopa',count,'championship');const room=[...rooms.rooms.values()][0];
- clients.slice(1).forEach(c=>rooms.join(c,room.code,'jopa'));clients.forEach(c=>rooms.ready(c));const session=room.championship!;
+ clients.slice(1).forEach(c=>rooms.join(c,room.code,'jopa'));clients.forEach(c=>rooms.ready(c));rooms.startMatch(clients[0]);const session=room.championship!;
  let attempts=0;
  while(!session.bracket.complete){
   assert.ok(attempts++<count*2);

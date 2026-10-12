@@ -1314,3 +1314,19 @@ img[src$="/art/biel/portrait-2.png"] {mask-image:url('/art/biel/portrait-2-mask.
   -webkit-text-stroke: 1px #251d1b;
   text-shadow: 0 4px 0 #171a1c, 0 0 28px #160a07;
 }
+
+/* Keep the multiplayer health bars in their existing single row. */
+.hud .multi-match-timer { position:absolute; top:100%; left:50%; transform:translateX(-50%); padding:3px 12px; min-width:82px; font-size:26px; line-height:1.1; pointer-events:none; }
+#match-symbol { font-variant-numeric:tabular-nums; white-space:nowrap; }
+#match-symbol.invasion-danger { color:#ff806b; animation:invasion-danger-pulse 1s ease-in-out infinite; }
+#match-symbol.invasion-danger::before { content:"⚠ "; font-size:.55em; vertical-align:middle; }
+@keyframes invasion-danger-pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+@media(prefers-reduced-motion:reduce) { #match-symbol.invasion-danger { animation:none; } }
+.hud:not(.multi-hud) #match-symbol { font-size:32px; }
+
+.hud .timer.invasion-danger { border-color:#ff806b; animation:invasion-danger-border 1s ease-in-out infinite; }
+@keyframes invasion-danger-border {
+  0%,100% { border-color:#ff806b; box-shadow:0 0 10px #ff493866; }
+  50% { border-color:#ff806b80; box-shadow:0 0 2px #ff493822; }
+}
+@media(prefers-reduced-motion:reduce) { .hud .timer.invasion-danger { animation:none; } }

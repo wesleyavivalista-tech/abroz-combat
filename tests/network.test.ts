@@ -150,7 +150,7 @@ test(`real WebSocket create/join/ready/input/hash/disconnect: ${peerOrigins.join
     );
     await next(b, "room");
     a.send(JSON.stringify({ type: "ready" }));
-    b.send(JSON.stringify({ type: "ready" }));
+    b.send(JSON.stringify({ type: "ready" }));b.send(JSON.stringify({type:"ping",sent:1}));await next(b,"pong");a.send(JSON.stringify({type:"start-match"}));
     const starts = await Promise.all([next(a, "start"), next(b, "start")]);
     assert.deepEqual(starts[0], starts[1]);
     a.send(JSON.stringify({ type: "input", frame: 2, mask: Button.Light }));

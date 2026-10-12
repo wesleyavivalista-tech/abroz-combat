@@ -40,7 +40,7 @@ try{
     });
     const room=waitMessage(pair[0],'room');pair[0].send(JSON.stringify({type:'create',character:'nikalz',capacity:2,contentVersion:contentVersion()}));
     const code=(await room).code;const joined=waitMessage(pair[1],'room');pair[1].send(JSON.stringify({type:'join',character:'drupa',code,contentVersion:contentVersion()}));await joined;
-    const start=waitMessage(pair[0],'start');pair.forEach(s=>s.send(JSON.stringify({type:'ready'})));await start;
+    const start=waitMessage(pair[0],'start');const ready=waitMessage(pair[1],'pong');pair.forEach(s=>s.send(JSON.stringify({type:'ready'})));pair[1].send(JSON.stringify({type:'ping',sent:1}));await ready;pair[0].send(JSON.stringify({type:'start-match'}));await start;
     let frame=2;
     timers.push(setInterval(()=>{pair.forEach((s,seat)=>s.send(JSON.stringify({type:'input',frame,mask:frame%29===seat?16:0})));frame++;},1000/60));
    }

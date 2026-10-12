@@ -25,6 +25,7 @@ function cast(g:GameSimulation,id:string,seat=0,age=0){
  Object.assign(f,{move:id,moveFrame:age,state:m.state,attackSerial:1});return f;
 }
 for(const [id,c] of Object.entries(characters))for(const move of [...c.specialButtons,...c.superButtons]){
+ if(c.moves[move].executionArmor!==false){
  test(`${id}/${move}: startup, active and recovery take damage without any hit reaction`,()=>{
   const m=c.moves[move];
   for(const age of [0,m.startupFrames,m.startupFrames+m.activeFrames]){
@@ -61,6 +62,7 @@ for(const [id,c] of Object.entries(characters))for(const move of [...c.specialBu
   }
   assert.equal(f.move,null,`${id}/${move} must finish/release`);assert.equal(hasExecutionArmor(f),false);
  });
+ }
  test(`${id}/${move}: lethal damage overrides protection before another activation`,()=>{
   const g=game([id,'gut']),f=cast(g,move);f.health=1;
   g.hit(1,characters.gut.moves.palm,0,false,0,-1);
@@ -199,5 +201,36 @@ test('server verification and rollback agree on Giant Buda and rapid football ri
   peer.local.set(frame,0);assert.equal(peer.tick(),true);peer.receive(frame,input,1);
  }
  assert.ok(d.health<characters.drupa.stats.maxHealth-16);assert.equal(d.stun,0);assert.ok(peer.rollbackCount>0);
+ assert.equal(hashState(local.state),hashState(server.simulation.state));assert.equal(hashState(local.state),hashState(predicted.state));
+});
+
+
+test('Meditation allows fixed stun, traps, loan stun, and suction to interrupt it',()=>{
+ for(const [id,move] of [['jopa','chess'],['bozo','grip']]){
+  const g=game(['gut',id]),f=cast(g,'meditation');
+  assert.equal(hasExecutionArmor(f),false);
+  g.hit(1,characters[id].moves[move],0,false,0,-1);
+  assert.equal(f.move,null);assert.ok(f.stun>0||f.trappedUntil>g.state.frame);
+ }
+ const loan=game(['gut','biel']),f=cast(loan,'meditation');
+ applyLoan(loan.state,f);assert.equal(f.move,null);assert.ok(f.loanStunUntil!>loan.state.frame);assert.ok(f.stun>0);
+ const suction=game(['gut','napa']),d=cast(suction,'meditation');
+ cast(suction,'sniff',1,characters.napa.moves.sniff.startupFrames);
+ const x=d.x;advanceNapa(suction.state,suction.stage);
+ assert.equal(d.move,null);assert.ok(d.x>x);
+});
+
+test('Meditation interruption agrees between server verification and late-input rollback',()=>{
+ const make=()=>{const g=game(['gut','gut']);g.state.fighters[1].x=430;g.state.fighters[1].facing=-1;return g;};
+ const server=new VerifiedMatch(make(),()=>{}),local=make(),predicted=make();
+ local.restore(server.simulation.snapshot());predicted.restore(local.snapshot());
+ const peer=new RollbackManager(predicted,0,0,8);peer.confirmed=predicted.state.frame-1;let interrupted=false;
+ for(let n=0;n<150;n++){
+  const frame=local.state.frame,a=Button.Special2,b=n===3?Button.Light:0;
+  local.step([a,b]);server.receive(0,frame,a);server.receive(1,frame,b);
+  peer.local.set(frame,a);assert.equal(peer.tick(),true);peer.receive(frame,b,1);
+  if(local.state.fighters[0].stun>0){interrupted=true;assert.equal(local.state.fighters[0].move,null);}
+ }
+ assert.ok(interrupted);assert.ok(peer.rollbackCount>0);
  assert.equal(hashState(local.state),hashState(server.simulation.state));assert.equal(hashState(local.state),hashState(predicted.state));
 });

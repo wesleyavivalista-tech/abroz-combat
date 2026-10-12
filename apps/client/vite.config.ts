@@ -27,6 +27,6 @@ export default defineConfig(({mode})=>({
     // Stable engine chunks can be cached independently from frequently edited game code.
     if(id.includes('/node_modules/three/'))return id.includes('three.core')?'three-core':'three-renderer';
     if(id.includes('/packages/game-core/'))return 'combat';
-  } }, input: { main:fileURLToPath(new URL(mode==='desktop'?"./play.html":"./index.html",import.meta.url)), ...(mode==='desktop'?{}:{play:fileURLToPath(new URL('./play.html',import.meta.url)),download:fileURLToPath(new URL('./download.html',import.meta.url)),basicAttacks:fileURLToPath(new URL("./basic-attacks.html",import.meta.url))}) } } },
+  } }, input: { main:fileURLToPath(new URL(mode==='desktop'?"./play.html":"./index.html",import.meta.url)), ...(mode==='desktop'?{}:{play:fileURLToPath(new URL('./play.html',import.meta.url)),download:fileURLToPath(new URL('./download.html',import.meta.url)),attackSpeed:fileURLToPath(new URL("./attack-speed.html",import.meta.url)),basicAttacks:fileURLToPath(new URL("./basic-attacks.html",import.meta.url))}) } } },
   envDir: "../..",
 }));

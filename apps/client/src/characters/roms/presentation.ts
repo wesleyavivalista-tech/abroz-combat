@@ -1,7 +1,7 @@
 import {framesFrom} from '../../rendering/DodoRenderer.js';
 import {loadTexture} from '../../rendering/TextureCache.js';
 import * as THREE from 'three';
-import {RomsRenderer} from '../../rendering/RomsRenderer.js';
+import {RomsRenderer,hoseBounds} from '../../rendering/RomsRenderer.js';
 import {romsSheets} from '../../rendering/RomsAtlas.js';
 import {prepareSpriteIsolation} from '../../rendering/SpriteIsolation.js';
 import {validateAnimationManifest} from '../../rendering/AnimationContract.js';
@@ -14,8 +14,11 @@ export async function loadRomsPresentation(register:(id:string,factory:()=>Fight
   const t=await loadTexture(`/art/roms/${name}.png`);t.colorSpace=THREE.SRGBColorSpace;t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;
   prepareSpriteIsolation(t,romsSheets[i].frames);return t;
  }));
+ const hose=await Promise.all(['hose-directions-v1','hose-inbetweens-v1'].map(async name=>{
+  const t=await loadTexture(`/art/roms/${name}.png`);t.colorSpace=THREE.SRGBColorSpace;t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;prepareSpriteIsolation(t,hoseBounds);return t;
+ }));
  const lowTexture=await loadTexture('/art/roms/crouch-attack-v1.png');lowTexture.colorSpace=THREE.SRGBColorSpace;
  const lowFrames=framesFrom(lowTexture,2,3,true,true);
  for(let row=0;row<3;row++)lowFrames[row*2+1].referenceHeight=lowFrames[row*2].height;
- register('roms',()=>new RomsRenderer(textures,0,lowFrames));register('roms',()=>new RomsRenderer(textures,1,lowFrames),'hoodie');
+ register('roms',()=>new RomsRenderer(textures,0,lowFrames,hose));register('roms',()=>new RomsRenderer(textures,1,lowFrames,hose),'hoodie');
 }

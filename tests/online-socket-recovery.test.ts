@@ -40,7 +40,7 @@ test('eight real sockets survive host loss; reconnect cannot duplicate a seat; s
   const host=await connect(0);send(host,{type:'create',character:ids[0],capacity:8,stage:shoppingMall.id});
   const room=await next(host,'room');assert.equal(room.type,'room');if(room.type!=='room')return;
   for(let i=1;i<8;i++){const s=await connect(i);send(s,{type:'join',code:room.code,character:ids[i]});await next(s,'room');}
-  for(const s of sockets)send(s,{type:'ready'});
+  for(const s of sockets){send(s,{type:'ready'});send(s,{type:'ping',sent:1});await next(s,'pong');}send(host,{type:'start-match'});
   const starts=await Promise.all(sockets.map(s=>next(s,'start')));starts.forEach(s=>assert.deepEqual(s,starts[0]));
   peers.push(...ids.map((_,seat)=>new RollbackManager(new GameSimulation(ids,false,shoppingMall),seat)));
   const mask=(seat:number,frame:number)=>frame%37===seat?Button.Super1:frame%19===seat?Button.Special:frame%23===seat?Button.Super2:0;

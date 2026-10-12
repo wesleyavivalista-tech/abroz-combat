@@ -30,7 +30,7 @@ test('client reports deduplicate repeated errors and bound history',()=>{
 test('room lifecycle diagnostics use unrelated IDs and distinguish abandonment',()=>{
  const events:{event:string;fields?:Record<string,unknown>}[]=[];
  const rooms=new RoomService((event,fields)=>events.push({event,fields}));const a=socket(),b=socket();
- rooms.create(a,'nikalz');const code=[...rooms.rooms.keys()][0];rooms.join(b,code,'jopa');rooms.ready(a);rooms.ready(b);
+ rooms.create(a,'nikalz');const code=[...rooms.rooms.keys()][0];rooms.join(b,code,'jopa');rooms.ready(a);rooms.ready(b);rooms.startMatch(a);
  const id=rooms.diagnosticRoomId(a);assert.ok(id);assert.notEqual(id,code);
  rooms.leave(a);rooms.leave(b);
  assert.deepEqual(events.map(e=>e.event),['room-created','room-joined','match-started','room-left','room-left','room-closed']);
@@ -38,7 +38,7 @@ test('room lifecycle diagnostics use unrelated IDs and distinguish abandonment',
 });
 test('authoritative result logs once, ignoring client completion claims',()=>{
  const events:string[]=[];const rooms=new RoomService(e=>events.push(e));const a=socket(),b=socket();
- rooms.create(a,'nikalz');const room=[...rooms.rooms.values()][0];rooms.join(b,room.code,'jopa');rooms.ready(a);rooms.ready(b);
+ rooms.create(a,'nikalz');const room=[...rooms.rooms.values()][0];rooms.join(b,room.code,'jopa');rooms.ready(a);rooms.ready(b);rooms.startMatch(a);
  rooms.finished(a,1);rooms.finished(b,1);assert.equal(events.filter(e=>e==='match-completed').length,0);
  room.verification!.simulation.state.phase='result';rooms.input(a,2,0);rooms.input(b,2,0);rooms.leave(a);rooms.leave(b);
  assert.equal(events.filter(e=>e==='match-completed').length,1);

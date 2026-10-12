@@ -1,9 +1,23 @@
+import {SpectatorPlayback} from './networkSpectator.js';
+import {onlineMenu,createRoom,joinCode,browseRooms,sharedLobby,lobbyFighters,lobbyArenas,onlineText} from './ui/OnlineLobby.js';
+import type {RoomView,RoomSummary,RoomSettings} from '../../../packages/shared/protocol.js';
+import './ui/online-lobby.css';
+import {championshipVictory,preloadChampionshipArtwork,bindChampionshipArtwork} from './ui/ChampionshipVictory.js';
+import './ui/championship-victory.css';
+import {matchStatisticsScreen,animateStatistics,statisticsTabs,type StatisticsTab} from './ui/MatchStatistics.js';
+import type {MatchStatistics} from '../../../packages/game-core/simulation/MatchStatistics.js';
+import './ui/match-statistics.css';
+import {LocalPlayers} from './input/LocalPlayers.js';
+import {refreshPlayerManagement} from './ui/PlayerManagement.js';
+import './ui/player-management.css';
+import {presentCombatEvents} from './rendering/CombatEventPresentation.js';
 import {decodeSnapshot,type RecoveryState} from '../../../packages/shared/recovery.js';
 import {bindDiagnosticButton} from './diagnostics.js';
 import {errorMessage} from './i18n/errors.js';
-import {arenaName, skinName} from './i18n/content.js';
+import {arenaName} from './i18n/content.js';
 import {getLocale, formatNumber, setLocale, languageOptions, t, th, inputLabelKeys} from './i18n/index.js';
 import {finalDeathActive,matchTimeScale} from '../../../packages/game-core/simulation/UndeadSystem.js';
+import {matchTimer} from './ui/MatchTimer.js';
 import {matchCountdown} from './ui/MatchCountdown.js';
 import {toggleFullscreen,desktopBridge} from './platform/runtime.js';
 import {arenaSelection} from './ui/ArenaSelection.js';
@@ -28,7 +42,7 @@ import {disposeFighterSprites} from './rendering/VisualRegistry.js';
 import {damageMultiplier} from '../../../packages/game-core/combat/DamageSystem.js';
 import { updateHomeCast, homeCastTick } from './ui/HomeCast.js';
 import { resultScreen } from './ui/ResultScreen.js';
-import { fighterSkins, resolveSkin } from "../../../packages/game-core/characters/skins.js";
+import { resolveSkin } from "../../../packages/game-core/characters/skins.js";
 import type { OnlineMode } from "../../../packages/shared/protocol.js";
 import { fighterPresentation, escapeMarkup } from "./ui/FighterPresentation.js";
 import "./style.css";
@@ -59,6 +73,7 @@ const ui = new UI(),
 const renderer = new SceneRenderer(
   document.querySelector<HTMLCanvasElement>("#scene")!,
 );
+let spectatorPlayback:SpectatorPlayback|null=null,spectatorTarget=-1;
 const renderInterpolation = new RenderInterpolation();
 const gameAudio = new GameAudio(audio);
 let simulation = new GameSimulation(),
@@ -107,6 +122,26 @@ let localMatchMode:LocalMatchMode='ffa',localIds:string[]=[],localSkins:string[]
 const menuNavigation = new MenuNavigation();
 let pauseOwner:number|null=null;
 let controllerPanel=false;
+let controllerBoardActive=true;
+let localPlayersManaged=false;
+const playerLobby=new LocalPlayers(input.controllers);
+let playersNext:((count:number)=>void)|null=null;
+function localInputReady(slot:number){return mode==='local'&&localPlayersManaged?playerLobby.connected(slot):input.controllers.ready(slot);}
+function showPlayers(limit:number,minimum:number,required:number|undefined,next:(count:number)=>void){
+ mode='local';localPlayersManaged=true;playerLobby.configure(limit,minimum,required);
+ navigate('local-players');playersNext=next;
+ ui.shell(`<main class="player-board-page"><div id="player-management"></div></main>`);
+ refreshPlayerManagement(ui.root,playerLobby,true);
+}
+function continuePlayers(){if(!playerLobby.canContinue||!playersNext)return;const next=playersNext;playersNext=null;input.clear();next(playerLobby.count);}
+function playerTools(){
+ if(!controllerPanel)openControllers(true);
+ controllerBoardActive=false;
+ const panel=document.getElementById('controllers-dialog')!,tools=panel.querySelector<HTMLElement>('#controller-tools'),board=panel.querySelector<HTMLElement>('#player-management');if(tools)tools.hidden=false;if(board)board.hidden=true;
+ document.querySelector<HTMLElement>('[data-action="controller-assign"]')?.focus();input.clear();
+}
+function playerBoard(){controllerBoardActive=true;document.querySelector('#controllers-dialog #controller-tools')?.setAttribute('hidden','');document.querySelector('#controllers-dialog #player-management')?.removeAttribute('hidden');input.clear();refreshPlayerManagement(ui.root,playerLobby,screen==='local-players'&&!controllerPanel);}
+
 let onlineControllerMenu=false;
 let controllerPanelRevision=-1;
 let controllerLastPaint=0;
@@ -117,23 +152,27 @@ function displayBindings(player:number){return controllerHints.active?[...['Left
 const controllerNotice=document.createElement('div');
 controllerNotice.className='controller-notice';controllerNotice.setAttribute('role','status');document.body.append(controllerNotice);
 function controllerToast(message:string){controllerMessage=message;controllerMessageUntil=performance.now()+4500;}
-function openControllers(){
+function openControllers(tools=false){
  if(controllerPanel)return;
  cancelBinding?.();
  if(screen==='fight'&&!paused&&mode!=='online')pause();
+ if(screen!=='local-players')playerLobby.configure(['fight','local-match-setup','elimination-setup','select','stage'].includes(screen)?activeInputSlots():input.controllers.cap,1);
+ controllerBoardActive=!tools;
+ if(mode==='local'){if(!localPlayersManaged&&screen==='fight')for(let i=0;i<Math.min(2,activeInputSlots());i++)if(!input.controllers.device(i))playerLobby.keyboards.add(i);localPlayersManaged=true;}
  controllerPanel=true;input.clear();menuNavigation.reset();
  const dialog=document.createElement('dialog');dialog.id='controllers-dialog';dialog.className='controller-dialog';
  dialog.innerHTML=controllerSettings(input.controllers);ui.root.append(dialog);dialog.showModal();
  dialog.addEventListener('cancel',e=>{e.preventDefault();closeControllers();});
  dialog.querySelector<HTMLSelectElement>('#controller-deadzone')!.onchange=e=>{input.controllers.deadzone=Number((e.target as HTMLSelectElement).value);input.clear();input.save();};
  refreshControllerLabels(dialog,input.controllers);controllerPanelRevision=-1;
- dialog.querySelector<HTMLElement>('[data-action="controller-assign"]')?.focus();
+ if(tools)playerTools();else{refreshPlayerManagement(dialog,playerLobby,false);dialog.querySelector<HTMLElement>('[data-action="players-tools"]')?.focus();}
 }
-function closeControllers(){controllerPanel=false;input.controllers.capture=null;input.controllers.testing=null;document.getElementById('controllers-dialog')?.remove();input.clear();menuNavigation.reset();}
+function closeControllers(){input.controllers.cancelMapping();controllerPanel=false;input.controllers.capture=null;input.controllers.testing=null;document.getElementById('controllers-dialog')?.remove();input.clear();menuNavigation.reset();}
 function onlineMenuContent():string {
- return `<h2>${th('pause.onlineTitle')}</h2><p>${th('pause.onlineHelp')}</p><button data-action="online-controller-resume">${th('pause.return')}</button><button data-action="pause-settings">${th('pause.settings')}</button><button data-action="home">${th('pause.leave')}</button>`;
+ return `<h2>${th('pause.onlineTitle')}</h2><p>${th('pause.onlineHelp')}</p><button data-action="online-controller-resume">${th('pause.return')}</button><button data-action="pause-settings">${th('pause.settings')}</button>${restartButton()}<button data-action="home">${th('pause.leave')}</button>`;
 }
 function toggleOnlineControllerMenu(){
+ if(document.getElementById("restart-confirm")){cancelRestart();return;}
  if(document.getElementById('disconnect'))return;
  onlineControllerMenu=!onlineControllerMenu;input.clear();input.enabled=!onlineControllerMenu;menuNavigation.reset();
  if(!onlineControllerMenu){document.getElementById('online-controller-menu')?.remove();return;}
@@ -142,33 +181,42 @@ function toggleOnlineControllerMenu(){
  ui.root.append(dialog);dialog.showModal();dialog.addEventListener('cancel',e=>{e.preventDefault();toggleOnlineControllerMenu();});
 }
 function controllerBack(){
+ if(screen==='lobby'&&!document.querySelector('dialog[open]')){onlineBack();return;}
+ if(screen==='championship-victory'){home();return;}
+ if(screen==='championship-bracket'&&championship?.complete&&championship.champion!==null){showChampionVictory();return;}
+ if(screen==='statistics'){restoreVictory();return;}
+ if(document.getElementById("restart-confirm")){cancelRestart();return;}
  if(document.getElementById('disconnect')){home();return;}
  const editor=document.getElementById('controller-text-entry');if(editor){editor.dispatchEvent(new Event('cancel',{cancelable:true}));return;}
- if(controllerPanel){if(input.controllers.capture||input.controllers.testing!==null){input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message',t('controller.cancelled'));}else closeControllers();return;}
+ if(controllerPanel){if(input.controllers.mappings.wizard||input.controllers.capture||input.controllers.testing!==null){input.controllers.cancelMapping();input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message',t('controller.cancelled'));}else closeControllers();return;}
  const settingsDialog=document.getElementById('settings-dialog');if(settingsDialog){closeSettings();return;}
  if(cancelBinding){cancelBinding();return;}
 
  audio.play("menu_back");
  if(onlineControllerMenu){toggleOnlineControllerMenu();return;}
  if(screen==='fight'){if(document.getElementById('match-result'))home();else if(paused)pause();return;}
+ if(screen==='local-players'){playersNext=null;mode='local';navigate('local-types');ui.shell(localGameScreen());return;}
  if(screen==='select'){if(selectSeat===1){selectSeat=0;selection();}else home();return;}
  if(screen==='stage'){selection();return;}
  const back=ui.root.querySelector<HTMLElement>('main [data-action="local"],main [data-action="back-fighters"]')??ui.root.querySelector<HTMLElement>('[data-action="home"]');back?.click();
 }
-function activeInputSlots(){return mode==='online'||mode==='training'?1:screen==='local-match-setup'?localIds.length:screen==='elimination-setup'?eliminationIds.length:screen==='fight'?simulation.state.fighters.length:2;}
+function activeInputSlots(){if(screen==='local-players')return playerLobby.limit;return mode==='online'||mode==='training'?1:screen==='local-match-setup'?localIds.length:screen==='elimination-setup'?eliminationIds.length:['fight','result','statistics'].includes(screen)?simulation.state.fighters.length:2;}
 function updateControllers(now:number){
  const pads=input.controllers;
- const joinAllowed=screen!=='loading'&&(controllerPanel||screen!=='fight')&&!pads.capture&&pads.testing===null;
+ const boardActive=(screen==='local-players'&&!controllerPanel||controllerPanel&&controllerBoardActive)&&!pads.capture&&pads.testing===null&&!pads.mappings.wizard;
+ pads.managementEvents=boardActive;
+ input.localKeyboardSeats=mode==='local'&&localPlayersManaged?playerLobby.keyboards:null;
+ const joinAllowed=!boardActive&&!(mode==='local'&&localPlayersManaged&&(controllerPanel||['select','stage','local-match-setup','elimination-setup','loading','fight'].includes(screen)))&&screen!=='loading'&&(controllerPanel||screen!=='fight')&&!pads.capture&&pads.testing===null;
  input.refresh(joinAllowed,controllerPanel?pads.cap:screen==='home'||screen==='local'?pads.cap:activeInputSlots());
  for(const action of input.systemActions.splice(0)){
   if(action==='debug'&&(developmentBuild||mode==='training'))debug=!debug;
   if(action==='reset'&&mode==='training'&&screen==='fight'){simulation.resetPositions();recentGameplayEvents.length=0;}
-  if(action==='pause'){if(controllerPanel||document.getElementById('settings-dialog')||document.getElementById('controller-text-entry'))controllerBack();else{pauseOwner=null;pause();}}
+  if(action==='pause'){if(controllerPanel||document.getElementById('settings-dialog')||document.getElementById('controller-text-entry')||screen==='lobby'||screen==='local-players'||screen==='statistics'||screen==='championship-victory'||screen==='championship-bracket'&&championship?.complete)controllerBack();else{pauseOwner=null;pause();}}
  }
  for(const event of pads.drain()){
-  if(event.kind==='menu'||event.kind==='join'||event.kind==='activity'){audio.unlock();controllerHints.use(pads.devices.get(event.device)?.brand??'generic');}
+  if(event.kind==='menu'||event.kind==='join'||event.kind==='activity'){audio.unlock();const d=pads.devices.get(event.device);controllerHints.use(d?.brand??'generic',d&&d.mapping!=='standard'?pads.mappings.profiles.get(d.profileKey):undefined);}
   if(event.kind==='join'||event.kind==='assigned')audio.play("joined");
-  if(event.kind==='disconnect')audio.play("disconnected");
+  if(event.kind==='disconnect'){audio.play("disconnected");if(mode==='online'&&event.player===0&&screen==='lobby')controllerToast(t('controller.lost',{player:1}));}
   if(event.kind==='assigned'||event.kind==='join'){
    const message=t('controller.assigned',{player:event.player!+1,name:pads.devices.get(event.device)!.name});
    controllerToast(message);ui.text('controller-message',message);
@@ -181,14 +229,24 @@ function updateControllers(now:number){
    if(mode!=='online'&&!paused){pauseOwner=null;pause();}
    controllerToast(t('controller.lost',{player:event.player+1}));
   }
+  if(boardActive&&event.kind==='menu'){
+   if(event.action==='up'||event.action==='down'){(controllerPanel?document.querySelector('.controller-page'):document.querySelector('.player-board-page'))?.scrollBy({top:event.action==='down'?180:-180,behavior:'smooth'});continue;}
+   if(event.action==='previous'||event.action==='next'){playerTools();break;}
+   const result=playerLobby.handle(event);
+   if(result==='continue'){if(controllerPanel)closeControllers();else continuePlayers();break;}
+   continue;
+  }
   if(event.kind!=='menu'||event.player===null||!event.action)continue;
   const player=event.player,action=event.action;
+  if(mode==='online'&&player!==0&&!controllerPanel)continue;
+  if(screen==='statistics'&&(action==='previous'||action==='next')){if(!menuNavigation.claim(player,now))continue;statisticsTab=statisticsTabs[(statisticsTabs.indexOf(statisticsTab)+(action==='next'?1:3))%4];renderStatistics();continue;}
   if(action==='pause'&&(document.getElementById('controller-text-entry')||document.getElementById('settings-dialog'))){controllerBack();break;}
   if(action==='pause'&&!controllerPanel&&screen==='fight'&&!document.getElementById('match-result')){
    if(mode==='online'){if(player===0)toggleOnlineControllerMenu();break;}
    if(player>=activeInputSlots()||paused&&pauseOwner!==null&&pauseOwner!==player)continue;
    if(!paused)pauseOwner=player;pause();break;
   }
+  if(screen==='fight'&&isSpectating()&&!document.querySelector('dialog[open]')&&(action==='previous'||action==='next'||action==='left'||action==='right')){cycleSpectator(action==='previous'||action==='left'?-1:1);continue;}
   if(screen==='fight'&&!paused&&!controllerPanel&&!onlineControllerMenu&&!document.querySelector('dialog[open]'))continue;
   if(onlineControllerMenu&&player!==0)continue;
   if(paused&&!controllerPanel&&pauseOwner!==null&&pauseOwner!==player)continue;
@@ -216,15 +274,15 @@ function updateControllers(now:number){
   if(before!==`${viewRevision}:${paused}:${controllerPanel}:${onlineControllerMenu}`)break;
  }
  const modal=document.querySelector<HTMLElement>('dialog[open]:last-of-type');
- if(controllerHints.active&&(modal||screen!=='fight')&&(!(modal??ui.root).contains(document.activeElement)||!(document.activeElement as HTMLElement)?.matches('button,select,input,textarea,a[href],summary,[tabindex="0"]')))menuNavigation.sync(modal??ui.root,screen==='select'&&mode==='local'?selectSeat:0,el=>!!modal||screen!=='select'||!el.matches('[data-skin-seat]')||Number(el.dataset.skinSeat)===selectSeat);
- controllerHints.update(screen==='fight'&&!modal,screen==='select');
+ if(!boardActive&&controllerHints.active&&(modal||screen!=='fight')&&(!(modal??ui.root).contains(document.activeElement)||!(document.activeElement as HTMLElement)?.matches('button,select,input,textarea,a[href],summary,[tabindex="0"]')))menuNavigation.sync(modal??ui.root,screen==='select'&&mode==='local'?selectSeat:0,el=>!!modal||screen!=='select'||!el.matches('[data-skin-seat]')||Number(el.dataset.skinSeat)===selectSeat);
+ controllerHints.update(screen==='fight'&&!modal,screen==='select',boardActive?t('players.controls'):screen==='statistics'?t('statistics.controller'):screen==='fight'&&isSpectating()?`${controllerHints.button(4)} / ${controllerHints.button(5)} · ${onlineText('Switch fighter','Trocar lutador')}   ${controllerHints.button(9)} · ${onlineText('Options','Opções')}`:undefined);
  document.querySelectorAll<HTMLElement>('[data-control-index]').forEach(el=>{const value=controlLabel(displayBindings(Number(el.dataset.controlPlayer))[Number(el.dataset.controlIndex)]??'');if(value&&el.textContent!==value)el.textContent=value;});
  const disconnected=pads.slots.map((_,i)=>i).filter(i=>i<activeInputSlots()&&pads.device(i)&&!pads.device(i)!.connected);
  if(disconnected.length&&screen==='fight'){
   const p=disconnected[0];
   if(!controllerPanel){
    // Only an unassigned pad may reclaim a missing seat during play.
-   const replacement=Array.from(pads.devices.values()).find(d=>d.connected&&d.player===null&&d.mapping==='standard'&&now-d.lastActivity<80);
+   const replacement=Array.from(pads.devices.values()).find(d=>d.connected&&d.player===null&&pads.supported(d)&&now-d.lastActivity<80&&(!(mode==='local'&&localPlayersManaged)||d.buttons[STANDARD.confirm]>.5&&!(d.previousButtons[STANDARD.confirm]>.5)));
    if(replacement)pads.assign(replacement.key,p);
   }
   ui.root.querySelectorAll<HTMLElement>('[data-controller-disconnect]').forEach(el=>el.textContent=t('controller.lostHelp',{player:p+1}));
@@ -234,6 +292,7 @@ function updateControllers(now:number){
  if(controllerPanelRevision!==pads.revision||now-controllerLastPaint>150){
   refreshControllerLabels(ui.root,pads);
   if(controllerPanel)controllerDiagnostics(ui.root,pads,now);
+  if(boardActive)refreshPlayerManagement(ui.root,playerLobby,screen==='local-players'&&!controllerPanel);
   controllerPanelRevision=pads.revision;controllerLastPaint=now;
  }
  const notice=disconnected.length&&screen==='fight'?t('controller.lostNotice',{player:disconnected[0]+1,online:mode==='online'?t('controller.onlineContinues'):''}):now<controllerMessageUntil?controllerMessage:joinAllowed?t('controller.joinHint'):'';
@@ -247,7 +306,7 @@ function showLocalMatchSetup(kind:LocalMatchMode=localMatchMode,count=kind==='3v
  localIds=Array.from({length:count},(_,i)=>localIds[i]??rosterIds[i%rosterIds.length]);
  localSkins=localIds.map((id,i)=>resolveSkin(characters[id],localSkins[i]));
  navigate('local-match-setup');ui.shell(localMatchSetup(kind,localIds,localSkins,localTeams,developmentBuild));addSetupArenaPicker();
- document.getElementById('local-match-count')!.onchange=e=>showLocalMatchSetup(kind,Number((e.target as HTMLSelectElement).value));
+ document.getElementById('local-match-count')!.onchange=e=>{const n=Number((e.target as HTMLSelectElement).value);showPlayers(n,n,n,count=>showLocalMatchSetup(kind,count));};
  ui.root.querySelectorAll<HTMLSelectElement>('[data-local-fighter]').forEach(el=>el.onchange=()=>{const i=Number(el.dataset.localFighter);localIds[i]=el.value;localSkins[i]=resolveSkin(characters[el.value]);showLocalMatchSetup(kind,count);});
  ui.root.querySelectorAll<HTMLSelectElement>('[data-local-skin]').forEach(el=>el.onchange=()=>localSkins[Number(el.dataset.localSkin)]=el.value);
  ui.root.querySelectorAll<HTMLSelectElement>('[data-local-team]').forEach(el=>el.onchange=()=>{localTeams[Number(el.dataset.localTeam)]=Number(el.value);showLocalMatchSetup(kind,count);});
@@ -257,7 +316,7 @@ function showEliminationSetup(kind:EliminationMode=localElimination,count=kind==
  eliminationIds=Array.from({length:count},(_,i)=>eliminationIds[i]??rosterIds[i%rosterIds.length]);
  eliminationSkins=eliminationIds.map((id,i)=>resolveSkin(characters[id],eliminationSkins[i]));
  navigate('elimination-setup');ui.shell(eliminationSetup(kind,eliminationIds,eliminationSkins));addSetupArenaPicker();
- document.getElementById('elimination-count')!.onchange=e=>showEliminationSetup(kind,Number((e.target as HTMLSelectElement).value));
+ document.getElementById('elimination-count')!.onchange=e=>{const n=Number((e.target as HTMLSelectElement).value);showPlayers(n,n,n,count=>showEliminationSetup(kind,count));};
  ui.root.querySelectorAll<HTMLSelectElement>('[data-elimination-fighter]').forEach(el=>el.onchange=()=>{const i=Number(el.dataset.eliminationFighter);eliminationIds[i]=el.value;eliminationSkins[i]=resolveSkin(characters[el.value]);showEliminationSetup(kind,count);});
  ui.root.querySelectorAll<HTMLSelectElement>('[data-elimination-skin]').forEach(el=>el.onchange=()=>eliminationSkins[Number(el.dataset.eliminationSkin)]=el.value);
 }
@@ -276,21 +335,35 @@ function showChampionshipSetup() {
 function resizeChampionship(count: number) {
   championshipEntrants = Array.from({length: count}, (_, id) => championshipEntrants[id] ?? { id, name: `Player ${id+1}`, character: rosterIds[id % rosterIds.length], skin: resolveSkin(characters[rosterIds[id % rosterIds.length]]) });
 }
-function showChampionship(note = '') {
+function showChampionship(note = '', review = false) {
   if (!championship) return;
-  championshipMatch = undefined; rollback = null; pendingHashes.clear(); paused = false;
+  preloadChampionshipArtwork(championship);
+  if(championship.complete&&championship.champion!==null&&!review){showChampionVictory();return;}
+  spectatorPlayback=null;championshipMatch = undefined; rollback = null; pendingHashes.clear(); paused = false;
   navigate('championship-bracket', true);
-  ui.shell(championshipBracket(championship, mode === 'online', championshipSeat, championshipReady, note), `1v1 CHAMPIONSHIP / ${stages[selectedArena].name.toUpperCase()}`);
+  ui.shell(championshipBracket(championship, mode === 'online', championshipSeat, championshipReady, note)+(mode==='online'&&!championship.complete?`<div class="on-watch-duels">${championship.rounds.flat().filter(m=>m.status==='playing'&&!m.slots.includes(championshipSeat)).map(m=>`<button data-action="spectator-duel" data-match="${matchToken(m)}">${onlineText('Watch match','Assistir partida')} ${m.id}</button>`).join('')}</div>`:''), `1v1 CHAMPIONSHIP / ${stages[selectedArena].name.toUpperCase()}`);
+}
+function showChampionVictory(){
+ if(!championship?.complete||championship.champion===null)return;
+ spectatorPlayback=null;championshipMatch=undefined;rollback=null;pendingHashes.clear();paused=false;
+ navigate('championship-victory',true);audio.setMusic('victory',selectedArena);
+ ui.render(championshipVictory(championship,mode==='online'));bindChampionshipArtwork(ui.root);
+ ui.root.querySelector<HTMLButtonElement>('[data-champion-default]')?.focus({preventScroll:true});
 }
 function playChampionship(id: string) {
   if (!championship || screen !== 'championship-bracket' || mode !== 'local') return;
+  showPlayers(2,2,2,()=>launchChampionshipMatch(id));
+}
+function launchChampionshipMatch(id:string){
+  if(!championship||mode!=='local')return;
   const m = startBracketMatch(championship, id);
   championshipMatch = matchToken(m);
   const entrants = m.slots.map(id => championship!.entrants.find(e => e.id === id)!);
   void start(entrants.map(e => e.character), undefined, entrants.map(e => e.skin));
 }
 function navigate(next: string, keepConnection = false) {
-  viewRevision++;
+  viewRevision++;restartTarget=null;restartPending=false;stopStatisticsAnimation?.();stopStatisticsAnimation=undefined;
+  if(screen==='local-players'&&next!=='local-players')playersNext=null;
   if(controllerPanel)closeControllers();
   onlineControllerMenu=false;
   cancelBinding?.();
@@ -302,7 +375,7 @@ function navigate(next: string, keepConnection = false) {
 function home() {
   network.disconnect();
   championship = null; championshipMatch = undefined; championshipReady = [];
-  rollback = null;
+  rollback = null;spectatorPlayback=null;renderer.spectatorTarget=undefined;
   navigate("home");
   paused = false;
   input.enabled = false;
@@ -370,24 +443,77 @@ function stage() {
     button.onclick=()=>{const id=button.dataset.arena!;if(!Object.hasOwn(stages,id))return;selectedArena=id;audio.play('menu_confirm');stage();ui.root.querySelector<HTMLButtonElement>(`[data-arena="${id}"]`)?.focus({preventScroll:true});};
   });
 }
-async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = selectedArena, idleTest = false, recovery?:RecoveryState) {
+let authoritativeStatistics:MatchStatistics|null=null;
+let statisticsTab:StatisticsTab='overview',statisticsSeat=0,statisticsReturnStatus='';
+let stopStatisticsAnimation:(()=>void)|undefined;
+function renderStatistics(){
+ const stats=mode==='online'?authoritativeStatistics:simulation.state.statistics;
+ if(!stats?.finalized||championship)return;
+ const focused=document.activeElement as HTMLElement|null,action=focused?.dataset.action,tab=focused?.dataset.tab,selectedSeat=focused?.dataset.seat;
+ stopStatisticsAnimation?.();if(screen!=='statistics')menuNavigation.reset();viewRevision++;screen='statistics';ui.root.dataset.navScreen=screen;input.enabled=false;input.clear();
+ ui.shell(matchStatisticsScreen(simulation.state,stats,mode==='online',statisticsTab,statisticsSeat,statisticsReturnStatus));
+ const restore=[...ui.root.querySelectorAll<HTMLElement>('button')].find(el=>el.dataset.action===action&&el.dataset.tab===tab&&el.dataset.seat===selectedSeat);
+ (restore??ui.root.querySelector<HTMLElement>('[data-action="statistics-tab"]'))?.focus({preventScroll:true});
+ stopStatisticsAnimation=animateStatistics(ui.root);
+}
+function restoreVictory(){
+ stopStatisticsAnimation?.();stopStatisticsAnimation=undefined;screen='result';ui.root.dataset.navScreen='result';menuNavigation.reset();hud();
+ const s=simulation.state,winner=s.winner<0?null:s.fighters[s.winner];
+ const name=winner?(s.teamMatch?t(s.teams[s.winner]===0?'team.blueWinner':'team.redWinner'):characters[winner.characterId].displayName):t('result.draw');
+ ui.root.insertAdjacentHTML('beforeend',resultScreen(s,mode,name,teamLabel,arenaName(simulation.stage)));
+ const dialog=document.getElementById('match-result') as HTMLDialogElement;dialog.showModal();dialog.addEventListener('cancel',e=>e.preventDefault());
+}
+let initialFight:{ids:string[];teams?:number[];skins:string[];tournament:boolean|EliminationMode;seed:number;arenaId:string;idleTest:boolean}|null=null;
+let restartTarget:GameSimulation|null=null;
+let restartPending=false;
+function canRestartFight(){return mode!=='online'||!spectatorPlayback&&(championship?seat===0:seat===(onlineRoom?.owner??0));}
+function restartButton():string {
+ return canRestartFight()?`<button class="overlay-action" data-action="restart-fight">${th('pause.restart')}</button>`:'';
+}
+function cancelRestart(){document.getElementById('restart-confirm')?.remove();restartTarget=null;menuNavigation.reset();ui.root.querySelector<HTMLElement>('[data-action="restart-fight"]')?.focus();}
+function confirmRestart(){
+ if(screen!=='fight'||simulation.state.phase==='result'||restartPending||document.getElementById('restart-confirm'))return;
+ if(!canRestartFight())return;
+ restartTarget=simulation;input.clear();menuNavigation.reset();
+ const dialog=document.createElement('dialog');dialog.id='restart-confirm';dialog.className='controller-dialog';dialog.setAttribute('aria-labelledby','restart-title');
+ dialog.innerHTML=`<h2 id="restart-title">${th('pause.restart')}</h2><p>${th('pause.restartHelp')}</p>${mode==='online'?`<p>${th('pause.restartOnline')}</p>`:''}<div class="row"><button data-action="restart-cancel">${th('entry.cancel')}</button><button class="primary" data-action="restart-confirm">${th('pause.restart')}</button></div>`;
+ ui.root.append(dialog);dialog.showModal();dialog.addEventListener('cancel',e=>{e.preventDefault();cancelRestart();});dialog.querySelector<HTMLElement>('[data-action="restart-cancel"]')?.focus();
+}
+function restartFight(){
+ if(screen!=='fight'||restartTarget!==simulation||simulation.state.phase==='result'||restartPending){cancelRestart();return;}
+ cancelRestart();
+ if(mode==='online'){
+  if(!canRestartFight())return;
+  restartPending=true;network.send({type:'restart-fight',matchId:championshipMatch});return;
+ }
+ if(!initialFight)return;
+ const config=initialFight,trainingOptions={...simulation.trainingOptions};
+ // start() replaces the entire simulation and runs normal input/audio/UI cleanup.
+ const loading=start(config.ids,config.teams,config.skins,config.tournament,config.seed,config.arenaId,config.idleTest),fresh=simulation;
+ void loading.then(()=>{if(simulation===fresh&&mode==='training'&&screen==='fight'){simulation.trainingOptions=trainingOptions;hud();}});
+}
+async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = selectedArena, idleTest = false, recovery?:RecoveryState, spectating=false) {
+  if(mode==='local'&&localPlayersManaged&&!idleTest&&ids.some((_,i)=>!localInputReady(i))){showPlayers(ids.length,ids.length,ids.length,()=>{void start(ids,teams,skins,tournament,seed,arenaId,idleTest,recovery);});return;}
   if(!developmentBuild && mode!=="training")debug=false;
   idleTestMatch = developmentBuild && mode === "local" && idleTest;
   selectedArena = Object.hasOwn(stages,arenaId) ? arenaId : trainingRoom.id;
   navigate("loading", true);
   const revision = viewRevision;
-  recentGameplayEvents.length=0;
+  recentGameplayEvents.length=0;authoritativeStatistics=null;statisticsTab='overview';statisticsSeat=0;statisticsReturnStatus='';
   input.enabled = false;
   ui.shell(
     `<main class="page"><div class="eyebrow">${th('match.loading')}</div><h2>${th('match.entering',{arena:arenaName(stages[selectedArena]).toUpperCase()})}</h2><div class="loading-bar"><i id="load-progress" style="width:0%"></i></div></main>`,
   );
+  if(mode!=='online')initialFight={ids:[...ids],teams:teams?[...teams]:undefined,skins:[...skins],tournament,seed,arenaId:selectedArena,idleTest};
   simulation = new GameSimulation(ids, mode === "training", stages[selectedArena], teams, skins, tournament, seed);
   gameAudio.reset();
   audio.setMusic("intro",simulation.stage.id);
   void audio.preload([...Object.keys(sounds).filter(id=>!id.includes('.')||id.startsWith('layer.')||ids.some(f=>id.startsWith(`${f}.`))),...ids.flatMap(id=>Object.values(characterSounds[id]??{}).filter((key):key is string=>!!key))]);
-  if (mode === "online") {
+  spectatorPlayback=null;spectatorTarget=-1;renderer.spectatorTarget=undefined;
+  if(spectating&&recovery){spectatorPlayback=new SpectatorPlayback(simulation,recovery);rollback=null;}
+  else if (mode === "online") {
     rollback = new RollbackManager(simulation, seat, 2, 8);
-    if(recovery)rollback.restoreRecovery(recovery);
+    if(recovery){rollback.restoreRecovery(recovery);if(simulation.state.statistics?.finalized)authoritativeStatistics=structuredClone(simulation.state.statistics);}
     lastHash = -1;
     pendingHashes.clear();
   } else rollback = null;
@@ -409,6 +535,7 @@ async function start(ids: string[] = selected, teams?: number[], skins: string[]
     return;
   }
   if (revision !== viewRevision || screen !== "loading") return;
+  if(mode==='local'&&localPlayersManaged&&!idleTest&&ids.some((_,i)=>!localInputReady(i))){showPlayers(ids.length,ids.length,ids.length,()=>{void start(ids,teams,skins,tournament,seed,arenaId,idleTest,recovery);});return;}
   screen = "fight";
   paused = false;
   accumulator = 0;
@@ -416,10 +543,26 @@ async function start(ids: string[] = selected, teams?: number[], skins: string[]
   input.enabled = true;
   hud();
 }
+function isSpectating(){return mode==='online'&&screen==='fight'&&(!!spectatorPlayback||simulation.state.fighters[seat]?.lives===0);}
+function cycleSpectator(direction:number){
+ if(!isSpectating())return;
+ const survivors=simulation.state.fighters.flatMap((f,i)=>f.lives>0?[i]:[]);if(!survivors.length)return;
+ spectatorTarget=survivors[(survivors.indexOf(spectatorTarget)+direction+survivors.length)%survivors.length];updateSpectator();
+}
+function updateSpectator(){
+ if(!isSpectating()){document.getElementById('online-spectator')?.remove();renderer.spectatorTarget=undefined;return;}
+ const survivors=simulation.state.fighters.flatMap((f,i)=>f.lives>0?[i]:[]);
+ if(!survivors.includes(spectatorTarget))spectatorTarget=survivors[0]??-1;
+ renderer.spectatorTarget=spectatorTarget>=0?spectatorTarget:undefined;
+ let panel=document.getElementById('online-spectator');if(!panel){panel=document.createElement('div');panel.id='online-spectator';panel.className='online-spectator';ui.root.append(panel);}
+ const fighter=simulation.state.fighters[spectatorTarget];
+ updateMarkup(panel,`<button data-action="spectator-previous" aria-label="Previous fighter">‹</button><b>${onlineText('SPECTATING','ASSISTINDO')} · ${fighter?`P${spectatorTarget+1} / ${characters[fighter.characterId].displayName}`:'—'}</b><button data-action="spectator-next" aria-label="Next fighter">›</button><small>${onlineText('LB / RB or ← / → · Switch fighter','LB / RB ou ← / → · Trocar lutador')}</small>`);
+ if(spectatorPlayback?.needsRefresh){spectatorPlayback.needsRefresh=false;network.send({type:'spectate',matchId:championshipMatch});}
+}
 function hud() {
   hudEliminationFight=simulation.state.elimination?.fight??0;
   ui.render(
-    `<div style="--fighter-count:${simulation.state.fighters.length}" class="hud ${simulation.state.teamMatch ? "team-hud" : ""} ${simulation.state.fighters.length > 2 ? `multi-hud ${simulation.state.fighters.length > 6 ? "large-ffa-hud" : ""}` : ""}">${simulation.state.fighters.length > 2 ? simulation.state.fighters.map((_, i) => fighterHud(i)).join("") : `${fighterHud(0)}<div class="timer"><span id="match-symbol">VS</span><small id="match-mode">${th("hud.survival")}</small></div>${fighterHud(1)}`}</div><div id="player-tags"></div><div class="announcement" id="announcement"></div><div class="combo" id="combo0"></div><div class="combo right" id="combo1"></div><pre class="debug" id="debug" hidden></pre>${mode === "training" ? `<div class="training"><span class="pill">${th("home.training.name")}</span><label>${th("hud.dummy")} <select id="dummy"><option value="stand" ${simulation.trainingOptions.dummy === "stand" ? "selected" : ""}>${th("hud.stand")}</option><option value="crouch" ${simulation.trainingOptions.dummy === "crouch" ? "selected" : ""}>${th("hud.crouch")}</option><option value="jump" ${simulation.trainingOptions.dummy === "jump" ? "selected" : ""}>${th("hud.jump")}</option><option value="block" ${simulation.trainingOptions.dummy === "block" ? "selected" : ""}>${th("hud.block")}</option><option value="afterHit" ${simulation.trainingOptions.dummy === "afterHit" ? "selected" : ""}>${th("hud.afterHit")}</option></select></label><label><input id="infinite" type="checkbox" ${simulation.trainingOptions.infiniteMeter ? "checked" : ""}> ${th("hud.infiniteMeter")}</label><button data-action="reset">${th("hud.reset")}</button><button data-action="debug">${th("hud.boxes")}</button><span id="damage">${th('hud.damage',{damage:0,combo:0})}</span></div>` : ""}<div class="combat-actions"><button class="text-button" data-action="pause">${th(mode==='online'?'hud.options':'hud.pause')} [<span data-prompt-pause>ESC</span>]</button></div>`,
+    `<div style="--fighter-count:${simulation.state.fighters.length}" class="hud ${simulation.state.teamMatch ? "team-hud" : ""} ${simulation.state.fighters.length > 2 ? `multi-hud ${simulation.state.fighters.length > 6 ? "large-ffa-hud" : ""}` : ""}">${simulation.state.fighters.length > 2 ? simulation.state.fighters.map((_, i) => fighterHud(i)).join("")+multiMatchTimer() : `${fighterHud(0)}<div class="timer"><span id="match-symbol" role="timer">0:00</span><small id="match-mode">${th("hud.survival")}</small></div>${fighterHud(1)}`}</div><div id="player-tags"></div><div class="announcement" id="announcement"></div><div class="combo" id="combo0"></div><div class="combo right" id="combo1"></div><pre class="debug" id="debug" hidden></pre>${mode === "training" ? `<div class="training"><span class="pill">${th("home.training.name")}</span><label>${th("hud.dummy")} <select id="dummy"><option value="stand" ${simulation.trainingOptions.dummy === "stand" ? "selected" : ""}>${th("hud.stand")}</option><option value="crouch" ${simulation.trainingOptions.dummy === "crouch" ? "selected" : ""}>${th("hud.crouch")}</option><option value="jump" ${simulation.trainingOptions.dummy === "jump" ? "selected" : ""}>${th("hud.jump")}</option><option value="block" ${simulation.trainingOptions.dummy === "block" ? "selected" : ""}>${th("hud.block")}</option><option value="afterHit" ${simulation.trainingOptions.dummy === "afterHit" ? "selected" : ""}>${th("hud.afterHit")}</option></select></label><label><input id="infinite" type="checkbox" ${simulation.trainingOptions.infiniteMeter ? "checked" : ""}> ${th("hud.infiniteMeter")}</label><button data-action="reset">${th("hud.reset")}</button><button data-action="debug">${th("hud.boxes")}</button><span id="damage">${th('hud.damage',{damage:0,combo:0})}</span></div>` : ""}<div class="combat-actions"><button class="text-button" data-action="pause">${th(mode==='online'?'hud.options':'hud.pause')} [<span data-prompt-pause>ESC</span>]</button></div>`,
   );
   document
     .getElementById("dummy")
@@ -448,10 +591,18 @@ function fighterHud(i: number) {
   const entrant = match && championship!.entrants.find(e => e.id === match.slots[i]);
   return `<div class="p${i + 1} ${mode === "online" && i === seat ? "you" : ""}" style="--player-color:${fighterColor(i)};order:${simulation.state.teamMatch ? simulation.state.teams[i] * 10 + i : i}"><div class="fighter-name"><img class="hud-portrait" src="${fighterPresentation(simulation.state.fighters[i].characterId, simulation.state.skins[i]).portrait}" alt=""><b>${entrant ? escapeMarkup(entrant.name) : characters[simulation.state.fighters[i].characterId].displayName}</b><span>P${i + 1}${teamLabel(i)}${mode === "online" && i === seat ? t('championship.you') : ""}</span></div><div class="health"><i id="health${i}"></i></div>${energyMeter(characters[simulation.state.fighters[i].characterId],i)}<div class="super-slots" id="supers${i}"></div><div class="lives" id="lives${i}"></div><div class="life-status" id="life-status${i}"></div></div>`;
 }
+function multiMatchTimer(){return '<div class="timer multi-match-timer"><span id="match-symbol" role="timer">0:00</span></div>';}
 function updateHUD(presentationOnly=false) {
   const s = simulation.state;
   if((s.elimination?.fight??0)!==hudEliminationFight)hud();
-  ui.text("match-symbol", s.training ? "∞" : "VS");
+  const clock=matchTimer(s),clockElement=document.getElementById('match-symbol');
+  if(clockElement){
+    if(clockElement.textContent!==clock.text)clockElement.textContent=clock.text;
+    clockElement.classList.toggle('invasion-danger',clock.danger);
+    clockElement.parentElement!.classList.toggle('invasion-danger',clock.danger);
+    clockElement.setAttribute('aria-label',t(clock.danger?'hud.invasionTimer':'hud.elapsedTimer',{time:clock.text}));
+    clockElement.parentElement!.hidden=clock.hidden;
+  }
   ui.text("match-mode", t(s.training?'home.training.name':s.elimination?'local.elimination.title':championship?'local.champion.title':'hud.survival'));
   s.fighters.forEach((f, i) => {
     document.getElementById("health" + i)!.style.width =
@@ -580,7 +731,7 @@ function updateHUD(presentationOnly=false) {
     const lost = mode === "online" && s.winner >= 0 && (s.teamMatch ? s.teams[s.winner] !== s.teams[seat] : s.winner !== seat);
     audio.fadeCombat();audio.setMusic(lost?"defeat":"victory",simulation.stage.id);audio.play(lost?"defeat":"victory");
     if(!lost&&simulation.state.winner>=0)audio.play(`${simulation.state.fighters[simulation.state.winner].characterId}.victory`);
-    if(rollback)network.send({type:"finished",frame:s.endedAt});
+    if(rollback)network.send({type:"finished",frame:s.endedAt,matchId:championshipMatch});
     input.enabled = false;
     const winner = s.winner < 0 ? null : s.fighters[s.winner];
     const winnerName = winner ? (s.teamMatch ? t(s.teams[s.winner]===0?'team.blueWinner':'team.redWinner') : characters[winner.characterId].displayName) : t('result.draw');
@@ -605,11 +756,12 @@ function refreshBindings(){
 }
 /** Refresh presentation in place: never navigate, reset the match, or re-open a modal. */
 function refreshMatchLanguage(){
+  if(screen==='statistics'){renderStatistics();return;}
   if(screen!=='fight')return;
   const hudElement=ui.root.querySelector('.hud');
   if(hudElement)hudElement.innerHTML=simulation.state.fighters.length>2
-    ?simulation.state.fighters.map((_,i)=>fighterHud(i)).join('')
-    :`${fighterHud(0)}<div class="timer"><span id="match-symbol">VS</span><small id="match-mode">${th('hud.survival')}</small></div>${fighterHud(1)}`;
+    ?simulation.state.fighters.map((_,i)=>fighterHud(i)).join('')+multiMatchTimer()
+    :`${fighterHud(0)}<div class="timer"><span id="match-symbol" role="timer">0:00</span><small id="match-mode">${th('hud.survival')}</small></div>${fighterHud(1)}`;
   const training=ui.root.querySelector('.training');
   const pauseDialog=document.getElementById('pause');
   if(pauseDialog){if(training)ui.root.append(training);pauseDialog.innerHTML=pauseContent();if(training)pauseDialog.querySelector('.pause-drawer')!.append(training);}
@@ -679,65 +831,119 @@ function settings(overlay=false, refresh=false) {
       }),
   );
 }
-function lobby() {
-  navigate("lobby");
-  ui.shell(
-    `<main class="page online-lobby"><div class="eyebrow">${th("online.eyebrow")}</div><h2>${th("online.title")}</h2><p>${th("online.modes")}<br>${th("online.rules")}<br>${th('online.fighter',{name:characters[selected[0]].displayName})}</p><div class="network-panel"><div class="room-setup-grid"><section><label class="setting">${th("online.mode")}<select id="online-mode" aria-label="${th("online.modeLabel")}"><option value="championship">${th("online.mode.championship")}</option><option value="ffa" selected>${th("online.mode.ffa")}</option><option value="ffa-tournament">${th("online.mode.ffa-tournament")}</option><option value="elimination">${th("online.mode.elimination")}</option><option value="elimination-party">${th("online.mode.elimination-party")}</option><option value="2v2">${th("online.mode.2v2")}</option><option value="3v3">${th("online.mode.3v3")}</option></select></label><label class="setting" id="room-size-setting">${th("online.roomSize")}<select id="room-size" aria-label="${th("online.roomSizeLabel")}">${[2, 3, 4, 5, 6, 7, 8].map((n) => `<option value="${n}">${th('online.fighters',{count:n})}</option>`).join("")}</select></label><p id="team-rules" class="tag">${th("online.ffaRule")}</p><label class="setting">${th("online.yourTeam")} <select id="preferred-team" aria-label="${th("online.teamLabel")}"><option value="auto">${th("online.auto")}</option><option value="0">${th("team.blue")}</option><option value="1">${th("team.red")}</option></select></label><small>${th("online.teamHelp")}</small></section><section class="room-connect"><button class="primary" data-action="create">${th("online.create")}</button><p>${th("online.codeHelp")}</p><div class="row"><input id="code" type="text" placeholder="ABX42" maxlength="5" aria-label="${th("online.codeLabel")}" style="width:150px;text-transform:uppercase;letter-spacing:4px"><button class="secondary" data-action="join">${th("online.join")}</button></div><p id="network-status"></p></section></div></div><p class="tag">${th("online.footer1")}<br>${th("online.footer2")}</p></main>`,
-  );
-  const updateMode = () => {
-    const matchMode = (document.getElementById("online-mode") as HTMLSelectElement).value;
-    document.getElementById("room-size-setting")!.hidden = (matchMode === "2v2" || matchMode === "3v3" || matchMode === "elimination-party");
-    (document.getElementById("preferred-team") as HTMLSelectElement).disabled=matchMode!=="2v2"&&matchMode!=="3v3";
-    (document.getElementById('room-size') as HTMLSelectElement).innerHTML = Array.from({length: matchMode === 'championship' ? 15 : 7}, (_,i) => `<option value="${i+2}">${th('common.players',{count:i+2})}</option>`).join('');
-    ui.text("team-rules", matchMode === "elimination" ? t('online.eliminationRule') : matchMode === "elimination-party" ? t('online.partyRule') : matchMode === "championship" ? t('online.championshipRule') : matchMode === "ffa-tournament" ? t('online.tournamentRule') : matchMode === "ffa" ? t('online.ffaRule') : t('online.teamsRule',{count:matchMode==='2v2'?4:6}));
-  };
-  document.getElementById('online-mode')!.addEventListener('change', updateMode);
-  updateMode();
+type OnlinePage='menu'|'create'|'browse'|'code'|'room'|'fighter'|'arena'|'settings';
+let drawnOnlinePage:OnlinePage|undefined;
+let onlinePage:OnlinePage='menu',onlineRoom:RoomView|null=null,publicRooms:RoomSummary[]=[],roomFilter='',onlineBusy=false,onlinePending=false;
+function lobby(){onlineRoom=null;onlinePending=false;onlinePage='menu';navigate('lobby');drawOnline();}
+function drawOnline(){
+ if(screen!=='lobby')return;
+ const active=document.activeElement as HTMLElement|null;
+ const key=active?.dataset.online,id=active?.dataset.id,code=active?.dataset.code,inputId=active?.id;
+ const scroll=ui.root.querySelector('.on-screen')?.scrollTop??0;
+ const markup=onlinePage==='room'&&onlineRoom?sharedLobby(onlineRoom):onlinePage==='fighter'&&onlineRoom?lobbyFighters(onlineRoom):onlinePage==='arena'&&onlineRoom?lobbyArenas(onlineRoom):onlinePage==='settings'&&onlineRoom?createRoom(onlineRoom):onlinePage==='create'?createRoom():onlinePage==='browse'?browseRooms(publicRooms,roomFilter):onlinePage==='code'?joinCode():onlineMenu();
+ ui.render(markup);
+ if(drawnOnlinePage===onlinePage)(ui.root.querySelector('.on-screen') as HTMLElement).style.animation='none';
+ drawnOnlinePage=onlinePage;
+ ui.root.querySelector('.on-screen')!.scrollTop=scroll;
+ const controls=[...ui.root.querySelectorAll<HTMLElement>('button,input,select')];
+ const restored=controls.find(el=>inputId?el.id===inputId:key&&el.dataset.online===key&&el.dataset.id===id&&el.dataset.code===code);
+ (restored&&!restored.hasAttribute('disabled')?restored:controls.find(el=>!el.hasAttribute('disabled')&&el.dataset.online!=='back'))?.focus({preventScroll:true});
+ bindRoomSettings();
 }
-let connectionAttempt = 0;
-async function connect(create: boolean) {
-  const attempt = ++connectionAttempt;
-  const code = (document.getElementById("code") as HTMLInputElement)?.value
-    .trim()
-    .toUpperCase();
-  if (!create && !/^[A-Z0-9]{5}$/.test(code)) {
-    ui.text("network-status", t('online.enterCode'));
-    return;
-  }
-  const revision = viewRevision;
-  const capacity = Number((document.getElementById("room-size") as HTMLSelectElement)?.value ?? 2);
-  const character = selected[0];
-  const skin = selectedSkins[0];
-  const matchMode = (document.getElementById("online-mode") as HTMLSelectElement).value as OnlineMode;
-  const preference = (document.getElementById("preferred-team") as HTMLSelectElement).value;
-  const team = preference === "auto" ? undefined : Number(preference);
-  ui.text("network-status", t('online.connecting'));
-  try {
-    await network.connect();
-    if (attempt !== connectionAttempt || revision !== viewRevision || screen !== "lobby") return;
-    network.send(
-      create
-        ? {
-            type: "create",
-            stage: selectedArena,
-            character,
-            skin,
-            capacity,
-            mode: matchMode,
-            team,
-          }
-        : { type: "join", code, character, team, skin },
-    );
-  } catch (e) {
-    if (attempt !== connectionAttempt || revision !== viewRevision || screen !== "lobby") return;
-    ui.text(
-      "network-status",
-      e instanceof Error ? errorMessage(e.message) : t('online.failed'),
-    );
-  }
+function bindRoomSettings(){
+ const choice=document.getElementById('on-mode') as HTMLSelectElement|null,size=document.getElementById('on-capacity') as HTMLSelectElement|null;
+ if(!choice||!size)return;
+ const update=()=>{const m=choice.value,fixed=m==='2v2'?4:m==='3v3'||m==='elimination-party'?6:0,max=m==='championship'?16:8;
+  for(const option of size.options){option.hidden=Number(option.value)>max;option.disabled=option.hidden;}
+  size.value=String(fixed||Math.min(max,Number(size.value)));size.disabled=!!fixed;
+ };choice.onchange=update;update();
 }
+function onlineBack(){
+ if(onlineBusy&&!onlineRoom){network.disconnect();onlinePending=false;}
+ if(onlinePage==='room'){home();return;}
+ if(onlineRoom){onlinePage='room';drawOnline();return;}
+ if(onlinePage==='menu'){home();return;}
+ onlinePage='menu';drawOnline();
+}
+async function onlineSend(message:import('../../../packages/shared/protocol.js').ClientMessage){
+ const joining=message.type==='create'||message.type==='join';
+ if(onlineBusy||joining&&onlinePending)return;onlineBusy=true;if(joining){onlinePending=true;ui.text('network-status',t('online.connecting'));}
+ const revision=viewRevision,page=onlinePage;
+ try{if(network.socket?.readyState!==WebSocket.OPEN)await network.connect();if(screen==='lobby'&&revision===viewRevision&&page===onlinePage)network.send(message);}
+ catch(error){onlinePending=false;if(screen==='lobby')ui.text('network-status',error instanceof Error?error.message:onlineText('Connection failed','Falha na conexão'));}
+ finally{onlineBusy=false;}
+}
+function readRoomSettings():RoomSettings{return {name:(document.getElementById('on-name') as HTMLInputElement).value,visibility:(document.getElementById('on-visibility') as HTMLSelectElement).value as 'public'|'private',capacity:Number((document.getElementById('on-capacity') as HTMLSelectElement).value),mode:(document.getElementById('on-mode') as HTMLSelectElement).value as OnlineMode};}
+const onlineEvents=new AbortController();
+window.addEventListener('keydown',e=>{if(isSpectating()&&!document.querySelector('dialog[open]')&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();cycleSpectator(e.key==='ArrowLeft'?-1:1);}},{signal:onlineEvents.signal});
+ui.root.addEventListener('click',event=>{
+ const el=(event.target as HTMLElement).closest<HTMLElement>('[data-online]');if(!el||screen!=='lobby')return;
+ audio.unlock();audio.play('menu_confirm');
+ const action=el.dataset.online;
+ if(action==='back'){onlineBack();return;}
+ if(action==='leave'){home();return;}
+ if(action==='back-room'){onlinePage='room';drawOnline();return;}
+ if(action==='create'||action==='code'||action==='browse'||action==='fighter'||action==='arena'||action==='settings'){
+  onlinePage=action;drawOnline();if(action==='browse')void onlineSend({type:'list-rooms'});return;
+ }
+ if(action==='refresh'){void onlineSend({type:'list-rooms'});return;}
+ if(action==='create-submit'){void onlineSend({type:'create',...readRoomSettings(),stage:selectedArena,character:selected[0],skin:selectedSkins[0]});return;}
+ if(action==='join-submit'||action==='join-room'){
+  const code=el.dataset.code??(document.getElementById('on-code') as HTMLInputElement).value.trim().toUpperCase();
+  if(!/^[A-Z0-9]{5}$/.test(code)){ui.text('network-status',t('online.enterCode'));return;}
+  void onlineSend({type:'join',code,character:selected[0],skin:selectedSkins[0]});return;
+ }
+ if(!onlineRoom)return;
+ if(action==='ready')network.send({type:'ready',ready:!onlineRoom.players[onlineRoom.seat].ready});
+ if(action==='start')network.send({type:'start-match'});
+ if(action==='pick-fighter')network.send({type:'choose-fighter',character:el.dataset.id!});
+ if(action==='pick-arena'){network.send({type:'room-settings',settings:{stage:el.dataset.id!}});onlinePage='room';drawOnline();}
+ if(action==='save'){network.send({type:'room-settings',settings:readRoomSettings()});onlinePage='room';drawOnline();}
+},{signal:onlineEvents.signal});
+ui.root.addEventListener('change',event=>{
+ const el=event.target as HTMLSelectElement;
+ if(el.id==='on-filter'){roomFilter=el.value;drawOnline();}
+ if(el.id==='on-skin'&&onlineRoom)network.send({type:'choose-fighter',character:onlineRoom.players[onlineRoom.seat].character,skin:el.value});
+},{signal:onlineEvents.signal});
+const roomBrowserTimer=setInterval(()=>{if(screen==='lobby'&&onlinePage==='browse'&&!document.getElementById('controller-text-entry'))void onlineSend({type:'list-rooms'});},5000);
 network.onMessage = (message) => {
   switch (message.type) {
+    case 'spectate-start': {
+      if(mode!=='online'||!championship||!['championship-bracket','fight','loading'].includes(screen))break;
+      const state=decodeSnapshot(message.state.snapshot);championshipMatch=message.matchId;
+      void start(state.fighters.map(f=>f.characterId),state.teams,state.skins,false,undefined,message.stage,false,message.state,true);break;
+    }
+    case 'match-statistics':
+      if(mode==='online'&&message.matchId===championshipMatch){authoritativeStatistics=message.statistics;ui.root.querySelector<HTMLButtonElement>('[data-action="statistics"]')?.removeAttribute('disabled');}
+      break;
+    case 'room-return-status':
+      if(message.matchId===championshipMatch){statisticsReturnStatus=t('statistics.returnWaiting',{ready:message.ready,total:message.total});ui.text('statistics-return-status',statisticsReturnStatus);}
+      break;
+    case 'rooms':
+      if(JSON.stringify(publicRooms)===JSON.stringify(message.rooms))break;
+      publicRooms=message.rooms;
+      if(screen==='lobby'&&onlinePage==='browse'&&!document.getElementById('controller-text-entry'))drawOnline();break;
+    case 'room-state':
+      onlineRoom=message.room;
+      if(screen==='lobby'){
+       seat=message.room.seat;championshipSeat=seat;selectedArena=message.room.stage;
+       if(!['room','fighter','arena','settings'].includes(onlinePage))onlinePage='room';
+       if(onlinePage!=='settings'&&!document.getElementById('controller-text-entry'))drawOnline();
+      }break;
+    case 'room-returned':
+      seat=message.seat;championshipSeat=seat;championshipMatch=undefined;rollback=null;pendingHashes.clear();championship=null;paused=false;
+      onlinePage='room';navigate('lobby',true);drawOnline();
+      break;
+    case 'restart-denied':
+      restartPending=false;controllerToast(t('pause.restartDenied'));break;
+    case 'fight-restarted': {
+      if(mode!=='online'||message.previousId!==championshipMatch||!['fight','loading'].includes(screen))break;
+      let state;try{state=decodeSnapshot(message.state.snapshot);}catch{disconnectMessage(t('online.lost'));break;}
+      championshipMatch=message.matchId;seat=message.seat;
+      if(message.bracket)championship=message.bracket;
+      void start(state.fighters.map(f=>f.characterId),state.teams,state.skins,message.mode==='elimination'||message.mode==='elimination-party'?message.mode:message.mode==='ffa-tournament',undefined,message.stage,false,message.state);
+      break;
+    }
     case 'resume': {
       seat=message.seat;championshipMatch=message.matchId;
       championship=message.bracket??null;championshipReady=message.ready??[];
@@ -749,55 +955,38 @@ network.onMessage = (message) => {
       break;
     }
     case 'championship': {
-      if (mode !== 'online' || !['lobby','championship-bracket','loading','fight'].includes(screen)) return;
+      if (mode !== 'online' || !['lobby','championship-bracket','championship-victory','loading','fight'].includes(screen)) return;
+      const reviewing=screen==='championship-bracket'&&championship?.complete;
       championship = message.bracket; championshipReady = message.ready;
       const active = championship.rounds.flat().find(m => matchToken(m) === championshipMatch);
-      if (!active || active.status !== 'playing') showChampionship();
+      if (!active || active.status !== 'playing') showChampionship('',!!reviewing);
       break;
     }
     case 'championship-start':
-      if (screen !== 'championship-bracket' || !championship) return;
+      if (!['championship-bracket','fight','loading'].includes(screen) || !championship) return;
       championshipMatch = message.matchId; seat = message.seat;
       void start(message.characters, undefined, message.skins, false, undefined, message.stage ?? trainingRoom.id);
       break;
     case "input-wait": {
+      if(message.matchId!==championshipMatch)break;
       const id=`input-wait-${message.seat}`;
       document.getElementById(id)?.remove();
       if(message.seconds>0){const notice=document.createElement('p');notice.id=id;notice.className='network-wait';notice.textContent=t('online.waitInput',{player:message.seat+1,seconds:message.seconds});ui.root.append(notice);}
       break;
     }
     case "room":
-      if (screen !== "lobby") return;
-      seat = message.seat; championshipSeat = message.seat;
-      ui.text("network-status", t('online.created'));
-      document.querySelector(".network-panel")!.innerHTML =
-        `<span class="tag">${th('online.roomCode',{player:seat+1})}</span><div class="room-code">${message.code}</div><p>${th('online.share')}<br>${th('online.waitFighters')}</p><div id="room-roster"></div><p id="network-status"></p>`;
-      network.send({ type: "ready" });
-      break;
-    case "roster":
-      if (screen !== "lobby") return;
-      if(message.stage && Object.hasOwn(stages,message.stage))selectedArena=message.stage;
-      ui.text(
-        "network-status",
-        t('online.joined',{mode:message.mode==='ffa-tournament'?t('online.ffaTournamentShort'):message.mode==='ffa'?t('local.ffa.title'):message.mode==='championship'?t('local.champion.title'):message.mode==='elimination'?t('local.elimination.title'):message.mode==='elimination-party'?t('local.party.title'):message.mode.toUpperCase(),count:message.players.length,capacity:message.capacity}),
-      );
-      {
-        const roster = document.getElementById("room-roster");
-        if (roster)
-          roster.innerHTML = Array.from(
-            { length: message.capacity },
-            (_, i) =>
-              `<p style="color:${(message.mode === "2v2" || message.mode === "3v3") && message.players[i] ? teamColors[message.players[i].team] : playerColors[i % playerColors.length]}">P${i + 1}${(message.mode === "2v2" || message.mode === "3v3") && message.players[i] ? ` · ${teamName(message.players[i].team)}` : ""} · ${message.players[i] ? characters[message.players[i].character].displayName + " / " + escapeMarkup(skinName(message.players[i].character,fighterSkins(characters[message.players[i].character]).find(skin => skin.id === message.players[i].skin)??{id:"original",name:t("skin.original")})) + (i === seat ? t('championship.you') : "") : t('online.waitPlayer')}</p>`,
-          ).join("");
-      }
-      break;
+      onlinePending=false;
+      if(screen==='lobby'){seat=message.seat;championshipSeat=seat;onlinePage='room';}break;
+    case "roster":break;
     case "start":
       if (screen !== "lobby") return;
+      championshipMatch=message.matchId;
       audio.play("ready");
       void start(message.characters, message.teams, message.skins, message.mode === "elimination" || message.mode === "elimination-party" ? message.mode : message.mode === "ffa-tournament",message.seed, message.stage ?? trainingRoom.id);
       break;
     case "input":
       if (message.matchId !== championshipMatch) break;
+      if(spectatorPlayback){spectatorPlayback.receive(message.seat,message.frame,message.mask);break;}
       rollback?.receive(message.frame, message.mask, message.seat);
       checkNetworkHealth();
       break;
@@ -811,12 +1000,14 @@ network.onMessage = (message) => {
       checkNetworkHealth();
       break;
     case "error":
+      onlinePending=false;
       audio.play("invalid");
       if (desktopBridge() && (message.code==='VERSION_MISMATCH'||message.message==='Game versions differ. Refresh the game before joining a room.')) disconnectMessage(message.message);
       else if (screen === "lobby") ui.text("network-status", errorMessage(message.message));
       else disconnectMessage(message.message);
       break;
     case "left":
+      if(message.matchId!==championshipMatch)break;
       audio.play("disconnected");
       document.getElementById(`input-wait-${message.seat}`)?.remove();
       rollback?.disconnect(message.seat, message.frame);
@@ -846,7 +1037,7 @@ network.onRecovering=()=>{
   ui.shell(`<main class="page"><h2>${th('online.reconnecting')}</h2><p>${th('online.reconnectHelp')}</p><button class="primary" data-action="home">${th('nav.menu')}</button></main>`);
 };
 network.onClose = () => {
-  if (mode === "online" && (screen === "fight" || screen === "lobby" || screen === "loading" || screen === "championship-bracket"))
+  if (mode === "online" && (["fight","lobby","loading","result","statistics","championship-bracket","championship-victory"].includes(screen)))
     disconnectMessage(t('online.lost'));
 };
 function disconnectMessage(message: string) {
@@ -882,15 +1073,16 @@ function disconnectMessage(message: string) {
   button.focus();
 }
 function pauseContent():string {
-  return `<div class="pause-match"><span class="overlay-kicker">${arenaName(simulation.stage).toUpperCase()} / ${mode === "training" ? th('home.training.name') : championship ? th('pause.localChampionship') : th('pause.localVersus')}</span><div class="pause-matchup">${simulation.state.fighters.map((f, i) => `<div><span>${th('controller.player',{player:i+1})}</span><strong>${characters[f.characterId].displayName}</strong><small>${mode === "training" ? (i === 1 ? th('pause.trainingPartner') : th('pause.freePractice')) : th('pause.lives',{count:f.lives})}</small></div>`).join('<i aria-hidden="true">/</i>')}</div></div><section class="pause-drawer"><span class="overlay-kicker">${th("pause.kicker")}</span><h2 id="pause-title">${th("pause.title1")}<br>${th("pause.title2")}</h2><p>${th("pause.description1")}<br>${th("pause.description2")}</p><div class="overlay-actions"><button class="overlay-action main-action" data-action="pause"><span>${th("pause.resume")}<small>${th("pause.resumeHelp")}</small></span><b aria-hidden="true">↗</b></button><button class="overlay-action" data-action="home"><span>${th("nav.menu")}<small>${th("pause.leaveHelp")}</small></span><b aria-hidden="true">→</b></button></div><button class="overlay-action" data-action="pause-settings">${th("nav.settings")}</button><button class="overlay-action" data-action="controllers">${th("controller.title")}</button><p data-controller-disconnect role="status"></p><span class="pause-key"><kbd data-prompt-pause>ESC</kbd> ${th("pause.resume")}</span></section>`;
+  return `<div class="pause-match"><span class="overlay-kicker">${arenaName(simulation.stage).toUpperCase()} / ${mode === "training" ? th('home.training.name') : championship ? th('pause.localChampionship') : th('pause.localVersus')}</span><div class="pause-matchup">${simulation.state.fighters.map((f, i) => `<div><span>${th('controller.player',{player:i+1})}</span><strong>${characters[f.characterId].displayName}</strong><small>${mode === "training" ? (i === 1 ? th('pause.trainingPartner') : th('pause.freePractice')) : th('pause.lives',{count:f.lives})}</small></div>`).join('<i aria-hidden="true">/</i>')}</div></div><section class="pause-drawer"><span class="overlay-kicker">${th("pause.kicker")}</span><h2 id="pause-title">${th("pause.title1")}<br>${th("pause.title2")}</h2><p>${th("pause.description1")}<br>${th("pause.description2")}</p><div class="overlay-actions"><button class="overlay-action main-action" data-action="pause"><span>${th("pause.resume")}<small>${th("pause.resumeHelp")}</small></span><b aria-hidden="true">↗</b></button>${restartButton()}<button class="overlay-action" data-action="home"><span>${th("nav.menu")}<small>${th("pause.leaveHelp")}</small></span><b aria-hidden="true">→</b></button></div><button class="overlay-action" data-action="pause-settings">${th("nav.settings")}</button><button class="overlay-action" data-action="controllers">${th("controller.title")}</button><p data-controller-disconnect role="status"></p><span class="pause-key"><kbd data-prompt-pause>ESC</kbd> ${th("pause.resume")}</span></section>`;
 }
 function pause() {
+  if(document.getElementById("restart-confirm")){cancelRestart();return;}
   if (screen !== "fight" || document.getElementById("disconnect")) return;
   if (mode === "online") {
     toggleOnlineControllerMenu();
     return;
   }
-  if(paused&&!idleTestMatch&&simulation.state.fighters.some((_,i)=>i>=2&&!input.controllers.ready(i))){controllerToast(t('pause.reconnect'));return;}
+  if(paused&&!idleTestMatch&&simulation.state.fighters.some((_,i)=>(localPlayersManaged||i>=2)&&!localInputReady(i))){controllerToast(t('pause.reconnect'));return;}
   input.clear();
   paused = !paused;
   audio.setPaused(paused);
@@ -913,39 +1105,69 @@ function pause() {
     input.clear();
   }
 }
+const playerManagementLifetime=new AbortController();
+window.addEventListener('keydown',event=>{
+ if(!(screen==='local-players'&&!controllerPanel||controllerPanel&&controllerBoardActive)||event.repeat||(event.target as HTMLElement).matches('input,select,textarea'))return;
+ for(let slot=0;slot<2;slot++){
+  if(event.code===input.bindings[slot][4]){event.preventDefault();if(!input.controllers.device(slot)){if(playerLobby.keyboards.has(slot))playerLobby.toggleReady(slot);else playerLobby.keyboard(slot);}return;}
+  if(event.code===input.bindings[slot][5]&&playerLobby.keyboards.has(slot)){event.preventDefault();if(playerLobby.isReady(slot))playerLobby.toggleReady(slot);else playerLobby.keyboard(slot);return;}
+ }
+},{signal:playerManagementLifetime.signal});
 ui.onAction((action, element) => {
   audio.unlock();
   audio.play(actionSound(action));
   switch (action) {
     case 'online-controller-resume': toggleOnlineControllerMenu();break;
     case 'controllers': openControllers(); break;
+    case 'players-tools': playerTools();break;
+    case 'players-board': playerBoard();break;
+    case 'players-back': controllerBack();break;
+    case 'players-continue': continuePlayers();break;
+    case 'players-join': playerLobby.join(Number(element.dataset.device));break;
+    case 'players-ready': playerLobby.toggleReady(Number(element.dataset.slot));break;
+    case 'players-leave': {const slot=Number(element.dataset.slot),d=input.controllers.device(slot);if(d)playerLobby.leave(d.key);else playerLobby.keyboard(slot);break;}
+    case 'players-move': playerLobby.shift(Number(element.dataset.device),Number(element.dataset.direction));break;
+    case 'players-keyboard': playerLobby.keyboard(Number(element.dataset.slot));break;
+    case 'players-test': {playerTools();const key=Number(element.dataset.device);input.controllers.testing=key;input.controllers.capture=null;input.clear();break;}
     case 'controller-close': closeControllers(); break;
-    case 'controller-cancel': input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message',t('controller.ready'));break;
-    case 'controller-assign': input.controllers.capture={player:Number(element.dataset.slot)};input.controllers.testing=null;input.clear();ui.text('controller-message',t('controller.assignPrompt',{player:Number(element.dataset.slot)+1}));break;
-    case 'controller-keyboard': input.controllers.release(Number(element.dataset.slot));input.controllers.keyboardClaimed.add(Number(element.dataset.slot));input.clear();break;
-    case 'controller-release': input.controllers.release(Number(element.dataset.slot));input.clear();break;
-    case 'controller-identify': {const d=input.controllers.device(Number(element.dataset.slot));if(d?.connected){input.controllers.capture={identify:d.key};input.clear();ui.text('controller-message',t('controller.identifyPrompt',{player:d.player!+1}));}else ui.text('controller-message',t('controller.emptySlot'));break;}
-    case 'controller-test': case 'controller-device-test': {const d=action==='controller-test'?input.controllers.device(Number(element.dataset.slot)):input.controllers.devices.get(Number(element.dataset.device));if(d?.connected){input.controllers.testing=d.key;input.controllers.capture=null;input.clear();ui.text('controller-message',t('controller.testing'));document.getElementById('controller-test')?.scrollIntoView({block:'nearest'});}else ui.text('controller-message',t('controller.assignFirst'));break;}
+    case 'controller-cancel': input.controllers.cancelMapping();input.controllers.capture=null;input.controllers.testing=null;input.clear();ui.text('controller-message',t('controller.ready'));break;
+    case 'controller-map': input.controllers.beginMapping(Number(element.dataset.device));break;
+    case 'controller-map-start': {const pads=input.controllers,d=pads.devices.get(pads.mappings.wizard?.device??-1);if(d?.connected)pads.mappings.start(d.rawButtons,d.rawAxes);break;}
+    case 'controller-map-skip': input.controllers.mappings.skipDpad();break;
+    case 'controller-map-save': input.controllers.saveMapping();ui.text('controller-message',t('controller.mapSaved'));break;
+    case 'controller-assign': input.controllers.cancelMapping(); input.controllers.capture={player:Number(element.dataset.slot)};input.controllers.testing=null;input.clear();ui.text('controller-message',t('controller.assignPrompt',{player:Number(element.dataset.slot)+1}));break;
+    case 'controller-keyboard': input.controllers.cancelMapping();input.controllers.release(Number(element.dataset.slot));playerLobby.keyboards.add(Number(element.dataset.slot));input.controllers.keyboardClaimed.add(Number(element.dataset.slot));input.clear();break;
+    case 'controller-release': input.controllers.cancelMapping();input.controllers.release(Number(element.dataset.slot));input.clear();break;
+    case 'controller-identify': {input.controllers.cancelMapping();const d=input.controllers.device(Number(element.dataset.slot));if(d?.connected){input.controllers.capture={identify:d.key};input.clear();ui.text('controller-message',t('controller.identifyPrompt',{player:d.player!+1}));}else ui.text('controller-message',t('controller.emptySlot'));break;}
+    case 'controller-test': case 'controller-device-test': {input.controllers.cancelMapping();const d=action==='controller-test'?input.controllers.device(Number(element.dataset.slot)):input.controllers.devices.get(Number(element.dataset.device));if(d?.connected){input.controllers.testing=d.key;input.controllers.capture=null;input.clear();ui.text('controller-message',t('controller.testing'));document.getElementById('controller-test')?.scrollIntoView({block:'nearest'});}else ui.text('controller-message',t('controller.assignFirst'));break;}
 
-    case 'local-ffa': case 'local-2v2': case 'local-3v3': showLocalMatchSetup(action.slice(6) as LocalMatchMode); break;
+    case 'local-ffa': case 'local-2v2': case 'local-3v3': {const kind=action.slice(6) as LocalMatchMode,n=kind==='2v2'?4:kind==='3v3'?6:8;showPlayers(n,kind==='ffa'?2:n,kind==='ffa'?undefined:n,count=>showLocalMatchSetup(kind,count));break;}
     case 'local-match-idle-test':
     case 'local-match-start': {
       const idleTest=action==='local-match-idle-test';
       if(screen!=='local-match-setup'||mode!=='local'||(idleTest&&!developmentBuild))break;
       if(localMatchMode!=='ffa'&&localTeams.filter(t=>t===0).length!==localIds.length/2){audio.play('invalid');ui.text('local-match-error',t('setup.balanceError',{count:localIds.length/2}));break;}
-      if(!idleTest&&localIds.some((_,i)=>!input.controllers.ready(i))){audio.play('invalid');ui.text('local-match-error',t('controller.deviceRequired'));break;}
+      if(!idleTest&&localIds.some((_,i)=>!localInputReady(i))){audio.play('invalid');ui.text('local-match-error',t('controller.deviceRequired'));break;}
       void start(localIds,localTeams,localSkins,false,undefined,undefined,idleTest);break;
     }
 
-    case 'elimination': case 'elimination-party': showEliminationSetup(action); break;
+    case 'elimination': case 'elimination-party': {const kind=action,n=kind==='elimination-party'?6:8;showPlayers(n,kind==='elimination-party'?6:2,kind==='elimination-party'?6:undefined,count=>showEliminationSetup(kind,count));break;}
     case 'elimination-start': {
-      if(eliminationIds.some((_,i)=>!input.controllers.ready(i))){audio.play('invalid');ui.text('elimination-setup-error',t('controller.deviceRequired'));break;}
+      if(eliminationIds.some((_,i)=>!localInputReady(i))){audio.play('invalid');ui.text('elimination-setup-error',t('controller.deviceRequired'));break;}
       void start(eliminationIds,undefined,eliminationSkins,localElimination);break;
     }
-    case 'championship': showChampionshipSetup(); break;
+    case 'championship': showPlayers(2,2,2,()=>showChampionshipSetup()); break;
     case 'championship-generate':
       championship = createChampionship(championshipEntrants.map((e,i) => ({...e, name: e.name.trim() || `Player ${i+1}`})));
       showChampionship(); break;
+    case 'champion-bracket':if(championship?.complete)showChampionship('',true);break;
+    case 'champion-victory':showChampionVictory();break;
+    case 'champion-again':
+      if(championship?.complete){
+       network.disconnect();championship=null;championshipReady=[];championshipMatch=undefined;
+       if(mode==='online'){lobby();onlinePage='create';drawOnline();}
+       else showChampionshipSetup();
+      }break;
     case 'championship-play': playChampionship(element.dataset.match!); break;
     case 'championship-ready':
       if (championship && screen === 'championship-bracket' && !championshipReady.includes(championshipSeat)) {
@@ -966,9 +1188,9 @@ ui.onAction((action, element) => {
     case "local":
       mode = "local"; navigate("local-types"); ui.shell(localGameScreen()); break;
     case "local-versus":
-      mode = "local"; selectSeat = 0; selection(); break;
+      showPlayers(2,2,2,()=>{selectSeat=0;selection();}); break;
+    case "online":mode="online";lobby();break;
     case "training":
-    case "online":
       mode = action;
       selectSeat = 0;
       selection();
@@ -1009,15 +1231,26 @@ ui.onAction((action, element) => {
       if (mode === "online") lobby();
       else void start();
       break;
-    case "create":
-      void connect(true);
-      break;
-    case "join":
-      void connect(false);
-      break;
+
     case "pause":
       pause();
       break;
+    case 'spectator-previous':cycleSpectator(-1);break;
+    case 'spectator-next':cycleSpectator(1);break;
+    case 'spectator-duel':network.send({type:'spectate',matchId:element.dataset.match});break;
+    case "statistics":
+      if(screen==='result'&&!championship){if(mode==='online'&&!authoritativeStatistics){controllerToast(t('statistics.waiting'));break;}statisticsSeat=simulation.state.winner>=0?simulation.state.winner:0;renderStatistics();}break;
+    case "statistics-tab":
+      if(screen==='statistics'&&statisticsTabs.includes(element.dataset.tab as StatisticsTab)){statisticsTab=element.dataset.tab as StatisticsTab;renderStatistics();}break;
+    case "statistics-player":
+      if(screen==='statistics'&&Number.isInteger(Number(element.dataset.seat))&&simulation.state.fighters[Number(element.dataset.seat)]){statisticsSeat=Number(element.dataset.seat);renderStatistics();}break;
+    case "statistics-back":if(screen==='statistics')restoreVictory();break;
+    case 'online-continue':
+    case 'statistics-return':if(mode==='online'){network.send({type:'return-room',matchId:championshipMatch});}break;
+    case "room-ready":if(screen==='lobby'&&mode==='online'){network.send({type:'ready'});element.setAttribute('disabled','');}break;
+    case "restart-fight": confirmRestart();break;
+    case "restart-cancel": cancelRestart();break;
+    case "restart-confirm": restartFight();break;
     case "reset":
       simulation.resetPositions(); recentGameplayEvents.length=0;
       break;
@@ -1105,8 +1338,9 @@ function loop(now: number) {
       const stepDuration=1/(60*matchTimeScale(simulation.state));
       input.refresh(false);
       renderInterpolation.capture(simulation.state);
-      if (rollback) {
-        rollback.schedule(input.poll(0), (frame, mask) =>
+      if(spectatorPlayback){if(!spectatorPlayback.tick()){accumulator=0;break;}}
+      else if (rollback) {
+        rollback.schedule(isSpectating()?0:input.poll(0), (frame, mask) =>
           network.send({ type: "input", frame, mask, matchId: championshipMatch }),
         );
         if (rollback.waitingForPeers || !rollback.tick()) {
@@ -1129,20 +1363,12 @@ function loop(now: number) {
       renderInterpolation.complete(simulation.state);
       for(const e of simulation.gameplayEvents)recentGameplayEvents.push(`${e.frame} P${e.actor+1} ${e.type} ${e.detail}${e.amount===undefined?'':` ${e.amount}`}`);
       recentGameplayEvents.splice(0,Math.max(0,recentGameplayEvents.length-12));
-      renderer.consume(
-        simulation.events.map((e) => ({
-          ...e,
-          type:
-            characters[simulation.state.fighters[e.player].characterId].effects[
-              e.type
-            ] ?? e.type,
-        })),
-      );
+      renderer.consume(presentCombatEvents(simulation.state,simulation.events));
       gameAudio.consume(simulation.state,simulation.events,rollback?[...simulation.gameplayEvents.filter(e=>e.type!=='DamageApplied'),...rollback.drainConfirmedImpacts()]:simulation.gameplayEvents,simulation.stage.id,simulation.stage.width,
         mode==='online'?[seat]:mode==='training'?[0]:simulation.state.fighters.map((_,i)=>i),!rollback||rollback.confirmed>=simulation.state.endedAt-1,championship?(championship.round===championship.rounds.length-1?'championship-final':'championship'):simulation.state.elimination?.mode==='elimination-party'?'party':'match',rollback?rollback.confirmed+1:Infinity);
       accumulator -= stepDuration;
     }
-    if (!paused) updateHUD();
+    if (!paused){updateHUD();updateSpectator();}
   } else {accumulator = 0;renderInterpolation.reset();}
   renderer.debug = debug && screen === "fight";
   renderer.mountLabels=simulation.state.fighters.map((_,i)=>{
@@ -1167,7 +1393,7 @@ let animationFrame=0;
 home();
 animationFrame=requestAnimationFrame(loop);
 (import.meta as ImportMeta & {hot?:{dispose(callback:()=>void):void}}).hot?.dispose(()=>{
- audioListeners.abort();
+ audioListeners.abort();playerManagementLifetime.abort();onlineEvents.abort();clearInterval(roomBrowserTimer);
  controllerHints.dispose();viewRevision++;cancelBinding?.();cancelAnimationFrame(animationFrame);clearInterval(pingTimer);
  window.removeEventListener('blur',onBlur);controllerNotice.remove();
  network.disconnect();input.dispose();ui.dispose();assets.dispose();audio.dispose();renderer.dispose();void disposeFighterSprites();

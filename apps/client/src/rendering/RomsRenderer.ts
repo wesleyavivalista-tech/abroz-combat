@@ -1,3 +1,4 @@
+import {hoseFrame,HOSE_SCALE,HOSE_CELL} from '../../../../packages/game-core/simulation/HoseAim.js';
 import {renderStage} from './StageCoordinates.js';
 import {surfaceBelow} from '../../../../packages/game-core/simulation/StageCollision.js';
 import {attachmentOffset} from './AnimationContract.js';
@@ -10,14 +11,19 @@ import type {FighterVisual} from './FighterRenderer.js';
 import {romsMovement,romsSheets} from './RomsAtlas.js';
 import type {Frame} from './DodoRenderer.js';
 import {romsPose,romsLowStrike} from './RomsPose.js';
+export const hoseBounds=Array.from({length:8},(_,i)=>[(i%4)*HOSE_CELL,Math.floor(i/4)*HOSE_CELL,(i%4+1)*HOSE_CELL,(Math.floor(i/4)+1)*HOSE_CELL]);
 export class RomsRenderer implements FighterVisual {
- get fallBodies():THREE.Object3D[]{return [this.sprite,this.legs,this.lowSprite];}
+ get fallBodies():THREE.Object3D[]{return [this.sprite,this.legs,this.lowSprite,this.hoseSprite];}
  root=new THREE.Group();shadow:THREE.Mesh;
+ private hoseTextures:THREE.Texture[]=[];
+ private hoseSprite=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,alphaTest:.1,side:THREE.DoubleSide,toneMapped:false}));
+ private hoseIsolation=new SpriteIsolation(this.hoseSprite.material);
  private lowSprite=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,alphaTest:.1,side:THREE.DoubleSide,toneMapped:false}));
  private sprite:THREE.Mesh<THREE.PlaneGeometry,THREE.MeshBasicMaterial>;
  private textures:THREE.Texture[];private isolation:SpriteIsolation;
  private legs:THREE.Mesh<THREE.PlaneGeometry,THREE.MeshBasicMaterial>;private legIsolation:SpriteIsolation;
- constructor(textures:THREE.Texture[],private skin:number,private lowFrames:Frame[]=[]){
+ constructor(textures:THREE.Texture[],private skin:number,private lowFrames:Frame[]=[],hose:THREE.Texture[]=[]){
+  this.hoseTextures=hose.map(t=>{const copy=t.clone();copy.needsUpdate=true;return copy;});this.hoseSprite.visible=false;this.root.add(this.hoseSprite);
   this.lowFrames=lowFrames.map(f=>({...f,texture:f.texture.clone()}));this.lowSprite.visible=false;this.root.add(this.lowSprite);
   this.textures=textures.map(t=>{const c=t.clone();c.needsUpdate=true;return c;});
   this.sprite=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,alphaTest:.4,side:THREE.DoubleSide,toneMapped:false}));this.root.add(this.sprite);this.isolation=new SpriteIsolation(this.sprite.material);
@@ -25,7 +31,7 @@ export class RomsRenderer implements FighterVisual {
   this.shadow=new THREE.Mesh(new THREE.CircleGeometry(.45,24),new THREE.MeshBasicMaterial({color:0x101020,transparent:true,opacity:.25,depthWrite:false}));this.shadow.rotation.x=-Math.PI/2;
  }
  update(f:Fighter):void {
-  this.sprite.visible=true;this.lowSprite.visible=false;
+  this.sprite.visible=true;this.lowSprite.visible=false;this.hoseSprite.visible=false;
   const {sheet,pose}=romsPose(f,this.skin);
   const data=romsSheets[sheet],texture=this.textures[sheet];
   let scale=1.81/234,anchor=(pose%4)*384+([1,5].includes(pose)?145:pose===9?165:192);
@@ -61,8 +67,19 @@ export class RomsRenderer implements FighterVisual {
     this.lowSprite.position.set((frame.width/2-frame.pivot)*sc,frame.height*sc/2,.002);
    }
   }
+  if(f.move==='water'&&this.hoseTextures.length===2&&f.health>0&&!f.stun){
+   const {sheet,cell,baseline}=hoseFrame(f.beamAim),row=Math.floor(cell/4),scale=HOSE_SCALE/100;
+   const texture=this.hoseTextures[sheet];this.hoseSprite.material.map=texture;
+   this.sprite.visible=this.lowSprite.visible=this.legs.visible=false;this.hoseSprite.visible=true;
+   // A nozzle can extend beyond its grid cell; ownership masking excludes neighbors.
+   const left=Math.max(0,(cell%4)*HOSE_CELL-24),right=Math.min(1774,(cell%4+1)*HOSE_CELL+24);
+   texture.repeat.set((right-left)/1774,.5);texture.offset.set(left/1774,1-(row+1)*.5);
+   this.hoseIsolation.select(texture,hoseBounds,cell);
+   this.hoseSprite.scale.set((right-left)*scale,HOSE_CELL*scale,1);
+   this.hoseSprite.position.set(((left+right)/2-(cell%4+.5)*HOSE_CELL)*scale,(baseline-(row+.5)*HOSE_CELL)*scale,.003);
+  }
   this.root.position.set(worldX(f.x),f.y/100,.1);this.root.scale.set(f.facing,1,1);
   this.shadow.position.set(worldX(f.x),surfaceBelow(renderStage,f.x,f.y)/100+.02,0);this.shadow.scale.set(1,.5,1);
  }
- dispose():void {this.lowFrames.forEach(f=>f.texture.dispose());this.lowSprite.geometry.dispose();this.lowSprite.material.dispose();this.textures.forEach(t=>t.dispose());this.sprite.geometry.dispose();this.sprite.material.dispose();this.legs.geometry.dispose();this.legs.material.dispose();this.shadow.geometry.dispose();(this.shadow.material as THREE.Material).dispose();}
+ dispose():void {this.hoseTextures.forEach(t=>t.dispose());this.hoseSprite.geometry.dispose();this.hoseSprite.material.dispose();this.lowFrames.forEach(f=>f.texture.dispose());this.lowSprite.geometry.dispose();this.lowSprite.material.dispose();this.textures.forEach(t=>t.dispose());this.sprite.geometry.dispose();this.sprite.material.dispose();this.legs.geometry.dispose();this.legs.material.dispose();this.shadow.geometry.dispose();(this.shadow.material as THREE.Material).dispose();}
 }

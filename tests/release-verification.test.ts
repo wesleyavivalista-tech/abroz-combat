@@ -37,7 +37,7 @@ for(const mode of ['ffa','ffa-tournament','elimination','elimination-party','2v2
  const service=new RoomService(),count=mode==='2v2'?4:mode==='3v3'||mode==='elimination-party'?6:2;
  const peers=Array.from({length:count},()=>{const messages:ServerMessage[]=[];return {messages,socket:{readyState:1,bufferedAmount:0,send:(s:string)=>messages.push(JSON.parse(s))} as unknown as WebSocket};});
  service.create(peers[0].socket,'nikalz',count,mode);const room=[...service.rooms.values()][0];
- for(const p of peers.slice(1))service.join(p.socket,room.code,'jopa');for(const p of peers)service.ready(p.socket);
+ for(const p of peers.slice(1))service.join(p.socket,room.code,'jopa');for(const p of peers)service.ready(p.socket);service.startMatch(peers[0].socket);
  if(mode==='championship'){
   const token=matchToken(currentMatches(room.championship!.bracket)[0]);for(const p of peers)service.championshipReady(p.socket,token);
   for(let frame=2;frame<60;frame++)for(const p of peers)service.input(p.socket,frame,0,token);

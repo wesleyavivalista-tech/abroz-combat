@@ -1,7 +1,7 @@
 import {characters} from '../characters/registry.js';
 import type {Fighter,SimulationSnapshot} from '../types.js';
 export type GameplayEventType='ObjectImpact'|'MoveActive'|'GroundImpact'|'AttackStarted'|'AttackEnded'|'StateChanged'|'DamageApplied'|'ProjectileSpawned'|'ProjectileDestroyed'|'MatchPhaseChanged';
-export interface DamageSource {source?:number;move?:string;blocked?:boolean;x?:number;}
+export interface DamageSource {owned?:boolean;neutral?:boolean;source?:number;move?:string;blocked?:boolean;x?:number;}
 export interface GameplayEvent extends DamageSource {id:string;frame:number;type:GameplayEventType;actor:number;detail:string;amount?:number;}
 // Observation only: the journal is never read by simulation rules or included in snapshots.
 const journals=new WeakMap<SimulationSnapshot,GameplayEvent[]>();

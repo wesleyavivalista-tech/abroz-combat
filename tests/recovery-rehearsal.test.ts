@@ -67,7 +67,7 @@ test('real local WebSockets reconnect and recover a fresh checkpoint after proce
   const a=await client(first.url),b=await client(first.url);sockets.push(a.ws,b.ws);
   a.ws.send(JSON.stringify({type:'create',character:'nikalz',contentVersion:contentVersion(),recovery:1}));const room=await a.next('room');assert.ok(room.type==='room');
   b.ws.send(JSON.stringify({type:'join',code:room.code,character:'jopa',contentVersion:contentVersion(),recovery:1}));await b.next('room');
-  a.ws.send(JSON.stringify({type:'ready'}));b.ws.send(JSON.stringify({type:'ready'}));await a.next('start');await b.next('start');
+  a.ws.send(JSON.stringify({type:'ready'}));b.ws.send(JSON.stringify({type:'ready'}));b.ws.send(JSON.stringify({type:'ping',sent:1}));await b.next('pong');a.ws.send(JSON.stringify({type:'start-match'}));await a.next('start');await b.next('start');
   const tokenA=await a.next('resume-token');assert.ok(tokenA.type==='resume-token');
   const tokenB=await b.next('resume-token');assert.ok(tokenB.type==='resume-token');
   a.ws.send(JSON.stringify({type:'input',frame:2,mask:0}));b.ws.send(JSON.stringify({type:'input',frame:2,mask:0}));await a.next('input');

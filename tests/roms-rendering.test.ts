@@ -26,7 +26,7 @@ test('juggling hand cycles survive armor and ball attacks; every selected cell e
  test('ground strikes stay visible through impact and early recoil, including return swing',()=>{
   for(const skin of [0,1])for(const armor of [0,300]){
    const f=createFighter('roms',300,1);f.armorUntil=armor;
-   for(const [move,frame,pose] of [['chop',10,1],['chop',17,1],['backhand',10,2],['heavy',22,5]] as const){
+   for(const [move,frame,pose] of [['chop',10,1],['chop',15,1],['backhand',10,2],['heavy',22,5]] as const){
     f.move=move;f.moveFrame=frame;assert.deepEqual(romsPose(f,skin),{sheet:armor?9:skin+1,pose});
    }
    f.weaponUntil=1260;f.move='straight';f.moveFrame=9;
@@ -40,4 +40,21 @@ test('low attack shows a dedicated sweep at contact, while crouch guard and wind
  f.state='CrouchingAttack';f.move='low';f.moveFrame=9;assert.equal(romsLowStrike(f),false);
  for(const armor of [0,300]){f.armorUntil=armor;for(const frame of [10,15,18]){f.moveFrame=frame;assert.equal(romsLowStrike(f),true);}}
  f.moveFrame=19;assert.equal(romsLowStrike(f),false);f.moveFrame=10;f.stun=5;assert.equal(romsLowStrike(f),false);
+});
+
+
+test('hose has sixteen distinct aiming frames and wraps seamlessly in either direction',async()=>{
+ const {hosePose,hoseFrame,hoseOrigin,hoseVisualOrigin,HOSE_CELL}=await import('../packages/game-core/simulation/HoseAim.js');
+ const seen=new Set<string>();
+ for(let i=0;i<16;i++){
+  const angle=i*22.5,frame=hoseFrame(angle);seen.add(`${frame.sheet}:${frame.cell}`);
+  assert.equal(hosePose(angle),i);assert.equal(hosePose(angle-360),i);assert.equal(hosePose(angle+360),i);
+  assert.equal(frame.sheet,i%2);assert.equal(frame.cell,Math.floor(i/2));
+  const origin=hoseVisualOrigin(angle);assert.ok(Number.isFinite(origin.x)&&Number.isFinite(origin.y));
+  assert.ok(frame.baseline>Math.floor(frame.cell/4)*HOSE_CELL);
+ }
+ // Intermediate artwork must not move the existing collision ray.
+ assert.deepEqual(hoseOrigin(-60),hoseOrigin(-45));
+ assert.notDeepEqual(hoseVisualOrigin(-60),hoseVisualOrigin(-45));
+ assert.equal(seen.size,16);assert.equal(hosePose(359),0);assert.equal(hosePose(-1),0);
 });

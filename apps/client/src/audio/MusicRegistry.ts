@@ -1,4 +1,4 @@
-export type MusicState = 'menu'|'selection'|'intro'|'match'|'final'|'sudden-death'|'victory'|'defeat'|'championship'|'party'|'championship-final';
+export type MusicState = 'menu'|'selection'|'intro'|'match'|'final'|'sudden-death'|'victory'|'defeat'|'championship'|'party'|'championship-final'|'invasion';
 export interface MusicTrack {
   id: string; url?: string; profile: string; gain: number; loop: boolean;
   intensity?: number; bpm?: number; finalVersion?: string; suddenDeathVersion?: string;
@@ -37,6 +37,8 @@ tracks.mall_01={id:'mall_01',profile:'mall',gain:.65,loop:true,url:'/audio/music
 tracks.court_01={id:'court_01',profile:'court',gain:.65,loop:true,url:'/audio/music/basketball-court-theme.mp3'};
 // User-supplied victory screen song, preserved byte-for-byte.
 tracks.victory_01={id:'victory_01',profile:'event',gain:.65,loop:false,url:'/audio/music/victory-theme.mp3'};
+// User-supplied invasion score; louder than stage tracks, still on the music bus.
+tracks.invasion_01={id:'invasion_01',profile:'invasion',gain:1,loop:true,url:'/audio/music/invasion-dark-horror.wav'};
 for(const id of ['battle_01','rooftop_01','rooftop_02','court_01','mall_01','church_01']){
  tracks[id].finalVersion='championship_final_01';tracks[id].suddenDeathVersion='sudden_01';
 }
@@ -63,6 +65,7 @@ export const arenaAudio: Record<string, ArenaAudioProfile> = {
 };
 export const ambience: Record<string, {url?: string; gain:number}> = {rooftop_ambience:{gain:.15}};
 const stateTracks: Partial<Record<MusicState,string[]>> = {
+  invasion:['invasion_01'],
   'championship-final':['championship_final_01','championship_01'], menu:['menu_01'], selection:['menu_01'], championship:['championship_01'], party:['party_01'], victory:['victory_01'], defeat:['defeat_01'],
 };
 export function chooseMusic(state:MusicState, arena:string, previous?:string, random=Math.random,excluded:ReadonlySet<string>=new Set()):MusicTrack|undefined {

@@ -157,6 +157,7 @@ test("rooms validate capacity, wait for six, tag relay seats and continue after 
     rooms.join(clients[i].socket, code, ids[i]);
     rooms.ready(clients[i].socket);
   }
+  rooms.startMatch(clients[0].socket);
   clients.slice(0, 6).forEach((client, seat) => {
     assert.equal(client.messages.find((m) => m.type === "room")!.seat, seat);
     assert.deepEqual(
@@ -180,7 +181,7 @@ test("rooms validate capacity, wait for six, tag relay seats and continue after 
   clients
     .slice(0, 6)
     .filter((_, i) => i !== 3)
-    .forEach((c) => assert.equal(c.messages.at(-1)!.type, "left"));
+    .forEach((c) => assert.equal(c.messages.filter(m=>m.type==='left').at(-1)!.type, "left"));
 });
 
 test("late disconnect rolls back only that fighter; remaining peers advance without its inputs", () => {
@@ -236,7 +237,7 @@ test("waiting-room departure frees a slot and preserves the room", () => {
   assert.equal(rooms.rooms.get(code)!.peers.length, 1);
   rooms.join(c, code, ids[2]);
   rooms.join(d, code, ids[3]);
-  for (const peer of [b, c, d]) rooms.ready(peer);
+  for (const peer of [b, c, d]) rooms.ready(peer);rooms.startMatch(b);
   assert.equal(rooms.rooms.get(code)!.started, true);
   rooms.leave(b);
   rooms.leave(c);

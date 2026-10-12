@@ -22,7 +22,7 @@ test('pool and flood slow movement AND animation, with precise expiry and platfo
  activateBlood(g.state,g.stage,a,0,characters.caio.moves.pool);b.x=a.x;advanceBlood(g.state,g.stage);assert.equal(attackSlow(b,0),.5);assert.equal(movementSlow(b,0),.5);
  b.move='palm';b.moveFrame=0;g.updateFighter(b,0,1);assert.equal(b.moveFrame,0);g.updateFighter(b,0,1);assert.equal(b.moveFrame,1);
  g.state.frame=600;advanceBlood(g.state,g.stage);assert.equal(attackSlow(b,600),1);assert.equal(g.state.hazards.length,0);
- activateBlood(g.state,g.stage,a,0,characters.caio.moves.flood);g.state.frame+=90;advanceBlood(g.state,g.stage);assert.equal(attackSlow(b,g.state.frame),.1);assert.equal(floodHeight(g.state.hazards[0],g.state.frame),322);
+ activateBlood(g.state,g.stage,a,0,characters.caio.moves.flood);g.state.frame+=90;advanceBlood(g.state,g.stage);assert.equal(attackSlow(b,g.state.frame),.2);assert.equal(floodHeight(g.state.hazards[0],g.state.frame),322);
  b.y=340;advanceBlood(g.state,g.stage);assert.equal(attackSlow(b,g.state.frame),1);
  b.y=0;g.state.frame=2400;advanceBlood(g.state,g.stage);assert.equal(g.state.hazards.length,0);assert.equal(attackSlow(b,g.state.frame),1);
 });
@@ -83,10 +83,10 @@ test('four-second poison deals eight damage ticks without hitstop or resetting i
  run(g,1);assert.equal(b.health,hp-80);assert.equal(b.poisonUntil,0);run(g,30);assert.equal(b.health,hp-80);
  g.hit(0,characters.caio.moves.dart,0,false,1);const tick=b.poisonNextTick;run(g,10);g.hit(0,characters.caio.moves.dart,0,false,1);assert.equal(b.poisonNextTick,tick);
 });
-test('flood gives its caster 20 percent movement speed, slows opponents 90 percent, ends after 30 seconds',()=>{
+test('flood gives its caster 20 percent movement speed, slows opponents 80 percent, ends after 30 seconds',()=>{
  const g=match(),[a,b]=g.state.fighters;activateBlood(g.state,g.stage,a,0,characters.caio.moves.flood);
  const h=g.state.hazards[0];assert.equal(h.expiresAt,1800);g.state.frame=90;advanceBlood(g.state,g.stage);
- assert.equal(movementSlow(a,90),1.2);assert.equal(attackSlow(a,90),1);assert.equal(movementSlow(b,90),.1);assert.equal(attackSlow(b,90),.1);
+ assert.equal(movementSlow(a,90),1.2);assert.equal(attackSlow(a,90),1);assert.equal(movementSlow(b,90),.2);assert.equal(attackSlow(b,90),.2);
  a.y=b.y=340;advanceBlood(g.state,g.stage);assert.equal(movementSlow(a,90),1);assert.equal(movementSlow(b,90),1);
  a.y=b.y=0;g.state.frame=1800;advanceBlood(g.state,g.stage);assert.equal(movementSlow(a,1800),1);assert.equal(movementSlow(b,1800),1);
 });

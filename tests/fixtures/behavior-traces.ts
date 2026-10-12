@@ -1,9 +1,9 @@
 import {GameSimulation} from '../../packages/game-core/simulation/GameSimulation.js';
 import {characters} from '../../packages/game-core/characters/registry.js';
 import {Button} from '../../packages/game-core/types.js';
-/** Normalize only planned field renames, never gameplay values or ordering. */
+/** Normalize planned field renames and observational statistics provenance, never gameplay values or ordering. */
 export function behaviorHash(value:unknown):string{
- const text=JSON.stringify(value).replaceAll('romsAxeOut','returningWeaponOut').replaceAll('romsFinaleUntil','modeFinaleUntil').replaceAll('romsActionUntil','actionUntil').replaceAll('romsKind','trajectory');
+ const text=JSON.stringify(value,(key,item)=>['statistics','burnOwned','burnNeutral','poisonOwned','poisonNeutral','owned'].includes(key)?undefined:item).replaceAll('romsAxeOut','returningWeaponOut').replaceAll('romsFinaleUntil','modeFinaleUntil').replaceAll('romsActionUntil','actionUntil').replaceAll('romsKind','trajectory');
  let hash=2166136261;for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}return (hash>>>0).toString(16);
 }
 export function behaviorTraces():Record<string,string[]>{

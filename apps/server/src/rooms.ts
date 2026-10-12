@@ -5,11 +5,12 @@ import {GameSimulation} from '../../../packages/game-core/simulation/GameSimulat
 import {stages, trainingRoom} from "../../../packages/game-core/stages/registry.js";
 import { ChampionshipSession } from "./championship.js";
 import { resolveSkin } from "../../../packages/game-core/characters/skins.js";
-import { randomInt } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import type { WebSocket } from "ws";
-import type { ServerMessage, OnlineMode } from "../../../packages/shared/protocol.js";
+import type { ServerMessage, OnlineMode, RoomSettings, RoomSummary } from "../../../packages/shared/protocol.js";
 import { characters } from "../../../packages/game-core/characters/registry.js";
 interface Peer {
+  returnRequested?:boolean;
   resumable:boolean;
   reconnectUntil?:number;
   neutralClock?:number;
@@ -29,6 +30,12 @@ interface Peer {
   window: number;
 }
 interface Room {
+  name:string;
+  visibility:"public"|"private";
+  owner:number;
+  matchId?:string;
+  initialSeed?:number;
+  matchStage?:string;
   diagnosticId:string;
   completedLogged?:boolean;
   stage: string;
@@ -54,7 +61,7 @@ export class RoomService {
   private seats=new ReconnectSeats();
   private capabilities=new WeakMap<WebSocket,boolean>();
   allowRecovery(socket:WebSocket,allowed:boolean):void{this.capabilities.set(socket,allowed);}
-  checkpoint(){return {seats:this.seats.checkpoint(),rooms:[...this.rooms.values()].filter(r=>r.started).map(r=>({code:r.code,diagnosticId:r.diagnosticId,completedLogged:r.completedLogged,stage:r.stage,mode:r.mode,capacity:r.capacity,created:r.created,peers:r.peers.map(({socket: _socket,...p})=>p),verification:r.verification?.recovery(0),championship:r.championship?.checkpoint()}))};}
+  checkpoint(){return {seats:this.seats.checkpoint(),rooms:[...this.rooms.values()].filter(r=>r.started).map(r=>({code:r.code,name:r.name,visibility:r.visibility,owner:r.owner,matchId:r.matchId,initialSeed:r.initialSeed,matchStage:r.matchStage,diagnosticId:r.diagnosticId,completedLogged:r.completedLogged,stage:r.stage,mode:r.mode,capacity:r.capacity,created:r.created,peers:r.peers.map(({socket: _socket,...p})=>p),verification:r.verification?.recovery(0),championship:r.championship?.checkpoint()}))};}
   restoreCheckpoint(data:ReturnType<RoomService['checkpoint']>,savedAt:number):void{
     if(!this.recoveryEnabled||this.rooms.size)throw Error('Cannot restore into an active server');
     this.seats.restore(data.seats,savedAt);
@@ -63,7 +70,7 @@ export class RoomService {
       const peers=saved.peers.map(p=>({...p,socket:{readyState:3,bufferedAmount:0,send:()=>{},close:()=>{},terminate:()=>{}} as unknown as WebSocket,connected:false,neutralClock:Date.now(),reconnectUntil:p.connected?savedAt+RECONNECT_GRACE_MS:p.reconnectUntil}));
       const room:Room={...saved,peers,started:true,verification:undefined,championship:undefined};
       if(saved.championship){room.championship=new ChampionshipSession(peers,send,stages[room.stage]);room.championship.restoreCheckpoint(saved.championship);}
-      if(saved.verification){room.verification=new VerifiedMatch(new GameSimulation(peers.map(p=>p.character),false,stages[room.stage]),(frame,hash)=>room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:'hash',seat:-1,frame,hash})));room.verification.restoreRecovery(saved.verification);}
+      if(saved.verification){room.verification=new VerifiedMatch(new GameSimulation(peers.map(p=>p.character),false,stages[room.matchStage??room.stage]),(frame,hash)=>room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:'hash',matchId:room.matchId,seat:-1,frame,hash})));room.verification.restoreRecovery(saved.verification);}
       this.rooms.set(room.code,room);
       for(const peer of [...room.peers])if(!peer.resumable&&peer.reconnectUntil){this.membership.set(peer.socket,room);this.leave(peer.socket,'legacy-client-restart');}
     }
@@ -73,6 +80,7 @@ export class RoomService {
     const room=this.membership.get(socket),peer=room?.peers.find(p=>p.socket===socket);
     if(!this.recoveryEnabled||!room?.started||!peer||!peer.resumable||!['peer-closed','heartbeat-timeout','socket-error'].includes(reason)){this.leave(socket,reason);return;}
     this.membership.delete(socket);peer.connected=false;peer.reconnectUntil=now+RECONNECT_GRACE_MS;peer.neutralClock=now;
+    this.roster(room);
     this.seats.reserve(room.code,room.peers.indexOf(peer),now);this.record('seat-reserved',room);
   }
   resume(socket:WebSocket,token:unknown,now=Date.now()):void{
@@ -86,8 +94,9 @@ export class RoomService {
     if(!room||!peer||peer.connected||!peer.reconnectUntil||now>=peer.reconnectUntil)throw Error('Reconnect expired or unavailable. Return to the menu.');
     peer.socket=socket;peer.connected=true;peer.reconnectUntil=undefined;peer.neutralClock=undefined;peer.lastProgress=now;peer.window=now;peer.count=0;peer.warned=false;
     this.membership.set(socket,room);send(socket,{type:'resume-token',token:claim.token});
-    if(room.championship){const state=room.championship.recovery(socket);send(socket,{type:'resume',stage:room.stage,mode:room.mode,bracket:room.championship.bracket,ready:[...room.championship.ready],...state});}
-    else send(socket,{type:'resume',seat:claim.seat,stage:room.stage,mode:room.mode,state:room.verification!.recovery(peer.lastFrame+1)});
+    if(peer.returnRequested){send(socket,{type:'resume',seat:claim.seat,stage:room.stage,mode:room.mode});send(socket,{type:'room-returned',code:room.code,seat:claim.seat});this.roster(room);}
+    else if(room.championship){const state=room.championship.recovery(socket);send(socket,{type:'resume',stage:room.stage,mode:room.mode,bracket:room.championship.bracket,ready:[...room.championship.ready],...state});if(!state.state)room.championship.watch(socket);}
+    else send(socket,{type:'resume',matchId:room.matchId,seat:claim.seat,stage:room.matchStage??room.stage,mode:room.mode,state:room.verification!.recovery(peer.lastFrame+1)});
     this.record('seat-resumed',room);
   }
   recoveryTick(now=Date.now()):void{
@@ -109,7 +118,7 @@ export class RoomService {
         peer.neutralClock=live.length?now:clock+steps*1000/60;
         for(let n=0;peer.lastFrame<target&&n<120;n++){
           const frame=++peer.lastFrame;
-          live.forEach(p=>send(p.socket,{type:'input',seat,frame,mask:0}));room.verification!.receive(seat,frame,0);
+          live.forEach(p=>send(p.socket,{type:'input',matchId:room.matchId,seat,frame,mask:0}));room.verification!.receive(seat,frame,0);
         }
       });this.recordCompletion(room);
     }
@@ -119,8 +128,11 @@ export class RoomService {
   }
   diagnosticRoomId(socket:WebSocket):string|undefined{return this.membership.get(socket)?.diagnosticId;}
   private recordCompletion(room:Room):void{
-    if(!room.completedLogged&&(room.verification?.simulation.state.phase==='result'||room.championship?.completedAt!==undefined)){
+    const state=room.verification?.simulation.state;
+    if(!room.completedLogged&&((state?.phase==='result'&&(!state.tournament||state.tournament.complete)&&(!state.elimination||state.elimination.complete))||room.championship?.completedAt!==undefined)){
       room.completedLogged=true;this.record('match-completed',room);
+      const statistics=room.verification?.simulation.state.statistics;
+      if(statistics?.finalized)room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:'match-statistics',matchId:room.matchId,statistics}));
     }
   }
   capacitySnapshot(){
@@ -134,7 +146,7 @@ export class RoomService {
   }
   rooms = new Map<string, Room>();
   membership = new Map<WebSocket, Room>();
-  create(socket: WebSocket, character: string, capacity = 2, mode: OnlineMode = "ffa", team?: number, skin?: string, stage = trainingRoom.id): void {
+  create(socket: WebSocket, character: string, capacity = 2, mode: OnlineMode = "ffa", team?: number, skin?: string, stage = trainingRoom.id, name = "", visibility:"public"|"private" = "private"): void {
     if (!["championship", "ffa", "ffa-tournament", "elimination", "elimination-party", "2v2", "3v3"].includes(mode)) throw new Error("Invalid match mode");
     if (team !== undefined && team !== 0 && team !== 1) throw new Error("Invalid team");
     if ((mode === "2v2" || mode === "3v3")) capacity = mode === "2v2" ? 4 : 6;
@@ -145,6 +157,7 @@ export class RoomService {
     if (!Number.isInteger(capacity) || capacity < 2 || capacity > (mode === "championship" ? 16 : 8))
       throw new Error(`Room size must be 2–${mode === "championship" ? 16 : 8} fighters`);
     if (this.rooms.size >= 1000) throw new Error("Server full");
+    this.validateSettings({name,visibility});
     this.leave(socket);
     let code = "";
     do {
@@ -154,6 +167,7 @@ export class RoomService {
       ).join("");
     } while (this.rooms.has(code));
     const room: Room = {
+      name:name.trim(),visibility,owner:0,
       diagnosticId:diagnosticId(),
       code,
       stage,
@@ -198,19 +212,56 @@ export class RoomService {
     });
     this.roster(room);
   }
-  ready(socket: WebSocket): void {
-    const room = this.membership.get(socket);
-    if (!room || room.started) return;
-    const peer = room.peers.find((p) => p.socket === socket);
-    if (!peer || peer.ready) return;
-    peer.ready = true;
+  private validateSettings(settings:RoomSettings):void {
+    if(!settings||typeof settings!=="object"||Array.isArray(settings))throw Error("Invalid room settings");
+    if(settings.name!==undefined&&(typeof settings.name!=="string"||settings.name.length>40||[...settings.name].some(c=>c.charCodeAt(0)<32)))throw Error("Room name must be at most 40 characters");
+    if(settings.visibility!==undefined&&!["public","private"].includes(settings.visibility))throw Error("Invalid room privacy");
+    if(settings.stage!==undefined&&(typeof settings.stage!=='string'||!Object.hasOwn(stages,settings.stage)))throw Error("Invalid arena");
+    if(settings.mode!==undefined&&!["ffa","ffa-tournament","championship","elimination","elimination-party","2v2","3v3"].includes(settings.mode))throw Error("Invalid match mode");
+  }
+  private editable(socket:WebSocket){
+    const room=this.membership.get(socket),peer=room?.peers.find(p=>p.socket===socket);
+    if(!room||!peer||!peer.connected||room.started&&(!room.completedLogged||!peer.returnRequested))throw Error("Return to the lobby to make changes");
+    return {room,peer};
+  }
+  list(socket:WebSocket):void {send(socket,{type:'rooms',rooms:[...this.rooms.values()].filter(r=>r.visibility==='public').slice(0,1000).map(r=>this.summary(r))});}
+  private summary(room:Room):RoomSummary{return {code:room.code,name:room.name||`Arena ${room.code}`,capacity:room.capacity,count:room.peers.filter(p=>p.connected||p.reconnectUntil).length,mode:room.mode,status:room.started?'playing':room.peers.length>=room.capacity?'full':'waiting'};}
+  configure(socket:WebSocket,settings:RoomSettings):void{
+    const {room}=this.editable(socket);
+    if(room.peers[room.owner]?.socket!==socket)throw Error("Only the Room Owner can change settings");
+    this.validateSettings(settings);
+    const mode=settings.mode??room.mode;
+    const capacity=mode==='2v2'?4:mode==='3v3'||mode==='elimination-party'?6:settings.capacity??room.capacity;
+    if(!Number.isInteger(capacity)||capacity<Math.max(2,room.peers.filter(p=>p.connected||p.reconnectUntil).length)||capacity>(mode==='championship'?16:8))throw Error("Invalid room size for this mode or player count");
+    const changedMode=room.mode!==mode;
+    room.name=settings.name?.trim()??room.name;room.visibility=settings.visibility??room.visibility;room.stage=settings.stage??room.stage;room.capacity=capacity;room.mode=mode;
+    room.peers.forEach((p,i)=>{p.ready=false;if(changedMode)p.team=mode==='2v2'||mode==='3v3'?i%2:i;});
     this.roster(room);
-    if (
-      room.peers.length === room.capacity &&
-      room.peers.every((p) => p.ready) &&
-      !room.started
-    ) {
-      room.started = true;
+  }
+  choose(socket:WebSocket,character:string,skin?:string):void{
+    const {room,peer}=this.editable(socket);this.validateCharacter(character);
+    peer.character=character;peer.skin=resolveSkin(characters[character],skin);peer.ready=false;this.roster(room);
+  }
+  ready(socket: WebSocket,ready=true): void {
+    if(typeof ready!=='boolean')throw Error("Invalid readiness");
+    const current=this.membership.get(socket);if(current?.started&&!current.completedLogged)return;
+    const {room,peer}=this.editable(socket);if(peer.ready===ready)return;peer.ready=ready;this.roster(room);
+  }
+  private startReason(room:Room):string{
+    if(room.started)return room.completedLogged?'Waiting for players to return from results':'Match in progress';
+    if(room.peers.length<2)return 'Waiting for at least 2 players';
+    if(['2v2','3v3','elimination-party'].includes(room.mode)&&room.peers.length!==room.capacity)return `Waiting for ${room.capacity} players`;
+    if((room.mode==='2v2'||room.mode==='3v3')&&[0,1].some(t=>room.peers.filter(p=>p.team===t).length!==room.capacity/2))return 'Teams must be balanced';
+    if(!room.peers.every(p=>p.connected&&p.ready))return 'Every player must be ready';
+    return '';
+  }
+  startMatch(socket:WebSocket):void {
+    const room=this.membership.get(socket);
+    if(!room||room.peers[room.owner]?.socket!==socket)throw Error("Only the Room Owner can start the match");
+    if(room.started)return;
+    const reason=this.startReason(room);if(reason)throw Error(reason);
+    {
+      room.started = true;room.matchStage=room.stage;
       // Lobby seats can shift when somebody leaves; mint credentials only once
       // match seats become stable.
       room.peers.forEach(p=>this.issue(room,p));
@@ -218,12 +269,13 @@ export class RoomService {
       if (room.mode === "championship") { room.championship = new ChampionshipSession(room.peers, send, stages[room.stage]); return; }
       room.peers.forEach(p=>{p.lastProgress=Date.now();p.warned=false;});
       const chars = room.peers.map((p) => p.character);
-      const seed=randomInt(0x100000000);
+      const seed=randomInt(0x100000000);room.initialSeed=seed;
       room.verification=new VerifiedMatch(new GameSimulation(chars,false,stages[room.stage],room.peers.map(p=>p.team),room.peers.map(p=>p.skin),room.mode==='elimination'||room.mode==='elimination-party'?room.mode:room.mode==='ffa-tournament',seed),
-        (frame,hash)=>room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:'hash',seat:-1,frame,hash})));
+        (frame,hash)=>room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:'hash',matchId:room.matchId,seat:-1,frame,hash})));
       room.peers.forEach((p) =>
         send(p.socket, {
           type: "start",
+          matchId:room.matchId,
           stage: room.stage,
           seed,
           characters: chars,
@@ -236,10 +288,46 @@ export class RoomService {
       );
     }
   }
+  returnToRoom(socket:WebSocket,matchId?:string):void{
+    const room=this.membership.get(socket),peer=room?.peers.find(p=>p.socket===socket);
+    if(!room||!peer||!room.started)return;
+    this.recordCompletion(room);
+    if(!room.completedLogged||(!room.championship&&matchId!==room.matchId))return;
+    if(!peer.returnRequested){peer.returnRequested=true;peer.ready=false;send(socket,{type:'room-returned',code:room.code,seat:room.peers.indexOf(peer)});}
+    this.tryReturnToRoom(room);this.roster(room);
+  }
+  private tryReturnToRoom(room:Room):void{
+    if(!room.completedLogged)return;
+    const connected=room.peers.filter(p=>p.connected);
+    if(!connected.length||connected.some(p=>!p.returnRequested)||room.peers.some(p=>p.reconnectUntil))return;
+    const owner=room.peers[room.owner];
+    room.peers.forEach((_,seat)=>this.seats.revoke(room.code,seat));
+    room.peers=connected;room.owner=Math.max(0,connected.indexOf(owner));room.started=false;room.verification=undefined;room.championship=undefined;room.completedLogged=false;room.created=Date.now();room.matchId=randomUUID();
+    connected.forEach((p,seat)=>{if(room.mode!=='2v2'&&room.mode!=='3v3')p.team=seat;p.returnRequested=false;p.lastFrame=1;p.lastHashFrame=-1;p.finishedFrame=undefined;p.finishedAt=undefined;p.lastProgress=Date.now();p.warned=false;p.count=0;p.window=Date.now();send(p.socket,{type:'room',code:room.code,seat});});
+    this.roster(room);
+  }
+  /** Restart is authorized by the room host, scoped to the current input generation. */
+  restart(socket:WebSocket,matchId?:string):void{
+    const room=this.membership.get(socket);
+    if(room?.championship){room.championship.restart(socket,matchId);return;}
+    if(!room?.started||matchId!==room.matchId)return;
+    if(room.peers[room.owner].socket!==socket||!room.peers.every(p=>p.connected)||!room.verification||room.verification.simulation.state.phase==='result'||room.initialSeed===undefined){send(socket,{type:'restart-denied'});return;}
+    const previousId=room.matchId;room.matchId=randomUUID();room.completedLogged=false;
+    room.verification=new VerifiedMatch(new GameSimulation(room.peers.map(p=>p.character),false,stages[room.stage],room.peers.map(p=>p.team),room.peers.map(p=>p.skin),room.mode==='elimination'||room.mode==='elimination-party'?room.mode:room.mode==='ffa-tournament',room.initialSeed),
+      (frame,hash)=>room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:'hash',matchId:room.matchId,seat:-1,frame,hash})));
+    room.peers.forEach((p,seat)=>{
+      p.lastFrame=1;p.lastHashFrame=-1;p.lastProgress=Date.now();p.warned=false;p.finishedFrame=undefined;p.finishedAt=undefined;p.count=0;p.window=Date.now();
+      send(p.socket,{type:'fight-restarted',previousId,matchId:room.matchId!,seat,stage:room.stage,mode:room.mode,state:room.verification!.recovery(2)});
+    });
+    this.record('match-restarted',room);
+  }
   input(socket: WebSocket, frame: number, mask: number, matchId?: string): void {
     const room = this.membership.get(socket);
+    if(room&&!room.championship&&matchId!==room.matchId)return;
     if (!room?.started) throw new Error("Match has not started");
+    if(room.peers.find(p=>p.socket===socket)?.returnRequested)return;
     if (room.championship) { room.championship.input(socket, matchId, frame, mask); this.recordCompletion(room); return; }
+    if(matchId!==room.matchId)return;
     const peer = room.peers.find((p) => p.socket === socket)!;
     if (
       !Number.isInteger(frame) ||
@@ -261,10 +349,11 @@ export class RoomService {
     if (++peer.count > 180) throw new Error("Input rate exceeded");
     peer.lastFrame = frame;
     peer.lastProgress=Date.now();
-    if(peer.warned){peer.warned=false;room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:"input-wait",seat:room.peers.indexOf(peer),seconds:0}));}
+    if(peer.warned){peer.warned=false;room.peers.filter(p=>p.connected).forEach(p=>send(p.socket,{type:"input-wait",matchId:room.matchId,seat:room.peers.indexOf(peer),seconds:0}));}
     others.forEach((other) =>
       send(other.socket, {
         type: "input",
+        matchId:room.matchId,
         seat: room.peers.indexOf(peer),
         frame,
         mask,
@@ -279,6 +368,7 @@ export class RoomService {
     const peer = room?.peers.find((p) => p.socket === socket);
     if (
       !room?.started ||
+      matchId!==room.matchId ||
       !peer ||
       !Number.isInteger(frame) ||
       frame < 0 ||
@@ -301,12 +391,13 @@ export class RoomService {
     this.membership.delete(socket);
     peer.connected = false;peer.reconnectUntil=undefined;this.seats.revoke(room.code,seat);
     this.record('room-left',room,reason);
-    if (room.championship) { room.championship.leave(socket); } else if (room.started) {
+    const owner=room.peers[room.owner];
+    if(room.completedLogged){ /* Results are immutable; leaving only changes membership. */ } else if (room.championship) { room.championship.leave(socket); } else if (room.started) {
       // Keep seats stable; the first missing input is the deterministic forfeit frame.
       room.peers
         .filter((p) => p.connected)
         .forEach((p) =>
-          send(p.socket, { type: "left", seat, frame: peer.lastFrame + 1 }),
+          send(p.socket, { type: "left", matchId:room.matchId, seat, frame: peer.lastFrame + 1 }),
         );
       room.verification!.leave(seat,peer.lastFrame+1);
     } else {
@@ -317,7 +408,8 @@ export class RoomService {
       );
       this.roster(room);
     }
-    this.recordCompletion(room);
+    room.owner=owner&&(owner.connected||owner.reconnectUntil)?room.peers.indexOf(owner):Math.max(0,room.peers.findIndex(p=>p.connected));
+    this.recordCompletion(room);this.tryReturnToRoom(room);this.roster(room);
     if (!room.peers.some((p) => p.connected||p.reconnectUntil)) {this.record('room-closed',room,room.started&&!room.completedLogged?'abandoned':reason);this.rooms.delete(room.code);}
   }
   expire(): void {
@@ -329,12 +421,13 @@ export class RoomService {
           peer.socket.close();
         }
   }
+  spectate(socket:WebSocket,token?:string):void{this.membership.get(socket)?.championship?.watch(socket,token);}
   championshipReady(socket: WebSocket, matchId: string): void {
     this.membership.get(socket)?.championship?.acknowledge(socket, matchId);
   }
-  finished(socket:WebSocket,frame:number):void{
+  finished(socket:WebSocket,frame:number,matchId?:string):void{
     const room=this.membership.get(socket),peer=room?.peers.find(p=>p.socket===socket);
-    if(room?.started&&peer&&Number.isInteger(frame)&&frame>=0&&frame<=peer.lastFrame){peer.finishedFrame=frame;peer.finishedAt??=Date.now();}
+    if(room?.started&&matchId===room.matchId&&peer&&Number.isInteger(frame)&&frame>=0&&frame<=peer.lastFrame){peer.finishedFrame=frame;peer.finishedAt??=Date.now();}
   }
   /** Only the input watermark can stall the room; peers ahead of it are waiting, not idle. */
   expireInactive(now=Date.now()):void{
@@ -353,6 +446,10 @@ export class RoomService {
         continue;
       }
       const connected=room.peers.filter(p=>p.connected);
+      if(room.completedLogged){
+        for(const p of connected.filter(p=>!p.returnRequested&&now-(p.finishedAt??p.lastProgress)>=RESULT_RETENTION_MS)){this.leave(p.socket,'results-expired');p.socket.close();}
+        continue;
+      }
       if(room.verification?.simulation.state.phase==='result'&&connected.length&&connected.every(p=>p.finishedFrame!==undefined&&p.finishedFrame===connected[0].finishedFrame)){
         if(now-Math.max(...connected.map(p=>p.finishedAt??now))>=RESULT_RETENTION_MS){
           for(const p of connected){send(p.socket,{type:'error',message:'Finished room closed after 15 minutes. Return to the menu to play again.'});this.leave(p.socket,'results-expired');p.socket.close();}
@@ -367,7 +464,7 @@ export class RoomService {
         if(idle>=limit)expired.push(p);
         else if(idle>=limit-30_000&&!p.warned){
           p.warned=true;
-          connected.forEach(other=>send(other.socket,{type:'input-wait',seat:room.peers.indexOf(p),seconds:Math.ceil((limit-idle)/1000)}));
+          connected.forEach(other=>send(other.socket,{type:'input-wait',matchId:room.matchId,seat:room.peers.indexOf(p),seconds:Math.ceil((limit-idle)/1000)}));
         }
       }
       for(const p of expired){
@@ -380,6 +477,7 @@ export class RoomService {
     }
   }
   private roster(room: Room): void {
+    room.peers.filter(p=>p.connected).forEach((peer)=>send(peer.socket,{type:'room-state',room:{...this.summary(room),seat:room.peers.indexOf(peer),owner:room.owner,visibility:room.visibility,stage:room.stage,startReason:this.startReason(room),players:room.peers.map(p=>({character:p.character,skin:p.skin,team:p.team,ready:p.ready,connected:p.connected,status:p.reconnectUntil?'reconnecting':!p.connected?'left':room.started&&!p.returnRequested?'results':'lobby'}))}}));
     room.peers.forEach((peer) =>
       send(peer.socket, {
         type: "roster",

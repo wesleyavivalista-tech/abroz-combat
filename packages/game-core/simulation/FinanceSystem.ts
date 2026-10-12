@@ -80,12 +80,12 @@ export function advanceFinance(s:SimulationSnapshot,stage:StageDefinition):void{
    const rainAge=s.frame-(h.createdAt??0)-FINANCE.bagFlightFrames;
    if(rainAge<0||rainAge%FINANCE.rainInterval)continue;
    for(const {fighter:f,owner} of actors(s))if(hostile(s,h.owner,f,owner)&&canReceiveDirectHit(f,s.frame)&&Math.abs(f.x-h.x)<=FINANCE.rainWidth/2+25&&f.y+150>=h.y&&f.y<h.y+600){
-    if(applyDamage(s,f,characters[s.fighters[h.owner].characterId].moves[h.move].damage,{receivedHit:true,source:h.owner,move:h.move})>0)f.coinHitAt=s.frame;
+    if(applyDamage(s,f,characters[s.fighters[h.owner].characterId].moves[h.move].damage,{owned:true,receivedHit:true,source:h.owner,move:h.move})>0)f.coinHitAt=s.frame;
    }
   }
   if(h.kind==='money-bill')for(let i=0;i<s.fighters.length;i++){
    const f=s.fighters[i];if(!isActive(f)||Math.abs(f.x-h.x)>40||h.y<f.y-15||h.y>f.y+170)continue;
-   if(s.teams[i]===s.teams[h.owner])gainEnergy(f,FINANCE.billEnergy,s.frame);else f.movementSlowUntil=s.frame+FINANCE.billSlowFrames;
+   if(s.teams[i]===s.teams[h.owner])gainEnergy(f,FINANCE.billEnergy,s.frame,s);else f.movementSlowUntil=s.frame+FINANCE.billSlowFrames;
    h.expiresAt=s.frame;break;
   }
  }

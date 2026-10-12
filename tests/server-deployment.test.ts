@@ -29,7 +29,7 @@ test('maintenance rejects new rooms but preserves existing socket input and heal
   const next=async(i:number,type:string)=>{for(let n=0;n<200;n++){const found=queues[i].find(m=>m.type===type);if(found)return found;await new Promise(r=>setTimeout(r,5));}throw Error('Missing '+type);};
   sockets[0].send(JSON.stringify({type:'create',character:'nikalz',contentVersion:contentVersion()}));const room=await next(0,'room');
   sockets[1].send(JSON.stringify({type:'join',code:room.code,character:'jopa',contentVersion:contentVersion()}));await next(1,'room');
-  sockets.forEach(s=>s.send(JSON.stringify({type:'ready'})));await next(0,'start');
+  sockets.forEach(s=>s.send(JSON.stringify({type:'ready'})));sockets[1].send(JSON.stringify({type:'ping',sent:1}));await next(1,'pong');sockets[0].send(JSON.stringify({type:'start-match'}));await next(0,'start');
   child.kill('SIGUSR2');
   for(let n=0;n<100;n++){if((await fetch(base+'/readyz')).status===503)break;await new Promise(r=>setTimeout(r,5));}
   assert.equal((await fetch(base+'/readyz')).status,503);assert.equal((await fetch(base+'/healthz')).status,200);

@@ -2,7 +2,7 @@ import {inLove,EIDE} from '../simulation/EideSystem.js';
 import {financeHit} from '../simulation/FinanceSystem.js';
 import {gainEnergy} from '../simulation/EnergySystem.js';
 import {personalityDamage} from '../simulation/AstolfoSystem.js';
-import {angerMultiplier} from '../simulation/AngerSystem.js';
+import {angerDamageMultiplier} from '../simulation/AngerSystem.js';
 import {gymReserved} from '../simulation/JompSystem.js';
 import {characters} from '../characters/registry.js';
 import {consecutiveHitstun} from './HitstunSystem.js';
@@ -24,6 +24,7 @@ export function resolveHit(s:SimulationSnapshot,stage:StageDefinition,emit:(type
     impactDirection: number = s.fighters[attacker].facing,
     source?: Fighter,
     target?: Fighter,
+    sourceOwned=false,
   ): void {
     const a = source ?? s.fighters[attacker],
       d = target ?? s.fighters[defender];
@@ -32,6 +33,7 @@ export function resolveHit(s:SimulationSnapshot,stage:StageDefinition,emit:(type
     // Summons can strike in a staggered swarm. Their contacts must not pause
     // unrelated players (or repeatedly shake everyone's camera).
     if(m.grappleFrames && (gymReserved(s,d)||d.grappleUntil>s.frame || actors(s).some(v=>v.fighter.grappleOwner===attacker&&v.fighter.grappleUntil>s.frame)))return;
+    const attribution={owned:sourceOwned||!s.fighters.includes(a),neutral:!!a.undead};
     const companionContact = !s.fighters.includes(a) || !s.fighters.includes(d);
     const back = impactDirection > 0 ? Button.Right : Button.Left;
     const crouch = !!(input & Button.Down);
@@ -50,7 +52,7 @@ export function resolveHit(s:SimulationSnapshot,stage:StageDefinition,emit:(type
     const reactionStun = blocked ? m.blockstun : protectedDive?0:consecutiveHitstun(s,d,m.hitstun+(counter&&!m.fixedStun?4:0),impactDirection,stage.floorHeight,stage.width);
     const stanceArmor=(characters[d.characterId].muscleFighter&&(d.move==='coolMuscles'||d.move==='gymBro'));
     const reacts = d.undead!=="grave" && !d.loveNpc && !d.jopaSummon && !stanceArmor && (blocked || reactionStun > 0);
-    const outgoing=(a.bloodMasterUntil>s.frame?1.05:1)*(inLove(a)?EIDE.loveDamage:1)*personalityDamage(a)*angerMultiplier(a,s.frame)*(a.weaponUntil>s.frame?characters[a.characterId].weaponModifiers?.damage??1:1);
+    const outgoing=(a.bloodMasterUntil>s.frame?1.05:1)*(inLove(a)?EIDE.loveDamage:1)*personalityDamage(a)*angerDamageMultiplier(a,s.frame)*(a.weaponUntil>s.frame?characters[a.characterId].weaponModifiers?.damage??1:1);
     if(reacts){
       d.move=null;
       if(d.actionUntil)d.actionUntil=0;
@@ -61,18 +63,18 @@ export function resolveHit(s:SimulationSnapshot,stage:StageDefinition,emit:(type
     }
     if (blocked) {
       // Guard absorbs 60%; existing defensive modifiers also apply to chip damage.
-      applyDamage(s,d,scaledDamage(m.damage*outgoing,d.combo,false)*.4,{source:attacker,move:m.id,blocked:true});
+      applyDamage(s,d,scaledDamage(m.damage*outgoing,d.combo,false)*.4,{...attribution,source:attacker,move:m.id,blocked:true});
       enter(d, crouch ? "BlockCrouching" : "BlockStanding");
-      gainEnergy(d,3,s.frame);
+      gainEnergy(d,3,s.frame,s);
       emit("block", d, 1, defender);
     } else {
-      applyDamage(s,d,scaledDamage(m.damage*outgoing,d.combo,counter),{combo:'hit',source:attacker,move:m.id});
+      applyDamage(s,d,scaledDamage(m.damage*outgoing,d.combo,counter),{...attribution,combo:'hit',source:attacker,move:m.id});
       if (m.poisonFrames) {
         if(d.poisonUntil<=s.frame)d.poisonNextTick=s.frame+30;
-        d.poisonUntil=s.frame+m.poisonFrames;d.poisonDamage=m.poisonDamage??0;d.poisonOwner=attacker;
+        d.poisonUntil=s.frame+m.poisonFrames;d.poisonDamage=m.poisonDamage??0;d.poisonOwner=attacker;d.poisonOwned=attribution.owned;d.poisonNeutral=attribution.neutral;
       }
       if (reacts && m.trapFrames) d.trappedUntil = s.frame + m.trapFrames;
-      if (m.burn) igniteTarget(s, d, attacker, m.burn.duration, m.burn.damage, m.burn.kind);
+      if (m.burn) igniteTarget(s, d, attacker, m.burn.duration, m.burn.damage, m.burn.kind,attribution.owned,attribution.neutral);
       if (reacts) {
       if (d.trappedUntil > s.frame) {
         enter(d, "HairTrapped");
@@ -84,8 +86,8 @@ export function resolveHit(s:SimulationSnapshot,stage:StageDefinition,emit:(type
       } else enter(d, crouch ? "HitStunCrouching" : "HitStunStanding");
       }
       financeHit(s,a,d,m);
-      gainEnergy(a,m.meterGain,s.frame);
-      gainEnergy(d,4,s.frame);
+      gainEnergy(a,m.meterGain,s.frame,s);
+      gainEnergy(d,4,s.frame,s);
       emit(counter ? "counter" : m.effects, d, companionContact ? 1 : m.priority, defender);
     }
     if (reacts && d.trappedUntil > s.frame) {d.vx=d.vy=0;d.stun=0;d.buffer=[];enter(d,"HairTrapped");}

@@ -13,7 +13,7 @@ import type {ServerMessage} from '../packages/shared/protocol.js';
 function socket(){const messages:ServerMessage[]=[];return {messages,ws:{readyState:1,bufferedAmount:0,send:(raw:string)=>messages.push(JSON.parse(raw)),close(){},terminate(){}} as unknown as WebSocket};}
 function setup(mode:'ffa'|'championship'='ffa'){
  const rooms=new RoomService(()=>{},true),a=socket(),b=socket();
- rooms.create(a.ws,'nikalz',2,mode);const room=[...rooms.rooms.values()][0];rooms.join(b.ws,room.code,'jopa');rooms.ready(a.ws);rooms.ready(b.ws);
+ rooms.create(a.ws,'nikalz',2,mode);const room=[...rooms.rooms.values()][0];rooms.join(b.ws,room.code,'jopa');rooms.ready(a.ws);rooms.ready(b.ws);rooms.startMatch(a.ws);
  const token=b.messages.find(m=>m.type==='resume-token');assert.ok(token?.type==='resume-token');
  if(mode==='championship'){
   const bracket=a.messages.find(m=>m.type==='championship');assert.ok(bracket?.type==='championship');
@@ -27,7 +27,7 @@ test('lobby departure cannot leave reconnect credentials pointing to a reassigne
  const rooms=new RoomService(()=>{},true),a=socket(),b=socket(),c=socket();
  rooms.create(a.ws,'nikalz',2);const room=[...rooms.rooms.values()][0];rooms.join(b.ws,room.code,'jopa');
  assert.ok(!b.messages.some(m=>m.type==='resume-token'));
- rooms.leave(a.ws);rooms.join(c.ws,room.code,'biel');rooms.ready(b.ws);rooms.ready(c.ws);
+ rooms.leave(a.ws);rooms.join(c.ws,room.code,'biel');rooms.ready(b.ws);rooms.ready(c.ws);rooms.startMatch(b.ws);
  const token=b.messages.find(m=>m.type==='resume-token');assert.ok(token?.type==='resume-token');
  const fresh=socket();rooms.detach(b.ws,'peer-closed',1000);rooms.resume(fresh.ws,token.token,1001);
  assert.equal(room.peers[0].socket,fresh.ws);assert.equal(room.peers[1].socket,c.ws);
@@ -84,7 +84,7 @@ test('snapshot transport preserves non-finite fields and authority hash',()=>{
 });
 test('legacy clients keep immediate departure behavior on a recovery-enabled server',()=>{
  const rooms=new RoomService(()=>{},true),a=socket(),b=socket();rooms.allowRecovery(a.ws,false);rooms.allowRecovery(b.ws,false);
- rooms.create(a.ws,'nikalz');const room=[...rooms.rooms.values()][0];rooms.join(b.ws,room.code,'jopa');rooms.ready(a.ws);rooms.ready(b.ws);
+ rooms.create(a.ws,'nikalz');const room=[...rooms.rooms.values()][0];rooms.join(b.ws,room.code,'jopa');rooms.ready(a.ws);rooms.ready(b.ws);rooms.startMatch(a.ws);
  assert.ok(!b.messages.some(m=>m.type==='resume-token'));rooms.detach(b.ws,'peer-closed',1000);
  assert.ok(a.messages.some(m=>m.type==='left'));assert.equal(room.peers[1].reconnectUntil,undefined);
  const restored=new RoomService(()=>{},true);restored.restoreCheckpoint(rooms.checkpoint(),1000);assert.equal(restored.rooms.size,0);

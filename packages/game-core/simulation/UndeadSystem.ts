@@ -1,3 +1,4 @@
+import {INVADER_STATS,advanceInvaderAttack} from './InvasionSystem.js';
 import type {MoveDefinition,SimulationSnapshot,StageDefinition} from '../types.js';
 import {createFighter} from './Fighter.js';
 import {isActive} from './LifeSystem.js';
@@ -33,7 +34,7 @@ export function advanceAfterlife(s:SimulationSnapshot):void {
 }
 export function advanceUndead(s:SimulationSnapshot,stage:StageDefinition):void {
  for(const c of s.clones){
-  const u=c.undead;if(!u)continue;const f=c.fighter;
+  const u=c.undead;if(!u)continue;const f=c.fighter,profile=c.invasion?INVADER_STATS[c.invasion]:undefined;
   if(f.undead==='grave'){
    // Gravestones cannot be launched, grabbed, or pushed away from the death location.
    f.x=u.spawnX;f.y=u.spawnY;f.vx=f.vy=f.stun=0;f.move=null;f.state='Idle';
@@ -63,7 +64,8 @@ export function advanceUndead(s:SimulationSnapshot,stage:StageDefinition):void {
   else if(target&&isActive(target)){
    const dx=target.x-f.x,dy=target.y-f.y;
    if(!u.attackAt)f.facing=dx>=0?1:-1;
-   if(u.attackAt){
+   if(u.attackAt&&c.invasion){advanceInvaderAttack(s,stage,c);}
+   else if(u.attackAt){
     const age=++u.attackFrame;
     enter(f,'LightAttack');
     if(age>=ZOMBIE_CLAW.startupFrames&&age<ZOMBIE_CLAW.startupFrames+ZOMBIE_CLAW.activeFrames){
@@ -73,7 +75,7 @@ export function advanceUndead(s:SimulationSnapshot,stage:StageDefinition):void {
      }});
     }
     if(age>=36){u.attackAt=0;enter(f,'Idle');}
-   }else if(Math.abs(dx)<105&&Math.abs(dy)<95&&s.frame>=u.nextAttack){u.attackAt=s.frame;u.attackFrame=0;u.hit=false;f.hitTargets=[];u.nextAttack=s.frame+84;enter(f,'LightAttack');}
+   }else if(Math.abs(dx)<(profile?.range??105)&&Math.abs(dy)<(profile?.height??95)&&s.frame>=u.nextAttack){u.attackAt=s.frame;u.attackFrame=0;u.hit=false;f.hitTargets=[];u.nextAttack=s.frame+(profile?.cooldown??84);enter(f,'LightAttack');}
    else {
     let goal=target.x,goalY=target.y;
     if(dy>90){

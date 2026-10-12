@@ -210,17 +210,20 @@ export class AudioManager {
     if(chosen?.id===this.currentTrack&&this.loops.some(l=>l.id===chosen!.id)&&this.loops.some(l=>l.bus==='ambience')===ambientActive)return;
     const generation=++this.generation;
     this.currentTrack=chosen?.id;if(chosen)this.previousTrack=chosen.id;
-    for(const loop of [...this.loops])this.fadeLoop(loop);
-    if(chosen?.url)this.startLoop(chosen.id,chosen.url,chosen.gain,'music',generation,chosen.loop);
+    // Keep the arena audible until the invasion file can actually play.
+    const invasion=chosen?.id==='invasion_01';
+    const outgoing=invasion?[...this.loops]:[];
+    if(!invasion)for(const loop of [...this.loops])this.fadeLoop(loop);
+    if(chosen?.url)this.startLoop(chosen.id,chosen.url,chosen.gain,'music',generation,chosen.loop,invasion?outgoing:undefined);
     if(ambient&&ambient.url&&ambientActive)this.startLoop(a!.ambience!,ambient.url,ambient.gain,'ambience',generation,true);
   }
-  private startLoop(id:string,url:string,volume:number,bus:'music'|'ambience',generation:number,repeat:boolean):void{
+  private startLoop(id:string,url:string,volume:number,bus:'music'|'ambience',generation:number,repeat:boolean,invasionOutgoing?:Loop[]):void{
     const c=this.context;if(!c)return;
     try{
       // At most old+new music and ambience during crossfade, even under rapid navigation.
       while(this.loops.length>=4)this.removeLoop(this.loops[0]);
       const element=new Audio();element.crossOrigin='anonymous';element.preload='auto';element.loop=repeat;element.src=url;
-      const source=c.createMediaElementSource(element),gain=c.createGain();gain.gain.value=0;source.connect(gain);gain.connect(this.buses.get(bus)!);
+      const source=c.createMediaElementSource(element),gain=c.createGain();gain.gain.value=invasionOutgoing?volume:0;source.connect(gain);gain.connect(this.buses.get(bus)!);
       const loop={id,element,source,gain,bus};this.loops.push(loop);
       const fail=()=>{
         if(!this.loops.includes(loop))return;
@@ -230,7 +233,10 @@ export class AudioManager {
       element.onerror=fail;
       void element.play().then(()=>{
         if(this.disposed||generation!==this.generation){this.removeLoop(loop);return;}
-        this.ramp(gain,volume,.25);
+        if(invasionOutgoing){
+          // The invasion starts at full track gain; only the arena fades (~3 seconds).
+          for(const old of invasionOutgoing)if(this.loops.includes(old))this.fadeLoop(old,.6,3300);
+        }else this.ramp(gain,volume,.25);
       }).catch(error=>{
         // A browser gesture restriction is not a corrupt/missing asset. Retry on unlock.
         if(error?.name==='NotAllowedError'){
@@ -240,7 +246,7 @@ export class AudioManager {
       });
     }catch{this.failureCount++;}
   }
-  private fadeLoop(loop:Loop):void{this.ramp(loop.gain,0,.15);this.later(()=>this.removeLoop(loop),850);}
+  private fadeLoop(loop:Loop,time=.15,removeAfter=850):void{this.ramp(loop.gain,0,time);this.later(()=>this.removeLoop(loop),removeAfter);}
   private removeLoop(loop:Loop):void{
     if(!this.loops.includes(loop))return;
     loop.element.onerror=null;loop.element.pause();loop.element.removeAttribute('src');loop.element.load();loop.source.disconnect();loop.gain.disconnect();this.loops.splice(this.loops.indexOf(loop),1);

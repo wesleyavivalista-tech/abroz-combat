@@ -16,6 +16,7 @@ export class ChampionshipSession {
   completedAt?: number;
   ready = new Set<number>();
   duels = new Map<string, Duel>();
+  private watchers=new Map<number,string>();
   private awaiting = new Map<number, number>();
   constructor(private peers: Participant[], private send: (socket: WebSocket, message: ServerMessage) => void, private stage = trainingRoom) {
     const entrants: Entrant[] = peers.map((p, id) => ({ id, name: `Player ${id + 1}`, character: p.character, skin: p.skin }));
@@ -34,8 +35,21 @@ export class ChampionshipSession {
       const simulation = new GameSimulation(chars, false, this.stage, undefined, skins);
       simulation.step([0, 0]); simulation.step([0, 0]);
       this.duels.set(m.id, { simulation, players, token, inputs: [new Map(), new Map()], last: [1, 1], lastHash: [-1, -1], progress: [Date.now(), Date.now()] });
-      players.forEach((n, seat) => { this.ready.delete(n); this.awaiting.delete(n); this.send(this.peers[n].socket, { type: 'championship-start', stage: this.stage.id, matchId: token, seat, characters: chars, skins }); });
+      players.forEach((n, seat) => { this.watchers.delete(n);this.ready.delete(n); this.awaiting.delete(n); this.send(this.peers[n].socket, { type: 'championship-start', stage: this.stage.id, matchId: token, seat, characters: chars, skins }); });
     }
+    this.publish();
+  }
+  /** Only this duel's Player 1 can restart; other duels and prior results are untouched. */
+  restart(socket:WebSocket,token?:string):void{
+    const found=this.duelFor(socket,token);if(!found)return;
+    const {id,duel,seat}=found;
+    if(seat!==0||!duel.players.every(n=>this.peers[n].connected)||duel.simulation.state.phase==='result'){this.send(socket,{type:'restart-denied'});return;}
+    const match=findMatch(this.bracket,id)!;
+    match.attempt++;const nextToken=matchToken(match);
+    const simulation=new GameSimulation(duel.players.map(n=>this.peers[n].character),false,this.stage,undefined,duel.players.map(n=>this.peers[n].skin));
+    simulation.step([0,0]);simulation.step([0,0]);
+    this.duels.set(id,{simulation,players:duel.players,token:nextToken,inputs:[new Map(),new Map()],last:[1,1],lastHash:[-1,-1],progress:[Date.now(),Date.now()]});
+    duel.players.forEach((n,seat)=>this.send(this.peers[n].socket,{type:'fight-restarted',previousId:token,matchId:nextToken,seat,stage:this.stage.id,mode:'championship',bracket:this.bracket,state:{snapshot:encodeSnapshot(simulation.snapshot()),inputs:[[],[]],departures:[],nextInput:2}}));
     this.publish();
   }
   input(socket: WebSocket, token: string | undefined, frame: number, mask: number): void {
@@ -46,6 +60,7 @@ export class ChampionshipSession {
     if (frame !== duel.last[seat] + 1 || frame > duel.last[1 - seat] + 120) throw new Error('Out-of-order input');
     duel.last[seat] = frame; duel.progress[seat] = Date.now(); duel.inputs[seat].set(frame, mask);
     this.send(this.peers[duel.players[1 - seat]].socket, { type: 'input', matchId: token, seat, frame, mask });
+    for(const [id,watching] of this.watchers)if(watching===token&&this.peers[id].connected)this.send(this.peers[id].socket,{type:'input',matchId:token,seat,frame,mask});
     while (duel.inputs.every(queue => queue.has(duel.simulation.state.frame))) {
       const f = duel.simulation.state.frame;
       const stepStart=performance.now();
@@ -59,6 +74,19 @@ export class ChampionshipSession {
         this.duels.delete(id); this.publish(); return;
       }
     }
+  }
+  watch(socket:WebSocket,token?:string):void{
+    const id=this.peers.findIndex(p=>p.socket===socket&&p.connected);
+    if(id<0||[...this.duels.values()].some(d=>d.players.includes(id)))return;
+    const duel=[...this.duels.values()].find(d=>!token||d.token===token);if(!duel)return;
+    this.watchers.set(id,duel.token);
+    this.send(socket,{type:'spectate-start',matchId:duel.token,stage:this.stage.id,state:{snapshot:encodeSnapshot(duel.simulation.snapshot()),inputs:duel.inputs.map(q=>[...q]),departures:[],nextInput:0}});
+  }
+  private updateWatchers():void{
+    for(const [id,token] of this.watchers)if(!this.peers[id]?.connected||![...this.duels.values()].some(d=>d.token===token))this.watchers.delete(id);
+    if(this.bracket.complete){this.watchers.clear();return;}
+    // Losing a bracket match permanently eliminates an entrant. Watch the next live duel automatically.
+    this.peers.forEach((p,id)=>{if(p.connected&&!this.watchers.has(id)&&this.bracket.rounds.flat().some(m=>m.status==='complete'&&m.slots.includes(id)&&m.winner!==id))this.watch(p.socket);});
   }
   checkpoint(){return {bracket:structuredClone(this.bracket),completedAt:this.completedAt,ready:[...this.ready],awaiting:[...this.awaiting],duels:[...this.duels].map(([id,d])=>({id,players:d.players,token:d.token,snapshot:encodeSnapshot(d.simulation.snapshot()),inputs:d.inputs.map(q=>[...q]),last:d.last,lastHash:d.lastHash,progress:d.progress}))};}
   restoreCheckpoint(data:ReturnType<ChampionshipSession['checkpoint']>):void{
@@ -118,5 +146,6 @@ export class ChampionshipSession {
     for (const id of waiting) if (!this.awaiting.has(id)) this.awaiting.set(id, Date.now());
     for (const id of this.ready) if (!waiting.has(id)) this.ready.delete(id);
     this.peers.filter(p => p.connected).forEach(p => this.send(p.socket, { type: 'championship', bracket: this.bracket, ready: [...this.ready] }));
+    this.updateWatchers();
   }
 }

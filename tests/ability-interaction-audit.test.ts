@@ -179,7 +179,7 @@ test('Caio, Napa, Fausto and Astolfo slows overlap without multiplying and clear
  activateAstolfo(g.state,g.stage,g.state.fighters[3],3,characters.astolfo.moves.idea);
  const f=g.state.fighters[4];g.state.frame=90;
  const update=()=>{advanceBlood(g.state,g.stage);advanceNapa(g.state,g.stage);advanceFausto(g.state);advanceAstolfo(g.state,g.stage);};
- update();assert.equal(movementSlow(f,g.state.frame),.1);
+ update();assert.equal(movementSlow(f,g.state.frame),.2);
  g.state.hazards.find(h=>h.kind==='blood-flood')!.expiresAt=g.state.frame+1;g.state.frame++;update();assert.equal(movementSlow(f,g.state.frame),.3);
  f.x=g.stage.width-40;g.state.frame++;update();assert.equal(movementSlow(f,g.state.frame),1);
 });

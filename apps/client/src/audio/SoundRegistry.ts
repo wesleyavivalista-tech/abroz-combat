@@ -46,6 +46,7 @@ export const sounds: Record<string, SoundDefinition> = {
   disconnected: { ...cue('ui', .05, 85, 600, 220, .22), cooldown: 250 },
   final_death: {...cue('ui',.22,100,90,24,.65,'triangle'),cooldown:600,variation:0},
   grave_break: {...cue('combat',.13,80,150,35,.35,'sawtooth'),cooldown:80},
+  invasion_danger: {...cue('ui',.18,100,680,920,1.5,'triangle'),assets:['/audio/events/invasion-danger.wav'],maxInstances:1,cooldown:1500,variation:0,duck:'voice'},
   undead_hit: cue('combat',.1,65,180,40,.18,'triangle'),
   ...Object.fromEntries(['three','two','one'].map((name,i)=>[`countdown_${3-i}`,{...cue('voice',.65,100,110,38,.32,'triangle'),assets:[`/audio/announcer/${name}.wav`],maxInstances:1,cooldown:500,variation:0}])),
   countdown: { ...cue('ui', .14, 80, 110, 38, .32, 'triangle'), cooldown: 500, variation: 0 },

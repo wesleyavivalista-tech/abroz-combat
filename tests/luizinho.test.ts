@@ -9,6 +9,23 @@ import {initializeProjectile} from '../packages/game-core/simulation/ProjectileP
 import {luizinhoPose} from '../apps/client/src/characters/luizinho/presentation.js';
 const match=(other='gut')=>{const g=new GameSimulation(['luizinho',other]);g.state.phase='fight';g.state.fighters.forEach(f=>{f.state='Idle';f.y=g.stage.floorHeight;});g.state.fighters[0].x=300;g.state.fighters[1].x=1800;return g;};
 const run=(g:GameSimulation,n:number,input=0)=>{for(let i=0;i<n;i++)g.step([input,0]);};
+test('Luizinho basic opener hits at frame six, deals damage once and recovers normally',()=>{
+ const g=match(),[f,d]=g.state.fighters;d.x=f.x+90;
+ const hp=d.health;
+ run(g,1,Button.Light);
+ assert.equal(f.move,'jab');
+ while(f.moveFrame<5)run(g,1);
+ assert.equal(d.health,hp,'startup must not deal damage');
+ run(g,1);
+ assert.equal(f.moveFrame,6);
+ assert.equal(d.health,hp-50,'opener hits at its new activation frame');
+ run(g,60);
+ assert.equal(d.health,hp-50,'active overlap must not duplicate damage');
+ assert.equal(f.move,null);
+ assert.equal(f.state,'Idle');
+ run(g,1,Button.Light);
+ assert.equal(f.move,'jab','next opener remains available after recovery');
+});
 const make=(g:GameSimulation,move:string)=>{activateStructure(g.state,g.stage,g.state.fighters[0],0,characters.luizinho.moves[move]);return g.state.structures!.at(-1)!;};
 test('Seller cycles all ten products deterministically, deals damage and mirrors release',()=>{
  for(const face of [1,-1] as const){const g=match(),[f,d]=g.state.fighters;f.x=1000;f.facing=face;d.x=f.x+face*180;

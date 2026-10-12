@@ -6,11 +6,11 @@ import {worldX} from './StageCoordinates.js';
 /** Snapshot-driven rings and basketballs; no timers outside the simulation. */
 export class DodoEffects{
  root=new THREE.Group();private rings:THREE.Mesh<THREE.RingGeometry,THREE.MeshBasicMaterial>[]=[];private balls:THREE.Group[]=[];private count=0;
- private ring(x:number,y:number,r:number,opacity:number,front=0){
+ private ring(x:number,y:number,r:number,opacity:number,front=0,angle=0){
   let m=this.rings[this.count++];
   if(!m){m=new THREE.Mesh(new THREE.RingGeometry(.94,1,64,1,front?-Math.PI/2:0,front?Math.PI:Math.PI*2),new THREE.MeshBasicMaterial({color:0x8aeaff,transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide}));m.userData.front=front;this.rings.push(m);this.root.add(m);}
   if(m.userData.front!==front){m.geometry.dispose();m.geometry=new THREE.RingGeometry(.94,1,64,1,front?-Math.PI/2:0,front?Math.PI:Math.PI*2);m.userData.front=front;}
-  m.visible=true;m.position.set(worldX(x),y/100,.3);m.scale.set(r/100*(front||1),r/100,1);m.material.opacity=opacity;
+  m.rotation.z=angle;m.visible=true;m.position.set(worldX(x),y/100,.3);m.scale.set(r/100*(front||1),r/100,1);m.material.opacity=opacity;
  }
  update(s:SimulationSnapshot,menu:boolean){
   this.root.visible=!menu&&s.phase==='fight';this.rings.forEach(m=>m.visible=false);this.balls.forEach(m=>m.visible=false);this.count=0;if(!this.root.visible)return;
@@ -24,7 +24,7 @@ export class DodoEffects{
   s.projectiles.forEach((p,i)=>{
    if(!p.active||s.fighters[p.owner].characterId!=='dodo'||isLowProfile(s.fighters[p.owner],s.frame))return;
    const spec=characters.dodo.moves[p.move].projectile;
-   if(spec?.visual==='sound')for(let j=0;j<3;j++)this.ring(p.x-Math.sign(p.vx)*j*16,p.y,(spec.radius??48)*(1-j*.12),.9-j*.2,Math.sign(p.vx));
+   if(spec?.visual==='sound')for(let j=0;j<3;j++)this.ring(p.x-Math.sign(p.vx)*j*16,p.y-Math.sign(p.vy??0)*j*16,(spec.radius??48)*(1-j*.12),.9-j*.2,1,Math.atan2(p.vy??0,p.vx));
    if(spec?.visual==='basketball'){
     let g=this.balls[i];if(!g){g=new THREE.Group();g.add(new THREE.Mesh(new THREE.SphereGeometry(.18,16,12),new THREE.MeshBasicMaterial({color:0xe6842b,toneMapped:false})));
      for(let j=0;j<3;j++){const seam=new THREE.Mesh(new THREE.TorusGeometry(.182,.009,4,32),new THREE.MeshBasicMaterial({color:0x352316}));seam.rotation.set(j===0?Math.PI/2:0,j===1?Math.PI/2:0,0);g.add(seam);}this.balls[i]=g;this.root.add(g);}

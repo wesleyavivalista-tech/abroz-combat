@@ -25,7 +25,7 @@ test('beta admission: 64 real sockets, eight rooms, settled combat hashes and cl
     ws.send(JSON.stringify({type:seat?'join':'create',code,character,capacity:8,contentVersion:contentVersion()}));
     const joined=await next(i,'room');assert.equal(joined.type,'room');if(joined.type==='room')code=joined.code;
    }
-   sockets.slice(room*8,room*8+8).forEach(s=>s.send(JSON.stringify({type:'ready'})));
+   for(let i=room*8;i<room*8+8;i++){sockets[i].send(JSON.stringify({type:'ready'}));sockets[i].send(JSON.stringify({type:'ping',sent:1}));await next(i,'pong');}sockets[room*8].send(JSON.stringify({type:'start-match'}));
    const start=await next(room*8,'start');assert.ok(start.type==='start');
    const simulation=new GameSimulation(start.characters,false,stages[start.stage??'the-foundry'],start.teams,start.skins,false,start.seed);
    simulation.step(Array(8).fill(0));simulation.step(Array(8).fill(0));simulations.push(simulation);

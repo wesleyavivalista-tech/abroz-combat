@@ -41,13 +41,13 @@ for (const n of [4,6]) {
     const service=new RoomService(), clients=Array.from({length:n},client);
     service.create(clients[0].socket,"prototype-a",2,n===4?"2v2":"3v3",1);
     const code=[...service.rooms.keys()][0];service.ready(clients[0].socket);
-    for(let i=1;i<n;i++){service.join(clients[i].socket,code,"prototype-a");service.ready(clients[i].socket);}
+    for(let i=1;i<n;i++){service.join(clients[i].socket,code,"prototype-a");service.ready(clients[i].socket);}service.startMatch(clients[0].socket);
     const start=clients[0].messages.find(m=>m.type==="start")!;
     assert.equal(start.type,"start");if(start.type!=="start")throw new Error("No start");
     assert.equal(start.characters.length,n);assert.equal(start.teams.filter(t=>t===0).length,n/2);
     for(const c of clients)assert.deepEqual(c.messages.find(m=>m.type==="start"),start);
     service.leave(clients[0].socket);assert.equal(service.membership.size,n-1);
-    assert.equal(clients[1].messages.at(-1)?.type,"left");
+    assert.equal(clients[1].messages.filter(m=>m.type==='left').at(-1)?.type,"left");
   });
 }
 test("teammates cannot be hit by melee, direct damage, supers or projectiles; facing stays player-controlled",()=>{
@@ -71,7 +71,7 @@ test("team choice enforces capacity and waiting-room departures preserve assignm
   assert.equal(service.membership.has(c[2].socket),false);
   service.join(c[2].socket,code,"prototype-a",1);service.leave(c[0].socket);
   service.join(c[3].socket,code,"prototype-a",0);service.join(c[4].socket,code,"prototype-a",1);
-  for(const i of [1,2,3,4])service.ready(c[i].socket);
+  for(const i of [1,2,3,4])service.ready(c[i].socket);service.startMatch(c[1].socket);
   const start=c[1].messages.find(m=>m.type==="start");assert.equal(start?.type,"start");
   if(start?.type==="start")assert.deepEqual(start.teams,[0,1,0,1]);
   assert.throws(()=>service.create(client().socket,"prototype-a",4,"2v2",5),/Invalid team/);

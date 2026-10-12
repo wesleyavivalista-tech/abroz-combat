@@ -41,7 +41,7 @@ test('withdrawals advance opponents, including a player who already won and is w
  assert.equal(b.complete,true);assert.equal(b.champion,second.winner);
 });
 function client(){const messages:ServerMessage[]=[];const socket={readyState:1,bufferedAmount:0,send:(s:string)=>messages.push(JSON.parse(s)),close:()=>{},terminate:()=>{}} as unknown as WebSocket;return {socket,messages};}
-function room(n=4){const rooms=new RoomService(),clients=Array.from({length:n},client);rooms.create(clients[0].socket,'jopa',n,'championship');const r=[...rooms.rooms.values()][0];for(const c of clients.slice(1))rooms.join(c.socket,r.code,'jopa');for(const c of clients)rooms.ready(c.socket);return {rooms,clients,r,session:r.championship!};}
+function room(n=4){const rooms=new RoomService(),clients=Array.from({length:n},client);rooms.create(clients[0].socket,'jopa',n,'championship');const r=[...rooms.rooms.values()][0];for(const c of clients.slice(1))rooms.join(c.socket,r.code,'jopa');for(const c of clients)rooms.ready(c.socket);rooms.startMatch(clients[0].socket);return {rooms,clients,r,session:r.championship!};}
 function readyAll(t:ReturnType<typeof room>){for(const m of currentMatches(t.session.bracket).filter(m=>m.status==='ready'))for(const id of m.slots)t.rooms.championshipReady(t.clients[id!].socket,matchToken(m));}
 function win(t:ReturnType<typeof room>,id:string,loser=1){const d=t.session.duels.get(id)!;d.simulation.state.phase='fight';d.simulation.state.fighters[loser].health=0;d.simulation.state.fighters[loser].lives=1;const frame=d.simulation.state.frame;d.players.forEach(n=>t.rooms.input(t.clients[n].socket,frame,0,d.token));}
 test('online assigns independent duels, authoritatively advances rounds and declares champion',()=>{

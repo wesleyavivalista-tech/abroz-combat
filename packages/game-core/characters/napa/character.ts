@@ -1,3 +1,4 @@
+import {Button} from '../../types.js';
 import {move} from '../common.js';
 import type {CharacterDefinition,MoveDefinition} from '../../types.js';
 const hit=(id:string,p:Partial<MoveDefinition>={})=>move(id,{cancelRules:[],...p});
@@ -10,8 +11,8 @@ const moves={
  heavyPunch:hit('heavyPunch',{displayName:'Heavy punch',state:'HeavyAttack',damage:100,startupFrames:12,activeFrames:5,recoveryFrames:22,priority:3,knockback:18,hitboxes:[{x:20,y:60,w:120,h:60}]}),
  low:hit('low',{displayName:'Low kick',state:'CrouchingAttack',level:'low',damage:60,hitboxes:[{x:20,y:5,w:110,h:35}]}),
  air:hit('air',{displayName:'Air kick',state:'AirAttack',damage:75,startupFrames:7,activeFrames:9,recoveryFrames:14,hitboxes:[{x:10,y:25,w:115,h:65}]}),
- cookie:hit('cookie',{displayName:'Cookie',state:'SpecialMove',damage:85,meterCost:20,startupFrames:18,activeFrames:1,recoveryFrames:22,hitboxes:[],projectile:{speed:10,lifetime:100,radius:20,visual:'cookie'}}),
- sniff:hit('sniff',{displayName:'Super Sniff',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:25,startupFrames:18,activeFrames:90,recoveryFrames:22,hitboxes:[],suction:{range:420,strength:4}}),
+ cookie:hit('cookie',{displayName:'Cookie',state:'SpecialMove',damage:85,meterCost:20,startupFrames:18,activeFrames:1,recoveryFrames:22,hitboxes:[],projectile:{arenaRange:true,speed:10,lifetime:100,radius:20,visual:'cookie'}}),
+ sniff:hit('sniff',{displayName:'Super Sniff',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:25,startupFrames:18,activeFrames:90,recoveryFrames:22,hitboxes:[],suction:{range:1470,strength:4,holdButton:Button.Special2,drainInterval:36,drainAmount:5}}),
  cookieMonster:hit('cookieMonster',{displayName:'Cookie Monster',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:100,startupFrames:180,activeFrames:1,recoveryFrames:24,hitboxes:[],summonCookieMonster:true}),
  sneeze:hit('sneeze',{displayName:'Mega Sneeze',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:100,startupFrames:45,activeFrames:1,recoveryFrames:30,hitboxes:[],snotFrames:5100}),
  bossBarrage:hit('bossBarrage',{displayName:'Cookie Barrage',state:'SpecialMove',damage:0,meterGain:0,startupFrames:45,activeFrames:1,recoveryFrames:60,hitboxes:[]}),

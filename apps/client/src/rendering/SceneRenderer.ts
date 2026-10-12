@@ -52,6 +52,7 @@ export class SceneRenderer {
   renderer: THREE.WebGLRenderer;
   composer: EffectComposer;
   scene = new THREE.Scene();
+  spectatorTarget?:number;
   camera = new THREE.PerspectiveCamera(35, 16 / 9, 0.1, 80);
   stage = new StageRenderer();
   mountLabels:(string|undefined)[]=[];
@@ -364,7 +365,8 @@ export class SceneRenderer {
     this.stage.update(s.platformTick??0);
     this.effects.hidePlayers(s.fighters.flatMap((f,i)=>isLowProfile(f,s.frame)?[i]:[]));
     this.effects.update(dt);
-    const survivors = s.fighters.filter((f) => f.lives > 0).map(f=>f.meteorStart===undefined?f:{...f,y:f.meteorY??stageDefinition.floorHeight});
+    const target=this.spectatorTarget===undefined?undefined:s.fighters[this.spectatorTarget];
+    const survivors = (target&&target.lives>0?[target]:s.fighters.filter((f) => f.lives > 0)).map(f=>f.meteorStart===undefined?f:{...f,y:f.meteorY??stageDefinition.floorHeight});
     const entrance=!menu&&(s.fighters.some(f=>f.move==='love')||s.clones.some(c=>c.kind==='blonde'&&c.fighter.health>0&&c.fighter.npcEntrance));
     const tracked = [...(survivors.length ? survivors : [{x:stageDefinition.width/2,y:stageDefinition.floorHeight}]),...(entrance?[{x:24,y:stageDefinition.floorHeight},{x:stageDefinition.width-24,y:stageDefinition.floorHeight},...s.clones.filter(c=>c.kind==='blonde'&&c.fighter.health>0).map(c=>c.fighter)]:[])];
     const left = Math.min(...tracked.map((f) => f.x));

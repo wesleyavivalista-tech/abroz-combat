@@ -17,6 +17,7 @@ export class MenuNavigation {
  private owner:number|null=null;private lease=0;
  private focus=new Map<string,string>();
  reset(){this.owner=null;this.lease=0;}
+ claim(player:number,now:number,scoped=false):boolean{if(!scoped&&this.owner!==player&&now<this.lease)return false;this.owner=player;this.lease=now+500;return true;}
  private key(root:HTMLElement,player:number){return `${root.closest<HTMLElement>('dialog')?.id||root.closest<HTMLElement>('[data-nav-screen]')?.dataset.navScreen||root.dataset?.navScreen||root.id||'screen'}:${player}`;}
  private token(el:HTMLElement){const data=Object.entries(el.dataset).filter(([k])=>k!=='controllerFocus').flat();return el.id||[el.tagName,...data,el.getAttribute?.('href')??'',...(data.length?[]:[el.getAttribute?.('aria-label')??el.textContent?.trim().slice(0,80)??''])].join(':');}
  private controls(root:HTMLElement,allowed:(el:HTMLElement)=>boolean){
@@ -32,8 +33,7 @@ export class MenuNavigation {
   if(current!==document.activeElement){current.focus({preventScroll:true});current.scrollIntoView({block:'nearest',inline:'nearest'});}
  }
  handle(action:MenuAction,player:number,root:HTMLElement,now:number,back:()=>void,scoped=false,allowed:(el:HTMLElement)=>boolean=()=>true){
-  if(!scoped&&this.owner!==player&&now<this.lease)return;
-  this.owner=player;this.lease=now+500;
+  if(!this.claim(player,now,scoped))return;
   if(action==='back'){back();return;}
   const controls=this.controls(root,allowed);if(!controls.length)return;
   let current=controls.find(el=>el===document.activeElement);

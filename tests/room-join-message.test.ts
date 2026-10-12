@@ -11,7 +11,7 @@ for(const mode of ['ffa','championship'] as const)test(`${mode}: full lobby and 
  service.create(a,'nikalz',2,mode);const room=[...service.rooms.values()][0];service.join(b,room.code,'jopa');
  assert.throws(()=>service.join(outsider,room.code,'gut'),{message:'Room is full'});
  assert.equal(service.membership.has(outsider),false);
- service.ready(a);service.ready(b);
+ service.ready(a);service.ready(b);service.startMatch(a);
  assert.throws(()=>service.join(outsider,room.code,'gut'),{message:started});
  service.leave(a);
  assert.throws(()=>service.join(outsider,room.code,'gut'),{message:started});

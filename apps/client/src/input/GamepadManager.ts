@@ -1,3 +1,4 @@
+import {ControllerMappings,mappingKey,mappedInput} from './ControllerMapping.js';
 import { Button } from '../../../../packages/game-core/types.js';
 export const MAX_LOCAL_GAMEPADS = 8;
 export const DEFAULT_DEADZONE = .2;
@@ -10,6 +11,7 @@ export type MenuAction = 'left'|'right'|'up'|'down'|'confirm'|'back'|'pause'|'pr
 export interface PadSample { index: number; id: string; mapping: string; connected: boolean; axes: readonly number[]; buttons: readonly {pressed: boolean; value: number}[] }
 export interface ControllerDevice {
  key: number; index: number; id: string; name: string; brand: 'xbox'|'playstation'|'generic'; mapping: string; connected: boolean;
+ profileKey:string; rawButtons:number[]; rawAxes:number[];
  player: number|null; buttons: number[]; previousButtons: number[]; axes: number[]; previousAxes: number[]; lastActivity: number;
  mask: number; pressed: number; released: number; pending: number; blocked: boolean; direction: string; repeatAt: number;
 }
@@ -35,11 +37,13 @@ export function menuDirection(buttons:readonly number[],axes:readonly number[],p
 }
 /** Session identities deliberately never persist: browser indices and IDs are not physical serial numbers. */
 export class GamepadManager {
+ readonly mappings=new ControllerMappings();
  readonly devices = new Map<number, ControllerDevice>();
  readonly slots: (number|null)[];
  readonly keyboardClaimed = new Set<number>();
  deadzone = DEFAULT_DEADZONE;
  attackButtons = [...DEFAULT_ATTACK_BUTTONS];
+ managementEvents=false;
  revision = 0;
  events: ControllerEvent[] = [];
  capture: {player:number}|{identify:number}|null = null;
@@ -48,9 +52,13 @@ export class GamepadManager {
  constructor(readonly cap=MAX_LOCAL_GAMEPADS) { this.slots=Array.from({length:cap},()=>null); }
  device(player:number) { const key=this.slots[player];return key==null?undefined:this.devices.get(key); }
  label(player:number) { const d=this.device(player);return d?`${d.name} · ${d.connected?'Connected':'Disconnected'}`:player<2?`Keyboard ${player+1}`:'Press any button to join'; }
- ready(player:number) { const d=this.device(player);return d?d.connected&&d.mapping==='standard':player<2; }
+ supported(d:ControllerDevice){return d.mapping==='standard'||this.mappings.profiles.has(d.profileKey);}
+ beginMapping(key:number){const d=this.devices.get(key);if(!d?.connected||d.mapping==='standard')return;this.capture=null;this.testing=null;this.clear();this.mappings.begin(key,d.profileKey);this.revision++;}
+ cancelMapping(){this.mappings.wizard=null;this.clear();this.revision++;}
+ saveMapping(){if(this.mappings.save()){for(const d of this.devices.values()){d.buttons=[];d.axes=[];}this.clear();this.revision++;}}
+ ready(player:number) { const d=this.device(player);return d?d.connected&&this.supported(d):player<2; }
  assign(key:number,player:number) {
-  const d=this.devices.get(key);if(!d?.connected||d.mapping!=='standard'||player<0||player>=this.cap)return false;
+  const d=this.devices.get(key);if(!d?.connected||!this.supported(d)||player<0||player>=this.cap)return false;
   const old=this.device(player);if(old){old.player=null;this.suppress(old);}
   if(d.player!==null)this.slots[d.player]=null;
   this.slots[player]=key;d.player=player;this.suppress(d);this.revision++;
@@ -61,13 +69,13 @@ export class GamepadManager {
  discover(pad:PadSample):ControllerDevice {
   let d=Array.from(this.devices.values()).find(d=>d.connected&&d.index===pad.index&&d.id===pad.id);
   if(!d){
-    d={key:++this.serial,index:pad.index,id:pad.id,...controllerName(pad.id),mapping:pad.mapping,connected:true,player:null,buttons:[],previousButtons:[],axes:[],previousAxes:[],lastActivity:0,mask:0,pressed:0,released:0,pending:0,blocked:false,direction:'',repeatAt:0};
+    d={key:++this.serial,index:pad.index,id:pad.id,...controllerName(pad.id),mapping:pad.mapping,profileKey:mappingKey(pad.id,pad.buttons.length,pad.axes.length),rawButtons:[],rawAxes:[],connected:true,player:null,buttons:[],previousButtons:[],axes:[],previousAxes:[],lastActivity:0,mask:0,pressed:0,released:0,pending:0,blocked:false,direction:'',repeatAt:0};
     this.devices.set(d.key,d);this.revision++;
    }
   return d;
  }
  disconnect(index:number) {
-  for(const d of this.devices.values())if(d.connected&&d.index===index){d.connected=false;this.suppress(d);d.buttons=[];d.axes=[];this.revision++;this.events.push({kind:"disconnect",device:d.key,player:d.player});}
+  for(const d of this.devices.values())if(d.connected&&d.index===index){d.connected=false;this.suppress(d);d.buttons=[];d.axes=[];d.rawButtons=[];d.rawAxes=[];this.revision++;this.events.push({kind:"disconnect",device:d.key,player:d.player});}
  }
  clear() { for(const d of this.devices.values())this.suppress(d); }
  consume(player:number) { const d=this.device(player);if(!d?.connected)return 0;const mask=d.mask|d.pending;d.pending=0;return mask; }
@@ -78,12 +86,17 @@ export class GamepadManager {
    if(!pad?.connected)continue;
    const d=this.discover(pad);
    seen.add(d.key);d.previousButtons=d.buttons;d.previousAxes=d.axes;
-   d.buttons=pad.buttons.map(b=>b.pressed?Math.max(.51,b.value):b.value);d.axes=Array.from(pad.axes);
+   d.rawButtons=pad.buttons.map(b=>b.pressed?Math.max(.51,b.value):b.value);d.rawAxes=Array.from(pad.axes);
+   d.profileKey=mappingKey(pad.id,pad.buttons.length,pad.axes.length);
+   const profile=d.mapping==='standard'?undefined:this.mappings.profiles.get(d.profileKey);
+   const logical=profile?mappedInput(profile,d.rawButtons,d.rawAxes):{buttons:d.rawButtons,axes:d.rawAxes};
+   d.buttons=logical.buttons;d.axes=logical.axes;
+   if(this.mappings.wizard){if(this.mappings.wizard.device===d.key)this.mappings.sample(d.rawButtons,d.rawAxes);this.suppress(d);continue;}
    const down=(i:number)=>d!.buttons[i]>.5;
    const fresh=d.buttons.some((v,i)=>v>.5&&!(d!.previousButtons[i]>.5));
    const stickFresh=Math.max(Math.abs(d.axes[0]??0),Math.abs(d.axes[1]??0))>=.55&&Math.max(Math.abs(d.previousAxes[0]??0),Math.abs(d.previousAxes[1]??0))<.55;
    if(fresh||stickFresh){d.lastActivity=now;this.events.push({kind:'activity',device:d.key,player:d.player});}
-   if(d.mapping!=='standard')continue;
+   if(!this.supported(d)){this.suppress(d);continue;}
    // Keep a controller-only exit available while normal navigation is suppressed.
    if((this.testing!==null&&down(STANDARD.pause)&&!(d.previousButtons[STANDARD.pause]>.5))||(this.capture&&down(STANDARD.back)&&!(d.previousButtons[STANDARD.back]>.5))){
     this.suppress(d);this.events.push({kind:'menu',device:d.key,player:d.player??0,action:'back'});continue;
@@ -107,7 +120,7 @@ export class GamepadManager {
    if(d.blocked){if(!d.buttons.some(v=>v>.5)&&!d.axes.slice(0,2).some(v=>Math.abs(v)>this.deadzone))d.blocked=false;continue;}
    if(this.testing!==null||this.capture){this.suppress(d);continue;}
    d.pressed=mask&~d.mask;d.released=d.mask&~mask;d.mask=mask;d.pending|=d.pressed;
-   if(d.player===null)continue;
+   if(d.player===null&&!this.managementEvents)continue;
    const direction=menuDirection(d.buttons,d.axes,d.direction);
    if(direction&&(direction!==d.direction||now>=d.repeatAt)){
     this.events.push({kind:'menu',device:d.key,player:d.player,action:direction});d.repeatAt=now+(direction===d.direction?110:350);
@@ -116,8 +129,9 @@ export class GamepadManager {
    for(const action of ['confirm','back','pause','previous','next'] as const){const b=STANDARD[action];if(down(b)&&!(d.previousButtons[b]>.5))this.events.push({kind:'menu',device:d.key,player:d.player,action});}
   }
   for(const d of this.devices.values())if(d.connected&&!seen.has(d.key)){
-   d.connected=false;this.suppress(d);d.buttons=[];d.axes=[];this.revision++;this.events.push({kind:'disconnect',device:d.key,player:d.player});
+   d.connected=false;this.suppress(d);d.buttons=[];d.axes=[];d.rawButtons=[];d.rawAxes=[];this.revision++;this.events.push({kind:'disconnect',device:d.key,player:d.player});
   }
+  if(this.mappings.wizard&&!this.devices.get(this.mappings.wizard.device)?.connected)this.cancelMapping();
   // Retain recent diagnostics, but not every historical Bluetooth identity.
   // Reserved seats, open diagnostics and queued notifications still own their records.
   if(this.devices.size>this.cap){

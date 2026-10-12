@@ -11,12 +11,12 @@ function pair(mode:'ffa'|'championship'='ffa'){
 test('ready is idempotent before and after match launch',()=>{
  const {service,a,b}=pair();service.ready(a.socket);const before=b.messages.length;
  for(let i=0;i<100;i++)service.ready(a.socket);assert.equal(b.messages.length,before);
- service.ready(b.socket);const started=b.messages.length;
+ service.ready(b.socket);service.startMatch(a.socket);const started=b.messages.length;
  for(let i=0;i<100;i++)service.ready(a.socket);assert.equal(b.messages.length,started);
  assert.equal(b.messages.filter(m=>m.type==='start').length,1);
 });
 test('championship readiness cannot amplify duplicate acknowledgements',()=>{
- const {service,a,b,room}=pair('championship');service.ready(a.socket);service.ready(b.socket);
+ const {service,a,b,room}=pair('championship');service.ready(a.socket);service.ready(b.socket);service.startMatch(a.socket);
  const session=room.championship!,token=matchToken(currentMatches(session.bracket)[0]);
  service.championshipReady(a.socket,token);const before=b.messages.length;
  for(let i=0;i<100;i++)service.championshipReady(a.socket,token);assert.equal(b.messages.length,before);
@@ -28,7 +28,7 @@ test('arena IDs cannot use array-to-string coercion',()=>{
  assert.equal(service.rooms.size,0);
 });
 test('invalid input cannot mutate progress or claim a different seat',()=>{
- const {service,a,b,room}=pair();service.ready(a.socket);service.ready(b.socket);
+ const {service,a,b,room}=pair();service.ready(a.socket);service.ready(b.socket);service.startMatch(a.socket);
  const before=room.peers[0].lastFrame;
  for(const value of [NaN,Infinity,-Infinity,-1,2.5,10_000_001,'2',null,{}])assert.throws(()=>service.input(a.socket,value as number,0));
  for(const mask of [NaN,Infinity,-1,2048,1.5,'1',null,{}])assert.throws(()=>service.input(a.socket,2,mask as number));
@@ -38,7 +38,7 @@ test('invalid input cannot mutate progress or claim a different seat',()=>{
  assert.throws(()=>service.input(a.socket,2,0),/order/);assert.equal(room.peers[1].lastFrame,1);
 });
 test('duplicate and stale hashes do not amplify traffic',()=>{
- const {service,a,b}=pair();service.ready(a.socket);service.ready(b.socket);
+ const {service,a,b}=pair();service.ready(a.socket);service.ready(b.socket);service.startMatch(a.socket);
  const before=b.messages.length;service.relayHash(a.socket,0,'deadbeef');assert.equal(b.messages.length,before);
  for(let i=0;i<100;i++)service.relayHash(a.socket,0,'deadbeef');assert.equal(b.messages.length,before);
  for(let f=2;f<=60;f++){service.input(a.socket,f,0);service.input(b.socket,f,0);}
@@ -47,7 +47,7 @@ test('duplicate and stale hashes do not amplify traffic',()=>{
 });
 
 test('championship hashes and inputs are scoped to socket ownership and attempt',()=>{
- const {service,a,b,room}=pair('championship');service.ready(a.socket);service.ready(b.socket);
+ const {service,a,b,room}=pair('championship');service.ready(a.socket);service.ready(b.socket);service.startMatch(a.socket);
  const session=room.championship!,token=matchToken(currentMatches(session.bracket)[0]);
  service.championshipReady(a.socket,token);service.championshipReady(b.socket,token);
  const duel=[...session.duels.values()][0],before=duel.simulation.snapshot(),count=b.messages.length;
@@ -71,7 +71,7 @@ test('real sockets reject malformed commands, ignore stat/seat forgery, and disc
   for(const payload of ['{','null','[]','{"type":"heal","hp":999999}','{"type":"create","character":"__proto__","contentVersion":'+JSON.stringify(contentVersion())+'}']){a.send(payload);await next(a,'error');}
   a.send(JSON.stringify({type:'create',character:'nikalz',contentVersion:contentVersion()}));const room=await next(a,'room');assert.equal(room.type,'room');if(room.type!=='room')return;
   b.send(JSON.stringify({type:'join',code:room.code,character:'jopa',contentVersion:contentVersion()}));await next(b,'room');
-  a.send('{"type":"ready"}');b.send('{"type":"ready"}');await next(a,'start');await next(b,'start');
+  a.send('{"type":"ready"}');b.send('{"type":"ready"}');b.send('{"type":"ping","sent":1}');await next(b,'pong');a.send('{"type":"start-match"}');await next(a,'start');await next(b,'start');
   a.send('{"type":"input","frame":2,"mask":16,"seat":1,"hp":999999,"damage":99999,"x":999999}');
   assert.deepEqual(await next(b,'input'),{type:'input',seat:0,frame:2,mask:16});
   for(const payload of ['{"type":"input","frame":3,"mask":1e999}','{"type":"input","frame":3,"mask":-1}','{"type":"input","frame":2,"mask":0}']){a.send(payload);await next(a,'error');}

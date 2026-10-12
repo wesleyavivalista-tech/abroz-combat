@@ -1,3 +1,4 @@
+import {INVASION_VARIANTS,invaderAttackPhase,invaderAttackStart,type InvasionVariant} from '../../../../packages/game-core/simulation/InvasionSystem.js';
 import * as THREE from 'three';
 import type {Fighter,HairClone} from '../../../../packages/game-core/types.js';
 import {characters} from '../../../../packages/game-core/characters/registry.js';
@@ -32,6 +33,7 @@ async function loadAirFrames(id:string):Promise<Frame[]>{
 }
 export async function loadZombieSprites(ids:readonly string[]=Object.keys(characters)):Promise<void>{
  await loadGraveArt();
+ await loadInvasionSprites();
  await Promise.all([...new Set(ids)].map(async id=>{
   if(!characters[id])return;
   let cache=assets.get(id);if(!cache){cache=new RetryableAssets<Frame[]>();assets.set(id,cache);}
@@ -43,6 +45,35 @@ export async function loadZombieSprites(ids:readonly string[]=Object.keys(charac
    return [...frames,...await loadAirFrames(id)];
   });loaded.set(id,frames);
  }));
+}
+export async function loadInvasionSprites():Promise<void>{
+ await Promise.all(INVASION_VARIANTS.map(async id=>{
+  let cache=assets.get(id);if(!cache){cache=new RetryableAssets<Frame[]>();assets.set(id,cache);}
+  const frames=await cache.get(async own=>{
+   const sheet=await loadTexture(`/art/zombies/invasion/${id}-v1.png`);
+   sheet.colorSpace=THREE.SRGBColorSpace;
+   // The heavy sheet has two weapon tips touching between rows 2 and 3.
+   const poses=framesFrom(sheet,4,4,false,true,id==='pt-heavy'?{xFrom:632,y:616}:undefined);
+   if(poses.some(p=>p.width<50||p.height<50))throw new Error(`Incomplete invasion sprite: ${id}`);
+   for(const pose of poses){own(pose.texture);pose.referenceHeight=poses[0].height*(id.endsWith('flag')?.80:id==='pt-heavy'?.86:1);}
+   return poses;
+  });loaded.set(id,frames);
+ }));
+}
+export function invasionSpritePose(f:Fighter,u:Undead,variant:InvasionVariant,frame:number,distance:number):number{
+ if(f.undead==='dying')return frame-u.phaseAt<8?12:13;
+ if(f.undead==='rising')return 4;
+ if(f.stun>0||f.state.includes('HitStun'))return 12;
+ if(f.state==='LightAttack'){
+  const phase=invaderAttackPhase(variant,u.attackFrame);
+  if(phase.active)return phase.contact;
+  if(variant==='pt-heavy')return phase.windup;
+  return u.attackFrame<invaderAttackStart(variant)?5:7;
+ }
+ if(f.state.startsWith('Walk'))return [1,2,3,2][Math.floor(distance/16)%4];
+ if(f.state==='Jump'||f.state==='JumpStartup')return 14;
+ if(f.state==='Fall')return 15;
+ return 0;
 }
 export function disposeZombieSprites():void{for(const cache of assets.values())cache.dispose();for(const cache of airAssets.values())cache.dispose();assets.clear();airAssets.clear();loaded.clear();disposeGraveArt();}
 export function zombieSpritePose(f:Fighter,u:Undead,frame:number,distance:number):number{
@@ -61,7 +92,7 @@ export class ZombieSpriteRenderer {
  readonly sprite=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({transparent:true,alphaTest:.1,side:THREE.DoubleSide,toneMapped:false}));
  readonly shadow:THREE.Mesh;
  private distance=0;private lastX:number|undefined;private lastFrame=-1;
- constructor(readonly characterId:string,private frames?:readonly Frame[]){
+ constructor(readonly characterId:string,private frames?:readonly Frame[],private invasion?:InvasionVariant){
   this.root.name=`zombie-${characterId}`;this.root.add(this.sprite);this.sprite.visible=false;
   this.shadow=new THREE.Mesh(new THREE.CircleGeometry(.35,20),new THREE.MeshBasicMaterial({color:'#101020',transparent:true,opacity:.23,depthWrite:false}));this.shadow.rotation.x=-Math.PI/2;this.shadow.scale.set(1,.5,1);
  }
@@ -75,14 +106,14 @@ export class ZombieSpriteRenderer {
   this.sprite.visible=!!this.frames;this.sprite.rotation.z=0;this.sprite.material.opacity=1;
   const age=frame-u.phaseAt;
   if(this.frames){
-   const pose=zombieSpritePose(f,u,frame,this.distance),art=this.frames[pose];
+   const pose=this.invasion?invasionSpritePose(f,u,this.invasion,frame,this.distance):zombieSpritePose(f,u,frame,this.distance),art=this.frames[pose];
    // Slightly lower than upright fighters because the painted stance is hunched.
    const scale=1.7/(art.referenceHeight??this.frames[0].height);
    this.sprite.material.map=art.texture;this.sprite.scale.set(art.width*scale,art.height*scale,1);
    this.sprite.position.set((art.width/2-art.pivot)*scale,art.height*scale/2,0);
   }
   if(f.undead==='rising'){
-   const t=Math.min(1,age/ZOMBIE_RISE_FRAMES);this.root.position.y-=1.05*(1-t);this.sprite.material.opacity=Math.min(1,t*3);
+   const t=Math.min(1,age/ZOMBIE_RISE_FRAMES);if(this.invasion)this.root.position.x+=(this.invasion.startsWith('pt-')?-1:1)*.7*(1-t);else this.root.position.y-=1.05*(1-t);this.sprite.material.opacity=Math.min(1,t*3);
   }
   if(f.undead==='dying')this.sprite.material.opacity=1-Math.max(0,(age/ZOMBIE_DEATH_FRAMES-.65)/.35);
   this.shadow.position.set(worldX(f.x),surfaceBelow(renderStage,f.x,f.y)/100+.012,0);this.shadow.visible=f.undead!=='dying'&&!!this.frames;

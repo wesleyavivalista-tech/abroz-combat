@@ -107,3 +107,54 @@
  .local-arcade-footer .text-button{padding:4px 0}
  .local-arcade-motto{font-size:clamp(24px,2.8vw,38px)}
 }
+
+/* Connected tournament tree: each round occupies the same seed-row grid. */
+.championship-bracket{padding:18px 3% 12px;background:radial-gradient(ellipse at 85% 15%,#67221525,transparent 45%),linear-gradient(120deg,#0c171ef7,#060c11fa),url('/art/rooftop-city-v1.png') center/cover}
+.bracket-masthead{position:relative;border-bottom:1px solid #803c2b;padding-bottom:12px;margin-bottom:14px}
+.bracket-masthead h2{font:800 clamp(28px,3.3vw,48px)/1 'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:1px;margin:6px 0}
+.bracket-masthead .eyebrow{color:#a3b1b9;font-size:9px;letter-spacing:3px}
+.bracket-brand{position:absolute;right:0;bottom:20px;font:11px monospace;letter-spacing:2px;color:#b8c5cc}.bracket-brand b{color:#ff633e}
+.championship-bracket .championship-next{padding:16px 20px;border:1px solid #764735;border-top:2px solid #f65d39;background:linear-gradient(110deg,#35201c80,#12212bc9 40%,#0c161df0);gap:24px}
+.bracket-stage{flex:0 1 24%;border-right:1px solid #ffffff20;padding-right:20px}.bracket-stage strong{display:block;font:800 clamp(24px,2.7vw,38px)/1 'Barlow Condensed',sans-serif;text-transform:uppercase}.bracket-stage small{display:block;margin-top:9px;font:9px monospace;letter-spacing:2px;color:#acbac3}
+.bracket-up-next{flex:1;min-width:0}.championship-next .bracket-up-next>span{color:#ff704d;letter-spacing:2px}
+.championship-next .bracket-up-next h3{display:flex;align-items:center;gap:12px;margin:8px 0;font-size:18px}
+.championship-next .bracket-opponent{display:flex;align-items:center;gap:10px;min-width:0;flex:1;letter-spacing:0;color:#f0eee6;font:700 17px 'Barlow Condensed',sans-serif}
+.bracket-opponent strong{overflow-wrap:anywhere}.bracket-opponent img{width:36px;height:42px;object-fit:cover;object-position:top;border:1px solid #906548;background:#1a2933}
+.championship-next .bracket-up-next p{font-size:11px}.championship-bracket .primary{background:linear-gradient(#ff7848,#cf361b);border:1px solid #ff9474;color:#fff5e9;box-shadow:inset 0 0 12px #ffb87525;font-weight:800}
+.championship-bracket .championship-rounds{--row-height:68px;display:grid;grid-template-columns:repeat(var(--bracket-columns),minmax(215px,1fr));gap:30px;padding:18px 0 8px;overflow-x:auto}
+.championship-bracket .championship-round{min-width:0}.championship-bracket .championship-round>h3{height:26px;box-sizing:border-box;font:700 16px 'Barlow Condensed',sans-serif;text-transform:uppercase;border-bottom:1px solid #41505a;margin:0 0 8px;padding-bottom:8px;position:relative}.championship-round>h3:after{content:'';position:absolute;left:0;bottom:-1px;width:30px;height:2px;background:#ff633e}
+.championship-bracket .bracket-track{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(var(--bracket-rows),var(--row-height));height:auto;gap:0;isolation:isolate}
+.bracket-node{position:relative;display:flex;align-items:center;min-width:0}.bracket-node.has-next:after{content:'';position:absolute;left:100%;width:15px;height:50%;border-right:1px solid #566772;z-index:-1}.bracket-node.pair-top:after{top:50%;border-top:1px solid #566772}.bracket-node.pair-bottom:after{bottom:50%;border-bottom:1px solid #566772}
+.championship-round:not(:first-child) .bracket-node:before{content:'';position:absolute;right:100%;top:50%;width:15px;border-top:1px solid #566772}
+.championship-bracket .championship-match{width:100%;border-radius:2px;background:linear-gradient(110deg,#22343feb,#101b23ed);border-color:#364954;box-sizing:border-box;z-index:1}
+.championship-bracket .championship-match.is-next{border-color:#e67a4b;box-shadow:inset 3px 0 #ff683e}
+.championship-bracket .championship-match header{padding:3px 7px;font-size:8px;letter-spacing:.5px;background:#ffffff04}
+.championship-bracket .championship-contestant{height:23px;min-height:0;padding:2px 7px;box-sizing:border-box;gap:7px}.championship-bracket .championship-contestant img{width:25px;height:23px}.championship-bracket .championship-contestant span{display:flex;align-items:center;gap:6px;overflow:hidden}.championship-bracket .championship-contestant strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.championship-bracket .championship-contestant small{font-size:8px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.championship-bracket .championship-contestant>b{font-size:8px;flex-shrink:0}
+.bracket-prize{position:absolute;left:0;right:0;top:max(0px,calc(50% - 200px));height:clamp(70px,calc(var(--bracket-rows) * var(--row-height) / 2 - 40px),155px);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ebbc69;background:radial-gradient(ellipse,#c7812529,transparent 70%);pointer-events:none}.bracket-prize svg{width:104px;height:104px;min-height:0;filter:drop-shadow(0 0 15px #e2a44440)}.bracket-prize strong{font:800 20px 'Barlow Condensed',sans-serif;letter-spacing:2px;text-align:center}
+.championship-bracket .championship-tools{margin:12px 0 0;border-top:1px solid #35414a;padding-top:10px;font-size:11px;color:#aab9c2}
+.shell:has(.championship-bracket)>.footer{display:none}.shell:has(.championship-bracket)>header{height:44px;min-height:44px}
+.championship-bracket .championship-champion{border-color:#ae8347;background:radial-gradient(ellipse at left,#90682b44,transparent),#101e27}
+/* Short brackets need space above the final for their trophy. */
+.championship-rounds[style*="--bracket-rows:1"],.championship-rounds[style*="--bracket-rows:2"]{--row-height:200px!important}
+.championship-rounds[style*="--bracket-rows:1"] .bracket-prize{top:0;height:70px}.championship-rounds[style*="--bracket-rows:1"] .bracket-prize svg{width:48px;height:48px}.championship-rounds[style*="--bracket-rows:1"] .bracket-prize strong{font-size:13px}
+@media(min-width:1100px) and (max-height:850px){.championship-bracket{padding-top:10px}.championship-bracket .championship-rounds{--row-height:64px}.bracket-masthead{margin-bottom:8px;padding-bottom:6px}.championship-bracket .championship-next{padding:10px 16px}}
+@media(max-width:900px){.bracket-brand{display:none}.bracket-stage{flex-basis:22%}.championship-bracket .championship-next{flex-wrap:wrap}.championship-next button{margin-left:auto}}
+@media(max-width:700px){.championship-bracket .championship-next{align-items:stretch;gap:12px}.bracket-stage{border-right:0;border-bottom:1px solid #ffffff20;padding:0 0 10px}.championship-bracket .championship-rounds{grid-template-columns:repeat(var(--bracket-columns),240px)}.championship-next button{margin-left:0}.championship-bracket .championship-rounds:focus-visible{outline:2px solid #edce77;outline-offset:2px}}
+
+/* Let fighter identity and the face-off artwork lead the bracket. */
+.championship-bracket .championship-rounds{--row-height:clamp(84px,calc((100vh - 350px) / var(--bracket-rows)),112px)}
+.championship-bracket .championship-contestant{height:32px;padding:3px 9px;gap:10px}
+.championship-bracket .championship-contestant img{width:32px;height:29px;object-fit:cover;object-position:top}
+.championship-bracket .championship-contestant span{display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.1}
+.championship-bracket .championship-contestant strong{font:800 16px/1 'Barlow Condensed',sans-serif;letter-spacing:.4px;max-width:100%}
+.championship-bracket .championship-contestant small{font:10px/1.2 'Barlow',sans-serif;color:#bdc8ce;max-width:100%}
+.championship-bracket .championship-match header{padding:3px 9px}
+.championship-next .bracket-up-next h3{margin:3px 0;gap:16px}
+.championship-next .bracket-opponent{gap:12px;overflow:hidden}
+.championship-next .bracket-face{position:relative;display:block;flex:0 0 120px;height:100px;overflow:hidden;background:none;border:0;mask-image:linear-gradient(#000 75%,transparent)}
+.championship-next .bracket-face img{position:absolute;left:50%;top:var(--face-y);width:170px;height:auto;max-width:none;border:0;background:none;object-fit:initial;transform:translateX(calc(-1 * var(--face-x))) scale(var(--face-scale));transform-origin:var(--face-x) top}
+.championship-next .bracket-opponent-copy{display:flex;flex-direction:column;gap:5px;min-width:0;letter-spacing:0}
+.championship-next .bracket-opponent-copy strong{font:800 clamp(22px,2.1vw,32px)/1 'Barlow Condensed',sans-serif;color:#fff1dc}
+.championship-next .bracket-opponent-copy small{font:12px 'Barlow',sans-serif;color:#c0ccd3}
+.championship-next .bracket-up-next h3>i{color:#ebbc69;font:800 italic 26px 'Barlow Condensed',sans-serif;text-shadow:0 0 18px #da9c48}
+@media(max-width:1100px){.championship-next .bracket-face{flex-basis:80px;height:85px}.championship-next .bracket-face img{width:135px}.championship-next .bracket-opponent{gap:6px}.championship-bracket .championship-next{gap:14px}}

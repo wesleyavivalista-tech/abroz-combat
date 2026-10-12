@@ -1,3 +1,4 @@
+import {healTo} from './MatchStatistics.js';
 import {hasExecutionArmor} from '../combat/ExecutionArmor.js';
 import {hostile} from './Actors.js';
 import {deterministicHypot} from './DeterministicMath.js';
@@ -10,7 +11,16 @@ import {grounded,surfaceBelow} from './StageCollision.js';
 import {enter,locked} from './StateMachine.js';
 import {initializeProjectile} from './ProjectilePool.js';
 import {isLowProfile} from './DodoSystem.js';
-export const NAPA={summonFrames:180,snotFrames:5100,slow:.3,poisonFrames:300,poisonDamage:10,monsterHealth:.6,monsterBonusHealth:200,snotWidth:720,snotHeight:56,heal:.05};
+export const NAPA={summonFrames:180,snotFrames:5100,slow:.3,poisonFrames:300,poisonDamage:10,monsterHealth:.6,monsterBonusHealth:300,snotWidth:720,snotHeight:56,heal:.05};
+/** Derived from active casters, so attack blocking ends immediately with the effect. */
+export function sniffSuppresses(s:SimulationSnapshot,d:Fighter):boolean {
+ if(!isActive(d)||hasExecutionArmor(d)||isInvulnerable(d,s.frame)||isLowProfile(d,s.frame)||d.grappleUntil>s.frame)return false;
+ const all=actors(s),target=all.find(a=>a.fighter===d);
+ return !!target&&all.some(a=>{
+  const f=a.fighter,m=f.move?characters[f.characterId].moves[f.move]:undefined;
+  return isActive(f)&&!!m?.suction&&f.moveFrame>=m.startupFrames&&f.moveFrame<m.startupFrames+m.activeFrames&&hostile(s,a.owner,d,target.owner)&&deterministicHypot(d.x-f.x,d.y-f.y)<=m.suction.range;
+ });
+}
 export function monsterSpawnX(f:Fighter,stage:StageDefinition):number{return Math.max(80,Math.min(stage.width-80,f.x+f.facing*150));}
 export function activateNapa(s:SimulationSnapshot,stage:StageDefinition,f:Fighter,owner:number,m:MoveDefinition):void{
  if(m.summonCookieMonster&&!s.clones.some(c=>c.owner===owner&&c.kind==='cookie-monster')){
@@ -36,12 +46,16 @@ export function advanceNapa(s:SimulationSnapshot,stage:StageDefinition):void{
    // Seat order resolves simultaneous pickups identically on every client.
    const f=s.fighters.find(f=>isActive(f)&&Math.abs(f.x-h.x)<35&&Math.abs(f.y-h.y)<45);if(!f)continue;
    const max=characters[f.characterId].stats.maxHealth;
-   if(s.teams[s.fighters.indexOf(f)]===s.teams[h.owner]&&Object.values(characters[f.characterId].moves).some(m=>m.summonCookieMonster))f.health=Math.min(max,f.health+Math.ceil(max*NAPA.heal));
-   else if(!isInvulnerable(f,s.frame)){f.poisonUntil=s.frame+NAPA.poisonFrames;f.poisonNextTick=s.frame+30;f.poisonDamage=NAPA.poisonDamage;f.poisonOwner=h.owner;}
+   if(s.teams[s.fighters.indexOf(f)]===s.teams[h.owner]&&Object.values(characters[f.characterId].moves).some(m=>m.summonCookieMonster))healTo(s,f,Math.min(max,f.health+Math.ceil(max*NAPA.heal)));
+   else if(!isInvulnerable(f,s.frame)){f.poisonUntil=s.frame+NAPA.poisonFrames;f.poisonNextTick=s.frame+30;f.poisonDamage=NAPA.poisonDamage;f.poisonOwner=h.owner;f.poisonOwned=true;f.poisonNeutral=false;}
    h.expiresAt=s.frame;
   }
  }
  s.hazards=s.hazards.filter(h=>h.expiresAt>s.frame);
+ for(const {fighter:d} of actors(s))if(sniffSuppresses(s,d)){
+  d.buffer=[];
+  if(d.move){d.move=null;d.actionUntil=0;d.chargeStartedAt=undefined;d.chargeButton=undefined;if(!locked(d))enter(d,grounded(d,stage)?'Idle':'Fall');}
+ }
  // Suction runs in movement ticks, respecting hitstop and ending instantly on interruption.
  if(s.hitstop)return;
  for(const source of actors(s)){
@@ -61,12 +75,14 @@ export function advanceNapa(s:SimulationSnapshot,stage:StageDefinition):void{
  }
 }
 export function cookieMonsterInput(s:SimulationSnapshot,c:HairClone,stage:StageDefinition):number{
- const f=c.fighter;if(f.move){c.nextAction=s.frame+45;return 0;}if(!isActive(f)||locked(f)||f.trappedUntil>s.frame||f.grappleUntil>s.frame)return 0;
+ const f=c.fighter;if(f.move){c.nextAction=s.frame+45;return 0;}if(!isActive(f)||locked(f)||f.trappedUntil>s.frame||f.grappleUntil>s.frame||sniffSuppresses(s,f))return 0;
  const target=actors(s).filter(a=>hostile(s,c.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-f.x)-Math.abs(b.fighter.x-f.x))[0]?.fighter;
  if(!target)return 0;
- const dx=target.x-f.x;f.facing=dx<0?-1:1;
+ const dx=target.x-f.x,dy=target.y-f.y;f.facing=dx<0?-1:1;
  if(s.frame>=(c.nextAction??0)&&grounded(f,stage)){
   const pattern=c.pattern??0,id=['bossBarrage','bossSlam','bossChomp'][pattern%3],m=characters[f.characterId].moves[id];
+  const inRange=id==='bossBarrage'?Math.abs(dx)<1100&&Math.abs(dy)<180:Math.abs(dx)<145&&Math.abs(dy)<120;
+  if(!inRange)return Math.abs(dx)>100?(dx>0?Button.Right:Button.Left):0;
   f.move=id;f.moveFrame=-1;f.stateFrame=0;f.attackSerial++;f.hitTargets=[];f.connected=false;f.projectileSpawned=false;f.speedRemainder=0;enter(f,m.state);
   c.pattern=(pattern+1)%3;c.nextAction=s.frame+m.startupFrames+m.activeFrames+m.recoveryFrames+45;return 0;
  }

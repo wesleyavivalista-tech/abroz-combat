@@ -58,7 +58,7 @@ export function advanceStructures(s:SimulationSnapshot,_stage:StageDefinition):v
   const slot=s.projectiles.find(p=>!p.active),shot=def.moves[spec.shotMove!];if(!slot)continue;
   // Aim at release, then travel straight: opponents can still dodge after firing.
   const barrel=b.width*.68+18;
-  initializeProjectile(slot,{active:true,owner:b.owner,x:pivotX+b.aimX*barrel,y:pivotY+b.aimY*barrel,vx:b.aimX*shot.projectile!.speed,vy:b.aimY*shot.projectile!.speed,life:shot.projectile!.lifetime,move:shot.id,serial:1000000+b.id*10000+b.shots++});
+  initializeProjectile(slot,{owned:true,active:true,owner:b.owner,x:pivotX+b.aimX*barrel,y:pivotY+b.aimY*barrel,vx:b.aimX*shot.projectile!.speed,vy:b.aimY*shot.projectile!.speed,life:shot.projectile!.lifetime,move:shot.id,serial:1000000+b.id*10000+b.shots++});
  }
 }
 function canDamage(s:SimulationSnapshot,b:Structure,owner:number):boolean{return b.phase==='built'&&(b.kind==='house'||s.teams[b.owner]!==s.teams[owner]);}
@@ -74,7 +74,7 @@ export function damageStructure(s:SimulationSnapshot,b:Structure,amount:number,k
  for(const a of actors(s)){
   const f=a.fighter;
   if(!intersects(hurtbox(f),structureBox(b))||!canReceiveDirectHit(f,s.frame))continue;
-  const reacts=periodicHit(s,f,spec.collapseDamage??0,0,spec.collapseStun??240,0,undefined,stage.floorHeight,{source:b.owner,move:b.move},stage.width);
+  const reacts=periodicHit(s,f,spec.collapseDamage??0,0,spec.collapseStun??240,0,undefined,stage.floorHeight,{owned:true,source:b.owner,move:b.move},stage.width);
   if(reacts&&s.frame>=f.hitstunImmuneUntil){f.vx=f.vy=0;f.dazed=true;}
  }
 }
