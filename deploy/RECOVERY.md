@@ -355,3 +355,33 @@ an old installer. Retain the legacy error message alongside structured error fie
   and long-session visual/audio QA remain manual. Existing bundle warning remains.
 - Evidence: audits/evidence/2026-10-13-release-015.json. Detailed logs and rollback
   config: ignored deploy/local/release-015. No gameplay changes during preparation.
+
+## Energy indicator and local selection release verified — 2026-10-13
+
+- Browser release 0.1.6, candidate b7da305bfe159724abbd1a8e035611d1053c886a.
+  Includes the full-energy silhouette effect and simultaneous local multiplayer
+  fighter/skin selection, readiness, team colors and original portrait roster.
+- Compatibility remains 49-460a5a44 / protocol 49. No server source, gameplay,
+  network, secrets, infrastructure or migration change. The existing Fly server
+  was not restarted; installed 0.1.5 clients remain online-compatible.
+- 1,583 game tests and 27 release/desktop checks passed, with types, lint, web
+  and server compilation. CI release checks 38470552555 passed. Archived
+  generated bundles were narrowly excluded from ESLint; no runtime fix needed.
+- Windows x64 and macOS ARM64/x64 packaging passed workflow 38470548357.
+  All three candidate metadata files match the commit, WSS endpoint and live
+  compatibility. Installers remain in draft desktop-candidate-38470548357-1;
+  public download links remain 0.1.5. Native installation/launch/upgrade and
+  physical-controller QA remain manual; unsigned beta status is unchanged.
+- Pages production 48ea933b-146b-4fee-b409-043e43218b6a serves verified 0.1.6
+  metadata. Previous Pages de114c3e-8586-4706-987c-fd687c9d0463 is retained for
+  browser-only rollback with the same server. Nineteen previous hashed assets
+  remain available in the new output for existing tabs.
+- Production-build browser smoke verified two keyboard players selecting and
+  readying independently, fight start/pause/menu, and full-energy aura turning
+  off independently after spending energy. Live browser selection and arena
+  loading passed without console errors. Forty-two page/assets/audio requests
+  passed. Private live combat hashes/damage and reconnect/seat restoration
+  passed; final health/ready show zero rooms/connections. Recent server logs
+  contained no exception/fatal entries. Existing bundle-size warning remains.
+- Evidence: audits/evidence/2026-10-13-release-016.json; detailed logs and draft
+  desktop metadata are in ignored deploy/local/release-016.

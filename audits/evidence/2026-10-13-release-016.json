@@ -1,0 +1,47 @@
+{
+  "version": "0.1.6",
+  "candidate": "b7da305bfe159724abbd1a8e035611d1053c886a",
+  "contentVersion": "49-460a5a44",
+  "protocolVersion": 49,
+  "published": true,
+  "pages": "48ea933b-146b-4fee-b409-043e43218b6a",
+  "serverChanged": false,
+  "desktopPublished": false,
+  "desktopWorkflow": 38470548357,
+  "releaseChecksWorkflow": 38470552555,
+  "rollback": {
+    "pages": "de114c3e-8586-4706-987c-fd687c9d0463",
+    "version": "0.1.5",
+    "contentVersion": "49-460a5a44"
+  },
+  "validation": {
+    "gameTests": 1583,
+    "releaseDesktopTests": 27,
+    "types": "passed",
+    "lint": "passed after excluding archived generated bundles",
+    "builds": "web/server and Windows x64, macOS ARM64/x64 CI candidates passed",
+    "desktopMetadata": "all three platforms match candidate commit and live compatibility",
+    "browser": "production build: two keyboard players select/ready/start/pause/menu; aura full and spent energy independently verified; live selection and arena load without errors",
+    "liveCombat": "private two-client create/join/start/damage/state hashes/cleanup passed",
+    "liveReconnect": "seat 1 restored at frame 122",
+    "assetChecks": 42,
+    "recentServerExceptions": 0
+  },
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-460a5a44"
+  },
+  "retainedHashedAssets": 19,
+  "limitations": [
+    "Installers retained as unsigned draft candidates, not publicly published",
+    "Physical controller testing and native installer launch/upgrade checks remain manual",
+    "Existing web bundle size warning"
+  ]
+}
