@@ -44,3 +44,21 @@ test('defeating a blonde during entrance stops her movement and preserves the ot
  const g=game();activateEide(g.state,g.stage,g.state.fighters[0],0,characters.eide.moves.love);run(g,25);
  const f=g.state.clones[0].fighter,x=f.x;f.health=0;run(g,15);assert.equal(f.x,x);assert.equal(f.state,'KO');assert.ok(inLove(g.state.fighters[0]));run(g,25);assert.equal(g.state.clones.length,1);
 });
+
+test('Love survives Eide losing lives and respawning until both companions die',()=>{
+ const g=game(),f=g.state.fighters[0];activateEide(g.state,g.stage,f,0,characters.eide.moves.love);
+ const ids=g.state.clones.map(c=>c.id);g.state.clones[0].fighter.health=125;
+ f.health=0;g.step([0,0]);assert.equal(f.lives,2);assert.ok(inLove(f));
+ run(g,120);assert.equal(f.respawnAt,0);assert.ok(inLove(f));
+ assert.deepEqual(g.state.clones.map(c=>c.id),ids);assert.equal(g.state.clones[0].fighter.health,125);
+ g.state.clones[0].fighter.health=0;g.step([0,0]);assert.ok(inLove(f));
+ f.health=0;g.step([0,0]);assert.equal(f.lives,1);run(g,120);assert.ok(inLove(f));
+ const hp=f.health;applyDamage(g.state,f,100);assert.equal(f.health,hp-80);
+ g.state.clones.find(c=>c.fighter.health>0)!.fighter.health=0;g.step([0,0]);assert.equal(inLove(f),false);
+});
+test('both companions dying during respawn ends Love and rollback reproduces it',()=>{
+ const g=game();activateEide(g.state,g.stage,g.state.fighters[0],0,characters.eide.moves.love);
+ g.state.fighters[0].health=0;g.step([0,0]);const snapshot=g.snapshot();
+ const finish=()=>{g.state.clones.forEach(c=>c.fighter.health=0);g.step([0,0]);assert.equal(inLove(g.state.fighters[0]),false);run(g,120);assert.equal(inLove(g.state.fighters[0]),false);return hashState(g.state);};
+ const hash=finish();g.restore(snapshot);assert.equal(finish(),hash);
+});

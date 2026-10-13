@@ -34,6 +34,8 @@ export function advanceRespawns(s: SimulationSnapshot,floorHeight=0): number[] {
     fresh.y = f.y;
     fresh.lives = f.lives;
     fresh.usedSupers = [...f.usedSupers];
+    // Love belongs to the surviving companions, not to this individual life.
+    if(f.loveMode)fresh.loveMode=true;
     fresh.meter = f.meter;
     fresh.attackSerial = f.attackSerial + 1;
     fresh.invulnerableUntil = s.frame + INVULNERABLE_FRAMES;
@@ -58,7 +60,9 @@ export function resolveKnockouts(s: SimulationSnapshot,cinematic=true): number[]
       s.finalDeaths.push({seat:i,x:f.x,y:f.y,frame:s.frame,facing:f.facing});
       s.finalDeaths=s.finalDeaths.filter(d=>s.frame-d.frame<=FINAL_DEATH_FRAMES);
     }
+    const loveMode=f.loveMode;
     clearFighterCombat(f);
+    if(f.lives>0&&loveMode)f.loveMode=true;
     if(!f.lives)clearOwnedEntities(s,i);
     if(s.structures)for(const b of s.structures)b.trapped=b.trapped.filter(key=>key!==`seat:${i}`);
     if(f.productIndex!==undefined)f.productIndex=0;

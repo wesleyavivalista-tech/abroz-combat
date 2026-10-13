@@ -7,20 +7,22 @@ import {actors} from './Actors.js';
 import {sweepEntry,targetBoxes} from '../combat/CollisionSystem.js';
 import {structureSurfaces} from './StructureSystem.js';
 
-export const INVASION={startFrames:180*60,intervalFrames:10*60,maxActive:16,maxBullets:24,bulletSpeed:4,bulletLife:240,enterFrames:60} as const;
+export const INVASION={startFrames:180*60,intervalFrames:10*60,maxActive:16,maxBullets:24,bulletSpeed:4,bulletLife:360,enterFrames:60} as const;
 export const INVASION_VARIANTS=['pt-normal','pt-flag','pt-heavy','br-normal','br-flag','br-revolver'] as const;
 export type InvasionVariant=typeof INVASION_VARIANTS[number];
 // Stack the additional 30% rate increase on the previous 10% timings.
 const fasterAttack=(frames:number)=>Math.ceil(Math.ceil(frames/1.1)/1.3);
 // A 40% attack-rate increase shortens the whole combo/cycle by 1 / 1.4.
 export const HEAVY_ATTACK={contacts:[24,60,94].map(f=>fasterAttack(Math.ceil(f/1.4))),ends:[30,66,100].map(f=>fasterAttack(Math.ceil(f/1.4))),transitions:[40,76].map(f=>fasterAttack(Math.ceil(f/1.4)))};
+// The opening lunge is attack movement; ordinary zombie shamble speed is unchanged.
+export const HEAVY_DASH={start:5,distance:240,stopDistance:80} as const;
 export const INVADER_STATS={
  'pt-normal':{health:340,range:105,height:95,cooldown:fasterAttack(90),end:fasterAttack(48)},
  'pt-flag':{health:420,range:165,height:120,cooldown:fasterAttack(108),end:fasterAttack(60)},
- 'pt-heavy':{health:520,range:150,height:120,cooldown:fasterAttack(Math.ceil(156/1.4)),end:fasterAttack(Math.ceil(116/1.4))},
+ 'pt-heavy':{health:520,range:150+HEAVY_DASH.distance,height:120,cooldown:fasterAttack(Math.ceil(156/1.4)),end:fasterAttack(Math.ceil(116/1.4))},
  'br-normal':{health:340,range:105,height:95,cooldown:fasterAttack(90),end:fasterAttack(48)},
  'br-flag':{health:420,range:165,height:120,cooldown:fasterAttack(108),end:fasterAttack(60)},
- 'br-revolver':{health:340,range:650,height:95,cooldown:fasterAttack(150),end:fasterAttack(78)},
+ 'br-revolver':{health:340,range:975,height:95,cooldown:fasterAttack(150),end:fasterAttack(78)},
 } as const;
 export interface InvasionBullet {id:number;sourceId:number;x:number;y:number;vx:number;life:number;}
 export interface InvasionState {bullets:InvasionBullet[];nextBulletId:number;}
@@ -58,6 +60,19 @@ export function invaderAttackPhase(variant:InvasionVariant,age:number):{windup:n
 export function advanceInvaderAttack(s:SimulationSnapshot,stage:StageDefinition,c:HairClone):void{
  const variant=c.invasion!,u=c.undead!,f=c.fighter,age=++u.attackFrame;
  enter(f,'LightAttack');
+ if(variant==='pt-heavy'&&age>=HEAVY_DASH.start&&age<=HEAVY_ATTACK.contacts[0]){
+  const target=s.fighters[u.target];
+  const remaining=target?(target.x-f.x)*f.facing-HEAVY_DASH.stopDistance:0;
+  const distance=Math.max(0,Math.min(HEAVY_DASH.distance/(HEAVY_ATTACK.contacts[0]-HEAVY_DASH.start+1),remaining));
+  const nextX=Math.max(40,Math.min(stage.width-40,f.x+f.facing*distance));
+  let fraction=1;
+  // Sweep the full body so the dash cannot tunnel through built walls or turrets.
+  for(const b of s.structures??[])if(b.phase==='built')for(const box of structureSurfaces(b)){
+   const contact=sweepEntry({x:box.x-31,y:box.y-154,w:box.w+62,h:box.h+154},f.x,f.y,nextX,f.y,0);
+   if(contact!==Infinity)fraction=Math.min(fraction,Math.max(0,contact-.001));
+  }
+  f.x+=(nextX-f.x)*fraction;
+ }
  if(variant==='br-revolver'){
   if(age===invaderAttackStart(variant)){
    s.invasion??={bullets:[],nextBulletId:0};

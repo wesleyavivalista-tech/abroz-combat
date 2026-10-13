@@ -111,7 +111,7 @@ test('football damages a separated return hit within twelve frames',()=>{
  advanceJopa(g.state,g.stage);assert.equal(d.health,1448);
  const hp=d.health;g.state.frame++;p.x=380;p.vx=16;
  for(let i=0;i<3;i++){g.state.frame++;advanceJopa(g.state,g.stage);}
- assert.equal(d.health,hp-52);assert.ok(p.vx<0);
+ assert.equal(d.health,hp-42);assert.ok(p.vx<0);
 });
 test('football cannot repeatedly damage an overlapping target before separating',()=>{
  const g=game(),d=g.state.fighters[1];d.x=450;activate(g,'football');
@@ -132,10 +132,25 @@ test('football wall ricochets register every separated impact, including rapid r
  const p=g.state.projectiles.find(p=>p.active)!;p.x=d.x+60;p.vx=-16;
  const hp=d.health;
  for(let i=0;i<12;i++){g.state.frame++;advanceJopa(g.state,g.stage);}
- assert.ok(d.health<=hp-104);assert.ok(p.active);
+ assert.ok(d.health<=hp-94);assert.ok(p.active);
  const snapshot=g.snapshot();
  for(let i=0;i<30;i++){g.state.frame++;advanceJopa(g.state,g.stage);}
  const expected=hashState(g.state);g.restore(snapshot);
  for(let i=0;i<30;i++){g.state.frame++;advanceJopa(g.state,g.stage);}
  assert.equal(hashState(g.state),expected);
+});
+
+test('football damage decays per ball across opponents and restores with snapshots; new balls reset',()=>{
+ const g=new GameSimulation(['jopa','gut','gut']);g.state.phase='fight';g.state.fighters.forEach(f=>{f.state='Idle';f.x=2000;});
+ g.state.fighters[0].x=100;activate(g,'football');const p=g.state.projectiles.find(p=>p.active)!;
+ const hit=(seat:number)=>{
+  g.state.frame++;const d=g.state.fighters[seat];g.state.fighters.slice(1).forEach(f=>f.x=2000);
+  d.x=600;d.y=0;d.state='Idle';d.stun=0;d.combo=0;
+  p.x=540;p.y=24;p.vx=16;p.nextHits={};const hp=d.health;
+  advanceJopa(g.state,g.stage);return hp-d.health;
+ };
+ assert.deepEqual([hit(1),hit(2),hit(1),hit(2)],[52,42,34,27]);
+ const saved=g.snapshot(),damage=p.footballDamage;
+ hit(1);g.restore(saved);assert.equal(g.state.projectiles.find(p=>p.active)!.footballDamage,damage);
+ activate(g,'football');assert.ok(g.state.projectiles.some(p=>p.active&&p.footballDamage===52));
 });

@@ -40,7 +40,7 @@ export function activateJopa(s:SimulationSnapshot,stage:StageDefinition,f:Fighte
  const kind=m.jopaAbility;if(!kind)return;
  if(kind==='football'||kind==='chess'){
   const p=s.projectiles.find(p=>!p.active);if(!p)return;
-  initializeProjectile(p,{active:true,owner,x:f.x+f.facing*(kind==='chess'?110:70),y:f.y+24,vx:f.facing*(kind==='football'?16:5),vy:0,life:kind==='football'?JOPA.footballFrames:900,expiresAt:s.frame+(kind==='football'?JOPA.footballFrames:900),nextHop:s.frame+8,jopaKind:kind,variant:kind==='chess'?(f.chessIndex??0)%5:undefined,move:m.id,serial:f.attackSerial,nextHits:kind==='football'?{['seat:'+owner]:s.frame+8}:{}});
+  initializeProjectile(p,{active:true,owner,x:f.x+f.facing*(kind==='chess'?110:70),y:f.y+24,vx:f.facing*(kind==='football'?16:5),vy:0,life:kind==='football'?JOPA.footballFrames:900,expiresAt:s.frame+(kind==='football'?JOPA.footballFrames:900),nextHop:s.frame+8,footballDamage:kind==='football'?m.damage:undefined,jopaKind:kind,variant:kind==='chess'?(f.chessIndex??0)%5:undefined,move:m.id,serial:f.attackSerial,nextHits:kind==='football'?{['seat:'+owner]:s.frame+8}:{}});
   if(kind==='chess')f.chessIndex=((f.chessIndex??0)+1)%5;return;
  }
  if(kind==='tree'){
@@ -182,8 +182,13 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   }
   if(contact){
    if(contact.friendly||contact.structure)recordGameplayEvent(s,'ObjectImpact',p.owner,p.move,undefined,{x:p.x});
-   if(contact.target&&!contact.friendly)strike(s,f,p.owner,contact.target,p.jopaKind==='football'?characters.jopa.moves.football.damage:80,p.jopaKind==='football'?12:JOPA.chessStun,stage.floorHeight,p.move,stage.width);
-   if(contact.structure&&s.teams[contact.structure.owner]!==s.teams[p.owner]&&(p.nextHits?.[contact.key]??0)<=s.frame){damageStructure(s,contact.structure,p.jopaKind==='football'?characters.jopa.moves.football.damage:65,'jopa:'+p.owner+':'+p.serial,12,stage);}
+   if(contact.target&&!contact.friendly){
+    const damage=p.footballDamage??characters.jopa.moves.football.damage,health=contact.target.health;
+    strike(s,f,p.owner,contact.target,p.jopaKind==='football'?damage:80,p.jopaKind==='football'?12:JOPA.chessStun,stage.floorHeight,p.move,stage.width);
+    // Keep unrounded damage on this ball; shared damage handling rounds each hit once.
+    if(p.jopaKind==='football'&&contact.target.health<health)p.footballDamage=damage*.8;
+   }
+   if(contact.structure&&s.teams[contact.structure.owner]!==s.teams[p.owner]&&(p.nextHits?.[contact.key]??0)<=s.frame){damageStructure(s,contact.structure,p.jopaKind==='football'?(p.footballDamage??characters.jopa.moves.football.damage):65,'jopa:'+p.owner+':'+p.serial,12,stage);}
    if(p.jopaKind==='chess')p.active=false;
    else {p.nextHits??={};p.nextHits[contact.key]=contact.structure?s.frame+12:-1;p.x=oldX+(p.x-oldX)*Math.max(0,contact.time-.02);p.vx=-p.vx;}
   }

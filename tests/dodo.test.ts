@@ -20,9 +20,9 @@ test('Low-profile is immediate, lasts 240 simulation frames and never reveals on
  assert.equal(debugGeometry(g.state,trainingRoom).filter(b=>b.kind==='hurt').length,1);
  g.state.hitstop=150;while(g.state.frame<end)g.step([0,0]);assert.equal(f.invisibleUntil,0);assert.equal(f.lowProfileNoticeUntil,0);
 });
-test('Power Chord hits only ahead and pushes away at mid range',()=>{
+test('Power Chord hits ahead and behind and pushes away at mid range',()=>{
  const g=game(),[f,t]=g.state.fighters;f.x=700;t.x=1000;g.step([Button.Special,0]);run(g,45);assert.ok(t.health<1500);assert.ok(t.x>1000);
- const h=game();h.state.fighters[0].x=1000;h.state.fighters[1].x=700;h.step([Button.Special,0]);run(h,45);assert.equal(h.state.fighters[1].health,1500);
+ const h=game();h.state.fighters[0].x=1000;h.state.fighters[1].x=700;h.step([Button.Special,0]);run(h,45);assert.ok(h.state.fighters[1].health<1500);
 });
 test('Pain Killers creates distinct 440 health companions and removes them on final owner death',()=>{
  const g=game();g.step([Button.Super1,0]);run(g,25);assert.equal(g.state.clones.length,3);assert.deepEqual(g.state.clones.map(c=>c.variant),[0,1,2]);

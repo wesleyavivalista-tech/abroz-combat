@@ -126,3 +126,57 @@ test('all invasion attack cycles gain another thirty percent speed; movement and
  assert.deepEqual(Object.values(INVADER_STATS).map(v=>v.end),[34,43,59,34,43,55]);
  assert.equal(INVASION.bulletSpeed,4);assert.equal(ZOMBIE_CLAW.startupFrames,18);
 });
+
+test('heavy opening dashes from medium range in either direction, then completes the three-hit combo',()=>{
+ for(const direction of [-1,1]){
+  const g=game(),c=live(g,'pt-heavy'),d=g.state.fighters[0];
+  c.fighter.x=1000;c.fighter.y=d.y=0;d.x=1000+direction*320;g.state.fighters[1].x=2300;g.state.frame=10;
+  advanceUndead(g.state,g.stage);assert.equal(c.undead!.attackAt,10);assert.equal(c.fighter.facing,direction);
+  const damages:number[]=[];
+  for(let age=1;age<=INVADER_STATS['pt-heavy'].end;age++){
+   g.state.frame++;const hp=d.health;advanceUndead(g.state,g.stage);
+   if(d.health<hp)damages.push(hp-d.health);
+   if(age<5)assert.equal(c.fighter.x,1000,'readable windup before lunging');
+   if(age>=14)assert.equal(c.fighter.x,1000+direction*240,'only the first strike lunges');
+   d.stun=0;d.state='Idle';d.combo=0;
+  }
+  assert.deepEqual(damages,[48,56,72]);
+ }
+});
+
+test('heavy dash stops before nearby targets, built walls and arena edges',()=>{
+ for(const mode of ['near','wall','edge']){
+  const g=game(),c=live(g,'pt-heavy'),d=g.state.fighters[0];
+  c.fighter.x=mode==='edge'?g.stage.width-100:500;c.fighter.y=d.y=0;c.fighter.facing=1;
+  d.x=mode==='edge'?g.stage.width+100:mode==='near'?600:820;
+  c.undead!.target=0;c.undead!.attackAt=1;
+  if(mode==='wall')g.state.structures=[{id:0,owner:0,kind:'wall',move:'wall',phase:'built',x:650,y:0,width:80,height:300,health:300,maxHealth:300,createdAt:0,expiresAt:1000,hits:{},trapped:[],nextShot:0,shots:0,facing:1}];
+  for(let i=0;i<14;i++)advanceInvaderAttack(g.state,g.stage,c);
+  if(mode==='near')assert.equal(c.fighter.x,520);
+  if(mode==='wall')assert.ok(c.fighter.x<=579&&c.fighter.x>500);
+  if(mode==='edge')assert.equal(c.fighter.x,g.stage.width-40);
+ }
+});
+
+test('heavy dash stops on interruption and replays identically from a mid-dash snapshot',()=>{
+ const g=game(),c=live(g,'pt-heavy'),d=g.state.fighters[0];
+ c.fighter.x=500;c.fighter.y=d.y=0;d.x=820;g.state.fighters[1].x=2200;
+ tick(g,9);assert.ok(c.fighter.x>500);assert.ok(c.undead!.attackAt);
+ const saved=g.snapshot();tick(g,70);const expected=hashState(g.state);
+ g.restore(saved);tick(g,70);assert.equal(hashState(g.state),expected);
+ g.restore(saved);const interrupted=g.state.clones[0],x=interrupted.fighter.x;
+ interrupted.fighter.state='HitStunStanding';interrupted.fighter.stun=20;interrupted.fighter.vx=0;
+ tick(g,6);assert.equal(interrupted.undead!.attackAt,0);assert.equal(interrupted.fighter.x,x);
+});
+
+test('revolver engages fifty percent farther away and bullets reach beyond their former lifetime',()=>{
+ const g=game(),c=live(g,'br-revolver'),d=g.state.fighters[0];
+ c.fighter.x=100;c.fighter.y=d.y=0;d.x=1000;g.state.fighters[1].x=2200;g.state.frame=10;
+ advanceUndead(g.state,g.stage);assert.equal(c.undead!.attackAt,10);
+ assert.equal(INVADER_STATS['br-revolver'].range,650*1.5);
+ for(let i=0;i<30;i++)advanceInvaderAttack(g.state,g.stage,c);
+ const bullet=g.state.invasion!.bullets[0];assert.equal(bullet.life,240*1.5);assert.equal(bullet.vx,4);
+ d.x=1300;const hp=d.health;
+ for(let i=0;i<300;i++)advanceInvasionBullets(g.state,g.stage);
+ assert.equal(d.health,hp-68);assert.equal(g.state.invasion!.bullets.length,0);
+});

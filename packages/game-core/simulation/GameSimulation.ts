@@ -1,3 +1,4 @@
+import {spawnSoundWave,advanceSoundWaves} from './SoundWaveSystem.js';
 import {newMatchStatistics,beginStatisticsFrame,finishStatistics,spendEnergy,healTo,trackActivation} from './MatchStatistics.js';
 import {advanceInvasionWaves,advanceInvasionBullets} from './InvasionSystem.js';
 import {advanceAfterlife,advanceUndead} from './UndeadSystem.js';
@@ -296,6 +297,7 @@ export class GameSimulation {
     for(const [p,from] of returningStarts)if(p.active&&p.serial===from.serial)hitReturningProjectile(s,p,from.x,from.y,d=>this.emit('impact',d,1,Math.max(0,s.fighters.indexOf(d))),previousPositions,this.stage.floorHeight,this.stage.width);
     advanceSpiders(s,this.collisionStage,previousPositions);
     advanceBeams(s,this.stage.width,(a,d,m,source,target)=>this.hit(a,m,target.previousInput,!!target.move,d,source.facing,source,target),this.stage.floorHeight);
+    advanceSoundWaves(s,this.collisionStage,(p,d,seat,direction)=>this.hit(p.owner,characters[s.fighters[p.owner].characterId].moves[p.move],d.previousInput,isCounterState(d),seat,direction,s.fighters[p.owner],d));
     const combatants = actors(s);
     for(let i=0;i<combatants.length;i++) for(let j=i+1;j<combatants.length;j++) {
       const a=combatants[i], b=combatants[j];
@@ -313,7 +315,7 @@ export class GameSimulation {
       });
     });
     for (let i=0;i<s.projectiles.length;i++) {
-      const p=s.projectiles[i]; if(!p.active || p.trajectory || p.jopaKind) continue;
+      const p=s.projectiles[i]; if(!p.active || p.trajectory || p.jopaKind || p.soundWave) continue;
       const m=characters[s.fighters[p.owner].characterId].moves[p.move], spec=m.projectile,oldX=p.x,oldY=p.y;
       if(spec?.homing) {
         const target=combatants.filter(a=>hostile(s,p.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-p.x)+Math.abs(a.fighter.y+85-p.y)-Math.abs(b.fighter.x-p.x)-Math.abs(b.fighter.y+85-p.y))[0]?.fighter;
@@ -412,7 +414,12 @@ export class GameSimulation {
     const boosted = f.onFireUntil > this.state.frame;
     const speed = companionSpeed*(inLove(f)?EIDE.loveSpeed:1)*personalityMovementSpeed(f)*angerMultiplier(f,this.state.frame)*movementSlow(f,this.state.frame)*(boosted ? 1.5 : 1)*(f.weaponUntil ? def.weaponModifiers?.speed??1 : 1);
     f.stateFrame++;
-    if(sniffSuppresses(this.state,f)){f.buffer=[];input&=Button.Left|Button.Right|Button.Up|Button.Down;}
+    if(sniffSuppresses(this.state,f)){
+      f.buffer=[];input=0;
+      // Cancel escape momentum and pending jumps/dashes; suction and gravity still apply.
+      f.vx=0;f.vy=Math.min(0,f.vy);
+      if(['JumpStartup','DashForward','DashBackward'].includes(f.state))enter(f,grounded(f,this.collisionStage)?'Idle':'Fall');
+    }
     if(controlMeteor(this.state,this.collisionStage,f,player))return;
     if(controlJopa(this.state,this.collisionStage,f,player))return;
     if(coolMuscles(f)||gymHolding(f)&&f.moveFrame>=18)return;
@@ -636,6 +643,8 @@ export class GameSimulation {
           activates &&
           !f.projectileSpawned
         ) {
+          if(def.musicFighter&&m.projectile.visual==='sound')spawnSoundWave(this.state,this.stage,f,player,m);
+          else {
           const directions=m.projectile.cardinal?[[f.facing,0],[0,1],[-f.facing,0],[0,-1]]:[[f.facing,0]];
           for(const [dx,dy] of directions){
           const slot = this.state.projectiles.find((p) => !p.active);
@@ -654,6 +663,7 @@ export class GameSimulation {
               move: m.id,
               serial: f.attackSerial,
             });
+          }
           }
           }
           if(m.projectile.variants)f.productIndex=((f.productIndex??0)+1)%m.projectile.variants;

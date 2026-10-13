@@ -292,6 +292,8 @@ export interface Fighter {
   projectileSpawned: boolean;
 }
 export interface Projectile {
+  footballDamage?: number;
+  soundWave?: {chain:string;travel:number;range:number;generation:number;continuous:boolean;burst:string;hits:string[];visited:string[]};
   owned?:boolean;
   jopaKind?: "football"|"chess";
   expiresAt?: number;

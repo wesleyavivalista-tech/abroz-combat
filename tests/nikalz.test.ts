@@ -21,7 +21,7 @@ test('double jump second basic is the forehead dive; a hit stuns exactly two sec
 });
 test('regular swarm persists, loops, hits one enemy once and slows movement 40% for 3 seconds',()=>{
  const g=game(),d=g.state.fighters[1];spawnBees(g.state,0,700,85);const b=g.state.bees![0];run(g,400);assert.equal(g.state.bees!.length,1);
- assert.deepEqual(beePosition(b,b.born),beePosition(b,b.born+b.period));d.x=b.x;d.y=0;const hp=d.health;g.step([0,0]);assert.equal(g.state.bees!.length,0);assert.equal(d.health,hp-44);assert.equal(movementSlow(d,g.state.frame),.6);const end=d.beeSlowUntil!;run(g,end-g.state.frame);assert.equal(movementSlow(d,g.state.frame),1);
+ assert.deepEqual(beePosition(b,b.born),beePosition(b,b.born+b.period));d.x=b.x;d.y=0;const hp=d.health;g.step([0,0]);assert.equal(g.state.bees!.length,0);assert.equal(d.health,hp-54);assert.equal(movementSlow(d,g.state.frame),.6);const end=d.beeSlowUntil!;run(g,end-g.state.frame);assert.equal(movementSlow(d,g.state.frame),1);
 });
 test('five placements use every basic button, keep five 550 HP boxes, then restore normal moves',()=>{
  const g=game(),f=g.state.fighters[0];g.step([Button.Super2,0]);run(g,55);assert.equal(f.beeBoxes,5);
@@ -90,15 +90,15 @@ test('meteor deals its increased damage once to fighters and destroys a nearby 5
  advanceNikalz(g.state,g.stage);assert.equal(d.health,hp-meteorDamage(10,g.stage.width));
 });
 
-test('special and box swarms both deal 44 damage and slow by 40 percent',()=>{
- assert.equal(characters.nikalz.moves.bees.damage,44);assert.equal(NIKALZ.swarmDamage,44);assert.equal(NIKALZ.slowMultiplier,.6);
+test('special and box swarms both deal 54 damage and slow by 40 percent',()=>{
+ assert.equal(characters.nikalz.moves.bees.damage,54);assert.equal(NIKALZ.swarmDamage,54);assert.equal(NIKALZ.slowMultiplier,.6);
  for(const box of [false,true]){
   const g=game(),f=g.state.fighters[0],d=g.state.fighters[1];
   if(box){activateStructure(g.state,g.stage,f,0,characters.nikalz.moves.placeBox);g.state.frame=NIKALZ.spawnInterval;advanceNikalz(g.state,g.stage);}
   else activateNikalz(g.state,g.stage,f,0,characters.nikalz.moves.bees);
   const bee=g.state.bees![0];assert.ok(bee);d.x=bee.x;d.y=0;const hp=d.health;
-  advanceNikalz(g.state,g.stage);assert.equal(d.health,hp-44);assert.equal(movementSlow(d,g.state.frame),.6);
+  advanceNikalz(g.state,g.stage);assert.equal(d.health,hp-54);assert.equal(movementSlow(d,g.state.frame),.6);
   assert.equal(d.beeSlowUntil,g.state.frame+180);assert.equal(g.state.bees!.length,0);
-  advanceNikalz(g.state,g.stage);assert.equal(d.health,hp-44);
+  advanceNikalz(g.state,g.stage);assert.equal(d.health,hp-54);
  }
 });

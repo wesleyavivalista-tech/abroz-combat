@@ -1,0 +1,27 @@
+{
+  "tool": "Built-in imagegen",
+  "assets": [
+    {
+      "file": "online-create-v1.jpg",
+      "prompt": "Use case: stylized-concept. New original premium fighting-game online-menu card background for ABROZ COMBAT. Input images are style and character reference ONLY; redraw into the requested new scene, never reuse the standing cutout. Match the local-mode cards' angular painterly illustrated brushwork, strong graphic shadows, cinematic energy and recognizable fighter likeness. Portrait 4:5 composition filling the whole canvas. Keep complete head inside the central upper 60%, bottom 30% dark navy quiet atmospheric space for real HTML title. No text, letters, numbers, logos, UI, borders or watermark. CREATE ROOM: Nikalz, the curly-haired bearded man in beige sweater from reference 2, in a NEW confident welcoming pose, one hand beckoning challengers into his rooftop fighting arena, gold glowing bees swirling around his other raised fist. Dramatic low-angle close waist-up composition, warm amber arena spotlights behind him. One hero.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/modes/versus-v2.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/nikalz/portrait-1.png"
+      ]
+    },
+    {
+      "file": "online-browse-v1.jpg",
+      "prompt": "Use case: stylized-concept. New original premium fighting-game online-menu card background for ABROZ COMBAT. Input images are style and character reference ONLY; redraw into the requested new scene, never reuse the standing cutout. Match the local-mode cards' angular painterly illustrated brushwork, strong graphic shadows, cinematic energy and recognizable fighter likeness. Portrait 4:5 composition filling the whole canvas. Keep complete head inside the central upper 60%, bottom 30% dark navy quiet atmospheric space for real HTML title. No text, letters, numbers, logos, UI, borders or watermark. BROWSE PUBLIC ROOMS: Caio, the teal-shirt gold-chain tattooed fighter with red energy fists from reference, on a rooftop overlooking several dramatically lit fighting arenas across a night city. NEW three-quarter over-shoulder pose, face clearly visible looking back toward viewer, fist glowing red, electric blue city light contrasts crimson energy. A sense of choosing your next battleground. One hero.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/modes/versus-v2.png"
+      ]
+    },
+    {
+      "file": "online-code-v1.jpg",
+      "prompt": "Use case: stylized-concept. New original premium fighting-game online-menu card background for ABROZ COMBAT. Input images are style and character reference ONLY; redraw into the requested new scene, never reuse the standing cutout. Match the local-mode cards' angular painterly illustrated brushwork, strong graphic shadows, cinematic energy and recognizable fighter likeness. Portrait 4:5 composition filling the whole canvas. Keep complete head inside the central upper 60%, bottom 30% dark navy quiet atmospheric space for real HTML title. No text, letters, numbers, logos, UI, borders or watermark. JOIN FRIENDS WITH CODE: Jopa, the young curly-haired clean-shaven black-and-white striped football-shirt fighter from reference, in a NEW inviting pose opening a tall steel entrance gate to a private rooftop fighting arena, holding a small black chess knight in his free hand. Face clearly readable. Gold arena light spills through gate, cool teal-blue surroundings. One hero, dramatic close waist-up angle.",
+      "references": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/modes/champion-v1.png"
+      ]
+    }
+  ]
+}

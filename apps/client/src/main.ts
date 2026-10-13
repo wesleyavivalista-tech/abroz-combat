@@ -352,7 +352,7 @@ function showChampionVictory(){
 }
 function playChampionship(id: string) {
   if (!championship || screen !== 'championship-bracket' || mode !== 'local') return;
-  showPlayers(2,2,2,()=>launchChampionshipMatch(id));
+  launchChampionshipMatch(id);
 }
 function launchChampionshipMatch(id:string){
   if(!championship||mode!=='local')return;

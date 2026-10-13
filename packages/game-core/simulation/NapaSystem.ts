@@ -12,7 +12,7 @@ import {enter,locked} from './StateMachine.js';
 import {initializeProjectile} from './ProjectilePool.js';
 import {isLowProfile} from './DodoSystem.js';
 export const NAPA={summonFrames:180,snotFrames:5100,slow:.3,poisonFrames:300,poisonDamage:10,monsterHealth:.6,monsterBonusHealth:300,snotWidth:720,snotHeight:56,heal:.05};
-/** Derived from active casters, so attack blocking ends immediately with the effect. */
+/** Derived from active casters, so movement and attack blocking end immediately with the effect. */
 export function sniffSuppresses(s:SimulationSnapshot,d:Fighter):boolean {
  if(!isActive(d)||hasExecutionArmor(d)||isInvulnerable(d,s.frame)||isLowProfile(d,s.frame)||d.grappleUntil>s.frame)return false;
  const all=actors(s),target=all.find(a=>a.fighter===d);
@@ -31,9 +31,9 @@ export function activateNapa(s:SimulationSnapshot,stage:StageDefinition,f:Fighte
  if(m.snotFrames){const width=Math.min(NAPA.snotWidth,stage.width),x=Math.max(width/2,Math.min(stage.width-width/2,f.x+f.facing*200));s.hazards.push({kind:'snot',createdAt:s.frame,owner,x,y:surfaceBelow(stage,x,f.y),width,height:NAPA.snotHeight,expiresAt:s.frame+m.snotFrames,move:m.id,nextTicks:[]});}
  if(f.cookieBoss&&m.id==='bossBarrage'){
   const clone=s.clones.find(c=>c.fighter===f);
-  for(const [vx,vy,bounces] of [[-7,0,0],[7,0,0],[-6,7,1],[6,7,1],[f.facing*8,-3,2]]){
+  for(const [vx,vy,bounces] of [[-7,0,0],[7,0,0],[0,7,0],[0,-7,0],[-6,7,1],[6,7,1],[f.facing*8,-3,2]]){
    const slot=s.projectiles.find(p=>!p.active);if(!slot)break;
-   initializeProjectile(slot,{active:true,owner,companionId:clone?.id,x:f.x+Math.sign(vx)*75,y:f.y+160,vx,vy,gravity:bounces?.3:0,bounces,life:180,move:'bossCookie',serial:f.attackSerial});
+   initializeProjectile(slot,{active:true,owner,companionId:clone?.id,x:f.x+Math.sign(vx)*75,y:f.y+160,vx,vy,gravity:bounces?.3:0,bounces,life:characters[f.characterId].moves.bossCookie.projectile!.lifetime,move:'bossCookie',serial:f.attackSerial});
   }
  }
 }

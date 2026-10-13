@@ -16,7 +16,7 @@ const moves={
  cookieMonster:hit('cookieMonster',{displayName:'Cookie Monster',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:100,startupFrames:180,activeFrames:1,recoveryFrames:24,hitboxes:[],summonCookieMonster:true}),
  sneeze:hit('sneeze',{displayName:'Mega Sneeze',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:100,startupFrames:45,activeFrames:1,recoveryFrames:30,hitboxes:[],snotFrames:5100}),
  bossBarrage:hit('bossBarrage',{displayName:'Cookie Barrage',state:'SpecialMove',damage:0,meterGain:0,startupFrames:45,activeFrames:1,recoveryFrames:60,hitboxes:[]}),
- bossCookie:hit('bossCookie',{displayName:'Giant cookie',damage:90,knockback:12,hitboxes:[],projectile:{speed:7,lifetime:180,radius:30,visual:'cookie'}}),
+ bossCookie:hit('bossCookie',{displayName:'Giant cookie',damage:90,knockback:12,hitboxes:[],projectile:{speed:7,lifetime:270,radius:30,visual:'cookie'}}),
  bossSlam:hit('bossSlam',{displayName:'Dough Slam',state:'HeavyAttack',damage:160,knockback:22,launch:8,knockdown:true,priority:3,startupFrames:48,activeFrames:8,recoveryFrames:60,piercing:true,hitboxes:[{x:10,y:0,w:270,h:95}]}),
  bossChomp:hit('bossChomp',{displayName:'Cookie Chomp',state:'HeavyAttack',damage:145,knockback:13,knockdown:true,priority:3,startupFrames:30,activeFrames:8,recoveryFrames:50,advance:5,hitboxes:[{x:10,y:30,w:155,h:180}]}),
 };

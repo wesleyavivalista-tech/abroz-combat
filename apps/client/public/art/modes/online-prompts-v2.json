@@ -1,0 +1,29 @@
+{
+  "tool": "Built-in imagegen",
+  "assets": [
+    {
+      "file": "online-create-v2.jpg",
+      "prompt": "Edit the first reference into a new premium ABROZ COMBAT online menu card illustration, using the other reference for fighter likeness. EXACTLY TWO equally prominent fighters, both faces and upper bodies clearly visible side by side, no other people. Nikalz, curly dark hair, short beard, beige sweater, golden bees, alongside Drupa, bald bearded man wearing red and white varsity jacket. Both inviting rivals into an amber-lit rooftop fighting arena. Preserve angular painterly illustration, cinematic graphic shadows and rich detail of the reference. Portrait 4:5 composition. Both heads fully within the upper half, neither cropped at top or sides. Leave bottom 28% dark navy quiet atmosphere for HTML text. No text, letters, numbers, logos, borders, UI or watermark. Show both fighters together in one coherent scene, not a split collage.",
+      "references": [
+        "online-create-v1.jpg",
+        "versus-v2.png"
+      ]
+    },
+    {
+      "file": "online-browse-v2.jpg",
+      "prompt": "Edit the first reference into a new premium ABROZ COMBAT online menu card illustration, using the other reference for fighter likeness. EXACTLY TWO equally prominent fighters, both faces and upper bodies clearly visible side by side, no other people. Caio, teal shirt, gold chain, tattoos and glowing red fists, alongside Nikalz, curly dark hair, beard and beige sweater with golden bees. Both survey a dramatic blue neon city of rooftop fighting arenas, looking toward the viewer. Preserve angular painterly illustration, cinematic graphic shadows and rich detail of the reference. Portrait 4:5 composition. Both heads fully within the upper half, neither cropped at top or sides. Leave bottom 28% dark navy quiet atmosphere for HTML text. No text, letters, numbers, logos, borders, UI or watermark. Show both fighters together in one coherent scene, not a split collage.",
+      "references": [
+        "online-browse-v1.jpg",
+        "online-create-v1.jpg"
+      ]
+    },
+    {
+      "file": "online-code-v2.jpg",
+      "prompt": "Edit the first reference into a new premium ABROZ COMBAT online menu card illustration, using the other reference for fighter likeness. EXACTLY TWO equally prominent fighters, both faces and upper bodies clearly visible side by side, no other people. Jopa, youthful curly-haired fighter in black and white striped soccer shirt holding a black chess knight, alongside Caio, teal shirt, gold chain and glowing red fists. Together opening the imposing private arena gate with golden light behind them. Preserve angular painterly illustration, cinematic graphic shadows and rich detail of the reference. Portrait 4:5 composition. Both heads fully within the upper half, neither cropped at top or sides. Leave bottom 28% dark navy quiet atmosphere for HTML text. No text, letters, numbers, logos, borders, UI or watermark. Show both fighters together in one coherent scene, not a split collage.",
+      "references": [
+        "online-code-v1.jpg",
+        "online-browse-v1.jpg"
+      ]
+    }
+  ]
+}

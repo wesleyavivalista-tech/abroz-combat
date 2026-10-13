@@ -13,7 +13,7 @@ const game=(ids=['napa','gut'])=>{const g=new GameSimulation(ids);g.state.phase=
 const run=(g:GameSimulation,n:number,input=0)=>{for(let i=0;i<n;i++)g.step([input,0]);};
 test('requested durations, health, damage and armor have exact values and expire',()=>{
  assert.equal(characters.nikalz.moves.jab.damage,45);
- assert.equal(characters.nikalz.moves.bees.damage,44);
+ assert.equal(characters.nikalz.moves.bees.damage,54);
  assert.equal(characters.roms.moves.juggle.weaponFrames,1560);
  assert.equal(characters.luizinho.moves.wall.structure!.duration,1200);
  assert.equal(characters.gut.stats.maxHealth,1500);
@@ -49,17 +49,17 @@ test('Super Sniff prevents attacks, persists while held, consumes reduced energy
  run(g,1);assert.equal(sniffSuppresses(g.state,g.state.fighters[1]),false);
  g.step([0,0]);g.step([0,Button.Light]);assert.equal(g.state.fighters[1].move,'palm');
 });
-test('Cookie and Power Chord lifetime covers a full stage and soundwave emits four directions once',()=>{
+test('Cookie and Power Chord lifetime covers a full stage and soundwave emits four directional waves',()=>{
  for(const [id,input,move] of [['napa',Button.Special,'cookie'],['dodo',Button.Special,'chord']] as const){
   const g=game([id,'gut']);g.stage={...g.stage,width:6000};g.state.fighters[1].x=5500;
   run(g,1,input);run(g,characters[id].moves[move].startupFrames);
-  const p=g.state.projectiles.find(p=>p.active)!;assert.ok(p.life*Math.abs(p.vx)>=g.stage.width);
+  const p=g.state.projectiles.find(p=>p.active)!;assert.ok(p.soundWave?p.soundWave.range>=g.stage.width:p.life*Math.abs(p.vx)>=g.stage.width);
  }
  const g=game(['dodo','gut']),f=g.state.fighters[0];f.weaponUntil=1000;f.y=400;f.state='Fall';
  run(g,1,Button.Light);run(g,60,Button.Light);
  const waves=g.state.projectiles.filter(p=>p.active&&p.move==='starWave');
- assert.equal(waves.length,4);assert.deepEqual(waves.map(p=>[p.vx,p.vy]),[[18,0],[0,18],[-18,0],[0,-18]]);
- run(g,5,Button.Light);assert.equal(g.state.projectiles.filter(p=>p.active&&p.move==='starWave').length,4);
+ assert.equal(waves.length,4);assert.ok(waves[0].soundWave?.continuous);assert.deepEqual(waves.map(p=>[p.vx,p.vy]),[[18,0],[-18,0],[0,18],[0,-18]]);
+ run(g,5,Button.Light);assert.equal(g.state.projectiles.filter(p=>p.active&&p.move==='starWave'&&p.soundWave?.generation===0).length,4);
 });
 test('basketball companions move and animate 15 percent slower without slowing Dodo',()=>{
  const g=game(['dodo','gut']),f=g.state.fighters[0];summonClones(g.state,0,g.stage);const c=g.state.clones[0].fighter;

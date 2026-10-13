@@ -53,3 +53,13 @@ Current HP: PT/Bolsonaro normal 340, PT/Bolsonaro flag 420, PT heavy 520, Bolson
 ### Additional 30% attack-speed increase
 
 The latest request stacks another 30% attack-rate increase on the existing timings (divide the previous integer timings by 1.3, then round up). Current cycle / completion ticks: normal 64 / 34, flag 77 / 43, heavy 79 / 59, revolver 106 / 55. Heavy contacts: 14 / 31 / 48; revolver fires at 30. The shared timing functions automatically update sprite playback and the lineup. HP, damage, movement, bullet speed and player zombies are unchanged.
+
+
+## Heavy combo opening dash
+
+The PT scythe-and-hammer zombie now starts its combo from up to 390 units away. After a four-tick tell, its opening hammer attack lunges up to 240 units over ticks 5–14, stopping 80 units short of its target. It keeps the direction chosen at attack start, respects arena bounds and built structures, and remains interruptible. The following scythe and slam strikes, damage, cooldowns, and ordinary walking speed are unchanged.
+
+
+## Revolver range increase
+
+Revolver zombies now engage from 975 units (previously 650). Bullet lifetime increases from 240 to 360 ticks, extending maximum travel from 960 to 1,440 units at the unchanged speed of 4 units per tick. Damage, firing cadence, walking speed and bullet capacity are unchanged.
