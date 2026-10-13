@@ -1,3 +1,4 @@
+import {MultiplayerSelection,multiplayerSelection,type SelectionAction} from './ui/MultiplayerSelection.js';
 import {SpectatorPlayback} from './networkSpectator.js';
 import {onlineMenu,createRoom,joinCode,browseRooms,sharedLobby,lobbyFighters,lobbyArenas,onlineText} from './ui/OnlineLobby.js';
 import type {RoomView,RoomSummary,RoomSettings} from '../../../packages/shared/protocol.js';
@@ -28,8 +29,8 @@ import {MenuNavigation} from "./input/MenuNavigation.js";
 import {STANDARD} from "./input/GamepadManager.js";
 import {controllerSettings,refreshControllerLabels,controllerDiagnostics} from "./ui/Controllers.js";
 import "./ui/controllers.css";
-import {localMatchSetup,localMatchTeams,type LocalMatchMode} from './ui/LocalMatchSetup.js';
-import {eliminationSetup,eliminationPanel,eliminationStatus} from './ui/Elimination.js';
+import {localMatchTitle,localMatchTeams,type LocalMatchMode} from './ui/LocalMatchSetup.js';
+import {eliminationTitle,eliminationPanel,eliminationStatus} from './ui/Elimination.js';
 import type {EliminationMode} from '../../../packages/game-core/simulation/EliminationSystem.js';
 import {energyMeter} from './ui/EnergyMeter.js';
 import {RenderInterpolation} from './rendering/RenderInterpolation.js';
@@ -48,6 +49,7 @@ import { fighterPresentation, escapeMarkup } from "./ui/FighterPresentation.js";
 import "./style.css";
 import "./ui/combat-menu.css";
 import "./ui/selection-finish.css";
+import './ui/multiplayer-selection.css';
 import { fighterGuideScreen, controlLabel } from './ui/FighterGuide.js';
 import './ui/fighter-guide.css';
 import { homeScreen, localGameScreen, selectionScreen } from "./ui/MenuScreens.js";
@@ -197,6 +199,7 @@ function controllerBack(){
  if(screen==='fight'){if(document.getElementById('match-result'))home();else if(paused)pause();return;}
  if(screen==='local-players'){playersNext=null;mode='local';navigate('local-types');ui.shell(localGameScreen());return;}
  if(screen==='select'){if(selectSeat===1){selectSeat=0;selection();}else home();return;}
+ if(multiSelectionActive()){multiSelectionAction(0,'back');return;}
  if(screen==='stage'){selection();return;}
  const back=ui.root.querySelector<HTMLElement>('main [data-action="local"],main [data-action="back-fighters"]')??ui.root.querySelector<HTMLElement>('[data-action="home"]');back?.click();
 }
@@ -216,6 +219,7 @@ function updateControllers(now:number){
  for(const event of pads.drain()){
   if(event.kind==='menu'||event.kind==='join'||event.kind==='activity'){audio.unlock();const d=pads.devices.get(event.device);controllerHints.use(d?.brand??'generic',d&&d.mapping!=='standard'?pads.mappings.profiles.get(d.profileKey):undefined);}
   if(event.kind==='join'||event.kind==='assigned')audio.play("joined");
+  if(event.kind==='disconnect'&&event.player!==null&&multiSelectionActive()){if(multiSelection!.phases[event.player]==='ready')multiSelection!.phases[event.player]='skin';drawMultiSelection();}
   if(event.kind==='disconnect'){audio.play("disconnected");if(mode==='online'&&event.player===0&&screen==='lobby')controllerToast(t('controller.lost',{player:1}));}
   if(event.kind==='assigned'||event.kind==='join'){
    const message=t('controller.assigned',{player:event.player!+1,name:pads.devices.get(event.device)!.name});
@@ -238,6 +242,7 @@ function updateControllers(now:number){
   }
   if(event.kind!=='menu'||event.player===null||!event.action)continue;
   const player=event.player,action=event.action;
+  if(multiSelectionActive()&&!controllerPanel&&!document.querySelector('dialog[open]')){multiSelectionAction(player,action);continue;}
   if(mode==='online'&&player!==0&&!controllerPanel)continue;
   if(screen==='statistics'&&(action==='previous'||action==='next')){if(!menuNavigation.claim(player,now))continue;statisticsTab=statisticsTabs[(statisticsTabs.indexOf(statisticsTab)+(action==='next'?1:3))%4];renderStatistics();continue;}
   if(action==='pause'&&(document.getElementById('controller-text-entry')||document.getElementById('settings-dialog'))){controllerBack();break;}
@@ -274,7 +279,7 @@ function updateControllers(now:number){
   if(before!==`${viewRevision}:${paused}:${controllerPanel}:${onlineControllerMenu}`)break;
  }
  const modal=document.querySelector<HTMLElement>('dialog[open]:last-of-type');
- if(!boardActive&&controllerHints.active&&(modal||screen!=='fight')&&(!(modal??ui.root).contains(document.activeElement)||!(document.activeElement as HTMLElement)?.matches('button,select,input,textarea,a[href],summary,[tabindex="0"]')))menuNavigation.sync(modal??ui.root,screen==='select'&&mode==='local'?selectSeat:0,el=>!!modal||screen!=='select'||!el.matches('[data-skin-seat]')||Number(el.dataset.skinSeat)===selectSeat);
+ if(!multiSelectionActive()&&!boardActive&&controllerHints.active&&(modal||screen!=='fight')&&(!(modal??ui.root).contains(document.activeElement)||!(document.activeElement as HTMLElement)?.matches('button,select,input,textarea,a[href],summary,[tabindex="0"]')))menuNavigation.sync(modal??ui.root,screen==='select'&&mode==='local'?selectSeat:0,el=>!!modal||screen!=='select'||!el.matches('[data-skin-seat]')||Number(el.dataset.skinSeat)===selectSeat);
  controllerHints.update(screen==='fight'&&!modal,screen==='select',boardActive?t('players.controls'):screen==='statistics'?t('statistics.controller'):screen==='fight'&&isSpectating()?`${controllerHints.button(4)} / ${controllerHints.button(5)} · ${onlineText('Switch fighter','Trocar lutador')}   ${controllerHints.button(9)} · ${onlineText('Options','Opções')}`:undefined);
  document.querySelectorAll<HTMLElement>('[data-control-index]').forEach(el=>{const value=controlLabel(displayBindings(Number(el.dataset.controlPlayer))[Number(el.dataset.controlIndex)]??'');if(value&&el.textContent!==value)el.textContent=value;});
  const disconnected=pads.slots.map((_,i)=>i).filter(i=>i<activeInputSlots()&&pads.device(i)&&!pads.device(i)!.connected);
@@ -299,26 +304,60 @@ function updateControllers(now:number){
  if(controllerNotice.textContent!==notice)controllerNotice.textContent=notice;
  controllerNotice.hidden=!notice;
 }
+let multiSelection:MultiplayerSelection|null=null;
+function multiSelectionActive(){return mode==='local'&&(screen==='local-match-setup'||screen==='elimination-setup')&&!!multiSelection;}
+function drawMultiSelection(fresh=false){
+ if(!multiSelectionActive())return;
+ const m=multiSelection!,elimination=screen==='elimination-setup';
+ const focus=document.activeElement as HTMLElement|null;
+ const focusKey=focus?.dataset.mpFighter;
+ const markup=multiplayerSelection(m,elimination?eliminationTitle(localElimination):localMatchTitle(localMatchMode),!elimination&&localMatchMode!=='ffa'?localTeams:undefined,elimination);
+ if(fresh||!ui.root.querySelector('.mp-selection'))ui.shell(markup);
+ else{
+  const template=document.createElement('template');template.innerHTML=markup;
+  for(const selector of ['.mp-preview','.mp-console .ac-roster>div','.mp-footer>.primary']){
+   const current=ui.root.querySelectorAll(selector),next=template.content.querySelectorAll(selector);
+   current.forEach((el,i)=>{if(next[i]&&(el.matches('.mp-preview')?el.getAttribute('data-selection-key')!==next[i].getAttribute('data-selection-key'):el.outerHTML!==next[i].outerHTML))el.replaceWith(next[i]);});
+  }
+ }
+ const arena=ui.root.querySelector('.mp-arena')!;if(!arena.firstElementChild){arena.innerHTML=arenaPicker();bindArenaPicker();}
+ (arena.querySelector('select') as HTMLSelectElement).value=selectedArena;
+ refreshControllerLabels(ui.root,input.controllers);
+ ui.root.querySelectorAll<HTMLElement>('[data-mp-keyboard]').forEach(el=>{const seat=Number(el.dataset.mpKeyboard);el.textContent=playerLobby.keyboards.has(seat)&&!input.controllers.device(seat)?`${input.bindings[seat]?.slice(0,4).map(controlLabel).join(' / ')} · ${controlLabel(input.bindings[seat]?.[4]??'')}: ${onlineText('Confirm','Confirmar')} · ${controlLabel(input.bindings[seat]?.[5]??'')}: ${onlineText('Back','Voltar')}`:'';});
+ ui.root.querySelectorAll<HTMLElement>('[data-mp-seat]').forEach(el=>el.onclick=()=>{m.mouseSeat=Number(el.dataset.mpSeat);drawMultiSelection();});
+ ui.root.querySelectorAll<HTMLElement>('[data-mp-fighter]').forEach(el=>el.onclick=()=>{if(m.phases[m.mouseSeat]!=='fighter')return;m.pick(m.mouseSeat,el.dataset.mpFighter!);multiSelectionAction(m.mouseSeat,'confirm');});
+ ui.root.querySelectorAll<HTMLElement>('[data-mp-skin]').forEach(el=>el.onclick=()=>{const seat=Number(el.dataset.mpPlayer);if(m.phases[seat]!=='skin')return;m.skins[seat]=el.dataset.mpSkin!;multiSelectionAction(seat,'confirm');});
+ ui.root.querySelectorAll<HTMLElement>('[data-mp-back]').forEach(el=>el.onclick=()=>multiSelectionAction(Number(el.dataset.mpBack),'back'));
+ ui.root.querySelectorAll<HTMLElement>('[data-mp-team]').forEach(el=>el.onclick=()=>{const seat=Number(el.dataset.mpTeam);localTeams[seat]=1-localTeams[seat];m.phases[seat]='fighter';drawMultiSelection();});
+ if(focusKey)ui.root.querySelector<HTMLElement>(`[data-mp-fighter="${focusKey}"]`)?.focus({preventScroll:true});
+}
+function multiSelectionAction(player:number,action:string){
+ const m=multiSelection;if(!m||player>=m.ids.length)return;
+ if(action==='pause'){if(player===0){if(m.ready)ui.root.querySelector<HTMLButtonElement>('.mp-footer [data-action]')?.click();else openControllers();}return;}
+ // The owner cycles arenas with shoulder buttons after locking in.
+ if(player===0&&m.phases[0]==='ready'&&(action==='previous'||action==='next')){
+  const ids=Object.keys(stages);selectedArena=ids[(ids.indexOf(selectedArena)+(action==='next'?1:-1)+ids.length)%ids.length];drawMultiSelection();return;
+ }
+ if(screen==='local-match-setup'&&localMatchMode!=='ffa'&&m.phases[player]==='fighter'&&(action==='previous'||action==='next')){localTeams[player]=1-localTeams[player];audio.play('menu_confirm');drawMultiSelection();return;}
+ if(!['left','right','up','down','previous','next','confirm','back'].includes(action))return;
+ const tiles=Array.from(ui.root.querySelectorAll<HTMLElement>('[data-mp-fighter]'));
+ const columns=tiles.filter(el=>el.offsetTop===tiles[0]?.offsetTop).length||8;
+ if(m.handle(player,action as SelectionAction,columns)){audio.play(action==='confirm'?'ready':action==='back'?'menu_back':'fighter_selected');drawMultiSelection();if(m.phases[player]==='fighter')ui.root.querySelector<HTMLElement>(`[data-mp-fighter="${m.cursors[player]}"]`)?.scrollIntoView({block:'nearest',inline:'nearest'});}
+ else if(action==='back'&&player===0){mode='local';navigate('local-types');ui.shell(localGameScreen());}
+}
 function showLocalMatchSetup(kind:LocalMatchMode=localMatchMode,count=kind==='3v3'?6:4){
  mode='local';championship=null;championshipMatch=undefined;
  if(kind!==localMatchMode||count!==localIds.length)localTeams=localMatchTeams(kind,count);
  localMatchMode=kind;
  localIds=Array.from({length:count},(_,i)=>localIds[i]??rosterIds[i%rosterIds.length]);
  localSkins=localIds.map((id,i)=>resolveSkin(characters[id],localSkins[i]));
- navigate('local-match-setup');ui.shell(localMatchSetup(kind,localIds,localSkins,localTeams,developmentBuild));addSetupArenaPicker();
- document.getElementById('local-match-count')!.onchange=e=>{const n=Number((e.target as HTMLSelectElement).value);showPlayers(n,n,n,count=>showLocalMatchSetup(kind,count));};
- ui.root.querySelectorAll<HTMLSelectElement>('[data-local-fighter]').forEach(el=>el.onchange=()=>{const i=Number(el.dataset.localFighter);localIds[i]=el.value;localSkins[i]=resolveSkin(characters[el.value]);showLocalMatchSetup(kind,count);});
- ui.root.querySelectorAll<HTMLSelectElement>('[data-local-skin]').forEach(el=>el.onchange=()=>localSkins[Number(el.dataset.localSkin)]=el.value);
- ui.root.querySelectorAll<HTMLSelectElement>('[data-local-team]').forEach(el=>el.onchange=()=>{localTeams[Number(el.dataset.localTeam)]=Number(el.value);showLocalMatchSetup(kind,count);});
+ navigate('local-match-setup');multiSelection=new MultiplayerSelection(localIds,localSkins);drawMultiSelection(true);
 }
 function showEliminationSetup(kind:EliminationMode=localElimination,count=kind==='elimination-party'?6:4){
  mode='local';localElimination=kind;championship=null;championshipMatch=undefined;
  eliminationIds=Array.from({length:count},(_,i)=>eliminationIds[i]??rosterIds[i%rosterIds.length]);
  eliminationSkins=eliminationIds.map((id,i)=>resolveSkin(characters[id],eliminationSkins[i]));
- navigate('elimination-setup');ui.shell(eliminationSetup(kind,eliminationIds,eliminationSkins));addSetupArenaPicker();
- document.getElementById('elimination-count')!.onchange=e=>{const n=Number((e.target as HTMLSelectElement).value);showPlayers(n,n,n,count=>showEliminationSetup(kind,count));};
- ui.root.querySelectorAll<HTMLSelectElement>('[data-elimination-fighter]').forEach(el=>el.onchange=()=>{const i=Number(el.dataset.eliminationFighter);eliminationIds[i]=el.value;eliminationSkins[i]=resolveSkin(characters[el.value]);showEliminationSetup(kind,count);});
- ui.root.querySelectorAll<HTMLSelectElement>('[data-elimination-skin]').forEach(el=>el.onchange=()=>eliminationSkins[Number(el.dataset.eliminationSkin)]=el.value);
+ navigate('elimination-setup');multiSelection=new MultiplayerSelection(eliminationIds,eliminationSkins);drawMultiSelection(true);
 }
 function showChampionshipSetup() {
   mode = 'local';
@@ -1107,6 +1146,18 @@ function pause() {
 }
 const playerManagementLifetime=new AbortController();
 window.addEventListener('keydown',event=>{
+ if(!multiSelectionActive()||controllerPanel||document.querySelector('dialog[open]')||(event.target as HTMLElement).matches('input,select,textarea'))return;
+ for(let seat=0;seat<input.bindings.length;seat++){
+  if(!playerLobby.keyboards.has(seat)||input.controllers.device(seat))continue;
+  const index=input.bindings[seat].slice(0,8).indexOf(event.code);
+  const action=index>=0?(['left','right','up','down','confirm','back','previous','next'] as const)[index]:seat===0&&event.code==='Enter'?'pause':null;
+  if(!action)continue;
+  event.preventDefault();event.stopImmediatePropagation();
+  if(!event.repeat||index<4)multiSelectionAction(seat,action);
+  return;
+ }
+},{capture:true,signal:playerManagementLifetime.signal});
+window.addEventListener('keydown',event=>{
  if(!(screen==='local-players'&&!controllerPanel||controllerPanel&&controllerBoardActive)||event.repeat||(event.target as HTMLElement).matches('input,select,textarea'))return;
  for(let slot=0;slot<2;slot++){
   if(event.code===input.bindings[slot][4]){event.preventDefault();if(!input.controllers.device(slot)){if(playerLobby.keyboards.has(slot))playerLobby.toggleReady(slot);else playerLobby.keyboard(slot);}return;}
@@ -1145,7 +1196,7 @@ ui.onAction((action, element) => {
     case 'local-match-idle-test':
     case 'local-match-start': {
       const idleTest=action==='local-match-idle-test';
-      if(screen!=='local-match-setup'||mode!=='local'||(idleTest&&!developmentBuild))break;
+      if(screen!=='local-match-setup'||mode!=='local'||(idleTest&&!developmentBuild)||!multiSelection?.ready)break;
       if(localMatchMode!=='ffa'&&localTeams.filter(t=>t===0).length!==localIds.length/2){audio.play('invalid');ui.text('local-match-error',t('setup.balanceError',{count:localIds.length/2}));break;}
       if(!idleTest&&localIds.some((_,i)=>!localInputReady(i))){audio.play('invalid');ui.text('local-match-error',t('controller.deviceRequired'));break;}
       void start(localIds,localTeams,localSkins,false,undefined,undefined,idleTest);break;
@@ -1153,6 +1204,7 @@ ui.onAction((action, element) => {
 
     case 'elimination': case 'elimination-party': {const kind=action,n=kind==='elimination-party'?6:8;showPlayers(n,kind==='elimination-party'?6:2,kind==='elimination-party'?6:undefined,count=>showEliminationSetup(kind,count));break;}
     case 'elimination-start': {
+      if(screen!=='elimination-setup'||!multiSelection?.ready)break;
       if(eliminationIds.some((_,i)=>!localInputReady(i))){audio.play('invalid');ui.text('elimination-setup-error',t('controller.deviceRequired'));break;}
       void start(eliminationIds,undefined,eliminationSkins,localElimination);break;
     }

@@ -1,3 +1,4 @@
+import {FullEnergyEffect} from './FullEnergyEffect.js';
 import {StageVisualEnvironment} from './StageVisualEnvironment.js';
 import {visualPresets,type VisualQuality} from './StageLighting.js';
 import {createEnvironmentPost} from './EnvironmentPost.js';
@@ -77,6 +78,7 @@ export class SceneRenderer {
   clones = new Map<number, FighterVisual>();
   private cloneIdentities = new Map<number,string>();
   fighters: FighterVisual[] = [];
+  private fullEnergy:FullEnergyEffect[]=[];
   ids = "";
   ready = Promise.resolve();
   async prepareFighters(ids?:readonly string[]): Promise<void> {
@@ -293,6 +295,7 @@ export class SceneRenderer {
         if (f.shadow) this.scene.remove(f.shadow);
         f.dispose();
       });
+      this.fullEnergy=s.fighters.map(()=>new FullEnergyEffect());
       this.fighters = s.fighters.map((f, i) =>
         createFighterVisual(characters[f.characterId], s.skins[i]),
       );
@@ -327,6 +330,7 @@ export class SceneRenderer {
       if(fighter.characterId==='dodo'){visual.root.traverse(object=>{if(object instanceof THREE.Mesh){const materials=Array.isArray(object.material)?object.material:[object.material];for(const material of materials)material.opacity=stealthOpacity;}});if(visual.shadow)(visual.shadow.material as THREE.Material).opacity=.25*stealthOpacity;}
       const hidden=stealthOpacity===0||fighter.characterId==='caio'&&((fighter.move==='vanish'&&fighter.moveFrame>=5)||(fighter.state.startsWith('Dash')&&fighter.stateFrame>=3&&fighter.stateFrame<=9));
       visual.root.visible = !hidden && !menu && fighter.respawnAt === 0 && fighter.lives > 0;
+      this.fullEnergy[i].update(visual.root,fighter.meter,dt,time,visual.root.visible&&stealthOpacity===1&&!death&&s.phase==="fight");
       if (visual.shadow)
         visual.shadow.visible = visual.root.visible && !gymWeight && fighter.jopaRide===undefined && fighter.jopaTree===undefined;
       const shield = this.shields[i];
