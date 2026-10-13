@@ -327,3 +327,31 @@ an old installer. Retain the legacy error message alongside structured error fie
   remain manual. Existing >500 kB web bundle warning remains.
 - Evidence: audits/evidence/2026-10-11-release-014.json. Detailed transfer logs,
   checksums, compatibility metadata and rollback config: deploy/local/release-014.
+
+## Combat and online menu release verified — 2026-10-13
+
+- Release 0.1.5; candidate c24cf71ab72d44396eec9cc4e204d304cfe0723e; browser
+  publishing commit 7b78ea916b80b0d669da2597185dd966d3f6d7d2. Compatibility
+  49-460a5a44, protocol 49. No migration or infrastructure changes.
+- Includes completed Nikalz, Eide, Napa, Dodo, Jopa and invasion adjustments,
+  one-time championship controller setup and cinematic online menu.
+- 1,575 game tests, 27 release/desktop checks, types, lint, production builds
+  and CI checks passed. Workflows: release 38429356344, native 38429351346.
+  All three public installers matched SHA-256; both DMGs passed integrity and
+  metadata checks. Packaged ARM64 app startup verified.
+- Guarded empty-server rollout preserved machine 0807569c9039d8 and volume.
+  Image: registry.fly.io/abroz-combat@sha256:a3e0a72f194a3e4c2c6b51d327442e9e8a688de487e85a22d3da61c3c4a37240.
+  Pages: de114c3e-8586-4706-987c-fd687c9d0463. Downloads: beta-0.1.5.
+  Thirteen old hashed chunks retained for existing tabs.
+- Live private create/join/start/combat hashes/reconnect/cleanup passed. Old
+  clients rejected with VERSION_MISMATCH. Final health/ready healthy, zero
+  rooms/connections, provider checks passing, no recent exception/fatal entries.
+  Live browser arena loading, movement, 45-damage hit, pause/menu and online
+  screen passed without console errors. 27 page/assets and 6 audio checks passed.
+- Rollback: Pages 52e662b7-a355-4a4e-ac2d-0bc917c27388, beta-0.1.4 downloads,
+  registry.fly.io/abroz-combat@sha256:abb6497c4eb3a0d64b9daf9b574c72b32c9a06c4d28987271b2f01cb8761b96c.
+- Browser/PWA players reload; desktop players install 0.1.5 for online play.
+  Unsigned beta remains. Windows/Intel Mac installation, physical controllers
+  and long-session visual/audio QA remain manual. Existing bundle warning remains.
+- Evidence: audits/evidence/2026-10-13-release-015.json. Detailed logs and rollback
+  config: ignored deploy/local/release-015. No gameplay changes during preparation.

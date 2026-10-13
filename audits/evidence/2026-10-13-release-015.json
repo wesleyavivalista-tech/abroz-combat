@@ -1,0 +1,68 @@
+{
+  "version": "0.1.5",
+  "candidate": "c24cf71ab72d44396eec9cc4e204d304cfe0723e",
+  "contentVersion": "49-460a5a44",
+  "serverImage": "registry.fly.io/abroz-combat@sha256:a3e0a72f194a3e4c2c6b51d327442e9e8a688de487e85a22d3da61c3c4a37240",
+  "desktopWorkflow": 38429351346,
+  "releaseChecksWorkflow": 38429356344,
+  "rollback": {
+    "version": "0.1.4",
+    "contentVersion": "49-8f68f503",
+    "pages": "52e662b7-a355-4a4e-ac2d-0bc917c27388",
+    "serverImage": "registry.fly.io/abroz-combat@sha256:abb6497c4eb3a0d64b9daf9b574c72b32c9a06c4d28987271b2f01cb8761b96c"
+  },
+  "published": true,
+  "pages": "de114c3e-8586-4706-987c-fd687c9d0463",
+  "publishingCommit": "7b78ea916b80b0d669da2597185dd966d3f6d7d2",
+  "validation": {
+    "gameTests": 1575,
+    "releaseDesktopTests": 27,
+    "types": "passed",
+    "lint": "passed",
+    "builds": "browser/server/native CI passed",
+    "liveCombat": "private create/join/start/hash agreement/cleanup passed",
+    "liveReconnect": "seat 1 restored at frame 122",
+    "oldClient": "VERSION_MISMATCH",
+    "browser": "fighters/arena/movement/45 damage/pause/menu; no console errors",
+    "assets": 27,
+    "audioAssets": 6,
+    "mac": "both DMGs integrity, architecture and compatibility checked; ARM64 startup passed"
+  },
+  "downloads": [
+    {
+      "file": "Abroz.Combat-0.1.5-mac-arm64.dmg",
+      "bytes": 1516568211,
+      "sha256": "b0aad8eb3b347348e10bf92731d1847234368edb8b945a1c0e391533c73e0868",
+      "verified": true
+    },
+    {
+      "file": "Abroz.Combat-0.1.5-mac-x64.dmg",
+      "bytes": 1520328209,
+      "sha256": "2515192d81219584b73b8cdcb6d5f2fa084c65aab6d60033f7b84e6645d4f62b",
+      "verified": true
+    },
+    {
+      "file": "Abroz.Combat-0.1.5-win-x64.exe",
+      "bytes": 1467730521,
+      "sha256": "b259a23dd52102d180b939258c4802cfa5da302ec5ced74fdef71ef58e0068e0",
+      "verified": true
+    }
+  ],
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-460a5a44"
+  },
+  "limitations": [
+    "Unsigned beta",
+    "Windows/Intel Mac installation and physical controllers remain manual",
+    "Long-session visual/audio QA remains manual",
+    "Existing web bundle size warning"
+  ]
+}
