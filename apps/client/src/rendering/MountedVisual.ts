@@ -10,10 +10,17 @@ export const mountedCatalog=[['astolfo','fausto','napa','jomp'],['dodo','luizinh
 const heights:Record<string,number>={nikalz:1.78,astolfo:1.6,fausto:1.66,napa:1.76,jomp:1.76,dodo:1.82,luizinho:1.7,roms:1.81,caio:1.75,drupa:1.75,gut:1.8,bozo:1.64,tocha:1.74};
 const caches=new Map<number,RetryableAssets<Frame[]>>(),ready=new Map<string,Frame[]>();
 export async function loadMountedArt(id:string):Promise<void>{
+ // Bozo has a dedicated corrected pair. Other riders keep their shared atlas.
+ if(id==='bozo'){
+  const key=mountedCatalog.length;let cache=caches.get(key);if(!cache){cache=new RetryableAssets<Frame[]>();caches.set(key,cache);}
+  const frames=await cache.get(async own=>{const texture=await loadTexture('/art/bozo/model-mounted-v1.png');texture.colorSpace=THREE.SRGBColorSpace;const frames=framesFrom(texture,2,1,true,true);frames.forEach(f=>own(f.texture));return frames;});
+  ready.set(id,frames);return;
+ }
  const group=mountedCatalog.findIndex(ids=>ids.includes(id));if(group<0)return;
  let cache=caches.get(group);if(!cache){cache=new RetryableAssets<Frame[]>();caches.set(group,cache);}
  const frames=await cache.get(async own=>{const texture=await loadTexture(group===5?'/art/nikalz/mounted-v2.png':group===4?'/art/eide/mounted-v2.png':group===3?'/art/biel/mounted-v3.png':`/art/jopa/mounted-${['a','b','c'][group]}-v2.png`);texture.colorSpace=THREE.SRGBColorSpace;const frames=framesFrom(texture,group>=3?2:4,group>=3?1:2,true,true);frames.forEach(f=>own(f.texture));return frames;});
- mountedCatalog[group].forEach((id,i)=>ready.set(id,frames.slice(i*2,i*2+2)));
+ // Loading Gut/Drupa/Tocha later must not replace Bozo with the old shared pair.
+ mountedCatalog[group].forEach((id,i)=>{if(id!=='bozo')ready.set(id,frames.slice(i*2,i*2+2));});
 }
 export function disposeMountedArt(){caches.forEach(c=>c.dispose());caches.clear();ready.clear();}
 /** An authored seated silhouette for every roster skin, shared by any allied knight. */

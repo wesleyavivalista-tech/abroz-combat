@@ -50,6 +50,25 @@ test('Nikalz new snapshot state replays deterministically and cleans owned entit
  const g=game();activateStructure(g.state,g.stage,g.state.fighters[0],0,characters.nikalz.moves.placeBox);activateNikalz(g.state,g.stage,g.state.fighters[0],0,characters.nikalz.moves.bees);const snap=g.snapshot();run(g,500);const hash=hashState(g.state);g.restore(snap);run(g,500);assert.equal(hashState(g.state),hash);g.state.fighters[0].lives=1;g.state.fighters[0].health=0;run(g,1);assert.equal(g.state.bees!.length,0);assert.equal(g.state.structures!.length,0);
 });
 
+test('Meteor hits jumping opponents at every height once when the wave reaches them',()=>{
+ for(const height of [0,261,600,1200])for(const direction of [-1,1]){
+  const g=game(),d=g.state.fighters[1];d.x=400+direction*200;d.y=height;d.state=height?'Jump':'Idle';
+  const hp=d.health;foreheadWave(g.state,0,400,0,g.stage.width,true);
+  for(let frame=0;frame<3;frame++){g.state.frame=frame;advanceNikalz(g.state,g.stage);assert.equal(d.health,hp);}
+  g.state.frame=3;advanceNikalz(g.state,g.stage);
+  assert.equal(d.health,hp-meteorDamage(200,g.stage.width));assert.equal(d.nikalzStunUntil,363);
+  advanceNikalz(g.state,g.stage);assert.equal(d.health,hp-meteorDamage(200,g.stage.width));
+ }
+});
+
+test('Meteor preserves invulnerability and Testada remains avoidable above its height',()=>{
+ for(const meteor of [true,false]){
+  const g=game(),d=g.state.fighters[1];d.x=410;d.y=600;d.state='Jump';if(meteor)d.invulnerableUntil=100;
+  const hp=d.health;foreheadWave(g.state,0,400,0,g.stage.width,meteor);advanceNikalz(g.state,g.stage);
+  assert.equal(d.health,hp);assert.equal(d.nikalzStunUntil,undefined);
+ }
+});
+
 test('swarm travel takes twice as long and Testada uses the reduced range only on impact',()=>{
  const g=game(),f=g.state.fighters[0];spawnBees(g.state,0,400,85);
  const b=g.state.bees![0];assert.equal(b.period,400);

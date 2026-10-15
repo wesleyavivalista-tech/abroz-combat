@@ -89,7 +89,7 @@ export function advanceNikalz(s:SimulationSnapshot,stage:StageDefinition):void{
   const radius=Math.min(w.range,(s.frame-w.born+1)*w.speed),previousRadius=Math.max(0,(s.frame-w.born)*w.speed-35);
   for(const a of actors(s)){
    const d=a.fighter,key=a.clone?'clone:'+a.clone.id:'seat:'+a.owner,distance=Math.abs(d.x-w.x);
-   if(w.hits.includes(key)||!hostile(s,w.owner,a.fighter,a.owner)||!canReceiveDirectHit(d,s.frame)||distance>radius||distance<previousRadius||d.y>w.y+(w.meteor?260:110)||d.y+150<w.y)continue;
+   if(w.hits.includes(key)||!hostile(s,w.owner,a.fighter,a.owner)||!canReceiveDirectHit(d,s.frame)||distance>radius||distance<previousRadius||(!w.meteor&&(d.y>w.y+110||d.y+150<w.y)))continue;
    w.hits.push(key);const direction=d.x>=w.x?1:-1,stun=w.meteor?NIKALZ.meteorStun:NIKALZ.stunFrames;
    const reacts=periodicHit(s,d,w.meteor?meteorDamage(distance,w.range):NIKALZ.shockDamage,direction,stun,w.meteor?24:18,undefined,stage.floorHeight,{source:w.owner,move:w.meteor?"meteor":"testada"},stage.width);
    if(!reacts)continue;

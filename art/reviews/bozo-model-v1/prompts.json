@@ -1,0 +1,71 @@
+{
+  "tool": "Built-in imagegen",
+  "reference": "portrait-user-polo-v6.png and portrait-user-basketball-v6.png",
+  "requests": {
+    "base": {
+      "referenced_image_paths": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/atlas-1.png",
+        "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-2a354825-076e-4970-a157-3694f07ca0aa.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-polo-v6.png"
+      ],
+      "transparent_background": true,
+      "prompt": "Correct target image1 24-pose game sprite sheet,1536x1024,6columns4rows. The old cartoon actor must be repainted into EXACT same actor as TOP ROW of image2 and original model image3. MATCH image2's long full beard, smaller mature face,short curly dark hair,glasses,natural adult build and angular painted shading. Navy polo with subtle angular fabric texture, beige trousers, cream/navy chunky sneakers tan soles, hairy forearms. NOT old brown shoes, NOT old large round head. Image1 supplies ONLY poses and locations; replace old identity/style. Keep every one of 24 poses unchanged in order and direction, same scale/feet baselines and placement. Row1 guard,relaxed,walkcontact,walkpassing,forwarddash,backdash. Row2 jab,cross,horizontal beard lash,heavyhair sweep,highkick,lowkick. Row3 airborne kick,straight pointed hair spear,hairgripcast,full body hair armor,raised arms summon,tucked jump. Row4 crouchblock,standingblock,hitstun,lying KO,victoryfist,landingcrouch. Keep original attacks' hair ONLY on appropriate moves, no decorative tendrils on normal poses. Same man and clothing on all24, preserve brown-black hair armor. No new poses, no missing figures, no overlapping neighbors. True transparent background alpha, no backdrop, shadows, labels/grid/text. Focus particularly on maintaining the SAME head/face/beard and shoes as corrected walking ref2."
+    },
+    "movement": {
+      "referenced_image_paths": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/movement-v2.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-polo-v6.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-basketball-v6.png"
+      ],
+      "transparent_background": true,
+      "prompt": "Use case identity-preserve. Correct image1 game sprite sheet to precisely match the character in references2 and3. Keep EXACT 4 columns x4 rows,1536x1024 canvas, same sixteen poses, positions, feet baselines and facing. Rows1-2 are polo skin from reference2: navy collared polo, beige trousers, chunky navy/cream/tan sneakers. Rows3-4 basketball from reference3: orange/charcoal angular patterned uniform and shorts, cream trim, black socks, black/orange/cream chunky sneakers. All16 have SAME original face, full long dark beard, black rectangular glasses, short dark curls, natural compact adult body proportions, dense forearm/leg hair. Correct old large-head round cartoon to the reference's facial proportions and angular painted shading, uniformly across every pose. Original image1 is pose layout reference ONLY. No burgundy, no reddish shoes, no white socks. Row1 and3 guarded walk contact/passing poses; row2 and4 crouch launch, tucked airborne hop, wide landing, guarded recovery. Keep all limbs intact and no pose overlaps. Transparent background, true alpha, no backdrop/shadow/grid/text. Do not add hair tentacles to these ordinary movement poses."
+    },
+    "expansion": {
+      "referenced_image_paths": [
+        "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-033b5918-559c-453e-bd07-c8d423998132.png"
+      ],
+      "transparent_background": true,
+      "prompt": "Correct the layout of this exact sprite sheet without changing the character, colors, clothing, poses, or rendering. Output 1536x1024 transparent RGBA sheet containing exactly 24 separate character sprites, arranged in six equal columns and four equal rows. Each sprite must fit entirely inside its 256x256 cell, with at least 12 transparent pixels of padding from all four cell edges. Important: in the source, the bottom two rows' sprites touch vertically, so separate ALL sprites with transparent gaps. Reduce each sprite uniformly as needed to fit into its cell, never crop or squash. Keep row1 and row2 navy polo beige trousers; row3 and row4 orange black basketball clothes. Preserve every pose at same row/column index. All 24 sprites disjoint. No ground, no shadow, no background, no grid, no labels. Preserve true transparency."
+    },
+    "near": {
+      "referenced_image_paths": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/walk-correction/bozo-near.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-polo-v6.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-basketball-v6.png",
+        "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-2c9c4a58-78c1-484c-9fd3-12913850bcde.png"
+      ],
+      "transparent_background": true,
+      "prompt": "Correct game walking sprite sheet image1 using exact Bozo model from image2/3 and corrected sprite style in image4. Keep original1536x1024 canvas,2columns x2rows,EXACT four poses and positions, feet baselines, arm guard, alternating NEAR LEG contact(leftcolumn) and passing(rightcolumn). Keep original leg overlap and direction, all full figures facing right. Toprow navy blue polo beige pants and navy/cream/tan chunky sneakers; bottomrow orange/charcoal angular basketball singlet and shorts creamhem, BLACK SOCKS and chunky orange/black/cream sneakers. NO burgundy, no dress shoes, no white socks. Same original character face: smaller naturally proportioned head,long full dark beard,short curls,black rectangular glasses,hairy forearms, natural compact adult build. Match image4 shape/painted angular shading exactly, do not retain old giant head/cartoon round face. No hair tentacles for walking. Genuine transparent background alpha, no scene, shadow, ground, grid or text. Uniform scale and identical character proportions in each of four poses."
+    },
+    "far": {
+      "referenced_image_paths": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/walk-correction/bozo-far.png",
+        "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-2a354825-076e-4970-a157-3694f07ca0aa.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-polo-v6.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-basketball-v6.png"
+      ],
+      "transparent_background": true,
+      "prompt": "Edit target image1: preserve four original FAR LEG leading walking poses, exact positions/feet baselines on1536x1024 2columns2rows. Replace character illustration to exactly match the corrected SAME MAN in image2 and original model refs3/4. This is the opposite half of image2's walk cycle, so KEEP image1 leg crossing/near-vs-far overlap rather than copying image2 pose. Toprow navy polo beige trousers chunky navy cream tan sneakers. Bottomrow orange black patterned singlet and shorts creamhem black socks chunky orange black cream sneakers. Every head, face, beard, black rectangular glasses, hair, body proportions, colors and painted shading identical to image2. No old cartoon head/round face, no burgundy, no white socks. Dense body hair. Same uniform scale across all4. Arms remain in guard, no tentacles. Genuine transparent alpha, no shadow, ground, scene, text or grid."
+    },
+    "fall": {
+      "referenced_image_paths": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/fall-v1.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-polo-v6.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-basketball-v6.png",
+        "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-2a354825-076e-4970-a157-3694f07ca0aa.png"
+      ],
+      "transparent_background": true,
+      "prompt": "Edit target image1 fall calibration sheet. Preserve1024x1536 canvas, EXACT2 columns3rows, six complete sprites in exact poses: left column upright guard reference, right column airborne downward falling with both knees flexed. Toprow Bozo polo skin; middle basketball; bottom hair-covered transformation. Repaint Bozo in upper two rows to EXACT original model likeness refs2/3 and corrected sprite ref4. Navy polo/beige trousers/navy cream tan chunky sneakers in toprow. Orange/charcoal angular patterned singlet+shorts with cream hems/black socks/orange black cream chunky sneakers middlerow. Exact same mature face, long dark beard, short black curls, black rectangular glasses, natural compact proportions and dense body hair, uniform angular painted shading. No old round/chibi face or large head, no burgundy/white socks/brown dress shoes. Bottomrow preserve intentional braided dark brown full hair transformation and black glasses, same Bozo body proportions, neutral dim glass lenses rather than glowing white squares, consistent brown-black hair. Keep exact anatomy and pose layout,bounds,baseline alignment. Full true transparent alpha, no shadows/background/text/grid. Do not add decorative tentacles."
+    },
+    "mounted": {
+      "referenced_image_paths": [
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/jopa/mounted-c-v2.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-polo-v6.png",
+        "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/portrait-user-basketball-v6.png",
+        "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-2a354825-076e-4970-a157-3694f07ca0aa.png"
+      ],
+      "transparent_background": true,
+      "prompt": "Create transparent game sprite sheet with exactly TWO Bozo seated riding poses side by side, output landscape 1536x1024. Image1 bottom row first two sprites are the POSE reference: same right-facing seated crouch with knees lifted, both arms reaching forward to hold reins. Draw ONLY those two Bozo poses, no other fighters and no mount, no reins, no background, no ground shadow. Appearance MUST use canonical images2 and3 and corrected gameplay rendering in image4. LEFT pose navy polo beige angular patterned trousers navy/cream chunky sneakers with tan soles. RIGHT pose orange/charcoal angular patterned basketball singlet and shorts cream hems, black socks, orange/black/cream chunky sneakers. Same mature man in both poses, identical full long dark beard, short curly dark hair, black rectangular glasses, body hair, natural adult proportions. Match image4 facial features/body and angular shaded style closely. Each whole sprite entirely inside its half with generous transparent padding. Same scale and baseline. Preserve seated pose from image1 only; never use old burgundy outfit or brown dress shoes. Transparent RGBA."
+    }
+  }
+}

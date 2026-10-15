@@ -6,7 +6,7 @@ export function hairSpearExtension(frame:number,startup:number,active:number):nu
 }
 /** Extend by feeding more hair from the root. Every illustrated pixel retains its
  * original scale: the body and pointed tip are rigid, the shaft repeats at 1:1. */
-export function updateHairSpear(geometry:THREE.BufferGeometry,left:number,width:number,extra:number,seam:number,low:number,high:number):void {
+export function updateHairSpear(geometry:THREE.BufferGeometry,left:number,width:number,extra:number,seam:number,low:number,high:number,bodyOnly=false):void {
  const positions:number[]=[],uvs:number[]=[];
  const quad=(x:number,length:number,source:number,sourceLength:number,bottom=low,top=high)=>{
   for(const [dx,y] of [[0,0],[1,0],[1,1],[0,0],[1,1],[0,1]]){
@@ -18,6 +18,7 @@ export function updateHairSpear(geometry:THREE.BufferGeometry,left:number,width:
  quad(0,width,0,width,0,low);
  quad(0,width,0,width,high,1);
  quad(0,split,0,split);
+ if(!bodyOnly){
  let offset=0,index=0;
  while(offset<extra){
   const length=Math.min(20,extra-offset),reverse=index%2===0;
@@ -25,6 +26,7 @@ export function updateHairSpear(geometry:THREE.BufferGeometry,left:number,width:
   offset+=length;index++;
  }
  quad(split+extra,width-split,split,width-split);
+ }
  if(!geometry.userData.hairBuffers){
   geometry.setIndex(null);
   geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(4096*3),3).setUsage(THREE.DynamicDrawUsage));

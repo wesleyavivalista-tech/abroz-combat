@@ -8,8 +8,8 @@ const moves = {
   kick: move("kick", {displayName:"Kick", cancelRules:[], state:"MediumAttack", startupFrames:10, activeFrames:5, recoveryFrames:19, damage:78, knockback:12, hitboxes:[{x:20,y:45,w:115,h:55}]}),
   crouch: move("crouch", {displayName:"Low kick", cancelRules:[], state:"CrouchingAttack", level:"low", startupFrames:8, activeFrames:5, recoveryFrames:18, damage:60, hitboxes:[{x:20,y:5,w:105,h:35}]}),
   air: move("air", {displayName:"Air kick", cancelRules:[], state:"AirAttack", level:"high", startupFrames:7, activeFrames:9, recoveryFrames:16, damage:70, hitboxes:[{x:10,y:35,w:115,h:55}]}),
-  spear: move("spear", {meterCost:25, displayName:"Body hair", cancelRules:[], state:"SpecialMove", startupFrames:26, activeFrames:8, recoveryFrames:30, damage:100, priority:2, knockback:18, hitboxes:[{x:15,y:60,w:638,h:50}]}),
-  grip: move("grip", {meterCost:25, displayName:"Hair grip", cancelRules:[], state:"SpecialMove", startupFrames:23, activeFrames:3, recoveryFrames:34, damage:0, knockback:0, hitstun:12, trapFrames:120, hitboxes:[], projectile:{speed:11,lifetime:75,radius:26,visual:"hair"}}),
+  spear: move("spear", {meterCost:25, displayName:"Body hair", cancelRules:[], state:"SpecialMove", startupFrames:26, activeFrames:8, recoveryFrames:30, damage:100, priority:2, knockback:18, hitboxes:[{x:15,y:60,w:1291,h:50}]}),
+  grip: move("grip", {meterCost:25, displayName:"Hair grip", cancelRules:[], state:"SpecialMove", startupFrames:23, activeFrames:3, recoveryFrames:34, damage:0, knockback:0, hitstun:12, trapFrames:180, hitboxes:[], projectile:{speed:11,lifetime:75,radius:26,visual:"hair"}}),
   armor: move("armor", {displayName:"Bunda de Pelucia", cancelRules:[], state:"SpecialMove", startupFrames:24, activeFrames:3, recoveryFrames:20, damage:0, meterCost:100, meterGain:0, hitboxes:[], armorFrames:1320}),
   clones: move("clones", {displayName:"Hair clones", cancelRules:[], state:"SpecialMove", startupFrames:36, activeFrames:3, recoveryFrames:28, damage:0, meterCost:100, meterGain:0, hitboxes:[], summonClones:3}),
 };

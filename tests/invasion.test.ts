@@ -11,6 +11,7 @@ import {RollbackManager} from '../packages/networking/RollbackManager.js';
 import {VerifiedMatch} from '../apps/server/src/verifiedMatch.js';
 import {encodeSnapshot,decodeSnapshot} from '../packages/shared/recovery.js';
 import {invasionSpritePose} from '../apps/client/src/rendering/ZombieSpriteRenderer.js';
+import {advanceBlood} from '../packages/game-core/simulation/BloodSystem.js';
 const game=(ids=['gut','drupa'])=>{const g=new GameSimulation(ids);g.state.phase='fight';g.state.phaseFrame=0;g.state.fighters.forEach(f=>{f.state='Idle';f.health=100000;});return g;};
 const tick=(g:GameSimulation,n=1)=>{for(let i=0;i<n;i++)g.step(g.state.fighters.map(()=>0));};
 const live=(g:GameSimulation,variant:typeof INVASION_VARIANTS[number])=>{const c=spawnInvader(g.state,g.stage,variant);c.fighter.undead='zombie';c.undead!.nextAttack=0;return c;};
@@ -119,6 +120,33 @@ test('solid walls stop invasion bullets before a fighter behind them',()=>{
 test('invasion damage doubles without changing player-zombie claw or poison',()=>{
  assert.deepEqual(Object.values(INVADER_MOVES).map(m=>m.damage),[56,76,48,56,72,68]);
  assert.equal(ZOMBIE_CLAW.damage,48);assert.equal(ZOMBIE_CLAW.poisonDamage,10);
+});
+
+test('every zombie strike applies three-second poison, refreshes it and expires without stacking',()=>{
+ for(const move of [...Object.values(INVADER_MOVES),ZOMBIE_CLAW]){
+  const g=game(),c=live(g,'pt-normal'),d=g.state.fighters[0];
+  g.state.frame=100;
+  const hit=()=>g.hit(-1,move,0,false,0,1,c.fighter,d);
+  hit();assert.equal(d.poisonUntil,280,move.id);assert.equal(d.poisonDamage,10);assert.equal(d.poisonNeutral,true);
+  const hp=d.health;g.state.frame=130;advanceBlood(g.state,g.stage);assert.equal(d.health,hp-10,move.id);
+  g.state.frame=140;hit();assert.equal(d.poisonUntil,320);assert.equal(d.poisonNextTick,160);assert.equal(d.poisonDamage,10);
+  const refreshedHp=d.health;
+  for(let frame=141;frame<=320;frame++){g.state.frame=frame;advanceBlood(g.state,g.stage);}
+  assert.equal(d.health,refreshedHp-60,move.id);assert.equal(d.poisonUntil,0);
+  g.state.frame=350;advanceBlood(g.state,g.stage);assert.equal(d.health,refreshedHp-60);
+ }
+});
+
+test('all invasion variants deliver poison through melee and bullet collision paths',()=>{
+ for(const variant of INVASION_VARIANTS){
+  const g=game(),c=live(g,variant),d=g.state.fighters[0];
+  c.fighter.x=300;c.fighter.y=d.y=0;c.fighter.facing=1;d.x=380;g.state.fighters[1].x=2200;c.undead!.attackAt=1;
+  for(let i=0;i<INVADER_STATS[variant].end;i++){
+   g.state.frame++;advanceInvaderAttack(g.state,g.stage,c);advanceInvasionBullets(g.state,g.stage);
+   if(d.poisonUntil){assert.equal(d.poisonUntil-g.state.frame,180,variant);break;}
+  }
+  assert.ok(d.poisonUntil>0,variant);
+ }
 });
 
 test('all invasion attack cycles gain another thirty percent speed; movement and bullet speed are untouched',()=>{

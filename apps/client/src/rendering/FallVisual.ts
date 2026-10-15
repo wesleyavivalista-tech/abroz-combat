@@ -34,7 +34,7 @@ export async function loadFallArt(id:string):Promise<void>{
   const rows=key===id?fallCatalog[id].rows:key==='gut-spear'?2:1;
   let cache=caches.get(key);if(!cache){cache=new RetryableAssets<Frame[]>();caches.set(key,cache);}
   const frames=await cache.get(async own=>{
-   const path=key===id?`/art/${id}/fall-v1.png`:`/art/${id}/fall-${key.slice(id.length+1)}-v1.png`;
+   const path=key==='bozo'?'/art/bozo/model-fall-v1.png':key===id?`/art/${id}/fall-v1.png`:`/art/${id}/fall-${key.slice(id.length+1)}-v1.png`;
    const texture=await loadTexture(path);
    texture.colorSpace=THREE.SRGBColorSpace;
    const frames=framesFrom(texture,2,rows,true,true);

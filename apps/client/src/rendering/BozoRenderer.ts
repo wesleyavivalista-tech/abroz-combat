@@ -1,3 +1,4 @@
+import {BozoBodyHair} from './BozoBodyHair.js';
 import {animationTick} from './AnimationPlayback.js';
 import { updateHairSpear, hairSpearExtension } from './BozoHairSpear.js';
 import { AuthoredWalk } from './AuthoredWalk.js';
@@ -33,6 +34,7 @@ export class BozoRenderer implements FighterVisual {
  get fallBodies():THREE.Object3D[]{return [this.sprite];}
  root=new THREE.Group();shadow:THREE.Mesh;
  private authoredWalk?:AuthoredWalk;
+ private bodyHair?:BozoBodyHair;
  private authoredCloneWalk?:AuthoredWalk;
  private isolation:SpriteIsolation;
  private expansion?:ExpandedAnimation;
@@ -44,7 +46,7 @@ export class BozoRenderer implements FighterVisual {
  private restingGeometry=new THREE.PlaneGeometry(1,1,1,12);
  private spearGeometry=new THREE.PlaneGeometry();
  private sprite:THREE.Mesh<THREE.PlaneGeometry,THREE.MeshBasicMaterial>;
- constructor(atlases:THREE.Texture[],private skin=0,private clone=false,movementAtlas?:THREE.Texture,cloneMovementAtlas?:THREE.Texture,walkAtlas?:THREE.Texture,expansionAtlas?:THREE.Texture,cloneExpansionAtlas?:THREE.Texture,walkTextures?:THREE.Texture[],cloneWalkTextures?:THREE.Texture[]){
+ constructor(atlases:THREE.Texture[],private skin=0,private clone=false,movementAtlas?:THREE.Texture,cloneMovementAtlas?:THREE.Texture,walkAtlas?:THREE.Texture,expansionAtlas?:THREE.Texture,cloneExpansionAtlas?:THREE.Texture,walkTextures?:THREE.Texture[],cloneWalkTextures?:THREE.Texture[],bodyHairTexture?:THREE.Texture){
   if(walkTextures)this.authoredWalk=new AuthoredWalk(walkTextures,"bozo");
   if(cloneWalkTextures)this.authoredCloneWalk=new AuthoredWalk(cloneWalkTextures,"clone");
   if(expansionAtlas)this.expansion=new ExpandedAnimation(expansionAtlas,"bozo");
@@ -55,9 +57,11 @@ export class BozoRenderer implements FighterVisual {
   this.textures=atlases.map(t=>{const c=t.clone();c.needsUpdate=true;return c;});
   this.sprite=new THREE.Mesh(this.restingGeometry,new THREE.MeshBasicMaterial({transparent:true,alphaTest:.2,toneMapped:false,side:THREE.DoubleSide}));this.root.add(this.sprite);
   this.isolation=new SpriteIsolation(this.sprite.material);
+  if(bodyHairTexture){this.bodyHair=new BozoBodyHair(bodyHairTexture);this.sprite.add(this.bodyHair.mesh);}
   this.shadow=new THREE.Mesh(new THREE.CircleGeometry(.43,24),new THREE.MeshBasicMaterial({color:0x15121a,transparent:true,opacity:.22,depthWrite:false}));this.shadow.rotation.x=-Math.PI/2;
  }
  update(f:Fighter,_time:number):void {
+  if(this.bodyHair)this.bodyHair.mesh.visible=false;
   const hairy=this.clone||f.armorUntil>0;
   const key=hairy?'clone':this.skin?'2':'1';const frames=bozoFrames[key],pose=bozoPose(f);
   const [l,t,r,b]=frames[pose];const w=r-l+2,h=b-t+2;const texture=this.textures[hairy?2:this.skin];
@@ -71,7 +75,9 @@ export class BozoRenderer implements FighterVisual {
    const reach=(move.hitboxes[0].x+move.hitboxes[0].w)/100;
    const tip=(r-(l+(r-l)*pivot))*scale;
    const extension=Math.max(0,reach-tip)*hairSpearExtension(f.moveFrame,move.startupFrames,move.activeFrames);
-   updateHairSpear(this.spearGeometry,l-1,w,extension/scale,hairy?510:450,(b+1-(hairy?674:this.skin?654:621))/h,(b+1-(hairy?630:this.skin?607:580))/h);
+   const seam=hairy?510:450,top=hairy?630:this.skin?595:575,bottom=hairy?674:this.skin?657:625;
+   updateHairSpear(this.spearGeometry,l-1,w,this.bodyHair?0:extension/scale,seam,(b+1-bottom)/h,(b+1-top)/h,!!this.bodyHair);
+   this.bodyHair?.update(l-1,b+1,w,h,scale,l+(r-l)*pivot,seam-.2/scale,hairy?650:this.skin?623:600,reach,r,hairSpearExtension(f.moveFrame,move.startupFrames,move.activeFrames));
   }
 
   // A tiny chest lift, weighted above the knees: shoes remain fixed to the floor.
@@ -90,5 +96,5 @@ export class BozoRenderer implements FighterVisual {
   this.root.position.set(worldX(f.x),f.y/100,.1);this.root.scale.x=f.facing;
   this.shadow.position.set(worldX(f.x),surfaceBelow(trainingRoom,f.x,f.y)/100+.02,0);this.shadow.scale.set(1,.5,1);
  }
- dispose():void{this.authoredWalk?.dispose();this.authoredCloneWalk?.dispose();this.expansion?.dispose();this.cloneExpansion?.dispose();this.walk?.dispose();this.cloneMovement?.dispose();this.movement?.dispose();this.textures.forEach(t=>t.dispose());this.restingGeometry.dispose();this.spearGeometry.dispose();this.sprite.material.dispose();this.shadow.geometry.dispose();(this.shadow.material as THREE.Material).dispose();}
+ dispose():void{this.bodyHair?.dispose();this.authoredWalk?.dispose();this.authoredCloneWalk?.dispose();this.expansion?.dispose();this.cloneExpansion?.dispose();this.walk?.dispose();this.cloneMovement?.dispose();this.movement?.dispose();this.textures.forEach(t=>t.dispose());this.restingGeometry.dispose();this.spearGeometry.dispose();this.sprite.material.dispose();this.shadow.geometry.dispose();(this.shadow.material as THREE.Material).dispose();}
 }

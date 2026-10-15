@@ -112,16 +112,16 @@ async function loadCharacter(id:string):Promise<void>{
     registerFighterVisual("tocha", def => new TochaRenderer(def, atlases, 1, fireAtlases, idleAtlas, tochaMovement, tochaExpansion,walks.tocha), "shirtless");
     }
     if(id==='bozo'){
-    const [bozoMovement,cloneMovement,bozoWalk,bozoExpansion,cloneExpansion]=await Promise.all(['bozo/movement-v2','bozo/clone-movement-v2','bozo/walk-v5','bozo/motion-expansion-v1','bozo/clone-expansion-v1'].map(id=>loadTexture(`/art/${id}.png`)));
+    const [bozoMovement,cloneMovement,bozoExpansion,cloneExpansion,bodyHair]=await Promise.all(['bozo/model-movement-v1','bozo/clone-movement-v2','bozo/model-expansion-v1','bozo/clone-expansion-v1','bozo/body-hair-long-v1'].map(id=>loadTexture(`/art/${id}.png`)));
     prepareSpriteIsolation(bozoExpansion,expansionFrames.bozo.frames);
     prepareSpriteIsolation(cloneExpansion,expansionFrames.clone.frames);
-    const bozoAtlases = await Promise.all(["atlas-1", "atlas-2", "clones"].map(async name => {
+    const bozoAtlases = await Promise.all(["model-base-polo-v1", "model-base-basketball-v1", "clones"].map(async name => {
       const t = await loadTexture(`/art/bozo/${name}.png`);
       t.colorSpace=THREE.SRGBColorSpace;t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;return t;
     }));
-    registerFighterVisual("bozo", () => new BozoRenderer(bozoAtlases,0,false,bozoMovement,cloneMovement,bozoWalk,bozoExpansion,cloneExpansion,walks.bozo,walks.clone));
-    registerFighterVisual("bozo", () => new BozoRenderer(bozoAtlases,1,false,bozoMovement,cloneMovement,bozoWalk,bozoExpansion,cloneExpansion,walks.bozo,walks.clone), "basketball");
-    registerFighterVisual("bozo", () => new BozoRenderer(bozoAtlases,0,true,bozoMovement,cloneMovement,undefined,bozoExpansion,cloneExpansion,walks.bozo,walks.clone), "hair-clone");
+    registerFighterVisual("bozo", () => new BozoRenderer(bozoAtlases,0,false,bozoMovement,cloneMovement,undefined,bozoExpansion,cloneExpansion,walks.bozo,walks.clone,bodyHair));
+    registerFighterVisual("bozo", () => new BozoRenderer(bozoAtlases,1,false,bozoMovement,cloneMovement,undefined,bozoExpansion,cloneExpansion,walks.bozo,walks.clone,bodyHair), "basketball");
+    registerFighterVisual("bozo", () => new BozoRenderer(bozoAtlases,0,true,bozoMovement,cloneMovement,undefined,bozoExpansion,cloneExpansion,walks.bozo,walks.clone,bodyHair), "hair-clone");
     }
     if(id==='gut'){
     const gutExpansion=await loadTexture('/art/gut/motion-expansion-v1.png');

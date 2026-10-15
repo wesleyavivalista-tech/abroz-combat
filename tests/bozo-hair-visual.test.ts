@@ -21,3 +21,11 @@ test('all hair spear quads keep source pixel proportions, including body and tip
   geometry.dispose();
  }
 });
+
+test('body-only spear crop keeps body proportions while removing the obsolete tip',()=>{
+ const geometry=new THREE.BufferGeometry();updateHairSpear(geometry,260,285,0,450,.6,.85,true);
+ assert.equal(geometry.drawRange.count,18,'only lower body, upper body and root remain');
+ const p=geometry.attributes.position,u=geometry.attributes.uv;
+ for(let i=0;i<18;i+=6){assert.ok(Math.abs((p.getX(i+1)-p.getX(i))-(u.getX(i+1)-u.getX(i)))<1e-6);}
+ geometry.dispose();
+});

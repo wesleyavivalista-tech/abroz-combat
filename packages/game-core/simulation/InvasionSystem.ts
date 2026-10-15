@@ -26,7 +26,7 @@ export const INVADER_STATS={
 } as const;
 export interface InvasionBullet {id:number;sourceId:number;x:number;y:number;vx:number;life:number;}
 export interface InvasionState {bullets:InvasionBullet[];nextBulletId:number;}
-const strike=(id:string,damage:number,range:number):MoveDefinition=>({id,input:'',animation:'claw',state:'LightAttack',startupFrames:24,activeFrames:6,recoveryFrames:24,damage,hitstun:10,blockstun:6,knockback:3,launch:0,knockdown:false,meterGain:0,meterCost:0,priority:1,level:'mid',cancelRules:[],cancelFrame:0,hitboxes:[{x:0,y:25,w:range,h:120}],effects:'impact',events:[]});
+const strike=(id:string,damage:number,range:number):MoveDefinition=>({id,input:'',animation:'claw',state:'LightAttack',startupFrames:24,activeFrames:6,recoveryFrames:24,damage,hitstun:10,blockstun:6,knockback:3,launch:0,knockdown:false,meterGain:0,meterCost:0,priority:1,level:'mid',cancelRules:[],cancelFrame:0,hitboxes:[{x:0,y:25,w:range,h:120}],effects:'impact',events:[],poisonFrames:180,poisonDamage:10});
 export const INVADER_MOVES={normal:strike('@invasion-claw',56,115),flag:strike('@invasion-flag',76,175),hammer:strike('@invasion-hammer',48,160),scythe:strike('@invasion-scythe',56,160),slam:strike('@invasion-slam',72,160),bullet:strike('@invasion-bullet',68,1)};
 export function spawnInvader(s:SimulationSnapshot,stage:StageDefinition,variant:InvasionVariant,slot=0):HairClone{
  const left=variant.startsWith('pt-'),x=left?40+slot*75:stage.width-40-slot*75;

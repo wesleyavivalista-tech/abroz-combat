@@ -127,12 +127,12 @@ export const walkAtlases:Record<WalkCharacter,WalkAtlas> = {
     "height": 1.64,
     "sources": [
       {
-        "path": "/art/walk-correction/bozo-near.png",
+        "path": "/art/bozo/model-walk-near-v1.png",
         "width": 1536,
         "height": 1024
       },
       {
-        "path": "/art/walk-correction/bozo-far.png",
+        "path": "/art/bozo/model-walk-far-v1.png",
         "width": 1536,
         "height": 1024
       }
@@ -141,104 +141,104 @@ export const walkAtlases:Record<WalkCharacter,WalkAtlas> = {
       {
         "atlas": 0,
         "bounds": [
-          249,
-          18,
-          730,
-          511
+          240,
+          20,
+          723,
+          509
         ],
-        "pivot": 471.92,
-        "height": 495,
+        "pivot": 479.19,
+        "height": 491,
         "lead": "near",
         "phase": "contact"
       },
       {
         "atlas": 0,
         "bounds": [
-          899,
+          893,
           19,
-          1205,
-          511
+          1220,
+          510
         ],
-        "pivot": 1032.48,
-        "height": 494,
+        "pivot": 1049.76,
+        "height": 493,
         "lead": "near",
         "phase": "passing"
       },
       {
         "atlas": 1,
         "bounds": [
-          231,
-          19,
-          739,
-          514
+          226,
+          7,
+          758,
+          518
         ],
-        "pivot": 471.8,
-        "height": 497,
+        "pivot": 489.55,
+        "height": 513,
         "lead": "far",
         "phase": "contact"
       },
       {
         "atlas": 1,
         "bounds": [
-          883,
-          19,
-          1204,
-          512
+          858,
+          8,
+          1215,
+          517
         ],
-        "pivot": 1032.42,
-        "height": 495,
+        "pivot": 1039.2,
+        "height": 511,
         "lead": "far",
         "phase": "passing"
       },
       {
         "atlas": 0,
         "bounds": [
-          244,
-          517,
-          737,
-          997
+          240,
+          520,
+          729,
+          999
         ],
-        "pivot": 473.2,
-        "height": 482,
+        "pivot": 486.52,
+        "height": 481,
         "lead": "near",
         "phase": "contact"
       },
       {
         "atlas": 0,
         "bounds": [
-          896,
-          517,
-          1205,
-          1003
+          891,
+          522,
+          1223,
+          1005
         ],
-        "pivot": 1033.34,
-        "height": 488,
+        "pivot": 1054.59,
+        "height": 485,
         "lead": "near",
         "phase": "passing"
       },
       {
         "atlas": 1,
         "bounds": [
-          229,
-          518,
-          743,
-          1002
+          215,
+          508,
+          747,
+          1007
         ],
-        "pivot": 472.46,
-        "height": 486,
+        "pivot": 485.58,
+        "height": 501,
         "lead": "far",
         "phase": "contact"
       },
       {
         "atlas": 1,
         "bounds": [
-          883,
-          517,
-          1204,
-          1002
+          865,
+          522,
+          1215,
+          1009
         ],
-        "pivot": 1032.9,
-        "height": 487,
+        "pivot": 1049.83,
+        "height": 489,
         "lead": "far",
         "phase": "passing"
       }

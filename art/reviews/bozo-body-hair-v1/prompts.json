@@ -1,0 +1,17 @@
+{
+  "initial": {
+    "referenced_image_paths": [
+      "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/model-base-polo-v1.png",
+      "/Users/nicol/Documents/Codex/2026-09-15/files-pasted-by-the-user-you/outputs/afterglow/apps/client/public/art/bozo/clones.png"
+    ],
+    "transparent_background": true,
+    "prompt": "Create a new standalone attack sprite asset for this fighting game, NOT a character sheet. Exactly ONE very long, very slender, straight horizontal lance made of densely braided dark brown body hair. Use the dark brown hair material and painted angular strands from reference image1 row3 column2's spear. Root on the LEFT, sharp tapered spear tip on the RIGHT. It must look fully drawn at this long size with detailed small hair strands along the entire shaft, not a stretched short tuft or repeated mirrored tiles. Technical layout: 1536x1024 transparent canvas. The ONLY visible art is a horizontal hair spear centered at y512, spanning roughly x32 to x1504. Keep it very narrow, about 45-60 pixels high maximum (about 25-30 times wider than tall), almost parallel sides over 85% of the length, tapering to one sharp right tip over the final 15%. The left edge is a flat dense shaft cross-section, not a handle. No human, body, hand, face, metal, pole, wood, ropes, particles, glow, shadow, ground, border, text or additional objects. This is hair and should use organic irregular fine strands, dark umber brown highlights, near-black outline and crevices, matching Bozo's existing body-hair art. Hair direction flows right toward tip. True RGBA transparent background. Keep lots of empty transparent space above and below the thin horizontal sprite. Do not fill canvas height."
+  },
+  "refinement": {
+    "referenced_image_paths": [
+      "/Users/nicol/.codex/generated_images/01a0a692-39e0-76e2-9377-608af206bf9e/exec-e2bf821f-aa66-49dd-b246-7d744c70a48d.png"
+    ],
+    "transparent_background": true,
+    "prompt": "Refine this horizontal dark brown body-hair spear for a game. Keep the exact same full length from x34 to x1504 on a 1536x1024 transparent canvas, centered y512. REDRAW the shaft with much finer smaller hair braids, so its TOTAL thickness is ONLY 30 pixels (y497 through527), not 65 pixels. It must be a naturally illustrated extremely slender spear, 49 times wider than tall, not a squashed or stretched rendering. Detailed organic dark brown fine strands matching the source color/shading. Rootleft flat, parallel thin shaft, sharp pointed taper on rightmost15%. Do not shorten length. No glow, background or additional items. True transparent alpha, lots of empty transparent space."
+  }
+}

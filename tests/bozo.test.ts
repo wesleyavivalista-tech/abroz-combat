@@ -13,8 +13,8 @@ function run(s:GameSimulation,n:number,input=0){for(let i=0;i<n;i++)s.step([inpu
 test('Bozo basic chain ends in beard lash; heavy and kick are separate single moves',()=>{
  const s=match(),f=s.state.fighters[0];s.step([Button.Light,0]);run(s,3);s.step([Button.Light,0]);run(s,10);assert.equal(f.move,'cross');s.step([Button.Light,0]);run(s,14);assert.equal(f.move,'beard');run(s,60);s.step([Button.Medium,0]);assert.equal(f.move,'heavy');run(s,60);s.step([Button.Heavy,0]);assert.equal(f.move,'kick');
 });
-test('hair grip freezes movement and attacks for 120 ticks while allowing further damage',()=>{
- const s=match(),d=s.state.fighters[0];const initialHealth=d.health;s.hit(1,m.grip,0,false,0);assert.equal(d.health,initialHealth);const [x,y]=[d.x,d.y],expiry=d.trappedUntil;s.state.hitstop=0;
+test('hair grip freezes movement and attacks for 180 ticks while allowing further damage',()=>{
+ const s=match(),d=s.state.fighters[0];const initialHealth=d.health;s.hit(1,m.grip,0,false,0);assert.equal(d.health,initialHealth);const [x,y]=[d.x,d.y],expiry=d.trappedUntil;assert.equal(expiry-s.state.frame,180);s.state.hitstop=0;
  run(s,30,Button.Right|Button.Up|Button.Light);assert.equal(d.x,x);assert.equal(d.y,y);assert.equal(d.move,null);
  const hp=d.health;s.hit(1,m.heavy,Button.Left,false,0);assert.ok(d.health<hp);assert.equal(d.trappedUntil,expiry);assert.equal(d.vy,0);assert.equal(d.y,y);
  run(s,expiry-s.state.frame-1,Button.Right);assert.equal(d.x,x);s.state.hitstop=0;run(s,1,Button.Right);assert.ok(d.x>x);
@@ -50,7 +50,7 @@ test('Bozo clone, armor and grip inputs converge after online rollback in 2v2 an
 test('clones respect allies, can burn and be trapped, and cannot keep an eliminated team alive',()=>{
  const s=match(4);summonClones(s.state,0,s.stage);const c=s.state.clones[0],hp=c.fighter.health;
  s.hit(2,m.heavy,0,false,0,1,s.state.fighters[2],c.fighter);assert.equal(c.fighter.health,hp);
- s.hit(1,m.grip,0,false,0,1,s.state.fighters[1],c.fighter);assert.equal(c.fighter.trappedUntil,120);
+ s.hit(1,m.grip,0,false,0,1,s.state.fighters[1],c.fighter);assert.equal(c.fighter.trappedUntil,180);
  igniteTarget(s.state,c.fighter,1,30,10);s.state.hitstop=50;run(s,30);assert.ok(c.fighter.health<hp-m.grip.damage);
  s.step([0,0,0,0],[0,2]);assert.equal(s.state.phase,'result');assert.equal(s.state.clones.length,0);assert.equal(s.state.teams[s.state.winner],1);
 });
@@ -95,11 +95,11 @@ test('Hair Grip reaches beyond its former range at the same speed and still expi
  assert.ok(far.state.projectiles.every(p=>!p.active));
 });
 
-test('Body hair has a shorter reach in either direction, without a projectile',()=>{
- for(const facing of [1,-1] as const)for(const distance of [620,730]){
-  const s=match(),[a,b]=s.state.fighters;a.x=facing===1?350:1450;b.x=a.x+facing*distance;a.facing=facing;b.facing=facing===1?-1:1;
+test('Body hair doubles outer reach in either direction, without a projectile',()=>{
+ for(const facing of [1,-1] as const)for(const distance of [620,730,1280,1400]){
+  const s=match(),[a,b]=s.state.fighters;a.x=facing===1?350:1950;b.x=a.x+facing*distance;a.facing=facing;b.facing=facing===1?-1:1;
   const hp=b.health;s.step([Button.Special,0]);run(s,32);
-  assert.equal(b.health<hp,distance===620);
+  assert.equal(b.health<hp,distance<1400);
   assert.ok(s.state.projectiles.every(p=>!p.active));
  }
 });
