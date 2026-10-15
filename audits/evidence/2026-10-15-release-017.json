@@ -1,0 +1,61 @@
+{
+  "version": "0.1.7",
+  "candidate": "aba052a06419f724da075eac04703f2cde39cb87",
+  "webCommit": "2dbf3baaf75fe2e36f4ff73938714ca1ea56bc7f",
+  "contentVersion": "49-9fb11e6b",
+  "protocolVersion": 49,
+  "published": true,
+  "pages": "3a25ffd8-23dc-451a-bbd6-839afcea41b1",
+  "serverImage": "registry.fly.io/abroz-combat@sha256:2f66c34269704e3f0dab13cf554351d7c4e3acfd5d244a461dd548851796874e",
+  "desktopPublished": true,
+  "desktopPrefix": "beta-0.1.7",
+  "desktopWorkflow": 38771308744,
+  "releaseChecksWorkflow": 38771313096,
+  "changes": [
+    "Bozo consistent sprites and authored extended body-hair artwork",
+    "Bozo Hair Grip 3 seconds and Body Hair double reach",
+    "All zombie attacks apply 3 seconds of poison",
+    "Nikalz Meteor Forehead hits airborne opponents within horizontal range"
+  ],
+  "rollback": {
+    "pages": "48ea933b-146b-4fee-b409-043e43218b6a",
+    "serverImage": "registry.fly.io/abroz-combat@sha256:a3e0a72f194a3e4c2c6b51d327442e9e8a688de487e85a22d3da61c3c4a37240",
+    "contentVersion": "49-460a5a44",
+    "desktopPrefix": "beta-0.1.5"
+  },
+  "validation": {
+    "gameTests": 1593,
+    "desktopDeploymentTests": 25,
+    "types": "passed",
+    "lint": "passed",
+    "builds": "web/server and Windows x64/macOS arm64/x64 CI passed",
+    "desktopDownloads": "All three public installer bodies SHA-256 matched CI; both DMGs passed integrity, architecture and packaged metadata checks",
+    "nativeArm64": "Launched, main menu, private live room creation and leave verified",
+    "browser": "Production build training with Bozo rendered; live main menu loaded; no captured game console warnings/errors",
+    "liveCombat": "private two-client create/join/ready/start/damage and 600 frames of matching state hashes passed",
+    "liveReconnect": "seat 1 restored at frame 122",
+    "oldClients": "49-460a5a44 rejected with VERSION_MISMATCH",
+    "assetChecks": 59,
+    "recentServerExceptions": 0,
+    "providerHealth": "passing"
+  },
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-9fb11e6b"
+  },
+  "infrastructure": "Same single Fly machine and volume; guarded drained/empty rollout; no migrations, new services or credential changes",
+  "limitations": [
+    "Unsigned beta installers; not Apple-notarized or Microsoft publisher verified",
+    "Physical controllers and Windows/Intel Mac installation/upgrade remain manual",
+    "Extended multi-device gameplay/audio QA remains manual",
+    "Existing web bundle size warning",
+    "Older desktop clients require manual 0.1.7 installation; browser/PWA reload required"
+  ]
+}

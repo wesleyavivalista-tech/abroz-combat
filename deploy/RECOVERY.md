@@ -385,3 +385,37 @@ an old installer. Retain the legacy error message alongside structured error fie
   contained no exception/fatal entries. Existing bundle-size warning remains.
 - Evidence: audits/evidence/2026-10-13-release-016.json; detailed logs and draft
   desktop metadata are in ignored deploy/local/release-016.
+
+## Bozo artwork and combat fixes release — 2026-10-15
+
+- Release 0.1.7, game candidate aba052a06419f724da075eac04703f2cde39cb87,
+  web/download commit 2dbf3baaf75fe2e36f4ff73938714ca1ea56bc7f. Compatibility
+  49-9fb11e6b, protocol 49. Includes Bozo model consistency, authored extended
+  Body Hair artwork/double reach, 3-second Hair Grip, 3-second poison on every
+  zombie attack, and Meteor Forehead hitting airborne opponents.
+- 1,593 game tests and 25 desktop/deployment checks passed, plus types, lint,
+  web/server builds and CI release checks 38771313096. Desktop workflow
+  38771308744 passed all three targets. Public beta-0.1.7 installer bodies
+  matched CI SHA-256; both DMGs passed integrity/architecture/metadata checks.
+  Packaged Apple Silicon app launched and created/left a private live room.
+- Existing approved unsigned-beta R2 publishing workflow used; earlier releases
+  and the GitHub draft retained. Browser/PWA players reload; older desktop
+  installations must be manually replaced with 0.1.7 for online play.
+- Guarded drain verified no rooms/connections; original single machine
+  0807569c9039d8 and volume preserved. No new services, migrations or secrets.
+  Server: registry.fly.io/abroz-combat@sha256:2f66c34269704e3f0dab13cf554351d7c4e3acfd5d244a461dd548851796874e.
+  Pages: 3a25ffd8-23dc-451a-bbd6-839afcea41b1. Previous hashed assets retained.
+- Live private create/join/start/combat damage and 600 frames of state hashes
+  passed; reconnect restored seat 1 at frame 122. Old clients rejected with
+  VERSION_MISMATCH. 59 pages/assets/audio verified; new Bozo artwork and hashed
+  bundles match local output. Live browser menu loads without captured game
+  console warnings/errors. Health/ready and provider checks pass; final room
+  and connection counts zero; no new-release fatal/exception log entries.
+- Rollback pair: Pages 48ea933b-146b-4fee-b409-043e43218b6a, desktop beta-0.1.5,
+  server registry.fly.io/abroz-combat@sha256:a3e0a72f194a3e4c2c6b51d327442e9e8a688de487e85a22d3da61c3c4a37240,
+  content 49-460a5a44. Use the guarded empty-server procedure for rollback.
+- Unsigned status remains. Windows/Intel Mac physical installation/upgrade,
+  physical controllers, and extended multi-device gameplay/audio QA remain
+  manual. Existing >500 kB bundle warning remains.
+- Evidence: audits/evidence/2026-10-15-release-017.json. Transfer/checksum,
+  maintenance and live verification logs: ignored deploy/local/release-017.
