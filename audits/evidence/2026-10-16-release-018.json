@@ -1,0 +1,65 @@
+{
+  "version": "0.1.8",
+  "commit": "56df98ddd7642c16cf8aec0e7601503a1f322656",
+  "contentVersion": "49-2374a7f",
+  "serverImage": "registry.fly.io/abroz-combat@sha256:d2ea9863a5a1720f87992165a77bcc571716623b7259635c28434afc4a6b3f22",
+  "desktopWorkflow": 38920036117,
+  "published": true,
+  "tests": {
+    "game": 1629,
+    "desktopDeployment": 21,
+    "lint": "passed",
+    "types": "passed",
+    "webBuild": "passed",
+    "serverBuild": "passed",
+    "desktopRendererBuild": "passed"
+  },
+  "webCommit": "a8ccda20ba1fe348748766b5c369b8b5355f35a8",
+  "pages": "a58d75e3-7365-4ad7-9fdd-1002f7f3f667",
+  "desktopPublished": true,
+  "desktopPrefix": "beta-0.1.8",
+  "desktopAttempt": 2,
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-2374a7f"
+  },
+  "rollback": {
+    "pages": "3a25ffd8-23dc-451a-bbd6-839afcea41b1",
+    "serverImage": "registry.fly.io/abroz-combat@sha256:2f66c34269704e3f0dab13cf554351d7c4e3acfd5d244a461dd548851796874e",
+    "contentVersion": "49-9fb11e6b",
+    "desktopPrefix": "beta-0.1.7"
+  },
+  "changes": [
+    "Persistent online championships and saved brackets/results",
+    "Trophy posters, team champion backgrounds and online menu improvements",
+    "Fighter-specific Hair Grip trapped/escape animations",
+    "Three-second respawn immunity against damage and negative effects"
+  ],
+  "validation": {
+    "desktop": "All three CI jobs passed on attempt 2; first attempt macOS runner capacity failure before build",
+    "downloads": "All public installer bodies SHA-256 matched; both DMGs passed integrity and architecture checks",
+    "liveCombat": "600 frames matching hashes, damage, create/join/ready/start and cleanup passed",
+    "liveReconnect": "seat restored at frame 122",
+    "oldClient": "0.1.7 rejected with VERSION_MISMATCH",
+    "liveAssets": 63,
+    "browser": "Production online menu and persistent browser loaded; no captured warnings/errors",
+    "database": "Read-only SQLite quick_check: ok",
+    "health": "Single existing machine started, health passing, readyz OK",
+    "logs": "Transient rollout proxy/health errors resolved; expected obsolete-client validation and SQLite experimental warning; no observed post-start application exceptions"
+  },
+  "infrastructure": "Same Fly machine and encrypted volume; guarded drained/empty deployment; new championship SQLite file on existing volume; rollback preserves data.",
+  "limitations": [
+    "Unsigned beta installers; not notarized",
+    "Physical controllers and Windows/Intel installation remain manual QA",
+    "Extended multi-device gameplay/audio QA remains manual",
+    "Older desktop clients require manual 0.1.8 installation; browser reload required",
+    "Existing large bundle warning"
+  ]
+}
