@@ -1,0 +1,64 @@
+{
+  "version": "0.1.11",
+  "commit": "cfdce0539035c6053495f12f35d4a5c8cc63a58c",
+  "contentVersion": "49-633abe17",
+  "serverImage": "registry.fly.io/abroz-combat@sha256:dd2d4b6b9edf90e8ce5e4cefb5eee7765d9aff3238822f59136c77ec20e3fc38",
+  "desktopWorkflow": 38971899104,
+  "releaseChecks": 38971902033,
+  "published": true,
+  "rollback": {
+    "pages": "f712f655-4033-4564-aefc-01ac6cbf6fc7",
+    "serverImage": "registry.fly.io/abroz-combat@sha256:4d1a3544215d2b0694cec462535310adbabbed317c221f963c5903d397da7a29",
+    "contentVersion": "49-4b7364d2",
+    "desktopPrefix": "beta-0.1.10"
+  },
+  "webCommit": "d67460987ff62e6f2cdca43c307c760beb092c0f",
+  "tests": {
+    "game": 1655,
+    "desktopDeployment": 21,
+    "types": "passed",
+    "lint": "passed",
+    "browserBuild": "passed",
+    "serverBuild": "passed",
+    "releaseCI": "passed",
+    "nativeCI": "all three passed"
+  },
+  "validation": {
+    "databaseBackup": "SQLite quick_check passed; two tournaments retained; no active attempts",
+    "desktop": "All three native CI builds passed; all local installer SHA-256 checks passed; both DMG integrity checks passed; CPU architectures and embedded compatibility metadata verified; native ARM64 app rendered main menu",
+    "browserPreview": "Production build rendered fighter selection and training with Luizinho; no production-only debug overlay visible",
+    "liveCombat": "600 frames, private room create/join/start/damage and authoritative hashes passed",
+    "reconnect": "Seat restored at snapshot frame 122; neutral continuation passed",
+    "oldClient": "0.1.10 rejected with VERSION_MISMATCH",
+    "assets": "72 live page, asset and audio checks passed; hashed bundles and artwork match local release",
+    "database": "Two saved championships unchanged; public and summary hash preserved; SQLite quick_check OK; backup retained",
+    "downloads": "All three complete public installer downloads matched SHA-256; live download page links verified",
+    "health": "healthz and readyz OK; bounded post-deployment logs show no unexpected fatal or simulation errors; expected old-client version rejection observed"
+  },
+  "rollout": "Prior explicit user instruction to disconnect online idle sessions applied. Verified no ordinary rooms or active persistent attempts, entered drain, then replaced reviewed immutable image on same machine with one idle connection. Explicit exception to normal zero-connection deployment guard; no active match interrupted.",
+  "desktopPublished": true,
+  "desktopPrefix": "beta-0.1.11",
+  "pages": "1e8a128c-c773-4bbd-aca0-9cb1e624dd4e",
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 1,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-633abe17"
+  },
+  "changes": [
+    "Persistent championship bracket shuffle with team-preserving preview before creation",
+    "Luizinho house collapse damage and stun fixes, builder immunity and ordinary wall passage coverage",
+    "16-frame rollback tolerance, frame-tagged history and incremental input pruning, local predicted rendering, optional networking diagnostics"
+  ],
+  "limitations": [
+    "Unsigned beta installers; not notarized",
+    "Physical Windows/Intel Mac installation and physical controller testing remain manual",
+    "Browser refresh and manual desktop update to 0.1.11 required for online compatibility",
+    "Real network latency and jitter still affect online play"
+  ]
+}
