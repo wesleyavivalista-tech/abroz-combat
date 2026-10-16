@@ -59,7 +59,7 @@ test('online assigns independent duels, authoritatively advances rounds and decl
  assert.ok(t.clients.every(c=>c.messages.some(m=>m.type==='championship'&&m.bracket.complete)));
 });
 test('server simulation matches client simulation for the same confirmed inputs',()=>{
- const t=room(2);readyAll(t);const d=[...t.session.duels.values()][0];const sim=new GameSimulation(['jopa','jopa'],false,undefined,undefined,d.simulation.state.skins);
+ const t=room(2);readyAll(t);const d=[...t.session.duels.values()][0];const sim=new GameSimulation(['jopa','jopa'],false,d.simulation.stage,undefined,d.simulation.state.skins);
  sim.step([0,0]);sim.step([0,0]);
  for(let frame=2;frame<360;frame++){const masks=[frame%80<20?2:16,frame%90<30?1:32];d.players.forEach((id,i)=>t.rooms.input(t.clients[id].socket,frame,masks[i],d.token));sim.step(masks);assert.equal(hashState(sim.state),hashState(d.simulation.state));}
 });
@@ -103,4 +103,23 @@ test('bracket escapes names and renders byes, controller assignments, champion a
  assert.ok(championshipSetup(e).includes('Player 5 skin'));
  while(!b.complete){const m=currentMatches(b).find(m=>m.status==='ready')!;startBracketMatch(b,m.id);finishBracketMatch(b,m.id,m.slots[0]);}
  html=championshipBracket(b,false,0,[]);assert.ok(html.includes('TOURNAMENT CHAMPION'));
+});
+
+test('each championship duel owns its arena across spectators, restarts and recovery',()=>{
+ const t=room();readyAll(t);const duels=[...t.session.duels.values()];
+ assert.notEqual(duels[0].simulation.stage.id,duels[1].simulation.stage.id);
+ for(const d of duels)for(const id of d.players){
+  const start=t.clients[id].messages.find(m=>m.type==='championship-start');
+  assert.ok(start?.type==='championship-start');assert.equal(start.stage,d.simulation.stage.id);
+  assert.equal(t.session.recovery(t.clients[id].socket).stage,d.simulation.stage.id);
+ }
+ const saved=t.session.checkpoint();t.session.restoreCheckpoint(saved);
+ assert.deepEqual([...t.session.duels.values()].map(d=>d.simulation.stage.id),duels.map(d=>d.simulation.stage.id));
+ const d=duels[0],stage=d.simulation.stage.id;t.session.restart(t.clients[d.players[0]].socket,d.token);
+ const restarted=t.clients[d.players[0]].messages.find(m=>m.type==='fight-restarted');
+ assert.ok(restarted?.type==='fight-restarted');assert.equal(restarted.stage,stage);
+ win(t,currentMatches(t.session.bracket)[0].id);
+ const remaining=[...t.session.duels.values()][0];t.session.watch(t.clients[d.players[0]].socket,remaining.token);
+ const watched=t.clients[d.players[0]].messages.filter(m=>m.type==='spectate-start').at(-1);
+ assert.ok(watched?.type==='spectate-start');assert.equal(watched.stage,remaining.simulation.stage.id);
 });

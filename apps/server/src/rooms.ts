@@ -1,3 +1,4 @@
+import {randomArena} from '../../../packages/game-core/stages/random.js';
 import {ReconnectSeats,RECONNECT_GRACE_MS} from './reconnectSeats.js';
 import {diagnosticId,type DiagnosticSink} from './observability.js';
 import {VerifiedMatch} from './verifiedMatch.js';
@@ -261,7 +262,9 @@ export class RoomService {
     if(room.started)return;
     const reason=this.startReason(room);if(reason)throw Error(reason);
     {
-      room.started = true;room.matchStage=room.stage;
+      room.started = true;
+      if(room.mode!=="championship")room.stage=randomArena(room.stage);
+      room.matchStage=room.stage;
       // Lobby seats can shift when somebody leaves; mint credentials only once
       // match seats become stable.
       room.peers.forEach(p=>this.issue(room,p));

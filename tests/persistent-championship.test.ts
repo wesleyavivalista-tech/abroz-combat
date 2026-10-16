@@ -32,6 +32,9 @@ test('server simulation alone finalizes fights; late inputs and disconnect canno
   l.match.simulation.state.phase='result';l.match.simulation.state.winner=0;l.match.simulation.state.statistics=stats();
   service.input(peers[0],2,0,start.matchId);service.input(peers[1],2,0,start.matchId);
   assert.deepEqual(db.get(t.id).series[0].score,[1,0]);assert.equal(db.get(t.id).fights.length,1);
+  peers.forEach(p=>service.command(p,{type:'persistent',action:'ready',ready:true},'test'));
+  const next=messages[0].filter(m=>m.type==='persistent-start').at(-1)!;assert.ok(next.type==='persistent-start');
+  assert.notEqual(next.stage,start.stage);assert.ok(messages[1].some(m=>m.type==='persistent-start'&&m.stage===next.stage&&m.matchId===next.matchId));
   service.input(peers[0],3,0,start.matchId);service.leave(peers[1]);assert.deepEqual(db.get(t.id).series[0].score,[1,0]);
   assert.ok(messages[0].some(m=>m.type==='persistent-ended'&&!m.cancelled));
  }finally{db.close();}

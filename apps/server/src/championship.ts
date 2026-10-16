@@ -1,6 +1,7 @@
 import {encodeSnapshot,decodeSnapshot} from '../../../packages/shared/recovery.js';
 import {stepMetrics} from './capacityMetrics.js';
-import {trainingRoom} from "../../../packages/game-core/stages/registry.js";
+import {randomArena} from '../../../packages/game-core/stages/random.js';
+import {stages,trainingRoom} from "../../../packages/game-core/stages/registry.js";
 import type { WebSocket } from 'ws';
 import { GameSimulation, hashState } from '../../../packages/game-core/simulation/GameSimulation.js';
 import { createChampionship, currentMatches, finishBracketMatch, findMatch, matchToken, startBracketMatch, withdrawEntrant, type Entrant } from '../../../packages/game-core/tournament/Championship.js';
@@ -32,6 +33,7 @@ export class ChampionshipSession {
       startBracketMatch(this.bracket, m.id);
       const players = m.slots as [number, number];
       const chars = players.map(n => this.peers[n].character), skins = players.map(n => this.peers[n].skin);
+      this.stage=stages[randomArena(this.stage.id)];
       const simulation = new GameSimulation(chars, false, this.stage, undefined, skins);
       simulation.step([0, 0]); simulation.step([0, 0]);
       this.duels.set(m.id, { simulation, players, token, inputs: [new Map(), new Map()], last: [1, 1], lastHash: [-1, -1], progress: [Date.now(), Date.now()] });
@@ -46,10 +48,10 @@ export class ChampionshipSession {
     if(seat!==0||!duel.players.every(n=>this.peers[n].connected)||duel.simulation.state.phase==='result'){this.send(socket,{type:'restart-denied'});return;}
     const match=findMatch(this.bracket,id)!;
     match.attempt++;const nextToken=matchToken(match);
-    const simulation=new GameSimulation(duel.players.map(n=>this.peers[n].character),false,this.stage,undefined,duel.players.map(n=>this.peers[n].skin));
+    const simulation=new GameSimulation(duel.players.map(n=>this.peers[n].character),false,duel.simulation.stage,undefined,duel.players.map(n=>this.peers[n].skin));
     simulation.step([0,0]);simulation.step([0,0]);
     this.duels.set(id,{simulation,players:duel.players,token:nextToken,inputs:[new Map(),new Map()],last:[1,1],lastHash:[-1,-1],progress:[Date.now(),Date.now()]});
-    duel.players.forEach((n,seat)=>this.send(this.peers[n].socket,{type:'fight-restarted',previousId:token,matchId:nextToken,seat,stage:this.stage.id,mode:'championship',bracket:this.bracket,state:{snapshot:encodeSnapshot(simulation.snapshot()),inputs:[[],[]],departures:[],nextInput:2}}));
+    duel.players.forEach((n,seat)=>this.send(this.peers[n].socket,{type:'fight-restarted',previousId:token,matchId:nextToken,seat,stage:simulation.stage.id,mode:'championship',bracket:this.bracket,state:{snapshot:encodeSnapshot(simulation.snapshot()),inputs:[[],[]],departures:[],nextInput:2}}));
     this.publish();
   }
   input(socket: WebSocket, token: string | undefined, frame: number, mask: number): void {
@@ -80,7 +82,7 @@ export class ChampionshipSession {
     if(id<0||[...this.duels.values()].some(d=>d.players.includes(id)))return;
     const duel=[...this.duels.values()].find(d=>!token||d.token===token);if(!duel)return;
     this.watchers.set(id,duel.token);
-    this.send(socket,{type:'spectate-start',matchId:duel.token,stage:this.stage.id,state:{snapshot:encodeSnapshot(duel.simulation.snapshot()),inputs:duel.inputs.map(q=>[...q]),departures:[],nextInput:0}});
+    this.send(socket,{type:'spectate-start',matchId:duel.token,stage:duel.simulation.stage.id,state:{snapshot:encodeSnapshot(duel.simulation.snapshot()),inputs:duel.inputs.map(q=>[...q]),departures:[],nextInput:0}});
   }
   private updateWatchers():void{
     for(const [id,token] of this.watchers)if(!this.peers[id]?.connected||![...this.duels.values()].some(d=>d.token===token))this.watchers.delete(id);
@@ -88,16 +90,16 @@ export class ChampionshipSession {
     // Losing a bracket match permanently eliminates an entrant. Watch the next live duel automatically.
     this.peers.forEach((p,id)=>{if(p.connected&&!this.watchers.has(id)&&this.bracket.rounds.flat().some(m=>m.status==='complete'&&m.slots.includes(id)&&m.winner!==id))this.watch(p.socket);});
   }
-  checkpoint(){return {bracket:structuredClone(this.bracket),completedAt:this.completedAt,ready:[...this.ready],awaiting:[...this.awaiting],duels:[...this.duels].map(([id,d])=>({id,players:d.players,token:d.token,snapshot:encodeSnapshot(d.simulation.snapshot()),inputs:d.inputs.map(q=>[...q]),last:d.last,lastHash:d.lastHash,progress:d.progress}))};}
+  checkpoint(){return {bracket:structuredClone(this.bracket),completedAt:this.completedAt,ready:[...this.ready],awaiting:[...this.awaiting],duels:[...this.duels].map(([id,d])=>({id,stage:d.simulation.stage.id,players:d.players,token:d.token,snapshot:encodeSnapshot(d.simulation.snapshot()),inputs:d.inputs.map(q=>[...q]),last:d.last,lastHash:d.lastHash,progress:d.progress}))};}
   restoreCheckpoint(data:ReturnType<ChampionshipSession['checkpoint']>):void{
     this.bracket=data.bracket;this.completedAt=data.completedAt;this.ready=new Set(data.ready);this.awaiting=new Map(data.awaiting);this.duels.clear();
-    for(const d of data.duels){const simulation=new GameSimulation(d.players.map(id=>this.peers[id].character),false,this.stage);simulation.restore(decodeSnapshot(d.snapshot));this.duels.set(d.id,{simulation,players:d.players,token:d.token,inputs:d.inputs.map(q=>new Map(q)) as Duel['inputs'],last:d.last,lastHash:d.lastHash,progress:d.progress});}
+    for(const d of data.duels){const simulation=new GameSimulation(d.players.map(id=>this.peers[id].character),false,stages[d.stage]??this.stage);simulation.restore(decodeSnapshot(d.snapshot));this.duels.set(d.id,{simulation,players:d.players,token:d.token,inputs:d.inputs.map(q=>new Map(q)) as Duel['inputs'],last:d.last,lastHash:d.lastHash,progress:d.progress});}
   }
   recovery(socket:WebSocket){
     const id=this.peers.findIndex(p=>p.socket===socket);
     for(const duel of this.duels.values()){
       const seat=duel.players.indexOf(id);if(seat<0)continue;
-      return {seat,matchId:duel.token,state:{snapshot:encodeSnapshot(duel.simulation.snapshot()),inputs:duel.inputs.map(q=>[...q]),departures:[] as [number,number][],nextInput:duel.last[seat]+1}};
+      return {seat,stage:duel.simulation.stage.id,matchId:duel.token,state:{snapshot:encodeSnapshot(duel.simulation.snapshot()),inputs:duel.inputs.map(q=>[...q]),departures:[] as [number,number][],nextInput:duel.last[seat]+1}};
     }
     return {seat:id};
   }

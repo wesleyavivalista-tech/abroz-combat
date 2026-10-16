@@ -1,3 +1,4 @@
+import {randomArena} from '../../../packages/game-core/stages/random.js';
 import './ui/persistent-championship.css';
 import {PersistentController} from './persistentController.js';
 import {MultiplayerSelection,multiplayerSelection,type SelectionAction} from './ui/MultiplayerSelection.js';
@@ -383,7 +384,7 @@ function showChampionship(note = '', review = false) {
   if(championship.complete&&championship.champion!==null&&!review){showChampionVictory();return;}
   spectatorPlayback=null;championshipMatch = undefined; rollback = null; pendingHashes.clear(); paused = false;
   navigate('championship-bracket', true);
-  ui.shell(championshipBracket(championship, mode === 'online', championshipSeat, championshipReady, note)+(mode==='online'&&!championship.complete?`<div class="on-watch-duels">${championship.rounds.flat().filter(m=>m.status==='playing'&&!m.slots.includes(championshipSeat)).map(m=>`<button data-action="spectator-duel" data-match="${matchToken(m)}">${onlineText('Watch match','Assistir partida')} ${m.id}</button>`).join('')}</div>`:''), `1v1 CHAMPIONSHIP / ${stages[selectedArena].name.toUpperCase()}`);
+  ui.shell(championshipBracket(championship, mode === 'online', championshipSeat, championshipReady, note)+(mode==='online'&&!championship.complete?`<div class="on-watch-duels">${championship.rounds.flat().filter(m=>m.status==='playing'&&!m.slots.includes(championshipSeat)).map(m=>`<button data-action="spectator-duel" data-match="${matchToken(m)}">${onlineText('Watch match','Assistir partida')} ${m.id}</button>`).join('')}</div>`:''), `1v1 CHAMPIONSHIP / ${onlineText("RANDOM ARENAS","ARENAS ALEATÓRIAS")}`);
 }
 function showChampionVictory(){
  if(!championship?.complete||championship.champion===null)return;
@@ -464,6 +465,7 @@ function randomizeArena(): void {
   if(ids.length)selectedArena=ids[Math.floor(Math.random()*ids.length)];
 }
 function arenaPicker(): string {
+  if(mode!=='training')return `<label class="arena-picker">${th("arena.label")} <select id="arena-choice" disabled><option value="${selectedArena}">${onlineText("Random every match","Aleatória a cada partida")}</option></select></label>`;
   return `<label class="arena-picker">${th("arena.label")} <select id="arena-choice">${Object.values(stages).map(a=>`<option value="${a.id}" ${a.id===selectedArena?'selected':''}>${escapeMarkup(arenaName(a))} · ${th("arena.platforms",{count:a.platforms?.length??0})}</option>`).join('')}<option value="random">${th("arena.randomOption")}</option></select></label>`;
 }
 function bindArenaPicker(refresh?:()=>void): void {
@@ -475,6 +477,7 @@ function addSetupArenaPicker(): void {
   if(main){main.insertAdjacentHTML('afterbegin',arenaPicker());bindArenaPicker();}
 }
 function stage() {
+  if(mode==='local'){void start();return;}
   navigate("stage");
   ui.shell(arenaSelection(selectedArena,mode,selected,selectedSkins));
   const randomButton=ui.root.querySelector<HTMLButtonElement>('[data-random-arena]');
@@ -535,7 +538,7 @@ function restartFight(){
  const loading=start(config.ids,config.teams,config.skins,config.tournament,config.seed,config.arenaId,config.idleTest),fresh=simulation;
  void loading.then(()=>{if(simulation===fresh&&mode==='training'&&screen==='fight'){simulation.trainingOptions=trainingOptions;hud();}});
 }
-async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = selectedArena, idleTest = false, recovery?:RecoveryState, spectating=false) {
+async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = mode==='local'?randomArena(selectedArena):selectedArena, idleTest = false, recovery?:RecoveryState, spectating=false) {
   if(mode==='local'&&localPlayersManaged&&!idleTest&&ids.some((_,i)=>!localInputReady(i))){showPlayers(ids.length,ids.length,ids.length,()=>{void start(ids,teams,skins,tournament,seed,arenaId,idleTest,recovery);});return;}
   if(!developmentBuild && mode!=="training")debug=false;
   idleTestMatch = developmentBuild && mode === "local" && idleTest;

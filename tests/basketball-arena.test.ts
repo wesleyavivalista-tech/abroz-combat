@@ -65,7 +65,7 @@ test('all fighters and skins can execute every special and ultimate at every cou
 });
 
 function client(){const messages:ServerMessage[]=[];const socket={readyState:1,bufferedAmount:0,send:(s:string)=>messages.push(JSON.parse(s)),terminate(){}} as unknown as WebSocket;return {socket,messages};}
-test('host arena is shared by every peer and championship authority; invalid arenas are rejected',()=>{
+test('random match arena is shared by every peer and championship authority; invalid arenas are rejected',()=>{
  for(const arena of Object.values(stages))for(const mode of ['ffa','championship'] as const){
   const service=new RoomService(),a=client(),b=client();
   assert.throws(()=>service.create(a.socket,'eide',2,mode,undefined,undefined,'unknown'),/Invalid arena/);
@@ -76,9 +76,9 @@ test('host arena is shared by every peer and championship authority; invalid are
   if(mode==='championship'){
    const session=room.championship!,m=currentMatches(session.bracket)[0];
    for(const c of [a,b])session.acknowledge(c.socket,matchToken(m));
-   assert.equal([...session.duels.values()][0].simulation.stage,arena);
-   for(const c of [a,b])assert.ok(c.messages.some(m=>m.type==='championship-start'&&m.stage===arena.id));
-  }else for(const c of [a,b])assert.ok(c.messages.some(m=>m.type==='start'&&m.stage===arena.id));
+   const chosen=[...session.duels.values()][0].simulation.stage;assert.notEqual(chosen.id,arena.id);
+   for(const c of [a,b])assert.ok(c.messages.some(m=>m.type==='championship-start'&&m.stage===chosen.id));
+  }else {assert.notEqual(room.stage,arena.id);for(const c of [a,b])assert.ok(c.messages.some(m=>m.type==='start'&&m.stage===room.verification!.simulation.stage.id));}
  }
  const g=new GameSimulation();assert.equal(g.stage,trainingRoom);
 });

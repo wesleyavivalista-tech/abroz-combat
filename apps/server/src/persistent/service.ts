@@ -1,3 +1,4 @@
+import {randomArena} from '../../../../packages/game-core/stages/random.js';
 import {randomInt} from 'node:crypto';
 import type {WebSocket} from 'ws';
 import type {ChampionshipStore} from './store.js';
@@ -7,7 +8,7 @@ import {stages} from '../../../../packages/game-core/stages/registry.js';
 import type {ServerMessage} from '../../../../packages/shared/protocol.js';
 import type {PersistentCommand,PersistentLobby} from '../../../../packages/shared/persistentChampionship.js';
 interface Claim {socket:WebSocket;session:string;ready:boolean;last:number;progress:number}
-interface Lobby {id:string;seriesId:string;claims:(Claim|null)[];attempt?:string;match?:VerifiedMatch}
+interface Lobby {id:string;seriesId:string;claims:(Claim|null)[];attempt?:string;match?:VerifiedMatch;stage?:string}
 /** Temporary connections never become tournament competitors. All result writes originate here. */
 export class PersistentChampionshipService {
  private lobbies=new Map<string,Lobby>();
@@ -45,9 +46,10 @@ export class PersistentChampionshipService {
   if([...this.lobbies.values()].filter(l=>l.attempt).length>=8)throw Error('All championship fight servers are busy. Ready again shortly.');
   const t=this.store.get(l.id),s=t.series.find(s=>s.id===l.seriesId)!,sides=s.sides.map(id=>t.competitors.find(c=>c.id===id)!);
   const characters=sides.flatMap(c=>c.fighters),skins=sides.flatMap(c=>c.skins),teams=sides.flatMap((c,i)=>c.fighters.map(()=>i)),seed=randomInt(0x100000000);
-  const match=new VerifiedMatch(new GameSimulation(characters,false,stages[t.stage],teams,skins,false,seed),(frame,hash)=>l.claims.forEach(c=>c&&this.send(c.socket,{type:'hash',matchId:l.attempt,seat:-1,frame,hash})));
+  const stage=randomArena(l.stage??t.stage);l.stage=stage;
+  const match=new VerifiedMatch(new GameSimulation(characters,false,stages[stage],teams,skins,false,seed),(frame,hash)=>l.claims.forEach(c=>c&&this.send(c.socket,{type:'hash',matchId:l.attempt,seat:-1,frame,hash})));
   l.attempt=this.store.begin(t.id,s.id);l.match=match;
-  l.claims.forEach((c,seat)=>{c!.last=1;c!.progress=Date.now();this.send(c!.socket,{type:'persistent-start',matchId:l.attempt!,seat,characters,skins,teams,stage:t.stage,seed});});
+  l.claims.forEach((c,seat)=>{c!.last=1;c!.progress=Date.now();this.send(c!.socket,{type:'persistent-start',matchId:l.attempt!,seat,characters,skins,teams,stage,seed});});
  }
  input(socket:WebSocket,frame:number,mask:number,attempt?:string){
   const l=this.membership.get(socket);if(!l?.match||l.attempt!==attempt)return;const seat=l.claims.findIndex(c=>c?.socket===socket),c=l.claims[seat]!;
