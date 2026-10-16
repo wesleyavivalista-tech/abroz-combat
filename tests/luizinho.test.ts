@@ -2,8 +2,9 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {GameSimulation,hashState} from '../packages/game-core/simulation/GameSimulation.js';
 import {characters} from '../packages/game-core/characters/registry.js';
+import {hasExecutionArmor} from '../packages/game-core/combat/ExecutionArmor.js';
 import {Button} from '../packages/game-core/types.js';
-import {activateStructure,advanceStructures,collideStructures,attackStructures,hitStructureProjectile} from '../packages/game-core/simulation/StructureSystem.js';
+import {activateStructure,advanceStructures,collideStructures,attackStructures,hitStructureProjectile,damageStructure} from '../packages/game-core/simulation/StructureSystem.js';
 import {spawnReturningProjectile,advanceReturningProjectiles} from '../packages/game-core/simulation/ReturningProjectileSystem.js';
 import {initializeProjectile} from '../packages/game-core/simulation/ProjectilePool.js';
 import {luizinhoPose} from '../apps/client/src/characters/luizinho/presentation.js';
@@ -149,3 +150,40 @@ test('wall and turret debris animates deterministically with bounded rendering r
    assert.equal(b.shots,frame<72?0:frame<144?1:2);
   }
  });
+test('collapse spares its builder, but damages another Luizinho and interrupts special armor',()=>{
+ const g=match('luizinho'),b=make(g,'home'),[f,d]=g.state.fighters;
+ f.x=d.x=b.x;make(g,'build');d.move='seller';d.state=characters.luizinho.moves.seller.state;d.actionUntil=100;assert.equal(hasExecutionArmor(d),true);
+ const hp=f.health,enemyHp=d.health;
+ damageStructure(g.state,b,b.health,'test',0,g.stage);
+ assert.equal(f.health,hp);assert.equal(f.stun,0);assert.equal(f.houseStunUntil,undefined);
+ assert.equal(d.health,enemyHp-400);assert.equal(d.move,null);assert.equal(d.actionUntil,0);assert.equal(d.stun,420);
+});
+test('airborne collapse stun lasts seven seconds through landing and snapshot replay',()=>{
+ const g=match(),b=make(g,'home'),d=g.state.fighters[1];d.x=b.x;make(g,'build');
+ d.y=b.y+200;d.vy=15;d.state='Jump';const hp=d.health;
+ damageStructure(g.state,b,b.health,'test',0,g.stage);assert.equal(d.health,hp-400);
+ const snap=g.snapshot();run(g,90);assert.equal(d.y,g.stage.floorHeight);assert.ok(d.stun>0);assert.equal(d.dazed,true);assert.equal(g.state.structures!.length,0);
+ run(g,329);assert.equal(d.stun,1);const result=hashState(g.state);
+ g.restore(snap);run(g,419);assert.equal(hashState(g.state),result);
+ run(g,1);assert.equal(g.state.fighters[1].stun,0);assert.equal(g.state.fighters[1].houseStunUntil,undefined);
+});
+test('collapse reaches trapped skill animations above the roof while respecting respawn immunity and outside targets',()=>{
+ for(const variant of ['skill','immune','outside']){
+  const g=match('nikalz'),b=make(g,'home'),d=g.state.fighters[1];d.x=b.x;make(g,'build');
+  d.y=b.y+b.height+600;d.move='meteor';d.state=characters.nikalz.moves.meteor.state;d.meteorStart=0;
+  if(variant==='immune')d.invulnerableUntil=180;
+  if(variant==='outside'){b.trapped=[];d.x=b.x+b.width+500;}
+  const hp=d.health;damageStructure(g.state,b,b.health,'test',0,g.stage);
+  assert.equal(d.health,hp-(variant==='skill'?400:0));assert.equal(d.stun,variant==='skill'?420:0);
+  if(variant==='skill'){run(g,1);assert.equal(d.move,null);assert.equal(d.meteorStart,undefined);}
+ }
+});
+test('owner walks through special walls in both directions but remains confined by his house',()=>{
+ for(const direction of [-1,1]){
+  const g=match(),f=g.state.fighters[0],b=make(g,'wall');f.x=b.x-direction*100;
+  run(g,80,direction===1?Button.Right:Button.Left);
+  assert.ok(direction*(f.x-b.x)>b.width/2,'owner crossed the entire special wall');
+ }
+ const g=match(),f=g.state.fighters[0],b=make(g,'home');f.x=b.x;make(g,'build');run(g,120,Button.Right);
+ assert.ok(f.x<b.x+b.width/2,'house still confines its builder');
+});

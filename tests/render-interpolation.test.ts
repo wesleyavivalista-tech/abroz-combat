@@ -50,3 +50,13 @@ for(const id of Object.keys(characters))test(`${id}: repeated display frames pre
   assert.equal(hashState(sim.state),hashState(baseline.state));assert.deepEqual(sim.events,baseline.events);
  }
 });
+test('online local position is immediate while remote positions remain smooth and simulation stays untouched',()=>{
+ const sim=new GameSimulation(),view=new RenderInterpolation();sim.state.phase='fight';view.capture(sim.state);
+ sim.state.frame++;sim.state.fighters.forEach(f=>{f.x+=12;f.y+=6;});const hash=hashState(sim.state);
+ for(const alpha of [0,.25,.5,.99,1]){
+  const shown=view.view(sim.state,alpha,0);
+  assert.equal(shown.fighters[0].x,sim.state.fighters[0].x);assert.equal(shown.fighters[0].y,sim.state.fighters[0].y);
+  assert.equal(shown.fighters[1].x,sim.state.fighters[1].x-12+12*alpha);
+  assert.equal(hashState(sim.state),hash);
+ }
+});

@@ -12,6 +12,8 @@ export class LobbyClient {
   latency = 0;
   jitter = false;
   ping = 0;
+  diagnosticsEnabled=false;
+  serverTiming?:{processingMs:number;simulationStepMeanMs:number;simulationStepMaxMs:number};
   onMessage: (message: ServerMessage) => void = () => {};
   onClose: () => void = () => {};
   onRecovering: () => void = () => {};
@@ -45,6 +47,7 @@ export class LobbyClient {
   private cancelConnect?: () => void;
   async connect(preserveRecovery=false): Promise<void> {
     this.disconnect(preserveRecovery);
+    this.serverTiming=undefined;
     diagnostics.record('connection-attempt');
     const env = (import.meta as ImportMeta & { env: Record<string, string> })
       .env;
@@ -105,6 +108,7 @@ export class LobbyClient {
         if (message.type === "pong") {
           this.ping = Math.round(performance.now() - message.sent);
           matchPerformance.ping(this.ping);
+          if(this.diagnosticsEnabled&&[message.processingMs,message.simulationStepMeanMs,message.simulationStepMaxMs].every(n=>typeof n==='number'&&Number.isFinite(n)&&n>=0))this.serverTiming={processingMs:message.processingMs!,simulationStepMeanMs:message.simulationStepMeanMs!,simulationStepMaxMs:message.simulationStepMaxMs!};
           return;
         }
         if(['room','start','championship-start','left','error'].includes(message.type))diagnostics.record('network-'+message.type);
@@ -136,7 +140,7 @@ export class LobbyClient {
       this.socket.send(JSON.stringify(message.type==='create'||message.type==='join'||message.type==='resume'||message.type==='list-rooms'||message.type==='persistent'?{...message,contentVersion:contentVersion(),recovery:1}:message));
   }
   measurePing(): void {
-    this.send({ type: "ping", sent: performance.now(), performance:matchPerformance.snapshot() });
+    this.send({ type: "ping", sent: performance.now(), ...(this.diagnosticsEnabled?{diagnostics:true}:{}), performance:matchPerformance.snapshot() });
   }
   disconnect(preserveRecovery=false): void {
     if(!preserveRecovery){

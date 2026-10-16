@@ -23,7 +23,7 @@ export type ClientMessage =
   | { type: "championship-ready"; matchId: string }
   | { type: "input"; matchId?: string; frame: number; mask: number }
   | { type: "hash"; matchId?: string; frame: number; hash: string }
-  | { type: "ping"; sent: number; performance?:import("./matchPerformance.js").MatchPerformance };
+  | { type: "ping"; sent: number; diagnostics?:boolean; performance?:import("./matchPerformance.js").MatchPerformance };
 export type ServerMessage =
   | import("./persistentChampionship.js").PersistentEvent
   | {type:"spectate-start";matchId:string;stage:string;state:import("./recovery.js").RecoveryState}
@@ -66,6 +66,6 @@ export type ServerMessage =
   | { type: "input"; matchId?: string; seat: number; frame: number; mask: number }
   // Server-generated checksum; seat -1 is the authority, never a player.
   | { type: "hash"; matchId?: string; seat: -1; frame: number; hash: string }
-  | { type: "pong"; sent: number }
+  | { type: "pong"; sent: number; processingMs?:number; simulationStepMeanMs?:number; simulationStepMaxMs?:number }
   | { type: "error"; message: string; code?: "VERSION_MISMATCH"; expected?: string; received?: string }
   | { type: "left"; matchId?:string; seat: number; frame: number };

@@ -193,7 +193,7 @@ export interface CharacterDefinition {
 }
 export interface Fighter {
   undead?: "grave"|"rising"|"zombie"|"dying";
-  diveStunImmuneUntil?:number; beeBoxes?:number; beeSlowUntil?:number; nikalzStunUntil?:number; meteorStart?:number; meteorX?:number; meteorY?:number;
+  diveStunImmuneUntil?:number; beeBoxes?:number; beeSlowUntil?:number; nikalzStunUntil?:number; houseStunUntil?:number; meteorStart?:number; meteorX?:number; meteorY?:number;
   npcPlatform?:number; loveMode?:boolean; loveNpc?:boolean; npcEntrance?:{fromX:number;takeoffX:number;landingX:number;targetX:number;floorY:number;targetY:number;elapsed:number;lastFrame:number}; npcHitAt?:number; npcDefeatedAt?:number; applianceVariant?:number; applianceSeed?:number;
   loanUntil?:number; loanStunUntil?:number; movementSlowUntil?:number;
   stampAttempts?:number; angelUntil?:number; angelBurstAt?:number; coinHitAt?:number;

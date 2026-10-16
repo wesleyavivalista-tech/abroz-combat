@@ -6,7 +6,8 @@ import {contentVersion} from '../packages/shared/contentVersion.js';
 const args=process.argv.slice(2);
 if(args.some(a=>!['--execute','--quick'].includes(a)))throw Error('Only --execute and --quick are accepted. Remote targets are forbidden.');
 const ramp=args.includes('--quick')?[2]:[2,8,16,25,32,48,64];
-const seconds=args.includes('--quick')?3:60;
+// Include live combat after the three-second match countdown.
+const seconds=args.includes('--quick')?8:60;
 console.log(JSON.stringify({environment:'isolated local child process',players:ramp,secondsPerLevel:seconds,limits:{cpuPercent:85,eventLoopP95Ms:100,rssMiB:1536}}));
 if(!args.includes('--execute'))process.exit(0);
 const env={...process.env,NODE_ENV:'test',ABROZ_CAPACITY_TEST:'1',PORT:'0',TRUST_FLY_PROXY:'0',MAX_CONNECTIONS:'64',MAX_CONNECTIONS_PER_ADDRESS:'64',MAX_UPGRADES_PER_MINUTE:'1000',FLY_APP_NAME:''};
@@ -40,9 +41,9 @@ try{
     });
     const room=waitMessage(pair[0],'room');pair[0].send(JSON.stringify({type:'create',character:'nikalz',capacity:2,contentVersion:contentVersion()}));
     const code=(await room).code;const joined=waitMessage(pair[1],'room');pair[1].send(JSON.stringify({type:'join',character:'drupa',code,contentVersion:contentVersion()}));await joined;
-    const start=waitMessage(pair[0],'start');const ready=waitMessage(pair[1],'pong');pair.forEach(s=>s.send(JSON.stringify({type:'ready'})));pair[1].send(JSON.stringify({type:'ping',sent:1}));await ready;pair[0].send(JSON.stringify({type:'start-match'}));await start;
+    const start=waitMessage(pair[0],'start');const ready=waitMessage(pair[1],'pong');pair.forEach(s=>s.send(JSON.stringify({type:'ready'})));pair[1].send(JSON.stringify({type:'ping',sent:1}));await ready;pair[0].send(JSON.stringify({type:'start-match'}));const matchId=(await start).matchId;
     let frame=2;
-    timers.push(setInterval(()=>{pair.forEach((s,seat)=>s.send(JSON.stringify({type:'input',frame,mask:frame%29===seat?16:0})));frame++;},1000/60));
+    timers.push(setInterval(()=>{pair.forEach((s,seat)=>s.send(JSON.stringify({type:'input',matchId,frame,mask:frame%29===seat?16:0})));frame++;},1000/60));
    }
    let previous=await metrics(),at=performance.now();
    for(let second=0;second<seconds&&!stopped;second++){

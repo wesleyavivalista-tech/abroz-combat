@@ -20,6 +20,7 @@ export class RollbackManager {
     return events;
   }
   history = new StateHistory();
+  private prunedBefore=0;
   departures = new Map<number, number>();
   local = new Map<number, number>();
   remotes: Map<number, number>[];
@@ -50,7 +51,7 @@ export class RollbackManager {
     public simulation: GameSimulation,
     public seat: number,
     public inputDelay = ONLINE_INPUT_DELAY,
-    // Absorb brief relay jitter up to 200 ms without adding local input delay.
+    // Absorb brief relay jitter up to 267 ms without adding local input delay.
     public maxRollbackFrames = ONLINE_ROLLBACK_FRAMES,
   ) {
     const count = simulation.state.fighters.length;
@@ -79,7 +80,7 @@ export class RollbackManager {
   restoreRecovery(state:RecoveryState):void {
     this.pendingRollback=undefined;
     this.simulation.restore(decodeSnapshot(state.snapshot));
-    this.history=new StateHistory();this.local.clear();this.remotes.forEach(q=>q.clear());this.usedBySeat.forEach(q=>q.clear());
+    this.history=new StateHistory();this.prunedBefore=Math.max(0,this.simulation.state.frame-180);this.local.clear();this.remotes.forEach(q=>q.clear());this.usedBySeat.forEach(q=>q.clear());
     state.inputs.forEach((q,i)=>{for(const [frame,mask] of q)(i===this.seat?this.local:this.remotes[i]).set(frame,mask);});
     this.departures=new Map(state.departures);this.confirmed=this.simulation.state.frame-1;this.remoteFrame=this.confirmed;
     this.impacts.clear();this.deliveredImpactFrame=this.confirmed;this.desync='OK';this.stalled=false;this.resumeNextInput=state.nextInput;
@@ -188,8 +189,15 @@ export class RollbackManager {
     );
     this.impacts.set(frame,this.simulation.gameplayEvents.filter(e=>e.type==='DamageApplied'));
     for(const key of this.impacts.keys())if(key<frame-180)this.impacts.delete(key);
-    for (const map of [this.local, ...this.remotes, ...this.usedBySeat])
-      for (const f of map.keys()) if (f < frame - 180) map.delete(f);
+    // Replay overwrites retained frames; only newly expired inputs need pruning.
+    const cutoff=Math.max(0,frame-180);
+    if(cutoff>this.prunedBefore){
+      for(const map of [this.local,...this.remotes,...this.usedBySeat]){
+        if(cutoff-this.prunedBefore>180){for(const f of map.keys())if(f<cutoff)map.delete(f);}
+        else for(let f=this.prunedBefore;f<cutoff;f++)map.delete(f);
+      }
+      this.prunedBefore=cutoff;
+    }
   }
   isHashFrameRetained(frame:number):boolean{return Number.isInteger(frame)&&frame>=Math.max(0,this.simulation.state.frame-180)&&frame<=this.simulation.state.frame+this.inputDelay+this.maxRollbackFrames;}
   confirmedHash(frame: number): string | undefined {

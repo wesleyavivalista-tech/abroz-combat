@@ -7,7 +7,8 @@ import {surfaceBelow} from './StageCollision.js';
 import {retainsOwnedEntities,isActive} from './LifeSystem.js';
 import {hurtbox,hitboxes,intersects,sweepEntry,targetBoxes} from '../combat/CollisionSystem.js';
 import {canReceiveDirectHit} from '../combat/ContactPolicy.js';
-import {periodicHit} from '../combat/PeriodicHit.js';
+import {applyDamage} from '../combat/DamageSystem.js';
+import {enter} from './StateMachine.js';
 import {initializeProjectile} from './ProjectilePool.js';
 import {lightBeam,beamIntersects} from './LightBeamSystem.js';
 const actorKey=(owner:number,clone?:{id:number})=>clone?`clone:${clone.id}`:`seat:${owner}`;
@@ -39,6 +40,13 @@ export function activateStructure(s:SimulationSnapshot,stage:StageDefinition,f:F
  s.structures.push({id:s.nextStructureId++,owner,move:m.id,kind:spec.kind,phase:spec.kind==='house'?'marked':'built',x,y,width,height:spec.height,health:maxHealth,maxHealth,createdAt:s.frame,expiresAt:spec.duration?s.frame+spec.duration:0,nextShot:s.frame+(spec.interval??60),shots:0,trapped:[],hits:{},facing:f.facing});
 }
 export function advanceStructures(s:SimulationSnapshot,_stage:StageDefinition):void{
+ // Collapse stun survives landing, skill armor and the short-lived debris entity.
+ for(const {fighter:f} of actors(s)){
+  if(f.houseStunUntil===undefined)continue;
+  if(!isActive(f)||s.phase!=='fight'||s.frame>=f.houseStunUntil){delete f.houseStunUntil;continue;}
+  f.move=null;f.actionUntil=0;f.stun=Math.max(f.stun,f.houseStunUntil-s.frame+1);f.dazed=true;
+  enter(f,f.y>surfaceBelow(_stage,f.x,f.y)?'AirHitStun':'HitStunStanding');
+ }
  if(!s.structures)return;
  // Expired wall/turret debris is visual only: collision and firing stop immediately.
  for(const b of s.structures)if(b.phase==='built'&&b.kind!=='house'&&b.expiresAt&&s.frame>=b.expiresAt){b.phase='collapsed';b.createdAt=b.expiresAt;b.expiresAt+=45;}
@@ -73,9 +81,13 @@ export function damageStructure(s:SimulationSnapshot,b:Structure,amount:number,k
  if(b.kind!=='house')return;
  for(const a of actors(s)){
   const f=a.fighter;
-  if(!intersects(hurtbox(f),structureBox(b))||!canReceiveDirectHit(f,s.frame))continue;
-  const reacts=periodicHit(s,f,spec.collapseDamage??0,0,spec.collapseStun??240,0,undefined,stage.floorHeight,{owned:true,source:b.owner,move:b.move},stage.width);
-  if(reacts&&s.frame>=f.hitstunImmuneUntil){f.vx=f.vy=0;f.dazed=true;}
+  if(f===s.fighters[b.owner]||!canReceiveDirectHit(f,s.frame))continue;
+  // Occupants cannot escape collapse by moving their animation above the roof.
+  if(!b.trapped.includes(actorKey(a.owner,a.clone))&&!intersects(hurtbox(f),structureBox(b)))continue;
+  applyDamage(s,f,spec.collapseDamage??0,{owned:true,source:b.owner,move:b.move,combo:'hit'});
+  f.houseStunUntil=s.frame+(spec.collapseStun??240);
+  f.move=null;f.actionUntil=0;f.stun=spec.collapseStun??240;f.vx=f.vy=0;f.dazed=true;
+  enter(f,f.y>surfaceBelow(stage,f.x,f.y)?'AirHitStun':'HitStunStanding');
  }
 }
 /** Authoritative surfaces shared by projectile blocking and fighter collision. */

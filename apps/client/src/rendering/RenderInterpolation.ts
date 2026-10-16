@@ -36,12 +36,12 @@ export class RenderInterpolation {
   this.fighters=s.fighters.map(sample);this.clones.clear();
   for(const c of s.clones)this.clones.set(c.id,sample(c.fighter));
  }
- view(s:SimulationSnapshot,alpha:number):SimulationSnapshot{
+ view(s:SimulationSnapshot,alpha:number,immediateSeat?:number):SimulationSnapshot{
   if(s!==this.source||s.frame!==this.frame+1||s.phase!=='fight'||this.phase!==s.phase||s.hitstop>0||this.hitstop>0||this.skins!==s.skins.join('|'))return s;
   const t=Number.isFinite(alpha)?Math.max(0,Math.min(1,alpha)):1;
-  return {...s,fighters:s.fighters.map((f,i)=>this.project(f,this.fighters[i],t)),clones:s.clones.map(c=>({...c,fighter:this.project(c.fighter,this.clones.get(c.id),t)}))};
+  return {...s,fighters:s.fighters.map((f,i)=>this.project(f,this.fighters[i],t,i===immediateSeat)),clones:s.clones.map(c=>({...c,fighter:this.project(c.fighter,this.clones.get(c.id),t)}))};
  }
- private project(f:Fighter,p:Sample|undefined,t:number):Fighter{
+ private project(f:Fighter,p:Sample|undefined,t:number,immediatePosition=false):Fighter{
   // Only interpolate continuous motion. Discrete combat/mode events remain exact.
   const sameState=p?.state===f.state;
   const safeTransition=!!p&&!p.move&&!f.move&&locomotionStates.has(p.state)&&locomotionStates.has(f.state);
@@ -53,7 +53,9 @@ export class RenderInterpolation {
   const stateAdvances=sameState&&f.stateFrame===p.stateFrame+1;
   const moveAdvances=!fixedAttack&&sameState&&!!f.move&&f.moveFrame===p.moveFrame+1;
   if(p.x===f.x&&p.y===f.y&&!stateAdvances&&!moveAdvances)return f;
-  const positionT=fixedAttack?1:t;
+  // The locally controlled online fighter uses its latest predicted position.
+  // Remote fighters and animation playback retain interpolation.
+  const positionT=fixedAttack||immediatePosition?1:t;
   const display={...f,x:p.x+(f.x-p.x)*positionT,y:p.y+(f.y-p.y)*positionT};
   setDisplayTicks(display,{
    stateFrame:stateAdvances?p.stateFrame+t:f.stateFrame,

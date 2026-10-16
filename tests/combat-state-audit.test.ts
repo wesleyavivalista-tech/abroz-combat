@@ -84,7 +84,8 @@ test('airborne house-collapse recovery clears daze and allows a later forehead s
  activateStructure(g.state,g.stage,builder,0,characters.luizinho.moves.build);
  damageStructure(g.state,house,house.health,'collapse-test',0,g.stage);
  assert.equal(target.state,'AirHitStun');assert.ok(target.dazed);assert.ok(target.stun>0);
- run(g,180);assert.equal(target.state,'Idle');assert.equal(target.stun,0);assert.equal(target.dazed,false);
+ run(g,180);assert.ok(target.stun>0);assert.equal(target.dazed,true);
+ run(g,240);assert.equal(target.state,'Idle');assert.equal(target.stun,0);assert.equal(target.dazed,false);
  g.hit(2,characters.nikalz.moves.foreheadDive,0,false,1,-1);
  assert.ok(target.stun>0);assert.ok(target.nikalzStunUntil!>g.state.frame);
 });

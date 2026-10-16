@@ -728,7 +728,8 @@ export class GameSimulation {
           (f.stun > 0 && f.state.includes("HitStun"))
         ) {
           f.move = null;
-          if(f.gymLandingStun){f.gymLandingStun=false;f.gymStunnedUntil=this.state.frame+JOMP.landingStun;f.stun=JOMP.landingStun;f.dazed=true;enter(f,'HitStunStanding');}
+          if((f.houseStunUntil??0)>this.state.frame){f.stun=Math.max(f.stun,f.houseStunUntil!-this.state.frame);f.dazed=true;enter(f,'HitStunStanding');}
+          else if(f.gymLandingStun){f.gymLandingStun=false;f.gymStunnedUntil=this.state.frame+JOMP.landingStun;f.stun=JOMP.landingStun;f.dazed=true;enter(f,'HitStunStanding');}
           else{f.stun=0;f.dazed=false;enter(f, "Knockdown");}
         } else if (f.move && def.moves[f.move].dive) {
           const m=def.moves[f.move];

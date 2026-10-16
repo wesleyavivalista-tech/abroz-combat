@@ -14,3 +14,7 @@
 .pc-team-winner>div{margin-left:0;background:none;text-align:center}
 .pc-team-winner .pc-team-art{justify-content:center;height:200px;gap:24px}
 @media(prefers-reduced-motion:reduce){.pc-screen .pc-card,.pc-card-details b{transition:none!important}.pc-screen .pc-card:is(:hover,:focus-visible,[data-controller-focus],.selected),.pc-card:is(:hover,:focus-visible,[data-controller-focus],.selected) .pc-card-details b{transform:none}}
+
+.pc-bracket-preview{margin:28px 0;padding:24px;border:1px solid #52697b;background:linear-gradient(135deg,#172c3d,#0b141d)}
+.pc-bracket-preview .pc-actions{align-items:center;justify-content:space-between;margin:0 0 12px}.pc-bracket-preview h2{font-size:22px;margin:0}.pc-bracket-preview p{color:#b8c8d3}
+.pc-preview-matches{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px}.pc-preview-match{padding:16px;background:#08121c;border:1px solid #344e61;min-width:0}.pc-preview-match>small{color:#f5ce85;letter-spacing:2px}.pc-preview-match>div{display:flex;align-items:center;gap:12px;min-height:70px}.pc-preview-match strong{overflow-wrap:anywhere;min-width:0}.pc-preview-match em{display:block;color:#f5ce85;font-style:normal;font-size:12px;text-align:center}.pc-preview-fighters{display:flex;flex-shrink:0}.pc-preview-fighters img{width:34px;height:64px;object-fit:contain}

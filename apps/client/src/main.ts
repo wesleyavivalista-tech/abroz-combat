@@ -1,3 +1,4 @@
+import {OnlineDiagnostics} from './onlineDiagnostics.js';
 import {matchPerformance} from './matchPerformance.js';
 import {randomArena} from '../../../packages/game-core/stages/random.js';
 import './ui/persistent-championship.css';
@@ -124,6 +125,8 @@ let eliminationIds:string[]=[],eliminationSkins:string[]=[];
 let hudEliminationFight=0;
 let idleTestMatch=false;
 const developmentBuild=!!(import.meta as ImportMeta & {env?:{DEV?:boolean}}).env?.DEV;
+network.diagnosticsEnabled=developmentBuild&&new URLSearchParams(location.search).get('netdebug')==='1';
+const onlineDiagnostics=new OnlineDiagnostics(network.diagnosticsEnabled);
 let localMatchMode:LocalMatchMode='ffa',localIds:string[]=[],localSkins:string[]=[],localTeams:number[]=[];
 const menuNavigation = new MenuNavigation();
 let pauseOwner:number|null=null;
@@ -1480,13 +1483,14 @@ function loop(now: number) {
   const visualElapsed=elapsed*(screen==='fight'?matchTimeScale(simulation.state):1);
   presentationTime+=visualElapsed;
   renderer.draw(
-    screen === "fight" && !paused && !debug ? renderInterpolation.view(simulation.state,accumulator * 60 * matchTimeScale(simulation.state)) : simulation.state,
+    screen === "fight" && !paused && !debug ? renderInterpolation.view(simulation.state,accumulator * 60 * matchTimeScale(simulation.state),rollback&&!isSpectating()?seat:undefined) : simulation.state,
     visualElapsed,
     presentationTime,
     !["fight", "result"].includes(screen),
     simulation.stage,
     renderInterpolation.seconds(screen === "fight" && !paused ? accumulator * 60 * matchTimeScale(simulation.state) : 1),
   );
+  if(network.diagnosticsEnabled)onlineDiagnostics.update(now,screen==='fight'?(rollback??undefined):undefined,network,fps,matchPerformance.snapshot());
   animationFrame=requestAnimationFrame(loop);
 }
 let animationFrame=0;
@@ -1495,7 +1499,7 @@ const persistentLink=new URLSearchParams(location.search).get('championship');
 if(persistentLink&&/^[a-f0-9-]{36}$/.test(persistentLink)){mode='online';lobby();onlinePage='persistent';drawOnline();void persistentUI.open(persistentLink);}
 animationFrame=requestAnimationFrame(loop);
 (import.meta as ImportMeta & {hot?:{dispose(callback:()=>void):void}}).hot?.dispose(()=>{
- audioListeners.abort();playerManagementLifetime.abort();onlineEvents.abort();clearInterval(roomBrowserTimer);
+ onlineDiagnostics.dispose();audioListeners.abort();playerManagementLifetime.abort();onlineEvents.abort();clearInterval(roomBrowserTimer);
  controllerHints.dispose();viewRevision++;cancelBinding?.();cancelAnimationFrame(animationFrame);clearInterval(pingTimer);
  window.removeEventListener('blur',onBlur);controllerNotice.remove();
  network.disconnect();input.dispose();ui.dispose();assets.dispose();audio.dispose();renderer.dispose();void disposeFighterSprites();

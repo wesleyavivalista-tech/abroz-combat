@@ -167,6 +167,8 @@ test(`real WebSocket create/join/ready/input/hash/disconnect: ${peerOrigins.join
     a.send(JSON.stringify({ type: "hash", frame: 0, hash: "abc123" }));
     a.send(JSON.stringify({type:'ping',sent:321}));
     assert.deepEqual(await next(a,'pong'),{type:'pong',sent:321});
+    a.send(JSON.stringify({type:'ping',sent:322,diagnostics:true}));
+    const timing=await next(a,'pong');assert.equal(timing.type,'pong');if(timing.type==='pong'){assert.equal(timing.sent,322);for(const value of [timing.processingMs,timing.simulationStepMeanMs,timing.simulationStepMaxMs])assert.ok(typeof value==='number'&&Number.isFinite(value)&&value>=0);}
     b.close();
     await next(a, "left");
   } finally {
@@ -177,9 +179,9 @@ test(`real WebSocket create/join/ready/input/hash/disconnect: ${peerOrigins.join
 
  test('prediction absorbs a short gap but remains bounded during a lost connection',()=>{
  const peer=new RollbackManager(new GameSimulation(),0);
- assert.equal(peer.inputDelay,2);assert.equal(peer.maxRollbackFrames,12);
- for(let i=0;i<14;i++){peer.schedule(0,()=>{});assert.equal(peer.tick(),true);}
- assert.equal(peer.tick(),false);assert.equal(peer.simulation.state.frame,14);
- for(let frame=2;frame<=14;frame++)peer.receive(frame,0);
+ assert.equal(peer.inputDelay,2);assert.equal(peer.maxRollbackFrames,16);
+ for(let i=0;i<18;i++){peer.schedule(0,()=>{});assert.equal(peer.tick(),true);}
+ assert.equal(peer.tick(),false);assert.equal(peer.simulation.state.frame,18);
+ for(let frame=2;frame<=18;frame++)peer.receive(frame,0);
  assert.equal(peer.tick(),true);assert.equal(peer.desync,'OK');
  });

@@ -52,6 +52,8 @@ const server = createServer((req, res) => {
 const wss = new WebSocketServer({
   server,
   maxPayload: 8192,
+  // Small input packets should never wait for compression or a Nagle batch.
+  perMessageDeflate: false,
   verifyClient: (info: {origin:string;req:IncomingMessage}) => {
     let reason:string|undefined;
     if(draining)reason='maintenance';
@@ -62,6 +64,7 @@ const wss = new WebSocketServer({
   },
 });
 wss.on("connection", (socket,request) => {
+  request.socket.setNoDelay(true);
   const address=clientAddress(request,trustFly)!;
   const release=admission.connect(address);
   const roomless=new RoomlessDeadline();
@@ -85,6 +88,7 @@ wss.on("connection", (socket,request) => {
     socket.ping();
   }, 30000);
   socket.on("message", (data) => {
+    const messageStarted=performance.now();
     let operation='parse';
     try {
       if (Date.now() - window > 1000) {
@@ -165,7 +169,7 @@ wss.on("connection", (socket,request) => {
           break;
         case "ping":
           if (typeof m.sent === "number" && Number.isFinite(m.sent))
-            send(socket, { type: "pong", sent: m.sent });
+            send(socket, { type: "pong", sent: m.sent, ...(m.diagnostics===true?{processingMs:performance.now()-messageStarted,simulationStepMeanMs:stepMetrics.snapshot().simulationStepMeanMs,simulationStepMaxMs:stepMetrics.snapshot().simulationStepMaxMs}:{}) });
           if(Date.now()-lastPerformanceLog>=15000){
             const sample=readMatchPerformance(m.performance),room=rooms.membership.get(socket);
             const context=persistent?.diagnosticContext(socket)??(room?.started?{matchId:room.matchId,seat:room.peers.findIndex(p=>p.socket===socket),roomId:room.diagnosticId}:undefined);

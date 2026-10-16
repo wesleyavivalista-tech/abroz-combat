@@ -122,13 +122,13 @@ test('water and suction do not displace executing abilities; water still damages
  d.move=null;d.state='Idle';advanceNapa(g.state,g.stage);assert.ok(d.x<x);
 });
 
-test('house collapse damages without freezing or dazing an executing cast',()=>{
+test('house collapse overrides executing cast armor with damage and seven-second stun',()=>{
  const g=game(['luizinho','tocha']),[builder,d]=g.state.fighters;
  activateStructure(g.state,g.stage,builder,0,characters.luizinho.moves.home);
  activateStructure(g.state,g.stage,builder,0,characters.luizinho.moves.build);
  const house=g.state.structures![0];d.x=house.x;cast(g,'satan',1);d.vx=3;d.vy=2;
  const hp=d.health;damageStructure(g.state,house,house.health,'test',0,g.stage);
- assert.ok(d.health<hp);assert.equal(d.move,'satan');assert.equal(d.vx,3);assert.equal(d.vy,2);assert.ok(!d.dazed);
+ assert.ok(d.health<hp);assert.equal(d.move,null);assert.equal(d.vx,0);assert.equal(d.vy,0);assert.ok(d.dazed);assert.equal(d.stun,420);
 });
 
 test('server verification and late-input rollback agree on protected hits and completed casts',()=>{

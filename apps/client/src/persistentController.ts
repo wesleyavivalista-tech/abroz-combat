@@ -1,5 +1,5 @@
 import type {PersistentCommand,PersistentEvent,PersistentCreate,PersistentCard,PersistentLobby,PersistentTournament,PersistentMode} from '../../../packages/shared/persistentChampionship.js';
-import {initialPersistentConfig,persistentBrowser,persistentCreate,persistentDetail,pcButton} from './ui/PersistentChampionship.js';
+import {initialPersistentConfig,randomizePersistentBracket,persistentBracketPreview,persistentBrowser,persistentCreate,persistentDetail,pcButton} from './ui/PersistentChampionship.js';
 import {persistentPoster} from './ui/PersistentPoster.js';
 import {onlineText as l} from './ui/OnlineLobby.js';
 export class PersistentController {
@@ -29,6 +29,7 @@ export class PersistentController {
   if(el.dataset.pcFighter){const [i,j]=el.dataset.pcFighter.split(',').map(Number);this.config.competitors[i].fighters[j]=el.value;this.config.competitors[i].skins![j]='original';}
   if(el.dataset.pcSkin){const [i,j]=el.dataset.pcSkin.split(',').map(Number);this.config.competitors[i].skins![j]=el.value;}
   if(el instanceof HTMLSelectElement)this.redraw();
+  else {const preview=document.getElementById('pc-preview-matches');if(preview)preview.innerHTML=persistentBracketPreview(this.config);}
  }
  async action(el:HTMLElement){
   const action=el.dataset.pc,id=this.tournament?.id;
@@ -37,6 +38,7 @@ export class PersistentController {
   if(action==='refresh')this.refresh();
   if(action==='next'||action==='previous'){this.offset=Math.max(0,this.offset+(action==='next'?24:-24));await this.browse();}
   if(action==='open')await this.open(el.dataset.id!);
+  if(action==='shuffle'&&this.page==='create'&&!this.busy){this.config=randomizePersistentBracket(this.config);this.redraw();document.querySelector<HTMLButtonElement>('[data-pc=shuffle]')?.focus();}
   if(action==='save'){if(this.busy)return;this.busy=true;try{await this.send({type:'persistent',action:'create',config:this.config});}catch(e){this.busy=false;throw e;}}
   if(action==='series'){this.selected=el.dataset.id!;this.redraw();document.querySelector<HTMLButtonElement>('.pc-series-panel [data-pc=claim]:not(:disabled),.pc-series-panel [data-pc=ready]')?.focus();}
   if(action==='bracket'||action==='stats'){this.tab=action;this.redraw();}

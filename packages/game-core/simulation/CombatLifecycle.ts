@@ -13,7 +13,7 @@ export function clearCombatEntities(s:SimulationSnapshot):void{
 
 /** Clear transient combat state without changing health, lives, meter or spent supers. */
 export function clearFighterCombat(f:Fighter):void{
- delete f.beeBoxes;delete f.beeSlowUntil;delete f.nikalzStunUntil;delete f.diveStunImmuneUntil;delete f.meteorStart;delete f.meteorX;delete f.meteorY;delete f.loveMode;delete f.loanUntil;delete f.loanStunUntil;delete f.timedHitReaction;delete f.beamPulse;delete f.stampAttempts;delete f.angelUntil;delete f.angelBurstAt;delete f.movementSlowUntil;
+ delete f.beeBoxes;delete f.beeSlowUntil;delete f.nikalzStunUntil;delete f.houseStunUntil;delete f.diveStunImmuneUntil;delete f.meteorStart;delete f.meteorX;delete f.meteorY;delete f.loveMode;delete f.loanUntil;delete f.loanStunUntil;delete f.timedHitReaction;delete f.beamPulse;delete f.stampAttempts;delete f.angelUntil;delete f.angelBurstAt;delete f.movementSlowUntil;
  delete f.jopaStunUntil;
  if(f.talkUntil!==undefined)f.talkUntil=0;
  if(f.talkNextDrain!==undefined)f.talkNextDrain=0;
