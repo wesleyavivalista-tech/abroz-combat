@@ -62,9 +62,9 @@ test("respawn is exactly 120 ticks after death, even during hit stop", () => {
   assert.equal(f.health, 1400);
   assert.equal(f.respawnAt, 0);
   assert.equal(f.state, "Idle");
-  assert.equal(f.invulnerableUntil, sim.state.frame + 120);
+  assert.equal(f.invulnerableUntil, sim.state.frame + 180);
 });
-test("respawn protection blocks damage and collision for exactly 120 ticks", () => {
+test("respawn protection blocks damage and collision for exactly 180 ticks", () => {
   const sim = match();
   defeat(sim, 1);
   run(sim, 120);
@@ -75,8 +75,8 @@ test("respawn protection blocks damage and collision for exactly 120 ticks", () 
   sim.hit(0, m, 0, false);
   assert.equal(f.health, 1400);
   assert.equal(f.stun, 0);
-  run(sim, 119);
-  assert.equal(sim.state.frame, spawnFrame + 119);
+  run(sim, 179);
+  assert.equal(sim.state.frame, spawnFrame + 179);
   assert.equal(sim.hurts(f, hurtbox(f)), false);
   sim.hit(0, m, 0, false);
   assert.equal(f.health, 1400);
@@ -197,10 +197,10 @@ test("snapshot restore spans respawn and protection expiry identically", () => {
   defeat(sim, 1);
   run(sim, 80);
   const before = sim.snapshot();
-  run(sim, 180, Button.Right, 0);
+  run(sim, 240, Button.Right, 0);
   const expected = hashState(sim.state);
   sim.restore(before);
-  run(sim, 180, Button.Right, 0);
+  run(sim, 240, Button.Right, 0);
   assert.equal(hashState(sim.state), expected);
 });
 test("late lethal remote attack replays lives, respawn and shield identically", () => {
@@ -257,7 +257,7 @@ test("respawn preserves the exact defeat position at either edge and in the air"
       run(sim, 1);
       assert.deepEqual([f.x, f.y], [x, y]);
       assert.equal(f.health, 1400);
-      assert.equal(f.invulnerableUntil, sim.state.frame + 120);
+      assert.equal(f.invulnerableUntil, sim.state.frame + 180);
     }
 });
 test("an opponent occupying the defeat location does not relocate the respawn", () => {

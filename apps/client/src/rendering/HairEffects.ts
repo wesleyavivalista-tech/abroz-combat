@@ -1,7 +1,7 @@
 import {isLowProfile} from '../../../../packages/game-core/simulation/DodoSystem.js';
 import { HairGripProjectile } from "./HairGripProjectile.js";
 import * as THREE from "three";
-import type { SimulationSnapshot } from "../../../../packages/game-core/types.js";
+import type { Fighter, SimulationSnapshot } from "../../../../packages/game-core/types.js";
 import { characters } from "../../../../packages/game-core/characters/registry.js";
 import { actors } from "../../../../packages/game-core/simulation/Actors.js";
 import { worldX } from "./StageCoordinates.js";
@@ -13,15 +13,15 @@ function binding():THREE.Group {
  }
  return root;
 }
-/** Hair coils fit every roster member; their sway supplies a shared trapped animation. */
+/** Projectile plus fallback bindings for summoned entities without authored trap poses. */
 export class HairEffects {
  root=new THREE.Group();private bindings=Array.from({length:32},binding);
  private shots=Array.from({length:64},()=>new HairGripProjectile());
  constructor(){this.root.add(...this.bindings,...this.shots);}
- update(s:SimulationSnapshot,menu:boolean):void{
+ update(s:SimulationSnapshot,menu:boolean,authored:ReadonlySet<Fighter>=new Set()):void{
   this.root.visible=!menu;this.bindings.forEach(g=>g.visible=false);
   actors(s).forEach(({fighter:f},i)=>{const g=this.bindings[i];if(!g)return;
-   g.visible=!isLowProfile(f,s.frame)&&f.trappedUntil>s.frame&&f.health>0&&!f.respawnAt;
+   g.visible=!authored.has(f)&&!isLowProfile(f,s.frame)&&f.trappedUntil>s.frame&&f.health>0&&!f.respawnAt;
    g.position.set(worldX(f.x),f.y/100,.22);g.rotation.z=Math.sin(s.frame*.25+i)*.025;
   });
   this.shots.forEach((g,i)=>{

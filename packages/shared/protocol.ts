@@ -5,6 +5,7 @@ export interface RoomSettings { name?:string; visibility?:"public"|"private"; st
 export interface RoomSummary { code:string; name:string; capacity:number; count:number; mode:OnlineMode; status:"waiting"|"full"|"playing" }
 export interface RoomView extends RoomSummary { owner:number; seat:number; stage:string; visibility:"public"|"private"; startReason:string; players:{character:string;skin:string;team:number;ready:boolean;connected:boolean;status:"lobby"|"results"|"reconnecting"|"left"}[] }
 export type ClientMessage =
+  | import("./persistentChampionship.js").PersistentCommand
   | {type:"spectate";matchId?:string}
   | {type:"list-rooms"}
   | {type:"room-settings";settings:RoomSettings}
@@ -24,6 +25,7 @@ export type ClientMessage =
   | { type: "hash"; matchId?: string; frame: number; hash: string }
   | { type: "ping"; sent: number };
 export type ServerMessage =
+  | import("./persistentChampionship.js").PersistentEvent
   | {type:"spectate-start";matchId:string;stage:string;state:import("./recovery.js").RecoveryState}
   | {type:"rooms";rooms:RoomSummary[]}
   | {type:"room-state";room:RoomView}

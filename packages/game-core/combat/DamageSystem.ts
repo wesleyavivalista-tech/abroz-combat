@@ -14,6 +14,7 @@ export function protectedDamage(f:Fighter,frame:number,damage:number):number{ret
 export interface DamageOptions extends DamageSource{combo?:'hit'|'damage';receivedHit?:boolean;}
 /** Eligibility/blocking belongs to contact resolution; all damage commits pass here. */
 export function applyDamage(s:SimulationSnapshot,f:Fighter,base:number,options:DamageOptions={}):number{
+ if(s.frame<f.invulnerableUntil)return 0;
  if(f.undead==='rising'||f.undead==='dying'||f.jopaTree!==undefined)return 0;
  if(f.jopaRide!==undefined){const mount=s.clones.find(c=>c.id===f.jopaRide);return mount?applyDamage(s,mount.fighter,base,options):0;}
  const beforeHealth=f.health,beforeCombo=f.combo;

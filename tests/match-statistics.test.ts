@@ -21,7 +21,7 @@ test('actual damage, overkill, chip, DOT, owned entities and neutral NPCs are di
 test('multi-life attribution persists across respawn; final blow counts once, then freezes',()=>{
  const g=game(),s=g.state,d=s.fighters[1];d.lives=2;
  applyDamage(s,d,99999,{source:0,move:'bees',owned:true});resolveKnockouts(s,false);s.frame=d.respawnAt;advanceRespawns(s);assert.equal(s.statistics!.players[1].healing,0);
- applyDamage(s,d,99999,{source:0,move:'jab'});resolveKnockouts(s,false);finishStatistics(s);
+ s.frame=d.invulnerableUntil;applyDamage(s,d,99999,{source:0,move:'jab'});resolveKnockouts(s,false);finishStatistics(s);
  assert.equal(s.statistics!.players[0].kos,2);assert.equal(s.statistics!.players[0].eliminations,1);assert.equal(s.statistics!.players[1].deaths,2);
  const before=structuredClone(s.statistics);g.step([0,0]);assert.deepEqual(s.statistics,before);
 });

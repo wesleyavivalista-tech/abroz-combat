@@ -1,3 +1,4 @@
+import {HairGripVisual,hairGripCatalog,loadHairGripArt,disposeHairGripArt} from './HairGripVisual.js';
 import {disposeZombieSprites} from './ZombieSpriteRenderer.js';
 import {CrouchAttackVisual} from './CrouchAttackVisual.js';
 import {AirAttackVisual,airAttackCatalog,loadAirAttackArt,disposeAirAttackArt} from './AirAttackVisual.js';
@@ -60,7 +61,8 @@ export function createFighterVisual(
   if(['fausto','napa','dodo'].includes(definition.id)&&visual.fallBodies)visual=new DashVisual(visual,definition.id,skin);
   if(visual.fallBodies)visual=new FallVisual(visual,definition.id,skin);
   if(mountedCatalog.some(ids=>ids.includes(definition.id))&&definition.skins?.some(s=>s.id===skin))visual=new MountedVisual(visual,definition.id,skin);
-  return new CrouchAttackVisual(visual);
+  const wrapped=new CrouchAttackVisual(visual);
+  return hairGripCatalog[definition.id]?new HairGripVisual(wrapped,definition.id,skin):wrapped;
 }
 
 const skinLoaders = new Map<string, () => Promise<void>>();
@@ -79,7 +81,7 @@ export function loadFighterSprites(ids:readonly string[]=Object.keys(characters)
  })]).then(()=>{});
 }
 async function loadCharacter(id:string):Promise<void>{
-    await Promise.all([loadFallArt(id),loadDashArt(id),loadAirAttackArt(id)]);
+    await Promise.all([loadFallArt(id),loadDashArt(id),loadAirAttackArt(id),loadHairGripArt(id)]);
     const walks={} as Record<WalkCharacter,THREE.Texture[]>;
     await Promise.all(((id==='tocha'?['tocha']:id==='bozo'?['bozo','clone']:id==='gut'?['gut','spear']:[]) as WalkCharacter[]).map(async kind=>{
       walks[kind]=await Promise.all(walkAtlases[kind].sources.map(async source=>{
@@ -174,6 +176,6 @@ export async function disposeFighterSprites():Promise<void>{
  disposeNapa();
  disposeFausto();
  disposeAstolfo();
- disposeAirAttackArt();disposeFallArt();disposeDashArt();disposeBackwardDashArt();
+ disposeHairGripArt();disposeAirAttackArt();disposeFallArt();disposeDashArt();disposeBackwardDashArt();
  loads.clear();factories.clear();skinLoaders.clear();disposeSpriteMasks();disposeZombieSprites();disposeTextureCache();
 }

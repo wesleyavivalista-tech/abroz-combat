@@ -6,7 +6,7 @@ import { TICK_RATE } from "../types.js";
 import { createFighter } from "./Fighter.js";
 import { enter } from "./StateMachine.js";
 export const RESPAWN_FRAMES = 2 * TICK_RATE;
-export const INVULNERABLE_FRAMES = 2 * TICK_RATE;
+export const INVULNERABLE_FRAMES = 3 * TICK_RATE;
 export function isActive(f: Fighter): boolean {
   return f.lives > 0 && f.health > 0 && f.respawnAt === 0;
 }

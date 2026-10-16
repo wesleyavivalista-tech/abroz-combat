@@ -1,0 +1,19 @@
+import type {FighterStatistics} from '../game-core/simulation/MatchStatistics.js';
+export type PersistentMode='1v1'|'2v2'|'3v3';
+export interface Competitor {id:number;name:string;fighters:string[];skins:string[]}
+export interface PersistentSeries {id:string;round:number;index:number;sides:[number|null,number|null];score:[number,number];winner:number|null;status:'waiting'|'available'|'completed'}
+export interface PersistentFight {id:string;seriesId:string;number:number;winner:number;completedAt:number;statistics:FighterStatistics[];elapsedFrames:number}
+export interface PersistentTournament {id:string;name:string;mode:PersistentMode;stage:string;createdAt:number;completedAt:number|null;competitors:Competitor[];series:PersistentSeries[];fights:PersistentFight[];champion:number|null;version:number}
+export interface PersistentCard {id:string;name:string;mode:PersistentMode;createdAt:number;completedAt:number|null;count:number;completed:number;total:number;available:number;champion:Competitor|null}
+export interface PersistentLobby {seriesId:string;slots:{fighter:string;skin:string;team:number;occupied:boolean;ready:boolean}[];seat:number;attempt?:string}
+export interface PersistentCreate {name:string;mode:PersistentMode;stage:string;competitors:{name:string;fighters:string[];skins?:string[]}[]}
+export type PersistentCommand={type:'persistent';action:'list';completed?:boolean;offset?:number}|{type:'persistent';action:'create';config:PersistentCreate}|{type:'persistent';action:'open';id:string}|{type:'persistent';action:'claim';id:string;seriesId:string;slot:number;session:string}|{type:'persistent';action:'ready';ready:boolean}|{type:'persistent';action:'leave'}|{type:'persistent';action:'delete';id:string;pin:string};
+export type PersistentEvent={type:'persistent-list';cards:PersistentCard[];hasMore:boolean}|{type:'persistent-detail';tournament:PersistentTournament; lobbies:PersistentLobby[]}|{type:'persistent-created';tournament:PersistentTournament;pin:string}|{type:'persistent-start';matchId:string;seat:number;characters:string[];skins:string[];teams:number[];stage:string;seed:number}|{type:'persistent-ended';id:string;seriesId:string;matchId:string;cancelled:boolean;message:string}|{type:'persistent-deleted';id:string};
+export interface PersistentTotals {competitor:number;fighter:string;played:number;won:number;lost:number;seriesWon:number;seriesLost:number;damageDealt:number;damageTaken:number;kos:number;deaths:number;energySpent:number;highestDamage:number;mvp:number}
+/** Each roster position is distinct, even when another team fields the same fighter. */
+export function persistentStatistics(t:PersistentTournament):{fighters:PersistentTotals[];teams:Omit<PersistentTotals,'fighter'>[]} {
+ const fighters=t.competitors.flatMap(c=>c.fighters.map(fighter=>({competitor:c.id,fighter,played:0,won:0,lost:0,seriesWon:t.series.filter(s=>s.winner===c.id).length,seriesLost:t.series.filter(s=>s.status==='completed'&&s.sides.includes(c.id)&&s.winner!==c.id).length,damageDealt:0,damageTaken:0,kos:0,deaths:0,energySpent:0,highestDamage:0,mvp:0})));
+ for(const f of t.fights){const s=t.series.find(s=>s.id===f.seriesId)!;let seat=0;for(const id of s.sides){const c=t.competitors.find(c=>c.id===id)!;for(const fighter of c.fighters){const r=fighters.find(r=>r.competitor===id&&r.fighter===fighter)!,p=f.statistics[seat++];r.played++;r.won+=Number(f.winner===id);r.lost+=Number(f.winner!==id);for(const key of ['damageDealt','damageTaken','kos','deaths','energySpent'] as const)r[key]+=p[key];r.highestDamage=Math.max(r.highestDamage,p.damageDealt);r.mvp+=p.eliminations*300+p.kos*100+p.damageDealt*.1+Math.min(20,p.highestCombo)*5;}}}
+ const teams=t.competitors.map(c=>{const rows=fighters.filter(r=>r.competitor===c.id);const r={...rows[0]};for(const key of ['damageDealt','damageTaken','kos','deaths','energySpent','mvp'] as const)r[key]=rows.reduce((n,row)=>n+row[key],0);return r;});
+ return {fighters,teams};
+}

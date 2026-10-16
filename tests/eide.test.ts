@@ -53,7 +53,8 @@ test('Love survives Eide losing lives and respawning until both companions die',
  assert.deepEqual(g.state.clones.map(c=>c.id),ids);assert.equal(g.state.clones[0].fighter.health,125);
  g.state.clones[0].fighter.health=0;g.step([0,0]);assert.ok(inLove(f));
  f.health=0;g.step([0,0]);assert.equal(f.lives,1);run(g,120);assert.ok(inLove(f));
- const hp=f.health;applyDamage(g.state,f,100);assert.equal(f.health,hp-80);
+ const hp=f.health;applyDamage(g.state,f,100);assert.equal(f.health,hp);
+ g.state.frame=f.invulnerableUntil;applyDamage(g.state,f,100);assert.equal(f.health,hp-80);
  g.state.clones.find(c=>c.fighter.health>0)!.fighter.health=0;g.step([0,0]);assert.equal(inLove(f),false);
 });
 test('both companions dying during respawn ends Love and rollback reproduces it',()=>{

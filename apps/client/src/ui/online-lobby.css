@@ -34,3 +34,9 @@
 .on-screen:has(.on-portals) .on-footer{margin-top:12px;border-color:#e2be7155;text-shadow:0 2px 5px #000;padding-bottom:16px}
 @media(max-width:680px){.on-screen:has(.on-portals) .on-portals{flex-direction:column;padding:28px 6px;gap:28px;min-height:0}.on-screen .on-portals .on-portal{flex:none;width:100%;max-width:430px;height:290px}.on-portals .on-portal-symbol{top:16%;width:92px}.on-portals .on-portal>div{bottom:25px}.on-portals .on-portal-index{top:18px}.on-portals:not(:has(.on-portal:hover)) .on-portal:is(:focus,.controller-focus),.on-portals .on-portal:hover{transform:scale(1.03)}.on-screen:has(.on-portals) .on-footer{padding-bottom:36px}}
 .on-screen .on-portals button.on-portal:hover:not(:disabled){background:transparent}
+
+/* All four online destinations share the same portal and focus behavior. */
+.on-portal[data-online="persistent"] .on-portal-art{background-image:url('/art/modes/championship-poster-arena-v1.png');background-position:center top}
+.on-screen:has(.on-portals) .on-portals{max-width:1800px;gap:clamp(16px,2vw,36px)}
+.on-portals .on-portal h2{font-size:clamp(22px,1.8vw,36px);line-height:1.1;overflow-wrap:normal}
+@media(min-width:681px) and (max-width:1100px){.on-screen:has(.on-portals) .on-portals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;padding:32px 2%}.on-screen .on-portals .on-portal{width:100%;max-width:none;height:360px}.on-portals .on-portal-symbol{width:110px;top:20%}.on-portals .on-portal h2{font-size:28px}.on-portals .on-portal:hover,.on-portals:not(:has(.on-portal:hover)) .on-portal:is(:focus,.controller-focus){transform:scale(1.04)}}

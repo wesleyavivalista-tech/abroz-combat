@@ -1,3 +1,4 @@
+import {PersistentChampionshipService} from './persistent/service.js';
 import {RecoveryStore} from './recoveryStore.js';
 import {LobbyBudget,LOBBY_RATE_ERROR,RoomlessDeadline} from './lobbyProtection.js';
 import {stepMetrics} from './capacityMetrics.js';
@@ -11,6 +12,9 @@ import { createServer, type IncomingMessage } from "node:http";
 import { WebSocketServer } from "ws";
 import { RoomService, send } from "./rooms.js";
 const log=createLogger();
+const persistentPath=process.env.ABROZ_CHAMPIONSHIP_PATH;
+const championshipStore=persistentPath?new (await import('./persistent/store.js')).ChampionshipStore(persistentPath):undefined;
+const persistent=championshipStore?new PersistentChampionshipService(championshipStore,send):undefined;
 const rooms = new RoomService(log,process.env.ABROZ_RECOVERY_ENABLED==='1');
 const recoveryStore=process.env.ABROZ_RECOVERY_ENABLED==='1'&&process.env.ABROZ_RECOVERY_PATH?new RecoveryStore(process.env.ABROZ_RECOVERY_PATH):undefined;
 if(recoveryStore){try{const saved=await recoveryStore.load();if(saved)rooms.restoreCheckpoint(saved.data,saved.savedAt);}catch{log('recovery-load-failed',{});throw Error('Recovery checkpoint could not be safely loaded');}}
@@ -46,7 +50,7 @@ const server = createServer((req, res) => {
 });
 const wss = new WebSocketServer({
   server,
-  maxPayload: 1024,
+  maxPayload: 8192,
   verifyClient: (info: {origin:string;req:IncomingMessage}) => {
     let reason:string|undefined;
     if(draining)reason='maintenance';
@@ -69,7 +73,7 @@ wss.on("connection", (socket,request) => {
   let window = Date.now();
   socket.on("pong", () => (alive = true));
   const timer = setInterval(() => {
-    if(roomless.expired(rooms.membership.has(socket))){closeReason='roomless-timeout';socket.terminate();return;}
+    if(roomless.expired(rooms.membership.has(socket)||!!persistent?.has(socket)||!!persistent?.watching(socket))){closeReason='roomless-timeout';socket.terminate();return;}
     if (!alive) {
       closeReason='heartbeat-timeout';
       socket.terminate();
@@ -93,6 +97,21 @@ wss.on("connection", (socket,request) => {
         if(Date.now()-lobbyWindow>1000){lobbyWindow=Date.now();lobbyChanges=0;}
         if(++lobbyChanges>20)throw Error(LOBBY_RATE_ERROR);
       }
+      if(m.type==='persistent'){
+        assertCompatibleContent(m.contentVersion);
+        if(!persistent)throw Error('Persistent Championships are not enabled on this server yet');
+        if(draining&&['create','claim','ready'].includes(m.action))throw Error('Server maintenance: please try again shortly');
+        if(rooms.membership.has(socket))throw Error('Leave your current room first');
+        if(Date.now()-lobbyWindow>1000){lobbyWindow=Date.now();lobbyChanges=0;}
+        if(++lobbyChanges>10)throw Error(LOBBY_RATE_ERROR);
+        roomless.expired(true);persistent.command(socket,m,address);return;
+      }
+      if(persistent?.has(socket)){
+        if(m.type==='input')persistent.input(socket,m.frame,m.mask,m.matchId);
+        else if(m.type==='leave')persistent.leave(socket);
+        else if(!['hash','finished','ping'].includes(m.type))throw Error('Leave your championship fighter first');
+        if(m.type!=='ping')return;
+      }
       switch (m.type) {
         case 'leave': rooms.leave(socket,'intentional-leave');break;
         case 'resume':
@@ -111,7 +130,7 @@ wss.on("connection", (socket,request) => {
               throw new Error("Invalid room code");
             rooms.join(socket, m.code, m.character, m.team, m.skin);
           }
-          roomless.expired(rooms.membership.has(socket));
+          roomless.expired(rooms.membership.has(socket)||!!persistent?.has(socket)||!!persistent?.watching(socket));
           break;
         case "championship-ready":
           if (typeof m.matchId === "string") rooms.championshipReady(socket, m.matchId);
@@ -161,6 +180,7 @@ wss.on("connection", (socket,request) => {
   socket.on("close", (code) => {
     log('connection-close',{connectionId,roomId:rooms.diagnosticRoomId(socket),code,reason:closeReason});
     release();
+    persistent?.leave(socket);
     clearInterval(timer);
     if(stopping)rooms.leave(socket,closeReason);else rooms.detach(socket,closeReason);
   });
@@ -175,7 +195,7 @@ const metrics=production?setInterval(()=>{
 // Maintenance rejects new connections/rooms; existing matches continue normally.
 process.on('SIGUSR2',()=>{draining=true;log('draining',{rooms:rooms.rooms.size});});
 const recoveryTick=process.env.ABROZ_RECOVERY_ENABLED==='1'?setInterval(()=>rooms.recoveryTick(),16):undefined;
-const progressExpiry=setInterval(()=>rooms.expireInactive(),1000);
+const progressExpiry=setInterval(()=>{rooms.expireInactive();persistent?.expire();},1000);
 const expiry = setInterval(() => rooms.expire(), 60000);
 server.listen(Number(process.env.PORT ?? 8080), "0.0.0.0", () => {
   log('server-start',{port:(server.address() as {port:number}).port});
@@ -195,7 +215,7 @@ function stop() {
   if(recoveryTick)clearInterval(recoveryTick);
   clearInterval(expiry);
   clearInterval(progressExpiry);
-  wss.clients.forEach((s) => s.close());
+  wss.clients.forEach((s) => {persistent?.leave(s);s.close();});
   wss.close();
   server.close();
 }

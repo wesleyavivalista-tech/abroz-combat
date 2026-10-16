@@ -1,3 +1,5 @@
+import './ui/persistent-championship.css';
+import {PersistentController} from './persistentController.js';
 import {MultiplayerSelection,multiplayerSelection,type SelectionAction} from './ui/MultiplayerSelection.js';
 import {SpectatorPlayback} from './networkSpectator.js';
 import {onlineMenu,createRoom,joinCode,browseRooms,sharedLobby,lobbyFighters,lobbyArenas,onlineText} from './ui/OnlineLobby.js';
@@ -183,6 +185,7 @@ function toggleOnlineControllerMenu(){
  ui.root.append(dialog);dialog.showModal();dialog.addEventListener('cancel',e=>{e.preventDefault();toggleOnlineControllerMenu();});
 }
 function controllerBack(){
+ const persistentDialog=document.getElementById('persistent-dialog');if(persistentDialog){persistentDialog.dispatchEvent(new Event('cancel',{cancelable:true}));return;}
  if(screen==='lobby'&&!document.querySelector('dialog[open]')){onlineBack();return;}
  if(screen==='championship-victory'){home();return;}
  if(screen==='championship-bracket'&&championship?.complete&&championship.champion!==null){showChampionVictory();return;}
@@ -412,6 +415,7 @@ function navigate(next: string, keepConnection = false) {
   menuNavigation.reset(); pauseOwner=null;
 }
 function home() {
+  persistentFight=false;
   network.disconnect();
   championship = null; championshipMatch = undefined; championshipReady = [];
   rollback = null;spectatorPlayback=null;renderer.spectatorTarget=undefined;
@@ -505,7 +509,7 @@ function restoreVictory(){
 let initialFight:{ids:string[];teams?:number[];skins:string[];tournament:boolean|EliminationMode;seed:number;arenaId:string;idleTest:boolean}|null=null;
 let restartTarget:GameSimulation|null=null;
 let restartPending=false;
-function canRestartFight(){return mode!=='online'||!spectatorPlayback&&(championship?seat===0:seat===(onlineRoom?.owner??0));}
+function canRestartFight(){if(persistentFight)return false;return mode!=='online'||!spectatorPlayback&&(championship?seat===0:seat===(onlineRoom?.owner??0));}
 function restartButton():string {
  return canRestartFight()?`<button class="overlay-action" data-action="restart-fight">${th('pause.restart')}</button>`:'';
 }
@@ -756,6 +760,7 @@ function updateHUD(presentationOnly=false) {
     screen === "fight" &&
     (!rollback || rollback.confirmed >= s.endedAt - 1)
   ) {
+    if(persistentFight)return;
     if (championship && championshipMatch) {
       if (mode === 'local') {
         const match = championship.rounds.flat().find(m => matchToken(m) === championshipMatch)!;
@@ -870,23 +875,26 @@ function settings(overlay=false, refresh=false) {
       }),
   );
 }
-type OnlinePage='menu'|'create'|'browse'|'code'|'room'|'fighter'|'arena'|'settings';
+type OnlinePage='persistent'|'menu'|'create'|'browse'|'code'|'room'|'fighter'|'arena'|'settings';
 let drawnOnlinePage:OnlinePage|undefined;
 let onlinePage:OnlinePage='menu',onlineRoom:RoomView|null=null,publicRooms:RoomSummary[]=[],roomFilter='',onlineBusy=false,onlinePending=false;
+let persistentFight=false;
+const persistentUI=new PersistentController(async message=>{await onlineSend(message);},()=>{if(screen==='lobby'&&onlinePage==='persistent'&&!document.querySelector('dialog[open]')&&document.activeElement?.id!=='pc-pin')drawOnline();});
 function lobby(){onlineRoom=null;onlinePending=false;onlinePage='menu';navigate('lobby');drawOnline();}
 function drawOnline(){
  if(screen!=='lobby')return;
  const active=document.activeElement as HTMLElement|null;
+ const pcKey=active?.dataset.pc,pcSlot=active?.dataset.slot;
  const key=active?.dataset.online,id=active?.dataset.id,code=active?.dataset.code,inputId=active?.id;
  const scroll=ui.root.querySelector('.on-screen')?.scrollTop??0;
- const markup=onlinePage==='room'&&onlineRoom?sharedLobby(onlineRoom):onlinePage==='fighter'&&onlineRoom?lobbyFighters(onlineRoom):onlinePage==='arena'&&onlineRoom?lobbyArenas(onlineRoom):onlinePage==='settings'&&onlineRoom?createRoom(onlineRoom):onlinePage==='create'?createRoom():onlinePage==='browse'?browseRooms(publicRooms,roomFilter):onlinePage==='code'?joinCode():onlineMenu();
+ const markup=onlinePage==='persistent'?persistentUI.markup():onlinePage==='room'&&onlineRoom?sharedLobby(onlineRoom):onlinePage==='fighter'&&onlineRoom?lobbyFighters(onlineRoom):onlinePage==='arena'&&onlineRoom?lobbyArenas(onlineRoom):onlinePage==='settings'&&onlineRoom?createRoom(onlineRoom):onlinePage==='create'?createRoom():onlinePage==='browse'?browseRooms(publicRooms,roomFilter):onlinePage==='code'?joinCode():onlineMenu();
  ui.render(markup);
  if(drawnOnlinePage===onlinePage)(ui.root.querySelector('.on-screen') as HTMLElement).style.animation='none';
  drawnOnlinePage=onlinePage;
  ui.root.querySelector('.on-screen')!.scrollTop=scroll;
  const controls=[...ui.root.querySelectorAll<HTMLElement>('button,input,select')];
- const restored=controls.find(el=>inputId?el.id===inputId:key&&el.dataset.online===key&&el.dataset.id===id&&el.dataset.code===code);
- (restored&&!restored.hasAttribute('disabled')?restored:controls.find(el=>!el.hasAttribute('disabled')&&el.dataset.online!=='back'))?.focus({preventScroll:true});
+ const restored=controls.find(el=>inputId?el.id===inputId:pcKey?el.dataset.pc===pcKey&&el.dataset.id===id&&el.dataset.slot===pcSlot:key&&el.dataset.online===key&&el.dataset.id===id&&el.dataset.code===code);
+ (restored&&!restored.hasAttribute('disabled')?restored:pcKey==='claim'&&controls.find(el=>el.dataset.pc==='ready')||controls.find(el=>!el.hasAttribute('disabled')&&el.dataset.online!=='back'&&el.dataset.pc!=='back'))?.focus({preventScroll:true});
  bindRoomSettings();
 }
 function bindRoomSettings(){
@@ -898,6 +906,7 @@ function bindRoomSettings(){
  };choice.onchange=update;update();
 }
 function onlineBack(){
+ if(onlinePage==='persistent'){if(persistentUI.page!=='browse'){void onlineSend({type:'persistent',action:'leave'}).then(()=>persistentUI.browse());return;}onlinePage='menu';drawOnline();return;}
  if(onlineBusy&&!onlineRoom){network.disconnect();onlinePending=false;}
  if(onlinePage==='room'){home();return;}
  if(onlineRoom){onlinePage='room';drawOnline();return;}
@@ -906,10 +915,10 @@ function onlineBack(){
 }
 async function onlineSend(message:import('../../../packages/shared/protocol.js').ClientMessage){
  const joining=message.type==='create'||message.type==='join';
- if(onlineBusy||joining&&onlinePending)return;onlineBusy=true;if(joining){onlinePending=true;ui.text('network-status',t('online.connecting'));}
+ if(onlineBusy||joining&&onlinePending){if(message.type==='persistent')persistentUI.failed();return;}onlineBusy=true;if(joining){onlinePending=true;ui.text('network-status',t('online.connecting'));}
  const revision=viewRevision,page=onlinePage;
  try{if(network.socket?.readyState!==WebSocket.OPEN)await network.connect();if(screen==='lobby'&&revision===viewRevision&&page===onlinePage)network.send(message);}
- catch(error){onlinePending=false;if(screen==='lobby')ui.text('network-status',error instanceof Error?error.message:onlineText('Connection failed','Falha na conexão'));}
+ catch(error){onlinePending=false;if(message.type==='persistent')persistentUI.failed();if(screen==='lobby')ui.text('network-status',error instanceof Error?error.message:onlineText('Connection failed','Falha na conexão'));}
  finally{onlineBusy=false;}
 }
 function readRoomSettings():RoomSettings{return {name:(document.getElementById('on-name') as HTMLInputElement).value,visibility:(document.getElementById('on-visibility') as HTMLSelectElement).value as 'public'|'private',capacity:Number((document.getElementById('on-capacity') as HTMLSelectElement).value),mode:(document.getElementById('on-mode') as HTMLSelectElement).value as OnlineMode};}
@@ -919,6 +928,7 @@ ui.root.addEventListener('click',event=>{
  const el=(event.target as HTMLElement).closest<HTMLElement>('[data-online]');if(!el||screen!=='lobby')return;
  audio.unlock();audio.play('menu_confirm');
  const action=el.dataset.online;
+ if(action==='persistent'){onlinePage='persistent';drawOnline();void persistentUI.browse();return;}
  if(action==='back'){onlineBack();return;}
  if(action==='leave'){home();return;}
  if(action==='back-room'){onlinePage='room';drawOnline();return;}
@@ -939,13 +949,27 @@ ui.root.addEventListener('click',event=>{
  if(action==='pick-arena'){network.send({type:'room-settings',settings:{stage:el.dataset.id!}});onlinePage='room';drawOnline();}
  if(action==='save'){network.send({type:'room-settings',settings:readRoomSettings()});onlinePage='room';drawOnline();}
 },{signal:onlineEvents.signal});
+ui.root.addEventListener('click',event=>{const el=(event.target as HTMLElement).closest<HTMLElement>('[data-pc]');if(!el||screen!=='lobby'||onlinePage!=='persistent')return;if(el.dataset.pc==='back'){onlineBack();return;}void persistentUI.action(el).catch(e=>ui.text('network-status',e instanceof Error?e.message:'Could not complete action'));},{signal:onlineEvents.signal});
+ui.root.addEventListener('input',event=>{if(screen==='lobby'&&onlinePage==='persistent'&&event.target instanceof HTMLInputElement)persistentUI.change(event.target);},{signal:onlineEvents.signal});
 ui.root.addEventListener('change',event=>{
  const el=event.target as HTMLSelectElement;
+ if(screen==='lobby'&&onlinePage==='persistent')persistentUI.change(el);
  if(el.id==='on-filter'){roomFilter=el.value;drawOnline();}
  if(el.id==='on-skin'&&onlineRoom)network.send({type:'choose-fighter',character:onlineRoom.players[onlineRoom.seat].character,skin:el.value});
 },{signal:onlineEvents.signal});
-const roomBrowserTimer=setInterval(()=>{if(screen==='lobby'&&onlinePage==='browse'&&!document.getElementById('controller-text-entry'))void onlineSend({type:'list-rooms'});},5000);
+const roomBrowserTimer=setInterval(()=>{if(screen==='lobby'&&onlinePage==='persistent'&&!document.querySelector('dialog[open]'))persistentUI.refresh();if(screen==='lobby'&&onlinePage==='browse'&&!document.getElementById('controller-text-entry'))void onlineSend({type:'list-rooms'});},5000);
 network.onMessage = (message) => {
+  if(message.type==='persistent-start'){
+    if(screen!=='lobby'||onlinePage!=='persistent')return;
+    persistentFight=true;seat=message.seat;championship=null;championshipMatch=message.matchId;
+    void start(message.characters,message.teams,message.skins,false,message.seed,message.stage);return;
+  }
+  if(message.type==='persistent-ended'){
+    if(message.matchId!==championshipMatch)return;
+    persistentFight=false;rollback=null;pendingHashes.clear();championshipMatch=undefined;paused=false;gameAudio.reset();
+    navigate('lobby',true);onlinePage='persistent';persistentUI.receive(message);return;
+  }
+  if(message.type==='persistent-detail'||message.type==='persistent-created'||message.type==='persistent-list'||message.type==='persistent-deleted'){persistentUI.receive(message);return;}
   switch (message.type) {
     case 'spectate-start': {
       if(mode!=='online'||!championship||!['championship-bracket','fight','loading'].includes(screen))break;
@@ -1039,7 +1063,7 @@ network.onMessage = (message) => {
       checkNetworkHealth();
       break;
     case "error":
-      onlinePending=false;
+      persistentUI.failed();onlinePending=false;
       audio.play("invalid");
       if (desktopBridge() && (message.code==='VERSION_MISMATCH'||message.message==='Game versions differ. Refresh the game before joining a room.')) disconnectMessage(message.message);
       else if (screen === "lobby") ui.text("network-status", errorMessage(message.message));
@@ -1443,6 +1467,8 @@ function loop(now: number) {
 }
 let animationFrame=0;
 home();
+const persistentLink=new URLSearchParams(location.search).get('championship');
+if(persistentLink&&/^[a-f0-9-]{36}$/.test(persistentLink)){mode='online';lobby();onlinePage='persistent';drawOnline();void persistentUI.open(persistentLink);}
 animationFrame=requestAnimationFrame(loop);
 (import.meta as ImportMeta & {hot?:{dispose(callback:()=>void):void}}).hot?.dispose(()=>{
  audioListeners.abort();playerManagementLifetime.abort();onlineEvents.abort();clearInterval(roomBrowserTimer);

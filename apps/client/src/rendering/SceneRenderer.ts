@@ -312,9 +312,8 @@ export class SceneRenderer {
       if(death)fighter={...fighter,x:death.x,y:death.y,lives:1,health:1,state:"HitStunStanding",move:null};
       const holder=s.fighters[fighter.grappleOwner];
       const gymWeight=fighter.state==='Grappled'&&holder?.characterId==='jomp'&&holder.move==='gymBro';
-      visual.update(gymWeight?{...fighter,state:'Idle',move:null}:["HairTrapped","Grappled"].includes(fighter.state) ? {...fighter, state:"HitStunStanding"} : fighter, cosmeticTime??animationTick(fighter)/60,s.frame);
-      if (fighter.trappedUntil > s.frame) visual.root.rotation.z = Math.sin(s.frame*.25+i)*.018;
-      else visual.root.rotation.z = fighter.dazed && fighter.stun ? Math.sin(s.frame*.12)*.025 : 0;
+      visual.update(gymWeight?{...fighter,state:'Idle',move:null}:fighter.state==="Grappled" ? {...fighter, state:"HitStunStanding"} : fighter, cosmeticTime??animationTick(fighter)/60,s.frame);
+      visual.root.rotation.z = fighter.dazed && fighter.stun ? Math.sin(s.frame*.12)*.025 : 0;
       if(gymWeight){
         visual.root.rotation.z=-holder.facing*Math.PI/2;
         visual.root.updateMatrixWorld(true);
@@ -345,7 +344,9 @@ export class SceneRenderer {
     if(!this.undead.root.parent)this.scene.add(this.undead.root);this.undead.update(s,menu);
     if(!this.cloneGrowth.root.parent)this.scene.add(this.cloneGrowth.root);
     this.cloneGrowth.update(s,menu,time);
-    this.hair.update(s, menu);
+    const authoredGrip=new Set(s.fighters.filter((_,i)=>this.fighters[i].root.userData.hairGripActive));
+    for(const c of s.clones)if(this.clones.get(c.id)?.root.userData.hairGripActive)authoredGrip.add(c.fighter);
+    this.hair.update(s, menu, authoredGrip);
     this.spears.update(s, menu);
     this.fire.update(s, menu);
     this.blood.update(s,menu);

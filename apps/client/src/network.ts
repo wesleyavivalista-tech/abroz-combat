@@ -131,7 +131,7 @@ export class LobbyClient {
   }
   private transmit(message: ClientMessage): void {
     if (this.socket?.readyState === WebSocket.OPEN)
-      this.socket.send(JSON.stringify(message.type==='create'||message.type==='join'||message.type==='resume'||message.type==='list-rooms'?{...message,contentVersion:contentVersion(),recovery:1}:message));
+      this.socket.send(JSON.stringify(message.type==='create'||message.type==='join'||message.type==='resume'||message.type==='list-rooms'||message.type==='persistent'?{...message,contentVersion:contentVersion(),recovery:1}:message));
   }
   measurePing(): void {
     this.send({ type: "ping", sent: performance.now() });

@@ -3,7 +3,7 @@ import {hostile} from './Actors.js';
 import {characters} from '../characters/registry.js';
 import {Button,type Fighter,type MoveDefinition,type SimulationSnapshot,type StageDefinition} from '../types.js';
 import {actors} from './Actors.js';
-import {isActive} from './LifeSystem.js';
+import {isActive,isInvulnerable} from './LifeSystem.js';
 import {enter,locked} from './StateMachine.js';
 import {canReceiveDirectHit} from '../combat/ContactPolicy.js';
 import {applyDamage} from '../combat/DamageSystem.js';
@@ -38,14 +38,16 @@ export function activateFinance(s:SimulationSnapshot,stage:StageDefinition,f:Fig
  }
 }
 export function applyLoan(s:SimulationSnapshot,f:Fighter):void{
+ if(!isActive(f)||isInvulnerable(f,s.frame))return;
  f.loanUntil=s.frame+FINANCE.loanFrames;stunLoan(s,f);
 }
 function stunLoan(s:SimulationSnapshot,f:Fighter):void{
- if(hasHitReactionArmor(f,s.frame))return;
+ if(isInvulnerable(f,s.frame)||hasHitReactionArmor(f,s.frame))return;
  f.loanStunUntil=s.frame+FINANCE.stunFrames;f.stun=FINANCE.stunFrames;f.move=null;f.actionUntil=0;f.vx=f.vy=0;f.buffer=[];f.dazed=true;enter(f,'HitStunStanding');
 }
 /** Called only after an unblocked contact; one success consumes the whole stamp mode. */
 export function financeHit(s:SimulationSnapshot,a:Fighter,d:Fighter,m:MoveDefinition):void{
+ if(isInvulnerable(d,s.frame))return;
  if(m.slowFrames)d.movementSlowUntil=s.frame+m.slowFrames;
  if(m.loanStamp&&a.stampAttempts!==undefined&&isActive(d)){
   applyLoan(s,d);delete a.stampAttempts;
@@ -85,6 +87,7 @@ export function advanceFinance(s:SimulationSnapshot,stage:StageDefinition):void{
   }
   if(h.kind==='money-bill')for(let i=0;i<s.fighters.length;i++){
    const f=s.fighters[i];if(!isActive(f)||Math.abs(f.x-h.x)>40||h.y<f.y-15||h.y>f.y+170)continue;
+   if(s.teams[i]!==s.teams[h.owner]&&isInvulnerable(f,s.frame))continue;
    if(s.teams[i]===s.teams[h.owner])gainEnergy(f,FINANCE.billEnergy,s.frame,s);else f.movementSlowUntil=s.frame+FINANCE.billSlowFrames;
    h.expiresAt=s.frame;break;
   }

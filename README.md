@@ -191,3 +191,78 @@ Drupa has a new walk cycle with fixed anatomical scale, distinct opposite-arm ja
 ### Production release checklist
 
 See [Release configuration](docs/RELEASE_CHECKLIST.txt) for production WSS/origin settings, root-path hosting, cache policy, asset exclusions, and desktop signing requirements. Do not publish the repository or use development-server URLs as the release endpoint.
+
+
+## Persistent Online Championships
+
+A separate account-free mode under Online. All fights reuse GameSimulation,
+VerifiedMatch, rollback inputs, the fighter roster, stages, and match statistics.
+The existing championship coordinator is unchanged: its player-bound seats and
+single-fight advancement are deliberately not reused. Only its bracket seeding
+is reused. This new coordinator supports independently available series, fixed
+teams, and two wins before advancement.
+
+### Storage and operations
+
+Use Node 22.13+ (Node 24 recommended) for the built-in SQLite module. No new npm
+runtime dependency or hosted database service is needed. Enable the mode with:
+
+```sh
+ABROZ_CHAMPIONSHIP_PATH=/absolute/persistent/path/history.sqlite pnpm dev:server
+```
+
+Without this variable the existing server works normally and the new mode
+reports that it is unavailable. Local test databases should use a dedicated
+path outside the repository. Production configuration uses
+`/data/championships/history.sqlite` on the existing `abroz_recovery` volume.
+Do not place the database inside the deployment image or delete the volume.
+The existing safe deployment script requires exactly one server machine.
+Do not scale this implementation to multiple writers/machines: room claims
+are process-local and the volume is not a distributed database.
+
+SQLite uses WAL, FULL synchronous commits, foreign keys, schema version 1,
+and an explicit transaction for result/statistics/score/advancement updates.
+Newer unknown schemas fail closed. Unfinished attempts are cancelled on process
+startup; completed records do not expire with the short-lived room checkpoint.
+Claims are temporary and are released on leave, heartbeat failure, inactivity,
+or restart. Active interruptions award no win. A draw replays the fight.
+Up to eight persistent fights can run concurrently, within existing connection
+and server capacity limits. There are at most 32 claimed series lobbies.
+
+Back up the database regularly, in addition to volume snapshots. Use the SQLite
+backup command below against the production database, with a new output filename;
+copy that backup off the host using the existing operational backup destination.
+Never copy only the live `.sqlite` file while ignoring its WAL. To restore, stop
+the single server, validate the backup with `PRAGMA integrity_check`, restore it
+with owner permissions for the server user, and restart. Rehearse this before
+launch; this change does not provision paid backup services or a backup schedule.
+
+```sh
+node scripts/backup-championships.mjs /data/championships/history.sqlite /data/backups/history-YYYY-MM-DD.sqlite
+```
+
+The account-free management PIN has 72 random bits and is stored only as a salted
+scrypt hash. Public snapshots exclude it. Creation and management share a five
+operations/minute/address budget; gameplay input retains the existing budget.
+A browser installation ID prevents ordinary tabs claiming multiple slots, but
+is not authentication and cannot prove two devices are different people.
+Results are accepted only from the server simulation, never a client winner.
+
+### UI and verification
+
+Links use `/play?championship=<uuid>`; desktop poster links use the public website.
+The normal controller menu navigator and on-screen keyboard drive the new screens.
+Controller 1 operates online menus; every fighter requires a separate connection.
+Posters use browser canvas and existing artwork, with PNG download and native
+sharing when supported. Native sharing cancellation falls back to download.
+Completed history is immutable through the public API. Team wins count once;
+fighter totals are scoped to their tournament team/roster position. MVP sums the
+existing performanceScore formula across finalized fights, with ties shared.
+
+Automated coverage lives in `tests/persistent-championship.test.ts` and
+`tests/persistent-sockets.test.ts`: nine size/mode combinations, BO3 results,
+statistics, idempotency, disk reopen, interruption recovery, claims, and actual
+2/4/6-client WebSocket input/hash convergence. Physical controllers, native mobile
+sharing, sustained production capacity, production volume/backup restore, and
+native desktop multiplayer still require release verification. Do not interpret
+local automated checks as those production checks.
