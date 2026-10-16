@@ -1,0 +1,62 @@
+{
+  "version": "0.1.10",
+  "commit": "7bd75f23b2ad97e410c6adcca82e8590a4b5ba9d",
+  "contentVersion": "49-4b7364d2",
+  "serverImage": "registry.fly.io/abroz-combat@sha256:4d1a3544215d2b0694cec462535310adbabbed317c221f963c5903d397da7a29",
+  "desktopWorkflow": 38956751469,
+  "releaseChecks": 38956754663,
+  "published": true,
+  "webCommit": "b631641b1d929f7d97ac29e668fd412477cb5e60",
+  "desktopPublished": true,
+  "desktopPrefix": "beta-0.1.10",
+  "tests": {
+    "game": 1645,
+    "desktopDeployment": 21,
+    "lint": "passed",
+    "types": "passed",
+    "webBuild": "passed",
+    "serverBuild": "passed",
+    "releaseCI": "passed"
+  },
+  "pages": "f712f655-4033-4564-aefc-01ac6cbf6fc7",
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-4b7364d2"
+  },
+  "rollback": {
+    "pages": "2a184fa3-2dde-4d49-9af4-ea85c99301bb",
+    "serverImage": "registry.fly.io/abroz-combat@sha256:a9a150c46adfc4305dd1a10a7723f7ae7e01002630ba4de5b48f1ec8c5a3fc56",
+    "contentVersion": "49-6a773085",
+    "desktopPrefix": "beta-0.1.9"
+  },
+  "changes": [
+    "Batched rollback replays, 12-frame prediction limit, lighter online HUD, per-player performance diagnostics",
+    "Persistent championship victory and statistics page before bracket return",
+    "Luizinho/Roms basic speed updates, Luizinho third hit 100 damage and turret 900 HP, Drupa opener 5 frames",
+    "Zombie damage reduced 20%, 2-second poison without slow, shooter range reduced 40%"
+  ],
+  "validation": {
+    "liveCombat": "Private create/join/start/damage and 600 frames matching authoritative hashes passed",
+    "reconnect": "Seat 1 restored at frame 122",
+    "oldClient": "0.1.9 rejected with VERSION_MISMATCH",
+    "assets": 65,
+    "database": "Both championship public and summary records byte-for-byte unchanged; quick_check OK; verified backup retained",
+    "desktop": "All three native CI jobs passed; complete public installer downloads matched SHA-256; both DMGs validated and architecture/version checked; packaged ARM64 app rendered its menu",
+    "health": "Provider health check and readyz pass; no new-release fatal/socket/simulation errors observed"
+  },
+  "rollout": "User explicitly requested disconnecting everyone online. Verified zero regular rooms and zero active persistent attempts, enabled SIGUSR2 drain, then used reviewed immutable Fly image directly to disconnect one remaining idle client. Normal zero-connection guard was not used for this explicitly authorized forced rollout. Same machine and volume retained.",
+  "limitations": [
+    "Unsigned beta installers; not notarized",
+    "Windows/Intel Mac physical installation, physical controllers, and extended multi-device playtesting remain manual",
+    "Existing >500 kB browser bundle warning",
+    "Browser reload and manual 0.1.10 desktop update required for online compatibility"
+  ],
+  "smokeTestAdjustment": "First combat smoke passed gameplay/hash checks but global zero-connections cleanup failed when an unrelated client reconnected. Scoped cleanup to the test sockets/room and reran successfully. No game source changes required."
+}

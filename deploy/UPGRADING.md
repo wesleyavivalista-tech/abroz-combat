@@ -1,6 +1,6 @@
 # Desktop upgrades and recovery
 
-The next candidate is 0.1.10. Public downloads remain on 0.1.9 until the coordinated release is verified.
+The current published release is 0.1.10. Older desktop versions must be updated for online play.
 There is no automatic updater. Download only from https://abrozcombat.com/download.
 
 ## Windows

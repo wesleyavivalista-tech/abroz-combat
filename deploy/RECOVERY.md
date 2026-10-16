@@ -419,3 +419,16 @@ an old installer. Retain the legacy error message alongside structured error fie
   manual. Existing >500 kB bundle warning remains.
 - Evidence: audits/evidence/2026-10-15-release-017.json. Transfer/checksum,
   maintenance and live verification logs: ignored deploy/local/release-017.
+
+
+## Combat and online performance release verified — 2026-10-16
+
+- Release 0.1.10, candidate 7bd75f23b2ad97e410c6adcca82e8590a4b5ba9d; browser/download commit b631641b1d929f7d97ac29e668fd412477cb5e60. Content 49-4b7364d2, protocol 49.
+- Includes completed combat balance adjustments, persistent victory-page routing, batched rollback, 12-frame prediction tolerance, lighter HUD and per-player diagnostics. No database migration.
+- 1,645 game tests and 21 desktop/deployment tests passed, plus lint/types, production builds and CI release checks 38956754663. Native workflow 38956751469 passed all three platforms. Full public installer checksums match; both DMGs validated; packaged ARM64 app startup verified.
+- Pages f712f655-4033-4564-aefc-01ac6cbf6fc7; server registry.fly.io/abroz-combat@sha256:4d1a3544215d2b0694cec462535310adbabbed317c221f963c5903d397da7a29. Downloads beta-0.1.10.
+- Explicit owner instruction authorized disconnecting everyone online. Verified no regular rooms or active persistent attempts, enabled drain, then deployed the reviewed image directly to disconnect the one idle connection. This was an authorized exception to the zero-connection guard. Same machine and volume preserved. Both championship records were verified unchanged; SQLite backup and integrity check passed.
+- Live combat/hash agreement through 600 frames, reconnect, old-client rejection, 65 pages/assets/audio, browser menu and health checks passed. No new-release fatal/socket/simulation errors observed. An unrelated reconnect invalidated the first smoke test's global connection-count assumption; scoped cleanup and repeat passed.
+- Rollback: Pages 2a184fa3-2dde-4d49-9af4-ea85c99301bb; beta-0.1.9 downloads; server registry.fly.io/abroz-combat@sha256:a9a150c46adfc4305dd1a10a7723f7ae7e01002630ba4de5b48f1ec8c5a3fc56, content 49-6a773085.
+- Browser players reload; desktop players install 0.1.10. Unsigned status and existing bundle warning remain. Windows/Intel physical installation, controllers and extended multi-device gameplay remain manual.
+- Evidence: audits/evidence/2026-10-16-release-0110.json; detailed logs in ignored deploy/local/release-0110.
