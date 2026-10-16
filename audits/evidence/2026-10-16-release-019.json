@@ -1,0 +1,62 @@
+{
+  "version": "0.1.9",
+  "commit": "1e035eed3e09289d628dd3aa253e3b1b8951e26f",
+  "contentVersion": "49-6a773085",
+  "serverImage": "registry.fly.io/abroz-combat@sha256:a9a150c46adfc4305dd1a10a7723f7ae7e01002630ba4de5b48f1ec8c5a3fc56",
+  "desktopWorkflow": 38936535341,
+  "published": true,
+  "tests": {
+    "game": 1631,
+    "desktopDeployment": 21,
+    "lint": "passed",
+    "types": "passed",
+    "webBuild": "passed",
+    "serverBuild": "passed"
+  },
+  "webCommit": "94e09fae9168a8731e0851ed4ee98c9a46f3aeb1",
+  "pages": "2a184fa3-2dde-4d49-9af4-ea85c99301bb",
+  "desktopPublished": true,
+  "desktopPrefix": "beta-0.1.9",
+  "desktopAttempt": 1,
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-6a773085"
+  },
+  "rollback": {
+    "pages": "a58d75e3-7365-4ad7-9fdd-1002f7f3f667",
+    "serverImage": "registry.fly.io/abroz-combat@sha256:d2ea9863a5a1720f87992165a77bcc571716623b7259635c28434afc4a6b3f22",
+    "contentVersion": "49-2374a7f",
+    "desktopPrefix": "beta-0.1.8"
+  },
+  "changes": [
+    "Random arenas for new local and online matches, including championships and persistent series",
+    "Per-duel arena retained for restart, spectators, reconnect and checkpoint recovery",
+    "Setup UI identifies random arenas; training retains manual selection"
+  ],
+  "validation": {
+    "desktop": "Windows x64 and both Mac architectures CI passed; all public download bodies SHA-256 matched; both DMGs integrity/architecture verified",
+    "liveCombat": "Private two-client create/join/ready/start/damage and 600 frames matching hashes passed",
+    "reconnect": "seat restored at frame 122",
+    "oldClient": "0.1.8 rejected with VERSION_MISMATCH",
+    "liveAssets": 63,
+    "browser": "Production championship setup displays Random every match; no captured warnings/errors",
+    "database": "Verified backup on existing volume and post-deploy quick_check OK",
+    "health": "Existing single machine started; provider check passing; healthz and readyz OK",
+    "logs": "No observed post-start application errors beyond expected incompatible-client validation"
+  },
+  "infrastructure": "Same Fly machine and volume; guarded empty/drained rollout; no database migration, new service or secret change.",
+  "limitations": [
+    "Unsigned beta installers; not notarized",
+    "Physical-controller and Windows/Intel installation QA remain manual",
+    "Extended multi-device playtesting remains manual",
+    "Existing bundle-size warning",
+    "Older desktop clients require manual 0.1.9 update; browser reload required"
+  ]
+}
