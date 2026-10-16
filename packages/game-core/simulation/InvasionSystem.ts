@@ -7,7 +7,7 @@ import {actors} from './Actors.js';
 import {sweepEntry,targetBoxes} from '../combat/CollisionSystem.js';
 import {structureSurfaces} from './StructureSystem.js';
 
-export const INVASION={startFrames:180*60,intervalFrames:10*60,maxActive:16,maxBullets:24,bulletSpeed:4,bulletLife:360,enterFrames:60} as const;
+export const INVASION={startFrames:180*60,intervalFrames:10*60,maxActive:16,maxBullets:24,bulletSpeed:4,bulletLife:216,enterFrames:60} as const;
 export const INVASION_VARIANTS=['pt-normal','pt-flag','pt-heavy','br-normal','br-flag','br-revolver'] as const;
 export type InvasionVariant=typeof INVASION_VARIANTS[number];
 // Stack the additional 30% rate increase on the previous 10% timings.
@@ -22,11 +22,11 @@ export const INVADER_STATS={
  'pt-heavy':{health:520,range:150+HEAVY_DASH.distance,height:120,cooldown:fasterAttack(Math.ceil(156/1.4)),end:fasterAttack(Math.ceil(116/1.4))},
  'br-normal':{health:340,range:105,height:95,cooldown:fasterAttack(90),end:fasterAttack(48)},
  'br-flag':{health:420,range:165,height:120,cooldown:fasterAttack(108),end:fasterAttack(60)},
- 'br-revolver':{health:340,range:975,height:95,cooldown:fasterAttack(150),end:fasterAttack(78)},
+ 'br-revolver':{health:340,range:585,height:95,cooldown:fasterAttack(150),end:fasterAttack(78)},
 } as const;
 export interface InvasionBullet {id:number;sourceId:number;x:number;y:number;vx:number;life:number;}
 export interface InvasionState {bullets:InvasionBullet[];nextBulletId:number;}
-const strike=(id:string,damage:number,range:number):MoveDefinition=>({id,input:'',animation:'claw',state:'LightAttack',startupFrames:24,activeFrames:6,recoveryFrames:24,damage,hitstun:10,blockstun:6,knockback:3,launch:0,knockdown:false,meterGain:0,meterCost:0,priority:1,level:'mid',cancelRules:[],cancelFrame:0,hitboxes:[{x:0,y:25,w:range,h:120}],effects:'impact',events:[],poisonFrames:180,poisonDamage:10});
+const strike=(id:string,damage:number,range:number):MoveDefinition=>({id,input:'',animation:'claw',state:'LightAttack',startupFrames:24,activeFrames:6,recoveryFrames:24,damage:Math.round(damage*.8),hitstun:10,blockstun:6,knockback:3,launch:0,knockdown:false,meterGain:0,meterCost:0,priority:1,level:'mid',cancelRules:[],cancelFrame:0,hitboxes:[{x:0,y:25,w:range,h:120}],effects:'impact',events:[],poisonFrames:120,poisonDamage:8});
 export const INVADER_MOVES={normal:strike('@invasion-claw',56,115),flag:strike('@invasion-flag',76,175),hammer:strike('@invasion-hammer',48,160),scythe:strike('@invasion-scythe',56,160),slam:strike('@invasion-slam',72,160),bullet:strike('@invasion-bullet',68,1)};
 export function spawnInvader(s:SimulationSnapshot,stage:StageDefinition,variant:InvasionVariant,slot=0):HairClone{
  const left=variant.startsWith('pt-'),x=left?40+slot*75:stage.width-40-slot*75;

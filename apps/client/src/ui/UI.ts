@@ -22,7 +22,7 @@ export class UI {
   }
   text(id: string, value: string): void {
     const element = document.getElementById(id);
-    if (element) element.textContent = value;
+    if (element && element.textContent !== value) element.textContent = value;
   }
 }
 

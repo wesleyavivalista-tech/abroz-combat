@@ -23,7 +23,7 @@ export type ClientMessage =
   | { type: "championship-ready"; matchId: string }
   | { type: "input"; matchId?: string; frame: number; mask: number }
   | { type: "hash"; matchId?: string; frame: number; hash: string }
-  | { type: "ping"; sent: number };
+  | { type: "ping"; sent: number; performance?:import("./matchPerformance.js").MatchPerformance };
 export type ServerMessage =
   | import("./persistentChampionship.js").PersistentEvent
   | {type:"spectate-start";matchId:string;stage:string;state:import("./recovery.js").RecoveryState}

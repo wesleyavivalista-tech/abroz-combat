@@ -11,7 +11,7 @@ import {RollbackManager} from '../packages/networking/RollbackManager.js';
 import {VerifiedMatch} from '../apps/server/src/verifiedMatch.js';
 import {encodeSnapshot,decodeSnapshot} from '../packages/shared/recovery.js';
 import {invasionSpritePose} from '../apps/client/src/rendering/ZombieSpriteRenderer.js';
-import {advanceBlood} from '../packages/game-core/simulation/BloodSystem.js';
+import {advanceBlood,movementSlow} from '../packages/game-core/simulation/BloodSystem.js';
 const game=(ids=['gut','drupa'])=>{const g=new GameSimulation(ids);g.state.phase='fight';g.state.phaseFrame=0;g.state.fighters.forEach(f=>{f.state='Idle';f.health=100000;});return g;};
 const tick=(g:GameSimulation,n=1)=>{for(let i=0;i<n;i++)g.step(g.state.fighters.map(()=>0));};
 const live=(g:GameSimulation,variant:typeof INVASION_VARIANTS[number])=>{const c=spawnInvader(g.state,g.stage,variant);c.fighter.undead='zombie';c.undead!.nextAttack=0;return c;};
@@ -44,7 +44,7 @@ test('heavy zombie performs exactly three hits; interrupted combo cannot continu
  const g=game(),c=live(g,'pt-heavy'),d=g.state.fighters[0];c.fighter.x=d.x-80;c.fighter.y=d.y=0;c.fighter.facing=1;c.undead!.attackAt=1;c.fighter.state='LightAttack';
  const damages:number[]=[],hitFrames:number[]=[];
  for(let i=0;i<59;i++){const hp=d.health;advanceInvaderAttack(g.state,g.stage,c);if(d.health<hp){damages.push(hp-d.health);hitFrames.push(i+1);}d.stun=0;d.state='Idle';d.combo=0;}
- assert.deepEqual(damages,[48,56,72]);assert.deepEqual(hitFrames,[14,31,48]);assert.equal(INVADER_STATS['pt-heavy'].cooldown,79);assert.equal(INVADER_STATS['pt-heavy'].end,59);assert.equal(c.fighter.state,'Idle');assert.equal(c.undead!.attackAt,0);
+ assert.deepEqual(damages,[38,45,58]);assert.deepEqual(hitFrames,[14,31,48]);assert.equal(INVADER_STATS['pt-heavy'].cooldown,79);assert.equal(INVADER_STATS['pt-heavy'].end,59);assert.equal(c.fighter.state,'Idle');assert.equal(c.undead!.attackAt,0);
  c.undead!.attackAt=1;c.undead!.attackFrame=13;c.fighter.state='HitStunStanding';c.fighter.stun=10;const hp=d.health;advanceUndead(g.state,g.stage);assert.equal(c.undead!.attackAt,0);assert.equal(d.health,hp);
 });
 test('revolver windup is readable, bullets are slow and bounded, and dead shooters cannot retain shots',()=>{
@@ -58,7 +58,7 @@ test('bullets hit once, respect invulnerability, and opponents can jump over the
   const g=game(),c=live(g,'br-revolver'),d=g.state.fighters[0];c.fighter.x=200;c.fighter.facing=1;d.x=350;d.y=mode==='jump'?300:0;if(mode==='immune')d.invulnerableUntil=1000;
   g.state.fighters[1].x=2200;g.state.invasion={nextBulletId:1,bullets:[{id:0,sourceId:c.id,x:300,y:100,vx:4,life:240}]};const hp=d.health;
   for(let i=0;i<40;i++)advanceInvasionBullets(g.state,g.stage);
-  assert.equal(d.health,mode==='hit'?hp-68:hp);
+  assert.equal(d.health,mode==='hit'?hp-54:hp);
  }
 });
 test('players and summons can hit neutral invaders, which do not inherit player ownership or vanish on departure',()=>{
@@ -117,23 +117,23 @@ test('solid walls stop invasion bullets before a fighter behind them',()=>{
  for(let i=0;i<120;i++)advanceInvasionBullets(g.state,g.stage);assert.equal(d.health,hp);assert.equal(g.state.invasion.bullets.length,0);
 });
 
-test('invasion damage doubles without changing player-zombie claw or poison',()=>{
- assert.deepEqual(Object.values(INVADER_MOVES).map(m=>m.damage),[56,76,48,56,72,68]);
- assert.equal(ZOMBIE_CLAW.damage,48);assert.equal(ZOMBIE_CLAW.poisonDamage,10);
+test('all zombie strikes and poison deal twenty percent less damage',()=>{
+ assert.deepEqual(Object.values(INVADER_MOVES).map(m=>m.damage),[45,61,38,45,58,54]);
+ assert.equal(ZOMBIE_CLAW.damage,38);assert.equal(ZOMBIE_CLAW.poisonDamage,8);
 });
 
-test('every zombie strike applies three-second poison, refreshes it and expires without stacking',()=>{
+test('every zombie strike applies two-second poison without slowing, refreshes it and expires without stacking',()=>{
  for(const move of [...Object.values(INVADER_MOVES),ZOMBIE_CLAW]){
   const g=game(),c=live(g,'pt-normal'),d=g.state.fighters[0];
   g.state.frame=100;
   const hit=()=>g.hit(-1,move,0,false,0,1,c.fighter,d);
-  hit();assert.equal(d.poisonUntil,280,move.id);assert.equal(d.poisonDamage,10);assert.equal(d.poisonNeutral,true);
-  const hp=d.health;g.state.frame=130;advanceBlood(g.state,g.stage);assert.equal(d.health,hp-10,move.id);
-  g.state.frame=140;hit();assert.equal(d.poisonUntil,320);assert.equal(d.poisonNextTick,160);assert.equal(d.poisonDamage,10);
+  hit();assert.equal(d.poisonUntil,220,move.id);assert.equal(d.poisonDamage,8);assert.equal(d.poisonNeutral,true);assert.equal(movementSlow(d,g.state.frame),1);
+  const hp=d.health;g.state.frame=130;advanceBlood(g.state,g.stage);assert.equal(d.health,hp-8,move.id);
+  g.state.frame=140;hit();assert.equal(d.poisonUntil,260);assert.equal(d.poisonNextTick,160);assert.equal(d.poisonDamage,8);
   const refreshedHp=d.health;
-  for(let frame=141;frame<=320;frame++){g.state.frame=frame;advanceBlood(g.state,g.stage);}
-  assert.equal(d.health,refreshedHp-60,move.id);assert.equal(d.poisonUntil,0);
-  g.state.frame=350;advanceBlood(g.state,g.stage);assert.equal(d.health,refreshedHp-60);
+  for(let frame=141;frame<=260;frame++){g.state.frame=frame;advanceBlood(g.state,g.stage);}
+  assert.equal(d.health,refreshedHp-32,move.id);assert.equal(d.poisonUntil,0);
+  g.state.frame=350;advanceBlood(g.state,g.stage);assert.equal(d.health,refreshedHp-32);
  }
 });
 
@@ -143,7 +143,7 @@ test('all invasion variants deliver poison through melee and bullet collision pa
   c.fighter.x=300;c.fighter.y=d.y=0;c.fighter.facing=1;d.x=380;g.state.fighters[1].x=2200;c.undead!.attackAt=1;
   for(let i=0;i<INVADER_STATS[variant].end;i++){
    g.state.frame++;advanceInvaderAttack(g.state,g.stage,c);advanceInvasionBullets(g.state,g.stage);
-   if(d.poisonUntil){assert.equal(d.poisonUntil-g.state.frame,180,variant);break;}
+   if(d.poisonUntil){assert.equal(d.poisonUntil-g.state.frame,120,variant);break;}
   }
   assert.ok(d.poisonUntil>0,variant);
  }
@@ -168,7 +168,7 @@ test('heavy opening dashes from medium range in either direction, then completes
    if(age>=14)assert.equal(c.fighter.x,1000+direction*240,'only the first strike lunges');
    d.stun=0;d.state='Idle';d.combo=0;
   }
-  assert.deepEqual(damages,[48,56,72]);
+  assert.deepEqual(damages,[38,45,58]);
  }
 });
 
@@ -197,14 +197,22 @@ test('heavy dash stops on interruption and replays identically from a mid-dash s
  tick(g,6);assert.equal(interrupted.undead!.attackAt,0);assert.equal(interrupted.fighter.x,x);
 });
 
-test('revolver engages fifty percent farther away and bullets reach beyond their former lifetime',()=>{
- const g=game(),c=live(g,'br-revolver'),d=g.state.fighters[0];
- c.fighter.x=100;c.fighter.y=d.y=0;d.x=1000;g.state.fighters[1].x=2200;g.state.frame=10;
- advanceUndead(g.state,g.stage);assert.equal(c.undead!.attackAt,10);
- assert.equal(INVADER_STATS['br-revolver'].range,650*1.5);
- for(let i=0;i<30;i++)advanceInvaderAttack(g.state,g.stage,c);
- const bullet=g.state.invasion!.bullets[0];assert.equal(bullet.life,240*1.5);assert.equal(bullet.vx,4);
- d.x=1300;const hp=d.health;
- for(let i=0;i<300;i++)advanceInvasionBullets(g.state,g.stage);
- assert.equal(d.health,hp-68);assert.equal(g.state.invasion!.bullets.length,0);
+test('revolver engagement and bullet travel ranges are reduced forty percent',()=>{
+ for(const distance of [500,600]){
+  const g=game(),c=live(g,'br-revolver'),d=g.state.fighters[0];
+  c.fighter.x=100;c.fighter.y=d.y=0;d.x=100+distance;g.state.fighters[1].x=2200;g.state.frame=10;
+  advanceUndead(g.state,g.stage);assert.equal(c.undead!.attackAt,distance===500?10:0);
+ }
+ assert.equal(INVADER_STATS['br-revolver'].range,585);
+ for(const targetX of [700,1100]){
+  const g=game(),c=live(g,'br-revolver'),d=g.state.fighters[0];
+  c.fighter.x=100;c.fighter.y=d.y=0;c.fighter.facing=1;d.x=targetX;g.state.fighters[1].x=2200;
+  for(let i=0;i<30;i++)advanceInvaderAttack(g.state,g.stage,c);
+  const bullet=g.state.invasion!.bullets[0];assert.equal(bullet.life,216);assert.equal(bullet.vx,4);
+  const hp=d.health;
+  for(let i=0;i<216;i++)advanceInvasionBullets(g.state,g.stage);
+  assert.equal(d.health,targetX===700?hp-54:hp);assert.equal(g.state.invasion!.bullets.length,0);
+ }
 });
+
+ test('fighter poison retains its existing slow',()=>{const g=game(),f=g.state.fighters[0];f.poisonUntil=100;f.poisonNeutral=false;assert.equal(movementSlow(f,1),.8);});

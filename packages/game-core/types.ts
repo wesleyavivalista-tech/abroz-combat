@@ -327,7 +327,7 @@ export interface Hazard {
 }
 export interface HairClone { invasion?: import('./simulation/InvasionSystem.js').InvasionVariant; id: number; owner: number; fighter: Fighter; undead?: {phaseAt:number; target:number; nextAttack:number; attackAt:number; attackFrame:number; hit:boolean; stuck:number; lastX:number; spawnX:number; spawnY:number}; kind?: "undead" | "blonde" | "sad" | "angry" | "basketball" | "cookie-monster" | "tree" | "tentacle" | "knight"; rider?:number; bornAt?:number; nextJump?:number; reboundUntil?:number; recoveryUntil?:number; landingHitReadyAt?:number; impactAt?:number; nextAction?:number; pattern?:number; variant?: number; maxHealth?: number; }
 export interface StructureDefinition {
- kind: "wall"|"turret"|"house"|"bee-box"; width:number; height:number; healthRatio:number; duration:number; offset:number;
+ kind: "wall"|"turret"|"house"|"bee-box"; width:number; height:number; healthRatio:number; health?:number; duration:number; offset:number;
  shotMove?:string; interval?:number; collapseDamage?:number; collapseStun?:number;
 }
 export interface Structure {

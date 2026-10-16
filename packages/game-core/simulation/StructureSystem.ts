@@ -26,7 +26,7 @@ export function activateStructure(s:SimulationSnapshot,stage:StageDefinition,f:F
  s.structures??=[];s.nextStructureId??=0;
  // One of each structure per owner bounds memory even with infinite training energy.
  if(spec.kind!=='bee-box')s.structures=s.structures.filter(b=>b.owner!==owner||b.kind!==spec.kind);
- const maxHealth=Math.ceil(characters[f.characterId].stats.maxHealth*spec.healthRatio);
+ const maxHealth=spec.health??Math.ceil(characters[f.characterId].stats.maxHealth*spec.healthRatio);
  const width=Math.min(spec.width,stage.width-80);
  const support=surfaceBelow(stage,f.x,f.y);
  let x=Math.max(width/2+40,Math.min(stage.width-width/2-40,f.x+f.facing*spec.offset));

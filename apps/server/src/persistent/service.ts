@@ -1,3 +1,4 @@
+import {encodeSnapshot} from '../../../../packages/shared/recovery.js';
 import {randomArena} from '../../../../packages/game-core/stages/random.js';
 import {randomInt} from 'node:crypto';
 import type {WebSocket} from 'ws';
@@ -16,6 +17,7 @@ export class PersistentChampionshipService {
  private membership=new Map<WebSocket,Lobby>();
  private budgets=new Map<string,{time:number;count:number}>();
  constructor(readonly store:ChampionshipStore,private send:(s:WebSocket,m:ServerMessage)=>void){}
+ diagnosticContext(socket:WebSocket){const l=this.membership.get(socket);return l?.attempt?{matchId:l.attempt,seat:l.claims.findIndex(c=>c?.socket===socket)}:undefined;}
  has(socket:WebSocket){return this.membership.has(socket);}
  watching(socket:WebSocket){return this.viewers.has(socket);}
  private limit(address:string){const now=Date.now();let b=this.budgets.get(address);if(!b||now-b.time>60000){b={time:now,count:0};this.budgets.set(address,b);}if(++b.count>5)throw Error('Please wait before creating or managing another championship');}
@@ -63,7 +65,7 @@ export class PersistentChampionshipService {
    this.end(l,false,'Fight saved. Ready again to continue the series.');
   }
  }
- private end(l:Lobby,cancelled:boolean,message:string){const attempt=l.attempt!;if(cancelled)this.store.cancel(attempt);l.attempt=undefined;l.match=undefined;l.claims.forEach(c=>{if(c){c.ready=false;c.last=1;c.progress=Date.now();this.send(c.socket,{type:'persistent-ended',id:l.id,seriesId:l.seriesId,matchId:attempt,cancelled,message});}});const t=this.store.get(l.id);if(t.series.find(s=>s.id===l.seriesId)?.status==='completed')this.clear(l);this.publish(l.id);}
+ private end(l:Lobby,cancelled:boolean,message:string){const attempt=l.attempt!,snapshot=l.match?.simulation.state.phase==='result'?encodeSnapshot(l.match.simulation.snapshot()):undefined;if(cancelled)this.store.cancel(attempt);l.attempt=undefined;l.match=undefined;l.claims.forEach(c=>{if(c){c.ready=false;c.last=1;c.progress=Date.now();this.send(c.socket,{type:'persistent-ended',id:l.id,seriesId:l.seriesId,matchId:attempt,cancelled,message,snapshot});}});const t=this.store.get(l.id);if(t.series.find(s=>s.id===l.seriesId)?.status==='completed')this.clear(l);this.publish(l.id);}
  private clear(l:Lobby){l.claims.forEach(c=>{if(c)this.membership.delete(c.socket);});this.lobbies.delete(l.seriesId);}
  leave(socket:WebSocket){this.viewers.delete(socket);const l=this.membership.get(socket);if(!l)return;if(l.attempt)this.end(l,true,'Fight interrupted. Previously saved wins are preserved.');this.membership.delete(socket);l.claims=l.claims.map(c=>c?.socket===socket?null:c);l.claims.forEach(c=>{if(c)c.ready=false;});if(!l.claims.some(Boolean))this.clear(l);this.publish(l.id);}
  expire(now=Date.now()){for(const [address,b] of this.budgets)if(now-b.time>60000)this.budgets.delete(address);for(const l of [...this.lobbies.values()])for(const c of l.claims)if(c&&now-c.progress>(l.attempt?(c.last===1?120000:60000):600000)){this.leave(c.socket);this.send(c.socket,{type:'error',message:'Inactive championship slot released'});}}

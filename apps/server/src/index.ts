@@ -1,3 +1,4 @@
+import {readMatchPerformance} from '../../../packages/shared/matchPerformance.js';
 import {PersistentChampionshipService} from './persistent/service.js';
 import {RecoveryStore} from './recoveryStore.js';
 import {LobbyBudget,LOBBY_RATE_ERROR,RoomlessDeadline} from './lobbyProtection.js';
@@ -66,6 +67,7 @@ wss.on("connection", (socket,request) => {
   const roomless=new RoomlessDeadline();
   const connectionId=diagnosticId();
   let closeReason='peer-closed';
+  let lastPerformanceLog=-Infinity;
   log('connection-open',{connectionId});
   let alive = true;
   let budget = 0;
@@ -164,6 +166,11 @@ wss.on("connection", (socket,request) => {
         case "ping":
           if (typeof m.sent === "number" && Number.isFinite(m.sent))
             send(socket, { type: "pong", sent: m.sent });
+          if(Date.now()-lastPerformanceLog>=15000){
+            const sample=readMatchPerformance(m.performance),room=rooms.membership.get(socket);
+            const context=persistent?.diagnosticContext(socket)??(room?.started?{matchId:room.matchId,seat:room.peers.findIndex(p=>p.socket===socket),roomId:room.diagnosticId}:undefined);
+            if(sample&&context){lastPerformanceLog=Date.now();log('match-performance',{connectionId,...context,...sample});}
+          }
           break;
         default:
           throw new Error("Unknown message");

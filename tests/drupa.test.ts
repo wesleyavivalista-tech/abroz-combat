@@ -129,3 +129,11 @@ test('full-circle ultimate aiming converges after remote-input rollback',()=>{
  }
  assert.ok(rb.rollbackCount>0);assert.equal(hashState(a.state),hashState(b.state));
 });
+
+test('Drupa opener activates on frame five and damages only once',()=>{
+ const g=match(),[a,b]=g.state.fighters;a.x=300;b.x=390;
+ const hp=b.health;g.step([Button.Light,0]);
+ while(a.moveFrame<4)g.step([0,0]);
+ assert.equal(b.health,hp);g.step([0,0]);assert.equal(a.moveFrame,5);assert.equal(b.health,hp-55);
+ run(g,60);assert.equal(b.health,hp-55);assert.equal(a.move,null);
+});

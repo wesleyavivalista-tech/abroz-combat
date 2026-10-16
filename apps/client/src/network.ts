@@ -1,3 +1,4 @@
+import {matchPerformance} from './matchPerformance.js';
 import {connectionFailureReason} from './connectionStatus.js';
 import {diagnostics} from './diagnostics.js';
 import {desktopBridge,multiplayerEndpoint} from './platform/runtime.js';
@@ -103,6 +104,7 @@ export class LobbyClient {
         }
         if (message.type === "pong") {
           this.ping = Math.round(performance.now() - message.sent);
+          matchPerformance.ping(this.ping);
           return;
         }
         if(['room','start','championship-start','left','error'].includes(message.type))diagnostics.record('network-'+message.type);
@@ -134,7 +136,7 @@ export class LobbyClient {
       this.socket.send(JSON.stringify(message.type==='create'||message.type==='join'||message.type==='resume'||message.type==='list-rooms'||message.type==='persistent'?{...message,contentVersion:contentVersion(),recovery:1}:message));
   }
   measurePing(): void {
-    this.send({ type: "ping", sent: performance.now() });
+    this.send({ type: "ping", sent: performance.now(), performance:matchPerformance.snapshot() });
   }
   disconnect(preserveRecovery=false): void {
     if(!preserveRecovery){

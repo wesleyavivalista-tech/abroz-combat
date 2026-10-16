@@ -31,7 +31,7 @@ test('armored Roms and both samurai variants retain their authored airborne cell
  test('Roms airborne impact differs from jump and windup in both skins and armor',()=>{
   const f=createFighter('roms',500,1);f.state='Jump';
   assert.equal(usesDedicatedAirAttack('roms',f),false);
-  f.move='air';f.moveFrame=8;assert.equal(usesDedicatedAirAttack('roms',f),false);
+  f.move='air';f.moveFrame=characters.roms.moves.air.startupFrames-1;assert.equal(usesDedicatedAirAttack('roms',f),false);
   for(const armor of [0,300]){f.armorUntil=armor;f.moveFrame=9;assert.equal(usesDedicatedAirAttack('roms',f),true);}
   f.moveFrame=22;assert.equal(usesDedicatedAirAttack('roms',f),false);
  });

@@ -1,3 +1,4 @@
+import {ONLINE_INPUT_DELAY,ONLINE_ROLLBACK_FRAMES} from '../shared/networkTiming.js';
 import {decodeSnapshot,type RecoveryState} from '../shared/recovery.js';
 import {
   GameSimulation,
@@ -10,6 +11,7 @@ export class RollbackManager {
   private impacts=new Map<number,GameplayEvent[]>();
   private deliveredImpactFrame=-1;
   drainConfirmedImpacts():GameplayEvent[]{
+    this.flushPending();
     const settled=Math.min(this.confirmed,this.simulation.state.frame-1),events:GameplayEvent[]=[];
     for(const [frame,impacts] of this.impacts){
       if(frame<=settled){if(frame>this.deliveredImpactFrame)events.push(...impacts);this.impacts.delete(frame);}
@@ -47,8 +49,9 @@ export class RollbackManager {
   constructor(
     public simulation: GameSimulation,
     public seat: number,
-    public inputDelay = 2,
-    public maxRollbackFrames = 8,
+    public inputDelay = ONLINE_INPUT_DELAY,
+    // Absorb brief relay jitter up to 200 ms without adding local input delay.
+    public maxRollbackFrames = ONLINE_ROLLBACK_FRAMES,
   ) {
     const count = simulation.state.fighters.length;
     if (!Number.isInteger(seat) || seat < 0 || seat >= count)
@@ -61,8 +64,20 @@ export class RollbackManager {
     }
     this.remoteFrame = this.confirmed = inputDelay - 1;
   }
+  private pendingRollback?:number;
+  /** Apply a burst of late inputs with one replay before the next render/tick. */
+  flushPending():void {
+    const frame=this.pendingRollback;this.pendingRollback=undefined;
+    if(frame===undefined||this.desync!=="OK")return;
+    const current=this.simulation.state.frame,snapshot=this.history.get(frame);
+    if(!snapshot){this.desync="Missing rollback snapshot";return;}
+    this.simulation.restore(snapshot);this.rollbackCount++;this.rollbackFrames=current-frame;
+    while(this.simulation.state.frame<current)this.advance();
+    this.simulation.clearPresentationEvents();
+  }
   private resumeNextInput?:number;
   restoreRecovery(state:RecoveryState):void {
+    this.pendingRollback=undefined;
     this.simulation.restore(decodeSnapshot(state.snapshot));
     this.history=new StateHistory();this.local.clear();this.remotes.forEach(q=>q.clear());this.usedBySeat.forEach(q=>q.clear());
     state.inputs.forEach((q,i)=>{for(const [frame,mask] of q)(i===this.seat?this.local:this.remotes[i]).set(frame,mask);});
@@ -71,6 +86,7 @@ export class RollbackManager {
     this.updateConfirmed();
   }
   schedule(mask: number, send: (frame: number, mask: number) => void): void {
+    this.flushPending();
     if (this.desync !== "OK") return;
     const frame = this.simulation.state.frame + this.inputDelay;
     if(this.resumeNextInput!==undefined){
@@ -83,7 +99,7 @@ export class RollbackManager {
       this.updateConfirmed();
     }
   }
-  receive(frame: number, mask: number, seat = 1 - this.seat): void {
+  receive(frame: number, mask: number, seat = 1 - this.seat, deferReplay=false): void {
     if (this.desync !== "OK") return;
     if (
       seat === this.seat ||
@@ -100,17 +116,9 @@ export class RollbackManager {
     this.updateConfirmed();
     const current = this.simulation.state.frame;
     if (frame < current && this.usedBySeat[seat].get(frame) !== mask) {
-      const snapshot = this.history.get(frame);
-      if (!snapshot) {
-        this.desync = "Missing rollback snapshot";
-        return;
-      }
-      this.simulation.restore(snapshot);
-      this.rollbackCount++;
-      this.rollbackFrames = current - frame;
-      while (this.simulation.state.frame < current) this.advance();
-      this.simulation.clearPresentationEvents();
+      this.pendingRollback=Math.min(this.pendingRollback??frame,frame);
     }
+    if(!deferReplay)this.flushPending();
   }
   private updateConfirmed(): void {
     while (
@@ -125,6 +133,7 @@ export class RollbackManager {
       this.confirmed++;
   }
   disconnect(seat: number, frame: number): void {
+    this.flushPending();
     if (this.desync !== "OK") return;
     if (seat === this.seat || !this.remotes[seat] || this.departures.has(seat))
       return;
@@ -151,6 +160,7 @@ export class RollbackManager {
     return 0;
   }
   tick(): boolean {
+    this.flushPending();
     if (this.desync !== "OK") return false;
     this.stalled =
       this.simulation.state.frame > this.confirmed + this.maxRollbackFrames;
@@ -183,6 +193,7 @@ export class RollbackManager {
   }
   isHashFrameRetained(frame:number):boolean{return Number.isInteger(frame)&&frame>=Math.max(0,this.simulation.state.frame-180)&&frame<=this.simulation.state.frame+this.inputDelay+this.maxRollbackFrames;}
   confirmedHash(frame: number): string | undefined {
+    this.flushPending();
     const state = this.history.get(frame);
     return frame <= this.confirmed + 1 && state ? hashState(state) : undefined;
   }

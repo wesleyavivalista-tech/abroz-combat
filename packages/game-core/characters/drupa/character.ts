@@ -1,7 +1,7 @@
 import {Button, type CharacterDefinition} from '../../types.js';
 import {move} from '../common.js';
 const moves={
- swing1:move('swing1',{displayName:'Left jab',cancelRules:[],startupFrames:9,activeFrames:5,recoveryFrames:17,damage:55,knockback:3,hitstun:25,hitboxes:[{x:10,y:60,w:125,h:55}]}),
+ swing1:move('swing1',{displayName:'Left jab',cancelRules:[],startupFrames:5,activeFrames:5,recoveryFrames:17,damage:55,knockback:3,hitstun:25,hitboxes:[{x:10,y:60,w:125,h:55}]}),
  swing2:move('swing2',{displayName:'Right cross',cancelRules:[],startupFrames:10,activeFrames:5,recoveryFrames:19,damage:65,knockback:3,hitstun:27,hitboxes:[{x:10,y:60,w:135,h:55}]}),
  bellyFinish:move('bellyFinish',{displayName:'Belly finish',cancelRules:[],startupFrames:10,activeFrames:7,recoveryFrames:21,damage:95,knockback:18,advance:3,hitboxes:[{x:0,y:35,w:130,h:95}]}),
  belly:move('belly',{displayName:'Heavy belly bump',cancelRules:[],state:'HeavyAttack',startupFrames:20,activeFrames:8,recoveryFrames:27,damage:135,knockback:60.8,advance:4,priority:3,hitboxes:[{x:0,y:30,w:140,h:100}]}),

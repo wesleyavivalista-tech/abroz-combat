@@ -14,7 +14,7 @@ export const GRAVE_HP=1000;
 export const ZOMBIE_RISE_FRAMES=60;
 export const ZOMBIE_DEATH_FRAMES=45;
 export const ZOMBIE_MOVEMENT_MULTIPLIER=.49;
-export const ZOMBIE_CLAW:MoveDefinition={id:'@zombie-claw',input:'',animation:'claw',state:'LightAttack',startupFrames:18,activeFrames:6,recoveryFrames:48,damage:48,hitstun:12,blockstun:8,knockback:4,launch:0,knockdown:false,meterGain:0,meterCost:0,priority:1,level:'mid',cancelRules:[],cancelFrame:0,hitboxes:[{x:0,y:30,w:115,h:110}],effects:'impact',events:[],poisonFrames:180,poisonDamage:10};
+export const ZOMBIE_CLAW:MoveDefinition={id:'@zombie-claw',input:'',animation:'claw',state:'LightAttack',startupFrames:18,activeFrames:6,recoveryFrames:48,damage:38,hitstun:12,blockstun:8,knockback:4,launch:0,knockdown:false,meterGain:0,meterCost:0,priority:1,level:'mid',cancelRules:[],cancelFrame:0,hitboxes:[{x:0,y:30,w:115,h:110}],effects:'impact',events:[],poisonFrames:120,poisonDamage:8};
 export const finalDeathActive=(s:SimulationSnapshot)=>s.finalDeaths?.some(d=>s.frame>=d.frame&&s.frame<d.frame+FINAL_DEATH_FRAMES)??false;
 /** Countdown in simulation ticks; slowing the fixed-step clock slows *all* timers equally. */
 export const matchTimeScale=(s:SimulationSnapshot)=>finalDeathActive(s)?FINAL_DEATH_SPEED:1;

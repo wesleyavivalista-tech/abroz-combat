@@ -1,3 +1,4 @@
+import {matchPerformance} from './matchPerformance.js';
 import {randomArena} from '../../../packages/game-core/stages/random.js';
 import './ui/persistent-championship.css';
 import {PersistentController} from './persistentController.js';
@@ -497,7 +498,7 @@ function renderStatistics(){
  if(!stats?.finalized||championship)return;
  const focused=document.activeElement as HTMLElement|null,action=focused?.dataset.action,tab=focused?.dataset.tab,selectedSeat=focused?.dataset.seat;
  stopStatisticsAnimation?.();if(screen!=='statistics')menuNavigation.reset();viewRevision++;screen='statistics';ui.root.dataset.navScreen=screen;input.enabled=false;input.clear();
- ui.shell(matchStatisticsScreen(simulation.state,stats,mode==='online',statisticsTab,statisticsSeat,statisticsReturnStatus));
+ ui.shell(matchStatisticsScreen(simulation.state,stats,mode==='online',statisticsTab,statisticsSeat,statisticsReturnStatus,persistentFight));
  const restore=[...ui.root.querySelectorAll<HTMLElement>('button')].find(el=>el.dataset.action===action&&el.dataset.tab===tab&&el.dataset.seat===selectedSeat);
  (restore??ui.root.querySelector<HTMLElement>('[data-action="statistics-tab"]'))?.focus({preventScroll:true});
  stopStatisticsAnimation=animateStatistics(ui.root);
@@ -506,7 +507,7 @@ function restoreVictory(){
  stopStatisticsAnimation?.();stopStatisticsAnimation=undefined;screen='result';ui.root.dataset.navScreen='result';menuNavigation.reset();hud();
  const s=simulation.state,winner=s.winner<0?null:s.fighters[s.winner];
  const name=winner?(s.teamMatch?t(s.teams[s.winner]===0?'team.blueWinner':'team.redWinner'):characters[winner.characterId].displayName):t('result.draw');
- ui.root.insertAdjacentHTML('beforeend',resultScreen(s,mode,name,teamLabel,arenaName(simulation.stage)));
+ ui.root.insertAdjacentHTML('beforeend',resultScreen(s,mode,name,teamLabel,arenaName(simulation.stage),persistentFight));
  const dialog=document.getElementById('match-result') as HTMLDialogElement;dialog.showModal();dialog.addEventListener('cancel',e=>e.preventDefault());
 }
 let initialFight:{ids:string[];teams?:number[];skins:string[];tournament:boolean|EliminationMode;seed:number;arenaId:string;idleTest:boolean}|null=null;
@@ -558,7 +559,8 @@ async function start(ids: string[] = selected, teams?: number[], skins: string[]
   spectatorPlayback=null;spectatorTarget=-1;renderer.spectatorTarget=undefined;
   if(spectating&&recovery){spectatorPlayback=new SpectatorPlayback(simulation,recovery);rollback=null;}
   else if (mode === "online") {
-    rollback = new RollbackManager(simulation, seat, 2, 8);
+    rollback = new RollbackManager(simulation, seat);
+    matchPerformance.begin();
     if(recovery){rollback.restoreRecovery(recovery);if(simulation.state.statistics?.finalized)authoritativeStatistics=structuredClone(simulation.state.statistics);}
     lastHash = -1;
     pendingHashes.clear();
@@ -638,9 +640,13 @@ function fighterHud(i: number) {
   return `<div class="p${i + 1} ${mode === "online" && i === seat ? "you" : ""}" style="--player-color:${fighterColor(i)};order:${simulation.state.teamMatch ? simulation.state.teams[i] * 10 + i : i}"><div class="fighter-name"><img class="hud-portrait" src="${fighterPresentation(simulation.state.fighters[i].characterId, simulation.state.skins[i]).portrait}" alt=""><b>${entrant ? escapeMarkup(entrant.name) : characters[simulation.state.fighters[i].characterId].displayName}</b><span>P${i + 1}${teamLabel(i)}${mode === "online" && i === seat ? t('championship.you') : ""}</span></div><div class="health"><i id="health${i}"></i></div>${energyMeter(characters[simulation.state.fighters[i].characterId],i)}<div class="super-slots" id="supers${i}"></div><div class="lives" id="lives${i}"></div><div class="life-status" id="life-status${i}"></div></div>`;
 }
 function multiMatchTimer(){return '<div class="timer multi-match-timer"><span id="match-symbol" role="timer">0:00</span></div>';}
+let lastHudPaint=-Infinity;
 function updateHUD(presentationOnly=false) {
   const s = simulation.state;
   if((s.elimination?.fight??0)!==hudEliminationFight)hud();
+  const paintNow=performance.now();
+  if(mode!=="online"||presentationOnly||paintNow-lastHudPaint>=1000/30||s.phase!=="fight"){
+  lastHudPaint=paintNow;
   const clock=matchTimer(s),clockElement=document.getElementById('match-symbol');
   if(clockElement){
     if(clockElement.textContent!==clock.text)clockElement.textContent=clock.text;
@@ -754,7 +760,8 @@ function updateHUD(presentationOnly=false) {
   }
   let tournamentHost=document.getElementById("tournament-panel-host");
   if((s.tournament||s.elimination)&&!tournamentHost){tournamentHost=document.createElement("div");tournamentHost.id="tournament-panel-host";ui.root.append(tournamentHost);}
-  if(tournamentHost)tournamentHost.innerHTML=s.elimination?eliminationPanel(s,!rollback||rollback.confirmed>=s.endedAt-1):tournamentPanel(s,!rollback||rollback.confirmed>=s.endedAt-1);
+  if(tournamentHost)updateMarkup(tournamentHost,s.elimination?eliminationPanel(s,!rollback||rollback.confirmed>=s.endedAt-1):tournamentPanel(s,!rollback||rollback.confirmed>=s.endedAt-1));
+  }
   if(presentationOnly)return;
   if (
     s.phase === "result" && !finalDeathActive(s) &&
@@ -969,8 +976,17 @@ network.onMessage = (message) => {
   }
   if(message.type==='persistent-ended'){
     if(message.matchId!==championshipMatch)return;
-    persistentFight=false;rollback=null;pendingHashes.clear();championshipMatch=undefined;paused=false;gameAudio.reset();
-    navigate('lobby',true);onlinePage='persistent';persistentUI.receive(message);return;
+    rollback=null;pendingHashes.clear();championshipMatch=undefined;paused=false;gameAudio.reset();
+    persistentUI.receive(message);
+    if(message.snapshot){
+      simulation.restore(decodeSnapshot(message.snapshot));
+      authoritativeStatistics=simulation.state.statistics?.finalized?structuredClone(simulation.state.statistics):null;
+      persistentFight=true;input.enabled=false;input.clear();
+      const s=simulation.state,lost=s.winner>=0&&s.teams[s.winner]!==s.teams[seat];
+      audio.fadeCombat();audio.setMusic(lost?'defeat':'victory',simulation.stage.id);audio.play(lost?'defeat':'victory');
+      restoreVictory();return;
+    }
+    persistentFight=false;navigate('lobby',true);onlinePage='persistent';drawOnline();return;
   }
   if(message.type==='persistent-detail'||message.type==='persistent-created'||message.type==='persistent-list'||message.type==='persistent-deleted'){persistentUI.receive(message);return;}
   switch (message.type) {
@@ -1053,8 +1069,7 @@ network.onMessage = (message) => {
     case "input":
       if (message.matchId !== championshipMatch) break;
       if(spectatorPlayback){spectatorPlayback.receive(message.seat,message.frame,message.mask);break;}
-      rollback?.receive(message.frame, message.mask, message.seat);
-      checkNetworkHealth();
+      rollback?.receive(message.frame, message.mask, message.seat,true);
       break;
     case "hash":
       if (message.seat !== -1 || message.matchId !== championshipMatch) break;
@@ -1325,7 +1340,7 @@ ui.onAction((action, element) => {
       if(screen==='statistics'&&Number.isInteger(Number(element.dataset.seat))&&simulation.state.fighters[Number(element.dataset.seat)]){statisticsSeat=Number(element.dataset.seat);renderStatistics();}break;
     case "statistics-back":if(screen==='statistics')restoreVictory();break;
     case 'online-continue':
-    case 'statistics-return':if(mode==='online'){network.send({type:'return-room',matchId:championshipMatch});}break;
+    case 'statistics-return':if(mode==='online'){if(persistentFight){persistentFight=false;navigate('lobby',true);onlinePage='persistent';drawOnline();persistentUI.refresh();}else network.send({type:'return-room',matchId:championshipMatch});}break;
     case "room-ready":if(screen==='lobby'&&mode==='online'){network.send({type:'ready'});element.setAttribute('disabled','');}break;
     case "restart-fight": confirmRestart();break;
     case "restart-cancel": cancelRestart();break;
@@ -1372,7 +1387,11 @@ ui.onAction((action, element) => {
     }
   }
 });
+const recordFocus=()=>{if(screen==="fight"&&rollback)matchPerformance.visibility(performance.now(),document.hidden,!document.hasFocus());};
+window.addEventListener("focus",recordFocus);
+document.addEventListener("visibilitychange",recordFocus);
 const onBlur=() => {
+  recordFocus();
   audio.setFocus(false);
   if (screen === "fight" && mode !== "online" && !paused) pause();
 };
@@ -1401,6 +1420,7 @@ const pingTimer=setInterval(() => {
 }, 2000);
 let presentationTime=0;
 function loop(now: number) {
+  if(screen==="fight"&&rollback){rollback.flushPending();checkNetworkHealth();}
   updateControllers(now);
   if(screen==='settings'&&Math.floor(now/250)!==Math.floor(last/250)){const panel=document.getElementById('audio-debug');if(panel)panel.textContent=JSON.stringify(audio.diagnostics(),null,2);}
   if(screen==='home'){
@@ -1410,6 +1430,7 @@ function loop(now: number) {
   const elapsed = Math.min(0.1, (now - last) / 1000);
   last = now;
   fps = fps * 0.95 + (1 / Math.max(0.001, elapsed)) * 0.05;
+  if(screen==="fight"&&rollback)matchPerformance.observe(now,rollback.stalled,document.hidden,!document.hasFocus(),rollback.rollbackCount,rollback.rollbackFrames,Math.max(0,simulation.state.frame-rollback.confirmed-1));
   if (screen === "fight" && !paused) {
     accumulator += elapsed;
     let ticks = 0;

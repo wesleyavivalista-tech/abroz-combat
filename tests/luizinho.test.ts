@@ -9,15 +9,15 @@ import {initializeProjectile} from '../packages/game-core/simulation/ProjectileP
 import {luizinhoPose} from '../apps/client/src/characters/luizinho/presentation.js';
 const match=(other='gut')=>{const g=new GameSimulation(['luizinho',other]);g.state.phase='fight';g.state.fighters.forEach(f=>{f.state='Idle';f.y=g.stage.floorHeight;});g.state.fighters[0].x=300;g.state.fighters[1].x=1800;return g;};
 const run=(g:GameSimulation,n:number,input=0)=>{for(let i=0;i<n;i++)g.step([input,0]);};
-test('Luizinho basic opener hits at frame six, deals damage once and recovers normally',()=>{
+test('Luizinho basic opener hits at frame five, deals damage once and recovers normally',()=>{
  const g=match(),[f,d]=g.state.fighters;d.x=f.x+90;
  const hp=d.health;
  run(g,1,Button.Light);
  assert.equal(f.move,'jab');
- while(f.moveFrame<5)run(g,1);
+ while(f.moveFrame<4)run(g,1);
  assert.equal(d.health,hp,'startup must not deal damage');
  run(g,1);
- assert.equal(f.moveFrame,6);
+ assert.equal(f.moveFrame,5);
  assert.equal(d.health,hp-50,'opener hits at its new activation frame');
  run(g,60);
  assert.equal(d.health,hp-50,'active overlap must not duplicate damage');
@@ -52,9 +52,9 @@ test('a returning ball is blocked before damaging a player behind a wall',()=>{
  spawnReturningProjectile(g.state,1,'straight','straight');const p=g.state.projectiles.find(p=>p.active)!;p.x=b.x+50;p.vx=-100;p.y=110;
  const hp=f.health;advanceReturningProjectiles(g.state,g.stage);assert.equal(f.health,hp);assert.equal(p.returning,true);assert.ok(b.health<420);
 });
-test('turret has 800 health, shoots from its platform and expires at 80 seconds during hitstop',()=>{
+test('turret has 900 health, shoots from its platform and expires at 80 seconds during hitstop',()=>{
  const g=match();g.stage={...g.stage,platforms:[{x:200,y:200,width:300}]};g.state.fighters[0].y=200;const b=make(g,'turret');
- assert.equal(b.health,800);assert.equal(b.y,200);assert.equal(b.expiresAt,4800);g.state.frame=72;advanceStructures(g.state,g.stage);const p=g.state.projectiles.find(p=>p.active)!;assert.equal(p.move,'cannon');assert.ok(p.y<285&&p.y>200);assert.ok((p.vy??0)<0);assert.ok(Math.abs(Math.hypot(p.vx,p.vy??0)-16.2)<.001);
+ assert.equal(b.health,900);assert.equal(b.y,200);assert.equal(b.expiresAt,4800);g.state.frame=72;advanceStructures(g.state,g.stage);const p=g.state.projectiles.find(p=>p.active)!;assert.equal(p.move,'cannon');assert.ok(p.y<285&&p.y>200);assert.ok((p.vy??0)<0);assert.ok(Math.abs(Math.hypot(p.vx,p.vy??0)-16.2)<.001);
  g.state.frame=4799;g.state.hitstop=10;run(g,1);assert.equal(b.phase,'collapsed');assert.equal(b.shots,1);run(g,45);assert.equal(g.state.structures!.length,0);
 });
 test('house marks first and builds with a free second Ultimate press after continued movement',()=>{
@@ -93,7 +93,7 @@ test('turret shots keep their release angle and can be dodged with a later jump'
  const g=match(),d=g.state.fighters[1];make(g,'turret');d.x=600;g.state.frame=71;run(g,1);const p=g.state.projectiles.find(p=>p.active)!;assert.equal(p.vy,0);const hp=d.health;d.vy=21;d.state='Jump';run(g,22);assert.equal(d.health,hp);assert.equal(p.vy,0);
 });
 test('turrets hit platform targets on either side and ground targets from above',()=>{
- for(const direction of [-1,1,0]){const g=match(),[f,d]=g.state.fighters;f.x=direction===-1?1100:600;f.y=direction===0?340:0;d.x=direction===0?1100:direction===-1?700:800;d.y=direction===0?0:340;const b=make(g,'turret');g.state.frame=71;const hp=d.health;run(g,1);const p=g.state.projectiles.find(p=>p.active)!;assert.equal(Math.sign(p.vy??0),direction===0?-1:1);assert.equal(Math.sign(p.vx),direction===-1?-1:1);assert.ok(Math.abs(Math.hypot(p.vx,p.vy??0)-16.2)<.001);assert.equal(b.health,800);run(g,35);assert.ok(d.health<hp);}
+ for(const direction of [-1,1,0]){const g=match(),[f,d]=g.state.fighters;f.x=direction===-1?1100:600;f.y=direction===0?340:0;d.x=direction===0?1100:direction===-1?700:800;d.y=direction===0?0:340;const b=make(g,'turret');g.state.frame=71;const hp=d.health;run(g,1);const p=g.state.projectiles.find(p=>p.active)!;assert.equal(Math.sign(p.vy??0),direction===0?-1:1);assert.equal(Math.sign(p.vx),direction===-1?-1:1);assert.ok(Math.abs(Math.hypot(p.vx,p.vy??0)-16.2)<.001);assert.equal(b.health,900);run(g,35);assert.ok(d.health<hp);}
 });
 test('delayed remote inputs converge through mark, build, shots and destructible walls',async()=>{
  const {RollbackManager}=await import('../packages/networking/RollbackManager.js');const a=match('luizinho'),b=match('luizinho');

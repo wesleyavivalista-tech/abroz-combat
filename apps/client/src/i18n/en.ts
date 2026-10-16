@@ -438,7 +438,7 @@ export const en = {
   "elimination.message.safe": "{player} is safe and sits out the next fight",
   "match.fight": "FIGHT!",
   "match.dead": "DEAD.",
-  "match.waitInput": "WAITING FOR INPUT",
+  "match.waitInput": "WAITING FOR OPPONENT CONNECTION",
   "match.waitPlayers": "WAITING FOR PLAYERS TO LOAD",
   "match.confirm": "CONFIRMING RESULT…",
   "match.safeWatching": "SAFE · WATCHING THE FIGHT",

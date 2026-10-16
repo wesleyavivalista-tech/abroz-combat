@@ -67,7 +67,7 @@ export function validateCharacter(c: CharacterDefinition): void {
   const positive=(n:number,label:string)=>{if(!Number.isFinite(n)||n<=0)throw new Error(`${c.id}: invalid ${label}`);};
   for(const [id,m] of Object.entries(c.moves)){
     if(m.reactivation&&!c.moves[m.reactivation])throw new Error(`${c.id}: missing reactivation`);
-    if(m.structure){const b=m.structure;for(const n of [b.width,b.height,b.healthRatio])positive(n,'structure dimension/health');if(b.duration<0)throw new Error('Invalid structure duration');if(b.shotMove&&!c.moves[b.shotMove])throw new Error('Unknown structure shot');if(b.kind==='turret'&&(!b.shotMove||!c.moves[b.shotMove]?.projectile||!b.interval||b.interval<1))throw new Error('Invalid turret');}
+    if(m.structure){const b=m.structure;for(const n of [b.width,b.height,b.healthRatio])positive(n,'structure dimension/health');if(b.health!==undefined)positive(b.health,'structure health');if(b.duration<0)throw new Error('Invalid structure duration');if(b.shotMove&&!c.moves[b.shotMove])throw new Error('Unknown structure shot');if(b.kind==='turret'&&(!b.shotMove||!c.moves[b.shotMove]?.projectile||!b.interval||b.interval<1))throw new Error('Invalid turret');}
     if(m.projectile?.variants!==undefined&&(!Number.isInteger(m.projectile.variants)||m.projectile.variants<1))throw new Error('Invalid projectile variants');
     if(m.allowedStates&&(!m.allowedStates.length||m.allowedStates.some(state=>!state.trim())))throw new Error(`${c.id}: invalid allowed states in ${id}`);
     for(const b of [...m.hitboxes,...m.hurtboxes??[]])if([b.x,b.y,b.w,b.h].some(n=>!Number.isFinite(n))||b.w<=0||b.h<=0)throw new Error(`${c.id}: invalid collision box in ${id}`);

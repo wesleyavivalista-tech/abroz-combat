@@ -1,3 +1,4 @@
+import {ONLINE_INPUT_DELAY,ONLINE_ROLLBACK_FRAMES} from '../../../packages/shared/networkTiming.js';
 import {randomArena} from '../../../packages/game-core/stages/random.js';
 import {ReconnectSeats,RECONNECT_GRACE_MS} from './reconnectSeats.js';
 import {diagnosticId,type DiagnosticSink} from './observability.js';
@@ -285,8 +286,8 @@ export class RoomService {
           teams: room.peers.map(p => p.team),
           skins: room.peers.map(p => p.skin),
           mode: room.mode,
-          inputDelay: 2,
-          maxRollbackFrames: 8,
+          inputDelay: ONLINE_INPUT_DELAY,
+          maxRollbackFrames: ONLINE_ROLLBACK_FRAMES,
         }),
       );
     }

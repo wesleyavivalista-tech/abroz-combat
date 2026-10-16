@@ -1,3 +1,4 @@
+import {MatchPerformanceTracker} from '../apps/client/src/matchPerformance.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
@@ -19,6 +20,10 @@ test('real sockets retain join behavior and emit private lifecycle diagnostics',
  assert.equal(messages[1].find(m=>m.type==='error')?.message,'Room not found');
  peers[1].send(JSON.stringify({type:'join',code,character:'jopa',contentVersion:contentVersion()}));await wait(()=>messages[1].some(m=>m.type==='room'));
  peers.forEach(p=>p.send(JSON.stringify({type:'ready'})));peers[1].send(JSON.stringify({type:'ping',sent:1}));await wait(()=>messages[1].some(m=>m.type==='pong'));peers[0].send(JSON.stringify({type:'start-match'}));await wait(()=>messages.every(ms=>ms.some(m=>m.type==='start')));
+ const tracker=new MatchPerformanceTracker();tracker.begin();tracker.ping(25);
+ peers.forEach(p=>{for(let i=0;i<3;i++)p.send(JSON.stringify({type:'ping',sent:42,performance:{...tracker.snapshot(),private:'do-not-log-secret'}}));});
+ await wait(()=>output.split('match-performance').length===3);
+ const perf=output.split('\n').filter(l=>l.startsWith('{')).map(l=>JSON.parse(l)).filter(e=>e.event==='match-performance');assert.equal(perf.length,2);assert.notEqual(perf[0].connectionId,perf[1].connectionId);assert.equal(perf[0].roomId,perf[1].roomId);assert.equal(perf[0].pingMeanMs,25);
  peers[0].send('{"private":"do-not-log-secret"');await wait(()=>output.includes('SyntaxError'));
  peers.forEach(p=>p.close());await wait(()=>output.includes('room-closed'));
  assert.doesNotMatch(output,new RegExp(code+'|ZZZZZ|do-not-log-secret'));

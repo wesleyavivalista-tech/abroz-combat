@@ -439,7 +439,7 @@ export const ptBR = {
   "elimination.message.safe": "{player} está salvo e não participa da próxima luta",
   "match.fight": "LUTEM!",
   "match.dead": "MORTO.",
-  "match.waitInput": "AGUARDANDO COMANDOS",
+  "match.waitInput": "AGUARDANDO CONEXÃO DO OPONENTE",
   "match.waitPlayers": "AGUARDANDO OS JOGADORES CARREGAREM",
   "match.confirm": "CONFIRMANDO RESULTADO…",
   "match.safeWatching": "SALVO · ASSISTINDO À LUTA",

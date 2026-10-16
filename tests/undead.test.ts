@@ -51,8 +51,8 @@ test('former teammates can damage graves and zombies, and claws poison former te
  c.fighter.health=0;run(g,ZOMBIE_RISE_FRAMES+1);const z=c.fighter;
  z.x=ally.x-70;z.y=ally.y=0;z.facing=1;ally.invulnerableUntil=0;
  resolveHit(g.state,g.stage,()=>{},0,ZOMBIE_CLAW,0,false,1,1,z,ally);
- assert.equal(ally.poisonUntil-g.state.frame,180);assert.equal(ally.poisonDamage,10);
- const hp=ally.health;run(g,30);assert.ok(ally.health<=hp-10);
+ assert.equal(ally.poisonUntil-g.state.frame,120);assert.equal(ally.poisonDamage,8);
+ const hp=ally.health;run(g,30);assert.ok(ally.health<=hp-8);
  const before=z.health;g.hit(1,ZOMBIE_CLAW,0,false,0,1,ally,z);assert.ok(z.health<before);
 });
 test('graves receive real player melee collisions without repeated contact damage',()=>{
@@ -140,7 +140,7 @@ test('zombie claw windup and contact freeze together during hitstop',()=>{
  const g=game(),c=zombie(g),target=g.state.fighters[1];c.fighter.x=target.x-75;c.fighter.y=target.y=0;c.undead!.nextAttack=0;
  run(g,1);assert.ok(c.undead!.attackAt>0);const hp=target.health;
  g.state.hitstop=10;run(g,10);assert.equal(c.undead!.attackFrame,0);assert.equal(target.health,hp);
- run(g,17);assert.equal(target.health,hp);run(g,1);assert.ok(target.health<hp);assert.equal(target.poisonUntil-g.state.frame,180);
+ run(g,17);assert.equal(target.health,hp);run(g,1);assert.ok(target.health<hp);assert.equal(target.poisonUntil-g.state.frame,120);
 });
 
 test('a grave and rising zombie stay anchored even inside a constructed wall',()=>{

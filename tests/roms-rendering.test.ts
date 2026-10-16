@@ -37,9 +37,9 @@ test('juggling hand cycles survive armor and ball attacks; every selected cell e
 
 test('low attack shows a dedicated sweep at contact, while crouch guard and windup remain separate',()=>{
  const f=createFighter('roms',300,1);f.state='Crouch';assert.equal(romsLowStrike(f),false);
- f.state='CrouchingAttack';f.move='low';f.moveFrame=9;assert.equal(romsLowStrike(f),false);
- for(const armor of [0,300]){f.armorUntil=armor;for(const frame of [10,15,18]){f.moveFrame=frame;assert.equal(romsLowStrike(f),true);}}
- f.moveFrame=19;assert.equal(romsLowStrike(f),false);f.moveFrame=10;f.stun=5;assert.equal(romsLowStrike(f),false);
+ f.state='CrouchingAttack';f.move='low';f.moveFrame=8;assert.equal(romsLowStrike(f),false);
+ for(const armor of [0,300]){f.armorUntil=armor;for(const frame of [9,14,17]){f.moveFrame=frame;assert.equal(romsLowStrike(f),true);}}
+ f.moveFrame=18;assert.equal(romsLowStrike(f),false);f.moveFrame=10;f.stun=5;assert.equal(romsLowStrike(f),false);
 });
 
 

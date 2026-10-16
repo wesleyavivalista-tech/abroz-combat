@@ -11,10 +11,11 @@ import {
 import { RollbackManager } from "../packages/networking/RollbackManager.js";
 import { Button } from "../packages/game-core/types.js";
 import type { ServerMessage } from "../packages/shared/protocol.js";
+for (const roster of [undefined,['nikalz','luizinho']])
 for (const latency of [0, 50, 100, 150, 200])
-  test(`two peers converge with ${latency}ms input latency and jitter`, () => {
-    const a = new RollbackManager(new GameSimulation(), 0),
-      b = new RollbackManager(new GameSimulation(), 1);
+  test(`${roster?.join(" vs ")??"default fighters"}: two peers converge with ${latency}ms input latency and jitter`, () => {
+    const a = new RollbackManager(new GameSimulation(roster), 0),
+      b = new RollbackManager(new GameSimulation(roster), 1);
     const displays = [new RenderInterpolation(), new RenderInterpolation()];
     const queue: {
       due: number;
@@ -80,7 +81,7 @@ for (const latency of [0, 50, 100, 150, 200])
     assert.equal(hashState(a.simulation.state), hashState(b.simulation.state));
     assert.equal(a.desync, "OK");
     assert.equal(b.desync, "OK");
-    const baseline = new GameSimulation();
+    const baseline = new GameSimulation(roster);
     for (let frame = 0; frame < frames; frame++)
       baseline.step(frame < 2 ? [0, 0] : [mask(0, frame), mask(1, frame)]);
     assert.equal(hashState(a.simulation.state), hashState(baseline.state));
@@ -173,3 +174,12 @@ test(`real WebSocket create/join/ready/input/hash/disconnect: ${peerOrigins.join
     child.kill();
   }
 });
+
+ test('prediction absorbs a short gap but remains bounded during a lost connection',()=>{
+ const peer=new RollbackManager(new GameSimulation(),0);
+ assert.equal(peer.inputDelay,2);assert.equal(peer.maxRollbackFrames,12);
+ for(let i=0;i<14;i++){peer.schedule(0,()=>{});assert.equal(peer.tick(),true);}
+ assert.equal(peer.tick(),false);assert.equal(peer.simulation.state.frame,14);
+ for(let frame=2;frame<=14;frame++)peer.receive(frame,0);
+ assert.equal(peer.tick(),true);assert.equal(peer.desync,'OK');
+ });

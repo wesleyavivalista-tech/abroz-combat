@@ -8,15 +8,15 @@ import {protectedDamage} from '../packages/game-core/simulation/HairSystem.js';
 import {spawnReturningProjectile,canSpawnReturningProjectile,advanceReturningProjectiles,finishProjectileMode} from '../packages/game-core/simulation/ReturningProjectileSystem.js';
 const match=()=>{const g=new GameSimulation(['roms','gut']);g.state.phase='fight';g.state.fighters.forEach(f=>f.state='Idle');g.state.fighters[0].x=300;g.state.fighters[1].x=1800;return g;};
 const run=(g:GameSimulation,n:number,input=0)=>{for(let i=0;i<n;i++)g.step([input,0]);};
-test('Roms basic opener hits at frame eight, deals damage once and recovers normally',()=>{
+test('Roms basic opener hits at frame seven, deals damage once and recovers normally',()=>{
  const g=match(),[f,d]=g.state.fighters;d.x=f.x+100;
  const hp=d.health;
  run(g,1,Button.Light);
  assert.equal(f.move,'chop');
- while(f.moveFrame<7)run(g,1);
+ while(f.moveFrame<6)run(g,1);
  assert.equal(d.health,hp,'startup must not deal damage');
  run(g,1);
- assert.equal(f.moveFrame,8);
+ assert.equal(f.moveFrame,7);
  assert.equal(d.health,hp-58,'opener hits at its new activation frame');
  run(g,60);
  assert.equal(d.health,hp-58,'active overlap must not duplicate damage');

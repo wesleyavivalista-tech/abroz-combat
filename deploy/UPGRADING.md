@@ -1,6 +1,6 @@
 # Desktop upgrades and recovery
 
-The next candidate is 0.1.3. Public downloads remain on 0.1.2 until the coordinated release is verified.
+The next candidate is 0.1.10. Public downloads remain on 0.1.9 until the coordinated release is verified.
 There is no automatic updater. Download only from https://abrozcombat.com/download.
 
 ## Windows

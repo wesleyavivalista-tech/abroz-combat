@@ -1,3 +1,4 @@
+import {matchPerformance} from './matchPerformance.js';
 import {contentVersion} from '../../../packages/shared/contentVersion.js';
 import {desktopBridge} from './platform/runtime.js';
 import {t} from './i18n/index.js';
@@ -30,7 +31,7 @@ export function diagnosticReport():string{
  const platform=/Windows/.test(ua)?'Windows':/Macintosh|Mac OS/.test(ua)?'macOS':/Android/.test(ua)?'Android':/Linux/.test(ua)?'Linux':'Other';
  const browser=/Edg\//.test(ua)?'Edge':/OPR\//.test(ua)?'Opera':/Firefox\//.test(ua)?'Firefox':/Chrome\//.test(ua)?'Chromium':/Safari\//.test(ua)?'Safari':'Other';
  const build=(import.meta as ImportMeta & {env?:Record<string,string>}).env?.VITE_BUILD_VERSION??'development';
- return JSON.stringify({generatedAt:new Date().toISOString(),build,contentVersion:contentVersion(),platform,runtime:desktopBridge()?'desktop':browser,events:diagnostics.entries},null,2);
+ return JSON.stringify({generatedAt:new Date().toISOString(),build,contentVersion:contentVersion(),platform,runtime:desktopBridge()?'desktop':browser,events:diagnostics.entries,matchPerformance:{current:matchPerformance.snapshot(),recent:matchPerformance.recent}},null,2);
 }
 /** User-initiated only. A selectable fallback also works when clipboard permission is denied. */
 export function bindDiagnosticButton(button:HTMLButtonElement,output:HTMLTextAreaElement,status:HTMLElement):void{
