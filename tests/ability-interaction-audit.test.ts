@@ -167,7 +167,7 @@ test('two Tocha pentagrams keep independent hit clocks without duplicate same-ti
  for(const h of hazards){h.x=target.x;h.y=target.y;}
  const hp=target.health;g.state.frame++;advanceStatuses(g.state,g.stage.width,g.stage.floorHeight);
  assert.equal(target.health,hp-36);advanceStatuses(g.state,g.stage.width,g.stage.floorHeight);assert.equal(target.health,hp-36);
- g.state.frame+=30;advanceStatuses(g.state,g.stage.width,g.stage.floorHeight);assert.equal(target.health,hp-72);
+ g.state.frame+=30;advanceStatuses(g.state,g.stage.width,g.stage.floorHeight);assert.equal(target.health,hp-82); // Two ground ticks plus one shared, non-stacking burn tick.
 });
 
 test('Caio, Napa, Fausto and Astolfo slows overlap without multiplying and clear on leaving',()=>{

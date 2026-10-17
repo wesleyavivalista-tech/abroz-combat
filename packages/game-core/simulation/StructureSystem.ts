@@ -81,7 +81,7 @@ export function damageStructure(s:SimulationSnapshot,b:Structure,amount:number,k
  if(b.kind!=='house')return;
  for(const a of actors(s)){
   const f=a.fighter;
-  if(f===s.fighters[b.owner]||!canReceiveDirectHit(f,s.frame))continue;
+  if(!hostile(s,b.owner,f,a.owner)||!canReceiveDirectHit(f,s.frame))continue;
   // Occupants cannot escape collapse by moving their animation above the roof.
   if(!b.trapped.includes(actorKey(a.owner,a.clone))&&!intersects(hurtbox(f),structureBox(b)))continue;
   applyDamage(s,f,spec.collapseDamage??0,{owned:true,source:b.owner,move:b.move,combo:'hit'});

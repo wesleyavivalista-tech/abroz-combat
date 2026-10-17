@@ -36,7 +36,7 @@ export class FaustoEffects{
   for(const h of s.hazards){const age=s.frame-(h.createdAt??s.frame);
    if(h.kind==='origami')place(h.variant??0,h.x,h.y+17,.45);
    if(h.kind==='paper-burst')for(let j=0;j<6;j++)place((h.variant??0)+j,h.x+Math.cos(j*2.4)*age*3,h.y+20+Math.sin(j*2.4)*age*2+age*2,.18*(1-age/30),age*.12+j);
-   if(h.kind==='white-cloud'){const m=this.clouds[cloud++];if(m){m.visible=true;m.position.set(worldX(h.x),h.y/100+.9,.3);m.scale.set((h.width??300)/100,(h.height??190)/100,1);m.material.uniforms.clock.value=s.frame/30;m.material.uniforms.fade.value=Math.min(1,age/8,(h.expiresAt-s.frame)/20);}}
+   if(h.kind==='white-cloud'){const m=this.clouds[cloud++];if(m){m.visible=true;m.position.set(worldX(h.x),h.y/100+(h.height??190)/200,.3);m.scale.set((h.width??300)/100,(h.height??190)/100,1);m.material.uniforms.clock.value=s.frame/30;m.material.uniforms.fade.value=Math.min(1,age/8,(h.expiresAt-s.frame)/20);}}
    if(h.kind==='flash-slash'&&age>=5){const m=this.slashes[slash++];if(m){m.visible=true;m.position.set(worldX(h.x),h.y/100+.9,.4);m.scale.set(1.5,.035,1);m.rotation.z=.6;m.material.opacity=(1-(age-5)/19);}}
   }
   for(const f of s.fighters)if(f.move==='flash'&&f.moveFrame>=characters.fausto.moves.flash.startupFrames&&f.moveFrame<characters.fausto.moves.flash.startupFrames+characters.fausto.moves.flash.activeFrames){const m=this.slashes[slash++];if(m){m.visible=true;m.position.set(worldX(f.x-f.facing*70),f.y/100+.7,.25);m.scale.set(1.6,.04,1);m.rotation.z=0;m.material.opacity=.6;}}

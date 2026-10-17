@@ -12,11 +12,11 @@ const moves={
  low:axe('low',{displayName:'Low axe sweep',state:'CrouchingAttack',level:'low',startupFrames:9,activeFrames:6,recoveryFrames:16,damage:65,hitboxes:[{x:5,y:5,w:145,h:50}]}),
  air:axe('air',{displayName:'Air chop',state:'AirAttack',startupFrames:8,activeFrames:9,recoveryFrames:17,damage:75}),
  gear:axe('gear',{displayName:'Heavy firefighter',state:'SpecialMove',startupFrames:15,activeFrames:1,recoveryFrames:15,damage:0,hitboxes:[],meterCost:25,armorFrames:300}),
- spin:axe('spin',{displayName:'Axe spin',state:'SpecialMove',startupFrames:15,activeFrames:120,recoveryFrames:20,damage:22,hitboxes:[],meterCost:25,mobile:true,durationClock:'simulation',periodicMelee:{interval:10,rangeX:175,rangeY:145,hitstun:12,push:1.5}}),
+ spin:axe('spin',{displayName:'Axe spin',state:'SpecialMove',startupFrames:15,activeFrames:120,recoveryFrames:20,damage:29,hitboxes:[],meterCost:25,mobile:true,durationClock:'simulation',periodicMelee:{interval:10,rangeX:175,rangeY:145,hitstun:12,push:1.5}}),
  juggle:axe('juggle',{displayName:'Juggling',state:'SpecialMove',startupFrames:20,activeFrames:1,recoveryFrames:15,damage:0,hitboxes:[],meterCost:100,weaponFrames:1560}),
  straight:ball('straight','straight'),straight2:ball('straight2','straight'),straight3:ball('straight3','straight'),up:ball('up','up'),bounce:ball('bounce','bounce'),
  finale:axe('finale',{displayName:'Five-ball finale',damage:20,hitboxes:[]}),
- water:axe('water',{displayName:'Firefighter water · aim ↑ / ↓',state:'SpecialMove',startupFrames:30,activeFrames:600,recoveryFrames:24,damage:12,meterCost:100,meterGain:0,hitboxes:[],durationClock:'simulation',beam:{originProfile:"hose",clipToArena:true,targetProfile:"lower-stance",width:38,originX:110,originY:100,interval:6,steerable:true,fullCircle:true,continuous:true,push:5}}),
+ water:axe('water',{displayName:'Firefighter water · aim ↑ / ↓',state:'SpecialMove',startupFrames:30,activeFrames:900,invulnerableWhileActive:true,recoveryFrames:24,damage:12,meterCost:100,meterGain:0,hitboxes:[],durationClock:'simulation',beam:{originProfile:"hose",clipToArena:true,targetProfile:"lower-stance",width:38,originX:110,originY:100,interval:6,steerable:true,fullCircle:true,continuous:true,push:5}}),
 };
 export const character:CharacterDefinition={id:'roms',armorDamageTaken:.6,modeDirectInputs:true,returningCapacity:4,
  returningPaths:{

@@ -11,7 +11,7 @@ const moves={
  low:hit('low',{displayName:'Low kick',state:'CrouchingAttack',level:'low',damage:60,hitboxes:[{x:20,y:5,w:110,h:35}]}),
  air:hit('air',{displayName:'Air kick',state:'AirAttack',damage:75,startupFrames:7,activeFrames:9,recoveryFrames:14,hitboxes:[{x:10,y:25,w:115,h:65}]}),
  origami:hit('origami',{displayName:'Origami',state:'SpecialMove',allowedStates:standing,damage:100,meterGain:0,meterCost:25,startupFrames:48,activeFrames:1,recoveryFrames:18,hitboxes:[],origamiTrap:true,knockback:12,launch:6,priority:2}),
- cloud:hit('cloud',{displayName:'White Cloud',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:25,startupFrames:24,activeFrames:1,recoveryFrames:18,hitboxes:[],whiteCloudFrames:300}),
+ cloud:hit('cloud',{displayName:'White Cloud',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:25,startupFrames:24,activeFrames:1,recoveryFrames:18,hitboxes:[],whiteCloud:true}),
  ancestry:hit('ancestry',{displayName:'Ancestry',state:'SpecialMove',allowedStates:standing,damage:0,meterGain:0,meterCost:100,startupFrames:24,activeFrames:1,recoveryFrames:18,hitboxes:[],weaponFrames:1800}),
  bravinho:hit('bravinho',{displayName:'Bravinho',state:'SpecialMove',damage:0,meterGain:0,meterCost:100,startupFrames:0,activeFrames:1,recoveryFrames:30,hitboxes:[],angerFrames:2400}),
  slash:hit('slash',{displayName:'Sword slash',damage:58,knockback:3,startupFrames:6,activeFrames:4,recoveryFrames:14,hitboxes:[{x:15,y:55,w:145,h:65}]}),

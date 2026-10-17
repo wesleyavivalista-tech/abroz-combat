@@ -26,7 +26,7 @@ function cast(g:GameSimulation,id:string,seat=0,age=0){
 }
 for(const [id,c] of Object.entries(characters))for(const move of [...c.specialButtons,...c.superButtons]){
  if(c.moves[move].executionArmor!==false){
- test(`${id}/${move}: startup, active and recovery take damage without any hit reaction`,()=>{
+ test(`${id}/${move}: execution ignores reactions and respects active-channel damage immunity`,()=>{
   const m=c.moves[move];
   for(const age of [0,m.startupFrames,m.startupFrames+m.activeFrames]){
    const g=game([id,'gut','bozo']),f=cast(g,move,0,age);
@@ -37,7 +37,7 @@ for(const [id,c] of Object.entries(characters))for(const move of [...c.specialBu
     // Simultaneous/repeated normal hits, fixed stun, launch and trap contacts.
     g.hit(1,i%2?characters.nikalz.moves.foreheadDive:characters.gut.moves.palm,0,true,0,-1);
     g.hit(2,characters.bozo.moves.grip,0,false,0,1);
-    assert.ok(f.health<hp);
+    if(m.invulnerableWhileActive&&age===m.startupFrames)assert.equal(f.health,hp);else assert.ok(f.health<hp);
     assert.equal(periodicHit(g.state,f,10,-1,120,30),false);
     assert.equal(f.move,before.move);assert.equal(f.moveFrame,before.frame);assert.equal(f.state,before.state);
     assert.equal(f.x,before.x);assert.equal(f.y,before.y);assert.equal(f.vx,before.vx);assert.equal(f.vy,before.vy);
@@ -160,12 +160,17 @@ test('repeated incoming hits neither duplicate summons nor restart or recharge e
  }
 });
 
-test('lethal hits during an active channel, grapple or transformation clean up normally',()=>{
+test('lethal hits clean up vulnerable casts while immune channels survive until recovery',()=>{
  for(const [id,button,frames] of [['drupa',Button.Super1,60],['gut',Button.Special,40],['eide',Button.Super2,95]] as const){
   const g=game([id,'nikalz']),f=g.state.fighters[0];
   if(id==='gut')g.state.fighters[1].x=f.x+70;
   g.step([button,0]);for(let i=0;i<frames;i++)g.step([0,0]);
   assert.ok(hasExecutionArmor(f));f.health=1;
+  if(id==='drupa'){
+   g.hit(1,characters.nikalz.moves[characters.nikalz.basicAttacks!.chain[0]],0,false,0,-1);
+   assert.equal(f.health,1);assert.equal(f.move,'budaBeam');
+   g.state.frame=f.actionUntil!;g.step([0,0]);
+  }
   g.hit(1,characters.nikalz.moves[characters.nikalz.basicAttacks!.chain[0]],0,false,0,-1);g.step([0,0]);
   assert.equal(f.move,null);assert.equal(f.weaponUntil,0);assert.equal(g.state.fighters[1].grappleUntil,0);assert.ok(f.respawnAt>0);
  }

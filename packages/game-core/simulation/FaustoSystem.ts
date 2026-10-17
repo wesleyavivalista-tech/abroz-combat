@@ -7,7 +7,7 @@ import {surfaceBelow} from './StageCollision.js';
 import {resolveHit} from '../combat/CombatSystem.js';
 import {canReceiveDirectHit} from '../combat/ContactPolicy.js';
 import {sweepEntry} from '../combat/CollisionSystem.js';
-export const FAUSTO={cloudWidth:300,cloudHeight:190,cloudSlow:.6,trapLimit:128};
+export const FAUSTO={cloudWidth:450,cloudHeight:285,cloudSlow:.4,cloudSpeed:.5,trapLimit:128};
 export function isFlashDashing(f:Fighter):boolean{const m=f.move?characters[f.characterId].moves[f.move]:undefined;return !!m?.flashDash&&f.moveFrame>=m.startupFrames&&f.moveFrame<m.startupFrames+m.activeFrames;}
 export function activateFausto(s:SimulationSnapshot,stage:StageDefinition,f:Fighter,owner:number,m:MoveDefinition):void{
  if(m.origamiTrap&&s.hazards.filter(h=>h.kind==='origami'&&h.owner===owner).length<FAUSTO.trapLimit){
@@ -16,11 +16,17 @@ export function activateFausto(s:SimulationSnapshot,stage:StageDefinition,f:Figh
   const x=Math.max(30,Math.min(stage.width-30,f.x+f.facing*48));
   s.hazards.push({kind:'origami',variant:f.origamiSeed%5,owner,x,y:surfaceBelow(stage,x,f.y),createdAt:s.frame,expiresAt:Number.MAX_SAFE_INTEGER,move:m.id,nextTicks:[]});
  }
- if(m.whiteCloudFrames)s.hazards.push({kind:'white-cloud',owner,x:f.x,y:f.y,width:FAUSTO.cloudWidth,height:FAUSTO.cloudHeight,createdAt:s.frame,expiresAt:s.frame+m.whiteCloudFrames,move:m.id,nextTicks:[]});
+ if(m.whiteCloud){
+  const x=Math.max(0,Math.min(stage.width,f.x)),distance=f.facing>0?stage.width-x:x;
+  s.hazards.push({kind:'white-cloud',owner,x,y:f.y,launchX:x,driftX:f.facing*FAUSTO.cloudSpeed,width:FAUSTO.cloudWidth,height:FAUSTO.cloudHeight,createdAt:s.frame,expiresAt:s.frame+Math.ceil(distance/FAUSTO.cloudSpeed),move:m.id,nextTicks:[]});
+ }
  if(m.angerFrames){f.angerUntil=s.frame+m.angerFrames;f.angerStacks=0;}
 }
 /** Movement-only slow is independent of the shared attack-speed debuffs. */
 export function advanceFausto(s:SimulationSnapshot):void{
+ // Absolute-frame movement is idempotent and deterministic through hitstop/rollback.
+ for(const h of s.hazards)if(h.kind==='white-cloud'&&h.launchX!==undefined)
+  h.x=h.launchX+(h.driftX??0)*Math.max(0,Math.min(s.frame,h.expiresAt)-(h.createdAt??s.frame));
  for(const a of actors(s)){
   const f=a.fighter;
   if((f.angerUntil??0)>0&&f.angerUntil!<=s.frame){f.angerUntil=0;f.angerStacks=0;}

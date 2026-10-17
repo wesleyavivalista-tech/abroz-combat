@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { GameSimulation, hashState } from "../packages/game-core/simulation/GameSimulation.js";
 import { Button } from "../packages/game-core/types.js";
 import { characters } from "../packages/game-core/characters/registry.js";
-import { igniteTarget } from "../packages/game-core/simulation/StatusSystem.js";
+import { advanceStatuses, igniteTarget } from "../packages/game-core/simulation/StatusSystem.js";
 import { tochaPose } from "../apps/client/src/rendering/TochaRenderer.js";
 import { RollbackManager } from "../packages/networking/RollbackManager.js";
 const moves = characters.tocha.moves;
@@ -37,10 +37,10 @@ test("blocked and invulnerable targets cannot ignite; double punch and fireball 
   const ball=match();ball.state.fighters[0].x=600;ball.state.fighters[1].x=900;ball.step([Button.Special,0]);run(ball,50);assert.ok(ball.state.fighters[1].burnUntil>ball.state.frame);
   assert.ok(a.meter>40);
 });
-test("ground sigil persists 5 seconds, is repeatable and damages only nearby enemies on same level", () => {
+test("ground sigil persists 8 seconds, is repeatable and damages only nearby enemies on same level", () => {
   const s=match(4);s.state.fighters.forEach((f,i)=>{f.x=1000+i*80;});
   s.step([Button.Special2,0,0,0]);run(s,24); assert.equal(s.state.hazards.length,1);
-  const h=s.state.hazards[0], expiry=h.expiresAt;
+  const h=s.state.hazards[0], expiry=h.expiresAt;assert.equal(expiry-s.state.frame,480);
   s.state.fighters[2].x=1000; s.state.fighters[3].x=1000;s.state.fighters[3].y=340;
   run(s,1);assert.equal(s.state.fighters[1].health,1382);assert.equal(s.state.fighters[2].health,1400);assert.equal(s.state.fighters[3].health,1400);
   s.state.hitstop=300;run(s,expiry-s.state.frame-1);assert.equal(s.state.hazards.length,1);run(s,1);assert.equal(s.state.hazards.length,0);
@@ -144,3 +144,17 @@ test('third combo strike burns for three seconds on a clean hit but not through 
   if(!blocked){const hp=d.health;s.state.hitstop=200;run(s,180);assert.equal(d.health,hp-60);run(s,1);assert.equal(d.burnUntil,0);}
  }
 });
+
+ test('pentagram ignites grounded enemies, refreshes without stacking and burns after leaving',()=>{
+  const s=match(4);s.state.fighters.forEach((f,i)=>{f.x=1000;f.y=0;if(i===3)f.invulnerableUntil=1000;});
+  s.step([Button.Special2,0,0,0]);run(s,24);
+  const [caster,enemy,ally,immune]=s.state.fighters;
+  const h=s.state.hazards[0];s.state.fighters.forEach(f=>{f.x=h.x;f.y=h.y;});s.state.frame++;advanceStatuses(s.state);
+  assert.equal(enemy.burnKind,'normal');assert.equal(enemy.burnDamage,10);assert.equal(enemy.burnUntil,s.state.frame+240);
+  assert.equal(caster.burnUntil,0);assert.equal(ally.burnUntil,0);assert.equal(immune.burnUntil,0);
+  const next=enemy.burnNextTick;s.state.frame++;advanceStatuses(s.state);
+  assert.equal(enemy.burnNextTick,next);assert.equal(enemy.burnUntil,s.state.frame+240);
+  enemy.x=1800;const hp=enemy.health,expiry=enemy.burnUntil;
+  s.state.frame=next;advanceStatuses(s.state);assert.equal(enemy.health,hp-10);assert.equal(enemy.burnUntil,expiry);
+  s.state.frame=expiry+1;advanceStatuses(s.state);assert.equal(enemy.burnUntil,0);
+ });

@@ -187,3 +187,21 @@ test('owner walks through special walls in both directions but remains confined 
  const g=match(),f=g.state.fighters[0],b=make(g,'home');f.x=b.x;make(g,'build');run(g,120,Button.Right);
  assert.ok(f.x<b.x+b.width/2,'house still confines its builder');
 });
+
+ test('house collapse spares every ally while still damaging and stunning enemies in team matches',()=>{
+  for(const n of [4,6]){
+   const g=new GameSimulation(Array(n).fill('luizinho'),false,undefined,Array.from({length:n},(_,i)=>i%2));
+   g.state.phase='fight';g.state.fighters.forEach(f=>{f.state='Idle';f.y=0;});
+   const b=make(g,'home');g.state.fighters.forEach(f=>f.x=b.x);make(g,'build');
+   for(const f of g.state.fighters){f.move='seller';f.state='SpecialMove';f.actionUntil=100;}
+   const hp=g.state.fighters.map(f=>f.health);
+   damageStructure(g.state,b,b.health,'team-collapse',0,g.stage);
+   g.state.fighters.forEach((f,i)=>{
+    assert.equal(f.health,hp[i]-(i%2?400:0));assert.equal(f.stun,i%2?420:0);
+    assert.equal(f.houseStunUntil,i%2?420:undefined);
+    assert.equal(f.move,i%2?null:'seller');assert.equal(f.actionUntil,i%2?0:100);
+   });
+   const snap=g.snapshot();for(let i=0;i<90;i++)g.step(Array(n).fill(0));const expected=hashState(g.state);
+   g.restore(snap);for(let i=0;i<90;i++)g.step(Array(n).fill(0));assert.equal(hashState(g.state),expected);
+  }
+ });

@@ -108,7 +108,8 @@ export interface MoveDefinition {
   chargeFrames?: number;
   flashDash?: boolean;
   origamiTrap?: boolean;
-  whiteCloudFrames?: number;
+  whiteCloud?: boolean;
+  invulnerableWhileActive?: boolean;
   talking?: boolean;
   spider?: boolean;
   personalitySplit?: boolean;
@@ -317,7 +318,7 @@ export interface Projectile {
   serial: number;
 }
 export interface Hazard {
-  launchX?: number; launchY?: number;
+  launchX?: number; launchY?: number; driftX?: number;
   variant?: number;
   kind?: "honey" | "coin-rain" | "money-bill" | "angel-burst" | "spider" | "spider-bite" | "sad-burst" | "angry-burst" | "origami" | "paper-burst" | "white-cloud" | "flash-slash" | "fire-trail" | "blood-pool" | "blood-trail" | "blood-flood" | "snot" | "cookie-drop" | "cookie-crumbs";
   createdAt?: number;

@@ -37,12 +37,12 @@ test('giant punches reach platform height and belly bump knocks farther',()=>{
  assert.equal(m.belly.knockback,60.8);
  const s=match(),b=s.state.fighters[1];s.hit(0,m.bellyDive,0,true,1);assert.equal(b.dazed,true);s.state.hitstop=0;run(s,120);assert.equal(b.dazed,false);
 });
-test('steerable beam deals continuous damage for thirteen seconds without hitstop, stun or knockback',()=>{
+test('steerable beam deals continuous damage for eighteen seconds without hitstop, stun or knockback',()=>{
  const s=match(),[a,b]=s.state.fighters;a.x=300;b.x=900;b.y=100;b.vy=0;
  s.step([Button.Super1,0]);run(s,40);b.y=100;b.vy=0;const hp=b.health;
  run(s,24);assert.ok(b.health<hp);assert.equal(s.state.hitstop,0);assert.equal(b.stun,0);assert.equal(b.vx,0);
  const y=a.y;run(s,30,Button.Up);assert.equal(a.beamAim,18);assert.equal(a.y,y);run(s,60,Button.Down);assert.equal(a.beamAim,-42);
- a.moveFrame=m.budaBeam.startupFrames+779;assert.ok(lightBeam(a,s.stage.width));run(s,1);assert.equal(lightBeam(a,s.stage.width),null);
+ s.state.frame=a.actionUntil!-1;a.moveFrame=m.budaBeam.startupFrames+1079;assert.ok(lightBeam(a,s.stage.width));run(s,1);assert.equal(lightBeam(a,s.stage.width),null);
 });
 test('beam respects teammates and invulnerability; giant state clears on knockout',()=>{
  const s=new GameSimulation(['drupa','drupa','drupa','drupa'],false,undefined,[0,1,0,1]);s.state.phase='fight';s.state.fighters.forEach((f,i)=>{f.state='Idle';f.x=300+i*200;});const [a,b,c,d]=s.state.fighters;a.move='bald';a.moveFrame=29;d.invulnerableUntil=100;s.step([0,0,0,0]);assert.ok(b.health<1500);assert.equal(c.health,1500);assert.equal(d.health,1500);a.weaponUntil=1000;a.health=0;run(s,1);assert.equal(a.weaponUntil,0);
@@ -61,8 +61,8 @@ test('giant punches damage a platform opponent while the low kick hits a grounde
   run(s,1);const expected={budaSwing1:140,budaSwing2:161,budaFinish:217,budaSky:196};assert.equal(b.health,1500-expected[id],`${id} deals 40% more damage at height ${y}`);
  }
 });
-test('White Buda beam is wider, stronger and lasts thirteen seconds; low kick starts in twelve frames',()=>{
- assert.equal(m.budaBeam.activeFrames,13*60);assert.equal(m.budaBeam.beam?.width,55);assert.equal(m.budaBeam.damage,18);
+test('White Buda beam is wider, stronger and lasts eighteen seconds; low kick starts in twelve frames',()=>{
+ assert.equal(m.budaBeam.activeFrames,18*60);assert.equal(m.budaBeam.beam?.width,55);assert.equal(m.budaBeam.damage,18);
  const s=match(),[a,b]=s.state.fighters;a.x=300;b.x=700;a.move='budaBeam';a.moveFrame=m.budaBeam.startupFrames-1;a.beamAim=0;
  run(s,1);assert.equal(b.health,1500-18);assert.equal(b.stun,0);
  assert.equal(m.budaSky.startupFrames,12);assert.equal(m.budaSky.recoveryFrames,18);

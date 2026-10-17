@@ -1,3 +1,4 @@
+import {hasMoveImmunity} from '../combat/MoveImmunity.js';
 import {trackKnockout} from './MatchStatistics.js';
 import {FINAL_DEATH_FRAMES} from './UndeadSystem.js';
 import {clearCombatEntities,clearFighterCombat,clearOwnedEntities} from './CombatLifecycle.js';
@@ -16,7 +17,7 @@ export function retainsOwnedEntities(f:Fighter|undefined):boolean {
   return !!f && f.lives>0 && (f.health>0||f.respawnAt>0||f.lives>1);
 }
 export function isInvulnerable(f: Fighter, frame: number): boolean {
-  return f.undead==='rising'||f.undead==='dying'||f.jopaTree!==undefined || f.jopaRide!==undefined || frame < f.invulnerableUntil;
+  return hasMoveImmunity(f,frame)||f.undead==='rising'||f.undead==='dying'||f.jopaTree!==undefined || f.jopaRide!==undefined || frame < f.invulnerableUntil;
 }
 
 /** Absolute simulation-frame deadlines keep both timers independent of hit stop. */
