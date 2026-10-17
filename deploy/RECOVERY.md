@@ -432,3 +432,35 @@ an old installer. Retain the legacy error message alongside structured error fie
 - Rollback: Pages 2a184fa3-2dde-4d49-9af4-ea85c99301bb; beta-0.1.9 downloads; server registry.fly.io/abroz-combat@sha256:a9a150c46adfc4305dd1a10a7723f7ae7e01002630ba4de5b48f1ec8c5a3fc56, content 49-6a773085.
 - Browser players reload; desktop players install 0.1.10. Unsigned status and existing bundle warning remain. Windows/Intel physical installation, controllers and extended multi-device gameplay remain manual.
 - Evidence: audits/evidence/2026-10-16-release-0110.json; detailed logs in ignored deploy/local/release-0110.
+
+## Summon balance and arena selection release — 2026-10-17
+
+- Release 0.1.13, game candidate 7970065614ea2893273ddc281b76e866f726038f,
+  web/download commit 60c900785db76975dc9569dced6b76f2723de202.
+  Compatibility 49-12d4b5ff, protocol 49. No database migration.
+- Includes hostile summon/structure targeting, mobile summon triple jumps,
+  Cookie Monster +200 HP/+30% damage and pursuit, Gym Bro +50% damage,
+  Napa sneeze 120 seconds, manual single-fight arenas and randomized series
+  arenas. Reviewed test-suite PR integrated; conflicting new diagnostics
+  function renamed to preserve the existing online HUD.
+- 1,721 game tests, 27 desktop/deployment tests, lint/types/builds passed.
+  Release CI 39067905304 passed, including 22 browser tests without failures.
+  Native CI 39067903149 built all three targets. Both DMGs verified and all
+  three complete public downloads matched CI SHA-256. Intel download hit one
+  HTTP/2 interruption; complete HTTP/1.1 retry passed. ARM64 native training
+  verified; physical Windows/Intel/controller QA remains manual.
+- Pages 0c5e20e4-28ed-4f33-9d25-af2eb04dcf82; downloads beta-0.1.13.
+  Server registry.fly.io/abroz-combat@sha256:8f5f78d024709b490063e3c86c81f9a3c5c0ba8d2210080067ec0ecd84edd721.
+  Normal empty-server guard passed; same machine 0807569c9039d8 and volume
+  retained. Backup pre-0.1.13.sqlite verified; both championships unchanged.
+- Live private combat/damage and hashes through 600 frames, reconnect at
+  frame 122, desktop-origin room creation and old-client rejection passed.
+  63 live page/assets/audio checks passed, previous hashed assets retained.
+  Health/readiness/provider checks passed; no new fatal/simulation errors in
+  bounded logs; final rooms/connections zero.
+- Rollback: Pages 77e43c7f-2b45-4d50-be04-724250b603eb, beta-0.1.12,
+  server registry.fly.io/abroz-combat@sha256:6219caeabc26e662d4a73147aafb959119706cffd61d7af4298e7ec63c93e05f,
+  compatibility 49-77496d47. Use the guarded empty-server procedure.
+- Browser players reload; desktop players manually install 0.1.13. Unsigned
+  beta status unchanged. Evidence: audits/evidence/2026-10-17-release-0113.json;
+  detailed verification logs are in ignored deploy/local/release-0113.
