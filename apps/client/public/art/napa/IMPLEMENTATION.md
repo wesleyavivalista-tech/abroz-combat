@@ -10,7 +10,7 @@ Generated with built-in image_gen. Prompts: animation-prompts.json; original loo
 - Cookie projectile; Super Sniff pulls opponents radially from every direction, respecting teams, invulnerability and solid structures.
 - Cookie Monster: 1040 HP (60% of 1400 plus 200), slow movement, repeating barrage/slam/chomp and pauses. Barrage includes horizontal, diagonal and bouncing cookies.
 - Defeated monster creates exactly five deterministic cookies, persisting until collected or match reset. Any Napa heals 70 HP (5%); other characters get five seconds of poison. Companions cannot collect drops.
-- Mega Sneeze: 720 units wide and 56 units thick (50% wider and twice the original thickness), 85 seconds, 70% reduction to enemy movement and attack speed while in contact; allies and owner unaffected.
+- Mega Sneeze: 720 units wide and 56 units thick (50% wider and twice the original thickness), 120 seconds, 70% reduction to enemy movement and attack speed while in contact; allies and owner unaffected.
 - New move values not specified by the user follow existing basic-attack conventions. No existing fighter balance changed.
 
 ## Verification

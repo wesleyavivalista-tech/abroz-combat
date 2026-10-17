@@ -17,7 +17,8 @@ test('proxy client identity must be explicitly enabled and a valid single IP',()
  assert.equal(clientAddress(req,false),'127.0.0.1');assert.equal(clientAddress(req,true),'203.0.113.7');
  for(const bad of ['203.0.113.7,1.1.1.1','not-an-ip',undefined,['203.0.113.7']]){req.headers['fly-client-ip']=bad;assert.equal(clientAddress(req,true),undefined);}
 });
-test('maintenance rejects new rooms but preserves existing socket input and health',{timeout:15000},async()=>{
+// SIGUSR2 drain mode is POSIX-only; on Windows the signal would terminate the server instead.
+test('maintenance rejects new rooms but preserves existing socket input and health',{timeout:15000,skip:process.platform==='win32'&&'SIGUSR2 is unavailable on Windows'},async()=>{
  const child=spawn(process.execPath,['--import','tsx','apps/server/src/index.ts'],{env:{...process.env,PORT:'0',NODE_ENV:'production',ALLOWED_ORIGINS:'https://game.test,abroz://game',TRUST_FLY_PROXY:'0'},stdio:['ignore','pipe','pipe']});
  const sockets:WebSocket[]=[];
  try{

@@ -1,3 +1,4 @@
+import {sweepEntry} from '../combat/CollisionSystem.js';
 import {hostile} from './Actors.js';
 import {canReceiveDirectHit} from '../combat/ContactPolicy.js';
 import {recordGameplayEvent} from '../combat/GameplayEvents.js';
@@ -83,6 +84,10 @@ export function advanceNikalz(s:SimulationSnapshot,stage:StageDefinition):void{
   const old={x:b.x,y:b.y};Object.assign(b,beePosition(b,s.frame));b.x=Math.max(25,Math.min(stage.width-25,b.x));
   const target=actors(s).find(a=>hostile(s,b.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isInvulnerable(a.fighter,s.frame)&&a.fighter.x>=Math.min(old.x,b.x)-55&&a.fighter.x<=Math.max(old.x,b.x)+55&&a.fighter.y<b.y+30&&a.fighter.y+150>b.y-30);
   if(target){periodicHit(s,target.fighter,NIKALZ.swarmDamage,Math.sign(target.fighter.x-b.x),10,2,undefined,stage.floorHeight,{owned:true,source:b.owner,move:"bees"},stage.width);target.fighter.beeSlowUntil=s.frame+NIKALZ.slowFrames;b.owner=-1;}
+  else {
+   const contact=(s.structures??[]).filter(t=>t.phase==='built'&&t.health>0&&s.teams[t.owner]!==s.teams[b.owner]).map(t=>({b:t,time:sweepEntry({x:t.x-t.width/2,y:t.y,w:t.width,h:t.height},old.x,old.y,b.x,b.y,30)})).filter(t=>t.time<Infinity).sort((a,c)=>a.time-c.time||a.b.id-c.b.id)[0];
+   if(contact){damageStructure(s,contact.b,NIKALZ.swarmDamage,`bee:${b.id}`,0,stage,b);b.owner=-1;}
+  }
  }
  s.bees=s.bees.filter(b=>b.owner>=0);
  for(const w of s.foreheadWaves??[]){

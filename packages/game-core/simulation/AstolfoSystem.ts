@@ -1,3 +1,4 @@
+import {damageStructure,structureBox} from './StructureSystem.js';
 import {spendEnergy} from './MatchStatistics.js';
 import {hostile} from './Actors.js';
 import {Button,type Fighter,type MoveDefinition,type SimulationSnapshot,type StageDefinition} from '../types.js';
@@ -74,6 +75,11 @@ export function advanceSpiders(s:SimulationSnapshot,stage:StageDefinition,previo
    const f=a.fighter,p=previous.get(f)??f;
    return {f,t:sweepEntry({x:f.x-25,y:f.y,w:50,h:145},x+f.x-p.x,y+12+f.y-p.y,h.x,h.y+12,12)};
   }).filter(c=>Number.isFinite(c.t)).sort((a,b)=>a.t-b.t);
+  const structure=(s.structures??[]).filter(b=>b.phase==='built'&&b.health>0&&s.teams[b.owner]!==s.teams[h.owner]).map(b=>({b,t:sweepEntry(structureBox(b),x,y+12,h.x,h.y+12,12)})).filter(c=>Number.isFinite(c.t)).sort((a,b)=>a.t-b.t||a.b.id-b.b.id)[0];
+  if(structure&&structure.t<=(contacts[0]?.t??Infinity)){
+   damageStructure(s,structure.b,characters[s.fighters[h.owner].characterId].moves[h.move].damage,`spider:${s.frame}:${s.hazards.indexOf(h)}`,0,stage,h);
+   h.expiresAt=s.frame;bites.push({...h,kind:'spider-bite',createdAt:s.frame,expiresAt:s.frame+18});continue;
+  }
   const d=contacts[0]?.f;
   if(d){
    const m=characters[s.fighters[h.owner].characterId].moves[h.move];applyDamage(s,d,m.damage,{owned:true,receivedHit:true,source:h.owner,move:h.move});

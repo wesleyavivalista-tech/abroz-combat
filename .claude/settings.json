@@ -1,0 +1,50 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/graphify-setup.mjs",
+            "timeout": 180,
+            "statusMessage": "Checking graphify knowledge graph..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/graphify-setup.mjs --guard search",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/graphify-setup.mjs --guard read",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/graphify-setup.mjs --update",
+            "timeout": 300,
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

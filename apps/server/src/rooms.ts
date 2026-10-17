@@ -1,5 +1,5 @@
 import {ONLINE_INPUT_DELAY,ONLINE_ROLLBACK_FRAMES} from '../../../packages/shared/networkTiming.js';
-import {randomArena} from '../../../packages/game-core/stages/random.js';
+import {randomArena,usesRandomArenas} from '../../../packages/game-core/stages/random.js';
 import {ReconnectSeats,RECONNECT_GRACE_MS} from './reconnectSeats.js';
 import {diagnosticId,type DiagnosticSink} from './observability.js';
 import {VerifiedMatch} from './verifiedMatch.js';
@@ -264,7 +264,7 @@ export class RoomService {
     const reason=this.startReason(room);if(reason)throw Error(reason);
     {
       room.started = true;
-      if(room.mode!=="championship")room.stage=randomArena(room.stage);
+      if(room.mode!=="championship"&&usesRandomArenas(room.mode))room.stage=randomArena(room.stage);
       room.matchStage=room.stage;
       // Lobby seats can shift when somebody leaves; mint credentials only once
       // match seats become stable.

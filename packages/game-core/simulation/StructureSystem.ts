@@ -1,3 +1,4 @@
+import {nearestSummonTarget} from './SummonTargets.js';
 import {hostile} from './Actors.js';
 import {deterministicHypot} from './DeterministicMath.js';
 import type {Box,Fighter,MoveDefinition,Projectile,SimulationSnapshot,StageDefinition,Structure} from '../types.js';
@@ -55,11 +56,11 @@ export function advanceStructures(s:SimulationSnapshot,_stage:StageDefinition):v
  for(const b of s.structures){
   if(b.kind!=='turret'||b.phase!=='built')continue;
   const def=characters[s.fighters[b.owner].characterId],spec=def.moves[b.move].structure!;
-  const target=actors(s).filter(a=>hostile(s,b.owner,a.fighter,a.owner)&&isActive(a.fighter)).sort((a,c)=>deterministicHypot(a.fighter.x-b.x,a.fighter.y-b.y)-deterministicHypot(c.fighter.x-b.x,c.fighter.y-b.y))[0]?.fighter;
+  const target=nearestSummonTarget(s,b.owner,b);
   if(!target)continue;
   b.facing=target.x>=b.x?1:-1;
   const pivotX=b.x-b.facing*b.width*.18,pivotY=b.y+85;
-  const dx=target.x-pivotX,dy=target.y+Math.min(85,hurtbox(target).h/2+8)-pivotY,length=deterministicHypot(dx,dy)||1;
+  const dx=target.x-pivotX,dy=target.y+Math.min(85,target.fighter?hurtbox(target.fighter).h/2+8:Math.max(1,target.structure.height/2))-pivotY,length=deterministicHypot(dx,dy)||1;
   b.aimX=Math.round(dx/length*1000000)/1000000;b.aimY=Math.round(dy/length*1000000)/1000000;
   if(s.frame<b.nextShot)continue;
   b.nextShot=s.frame+spec.interval!;
@@ -100,7 +101,7 @@ export function hitStructureProjectile(s:SimulationSnapshot,p:Projectile,from:{x
  const move=characters[s.fighters[p.owner].characterId].moves[p.move];
  const radius=move.projectile?.radius??(p.trajectory?characters[s.fighters[p.owner].characterId].returningPaths?.[p.trajectory]?.radius:22)??22;
  if(p.trajectory&&p.returning)return false;
- const candidates=(s.structures??[]).filter(b=>canDamage(s,b,p.owner)).map(b=>({b,time:Math.min(...structureSurfaces(b).map(box=>sweepEntry(box,from.x,from.y,p.x,p.y,radius)))})).filter(c=>c.time<Infinity).sort((a,b)=>a.time-b.time||a.b.id-b.b.id);
+ const candidates=(s.structures??[]).filter(b=>canDamage(s,b,p.owner)&&((!p.owned&&p.companionId===undefined)||s.teams[b.owner]!==s.teams[p.owner])).map(b=>({b,time:Math.min(...structureSurfaces(b).map(box=>sweepEntry(box,from.x,from.y,p.x,p.y,radius)))})).filter(c=>c.time<Infinity).sort((a,b)=>a.time-b.time||a.b.id-b.b.id);
  const contact=candidates[0];if(!contact)return false;
  // A normal projectile must hit a fighter standing before the blocking surface first.
  if(!p.trajectory&&actors(s).some(a=>{
@@ -119,7 +120,7 @@ export function attackStructures(s:SimulationSnapshot,stage:StageDefinition):voi
   if(b.phase!=='built')continue;
   for(const a of actors(s)){
    const f=a.fighter,m=f.move?characters[f.characterId].moves[f.move]:undefined;
-   if(!m||!isActive(f)||!canDamage(s,b,a.owner))continue;
+   if(!m||!isActive(f)||!canDamage(s,b,a.owner)||(a.clone&&s.teams[b.owner]===s.teams[a.owner]))continue;
    const key=`${actorKey(a.owner,a.clone)}:${f.attackSerial}`;
    if(hitboxes(f,m).some(box=>structureSurfaces(b).some(surface=>intersects(box,surface))))damageStructure(s,b,m.damage,key,0,stage,{x:Math.max(b.x-b.width/2,Math.min(b.x+b.width/2,f.x)),y:Math.max(b.y,Math.min(b.y+b.height,f.y+85))});
    const active=f.moveFrame>=m.startupFrames&&f.moveFrame<m.startupFrames+m.activeFrames;

@@ -1,3 +1,4 @@
+import {nearestSummonTarget} from './SummonTargets.js';
 import {hostile} from './Actors.js';
 import {grounded} from './StageCollision.js';
 import {deterministicHypot} from './DeterministicMath.js';
@@ -28,11 +29,11 @@ export function advanceDodo(s:SimulationSnapshot,floorHeight:number,arenaWidth=2
 }
 export function basketballInput(s:SimulationSnapshot,c:HairClone,stage:StageDefinition):number{
  const f=c.fighter;
- const t=actors(s).filter(a=>hostile(s,c.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-f.x)+Math.abs(a.fighter.y-f.y)-Math.abs(b.fighter.x-f.x)-Math.abs(b.fighter.y-f.y))[0]?.fighter;
+ const t=nearestSummonTarget(s,c.owner,f);
  if(!t)return 0;
  const dx=t.x-f.x,dy=t.y-f.y;
  let input=Math.abs(dx)>80?(dx>0?Button.Right:Button.Left):0;
- if(dy>60&&!(f.previousInput&Button.Up)&&(grounded(f,stage)||!f.airJumpUsed&&f.vy<8))input|=Button.Up;
+ if(dy>60&&!(f.previousInput&Button.Up)&&(grounded(f,stage)||f.airJumpsUsed<2&&f.vy<8))input|=Button.Up;
  if(Math.abs(dx)<140&&Math.abs(dy)<110&&s.frame%8===c.id%8)input|=Button.Light|(dx>=0?Button.Right:Button.Left);
  else if(Math.abs(dx)>=140&&Math.abs(dx)<650&&Math.abs(dy)<90&&s.frame%100===(c.id*23)%100)input|=Button.Medium|(dx>=0?Button.Right:Button.Left);
  return input;

@@ -83,3 +83,9 @@ test('disconnect during the final animation continues neutral input without chan
  for(let frame=3;frame<100;frame++){x.service.input(x.clients[0].ws,frame,0,x.room.matchId);x.service.recoveryTick(1001);}
  assert.equal(x.room.verification!.simulation.state.frame,100);assert.deepEqual(x.room.verification!.simulation.state.statistics,stats);
 });
+
+for(const mode of ['ffa','2v2','3v3'] as const)test(`${mode}: selected arena is preserved for all peers and authority`,()=>{
+ const x=setup(mode,mode==='2v2'?4:mode==='3v3'?6:2);x.service.configure(x.clients[0].ws,{stage:'shopping-mall'});begin(x);
+ assert.equal(x.room.stage,'shopping-mall');assert.equal(x.room.verification!.simulation.stage.id,'shopping-mall');
+ for(const c of x.clients)assert.ok(c.messages.some(m=>m.type==='start'&&m.stage==='shopping-mall'));
+});

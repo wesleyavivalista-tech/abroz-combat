@@ -64,7 +64,8 @@ test('checkpoint restores authoritative rooms and credentials without duplicate 
   assert.equal(hashState(decodeSnapshot(resumed.state.snapshot)),hashState(room.verification!.simulation.state));
   assert.throws(()=>recovered.resume(socket().ws,'0'.repeat(64),2001));
   assert.equal(await store.load(6001),undefined);assert.equal(await store.load(999),undefined);
-  assert.equal((await stat(join(dir,'state.bin'))).mode&0o777,0o600);
+  // Windows reports 0o666 for every file; POSIX permission bits only exist on Unix hosts.
+  if(process.platform!=='win32')assert.equal((await stat(join(dir,'state.bin'))).mode&0o777,0o600);
   await writeFile(join(dir,'state.bin'),'corrupt');await assert.rejects(store.load(2000));
  }finally{await rm(dir,{recursive:true,force:true});}
 });

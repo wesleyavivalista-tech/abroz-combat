@@ -340,6 +340,7 @@ export interface BeeSwarm {id:number;owner:number;x:number;y:number;originX:numb
 export interface ForeheadWave {owner:number;x:number;y:number;born:number;range:number;speed:number;meteor:boolean;hits:string[];}
 export interface FinalDeath {seat:number; x:number; y:number; frame:number; facing:1|-1; spawned?:boolean;}
 export interface SimulationSnapshot {
+  seriesArena?: {id:string;seed:number};
   statistics?:import('./simulation/MatchStatistics.js').MatchStatistics;
   invasion?: import('./simulation/InvasionSystem.js').InvasionState;
   finalDeaths?: FinalDeath[];

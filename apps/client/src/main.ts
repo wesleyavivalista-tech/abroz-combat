@@ -112,6 +112,7 @@ let guidePlayer = 0;
 let archiveSkin: string | undefined;
 const recentGameplayEvents:string[]=[];
 const pendingHashes = new Map<string, { frame: number; hash: string }>();
+let verifiedHashFrame = -1;
 let archiveId = rosterIds[0];
 let viewRevision = 0;
 let cancelBinding: (() => void) | undefined;
@@ -343,7 +344,7 @@ function multiSelectionAction(player:number,action:string){
  const m=multiSelection;if(!m||player>=m.ids.length)return;
  if(action==='pause'){if(player===0){if(m.ready)ui.root.querySelector<HTMLButtonElement>('.mp-footer [data-action]')?.click();else openControllers();}return;}
  // The owner cycles arenas with shoulder buttons after locking in.
- if(player===0&&m.phases[0]==='ready'&&(action==='previous'||action==='next')){
+ if(screen==='local-match-setup'&&player===0&&m.phases[0]==='ready'&&(action==='previous'||action==='next')){
   const ids=Object.keys(stages);selectedArena=ids[(ids.indexOf(selectedArena)+(action==='next'?1:-1)+ids.length)%ids.length];drawMultiSelection();return;
  }
  if(screen==='local-match-setup'&&localMatchMode!=='ffa'&&m.phases[player]==='fighter'&&(action==='previous'||action==='next')){localTeams[player]=1-localTeams[player];audio.play('menu_confirm');drawMultiSelection();return;}
@@ -469,7 +470,7 @@ function randomizeArena(): void {
   if(ids.length)selectedArena=ids[Math.floor(Math.random()*ids.length)];
 }
 function arenaPicker(): string {
-  if(mode!=='training')return `<label class="arena-picker">${th("arena.label")} <select id="arena-choice" disabled><option value="${selectedArena}">${onlineText("Random every match","Aleatória a cada partida")}</option></select></label>`;
+  if(mode==='local'&&(screen==='elimination-setup'||screen==='championship-setup'))return `<label class="arena-picker">${th("arena.label")} <select id="arena-choice" disabled><option value="${selectedArena}">${onlineText("Random every match","Aleatória a cada partida")}</option></select></label>`;
   return `<label class="arena-picker">${th("arena.label")} <select id="arena-choice">${Object.values(stages).map(a=>`<option value="${a.id}" ${a.id===selectedArena?'selected':''}>${escapeMarkup(arenaName(a))} · ${th("arena.platforms",{count:a.platforms?.length??0})}</option>`).join('')}<option value="random">${th("arena.randomOption")}</option></select></label>`;
 }
 function bindArenaPicker(refresh?:()=>void): void {
@@ -481,7 +482,6 @@ function addSetupArenaPicker(): void {
   if(main){main.insertAdjacentHTML('afterbegin',arenaPicker());bindArenaPicker();}
 }
 function stage() {
-  if(mode==='local'){void start();return;}
   navigate("stage");
   ui.shell(arenaSelection(selectedArena,mode,selected,selectedSkins));
   const randomButton=ui.root.querySelector<HTMLButtonElement>('[data-random-arena]');
@@ -542,7 +542,7 @@ function restartFight(){
  const loading=start(config.ids,config.teams,config.skins,config.tournament,config.seed,config.arenaId,config.idleTest),fresh=simulation;
  void loading.then(()=>{if(simulation===fresh&&mode==='training'&&screen==='fight'){simulation.trainingOptions=trainingOptions;hud();}});
 }
-async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = mode==='local'?randomArena(selectedArena):selectedArena, idleTest = false, recovery?:RecoveryState, spectating=false) {
+async function start(ids: string[] = selected, teams?: number[], skins: string[] = selectedSkins, tournament: boolean | EliminationMode = false, seed = Math.floor(Math.random()*0x100000000), arenaId = mode==='local'&&(!!tournament||!!championshipMatch)?randomArena(selectedArena):selectedArena, idleTest = false, recovery?:RecoveryState, spectating=false) {
   if(mode==='local'&&localPlayersManaged&&!idleTest&&ids.some((_,i)=>!localInputReady(i))){showPlayers(ids.length,ids.length,ids.length,()=>{void start(ids,teams,skins,tournament,seed,arenaId,idleTest,recovery);});return;}
   if(!developmentBuild && mode!=="training")debug=false;
   idleTestMatch = developmentBuild && mode === "local" && idleTest;
@@ -566,6 +566,7 @@ async function start(ids: string[] = selected, teams?: number[], skins: string[]
     matchPerformance.begin();
     if(recovery){rollback.restoreRecovery(recovery);if(simulation.state.statistics?.finalized)authoritativeStatistics=structuredClone(simulation.state.statistics);}
     lastHash = -1;
+    verifiedHashFrame = -1;
     pendingHashes.clear();
   } else rollback = null;
   try {
@@ -1107,6 +1108,7 @@ function checkNetworkHealth(): boolean {
     if(!rollback.isHashFrameRetained(frame)){pendingHashes.delete(key);continue;}
     const checked = rollback.verifyRemoteHash(frame, hash);
     if (checked !== undefined) pendingHashes.delete(key);
+    if (checked === true) verifiedHashFrame = Math.max(verifiedHashFrame, frame);
     if (checked === false) break;
   }
   if (rollback.desync === "OK") return true;
@@ -1416,8 +1418,15 @@ ui.root.addEventListener('change',event=>{
  const el=event.target as HTMLElement;
  if(el.matches('[data-skin-seat],#fighter-skin,[data-player-slot] select'))audio.play('fighter_selected');
 },audioOptions);
+/** Settled online state at `frame` (hash and fighter x) plus the last server checksum this client verified. */
+function onlineTestDiagnostics(frame?:number){
+ if(!rollback)return undefined;
+ const settled=Math.min(rollback.confirmed,simulation.state.frame-1);
+ const state=frame!==undefined&&frame<=settled?rollback.history.get(frame):undefined;
+ return {seat,frame:simulation.state.frame,settled,desync:rollback.desync,verifiedHashFrame,hash:state&&rollback.confirmedHash(frame!),x:state?.fighters.map(f=>f.x)};
+}
 // Development-only read-only diagnostics, no production debug UI.
-if((import.meta as ImportMeta & {env:{DEV:boolean}}).env.DEV)Object.assign(window,{abrozAudioDebug:()=>audio.diagnostics()});
+if((import.meta as ImportMeta & {env:{DEV:boolean}}).env.DEV)Object.assign(window,{abrozAudioDebug:()=>audio.diagnostics(),abrozOnlineDebug:onlineTestDiagnostics});
 const pingTimer=setInterval(() => {
   if (rollback) network.measurePing();
 }, 2000);

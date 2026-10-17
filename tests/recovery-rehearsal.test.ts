@@ -21,7 +21,8 @@ async function boot(recoveryPath?:string){
  });
  return {child,base:`http://127.0.0.1:${port}`,url:`ws://127.0.0.1:${port}`};
 }
-async function stop(child:ChildProcess){if(child.exitCode===null&&child.signalCode===null){const exit=once(child,'exit');child.kill('SIGCONT');child.kill('SIGTERM');await exit;}}
+// Windows has no job control: any non-terminal signal kills the process, so only resume paused children on POSIX.
+async function stop(child:ChildProcess){if(child.exitCode===null&&child.signalCode===null){const exit=once(child,'exit');if(process.platform!=='win32')child.kill('SIGCONT');child.kill('SIGTERM');await exit;}}
 async function client(url:string){
  assert.match(url,/^ws:\/\/127\.0\.0\.1:\d+$/);
  const ws=new WebSocket(url),queue:ServerMessage[]=[];ws.on('error',()=>{});ws.on('message',raw=>queue.push(JSON.parse(String(raw))));await once(ws,'open');

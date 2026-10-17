@@ -15,3 +15,17 @@ release/
 # Generated deployment configuration (may include account identifiers).
 deploy/local/
 .wrangler/
+
+# Playwright end-to-end output.
+test-results/
+playwright-report/
+
+# graphify: the knowledge graph is tracked (see CLAUDE.md). Machine-specific paths, the
+# AST cache (free to regenerate, churns on every update) and local backups are not.
+graphify-out/.graphify_python
+graphify-out/.graphify_root
+graphify-out/cache/ast/
+graphify-out/cache/last_query_stamp
+graphify-out/.rebuild.lock
+graphify-out/**/*.tmp
+graphify-out/20*/

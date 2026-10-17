@@ -1,3 +1,4 @@
+import {summonTargets} from './SummonTargets.js';
 import {hostile} from './Actors.js';
 import {recordGameplayEvent} from '../combat/GameplayEvents.js';
 import {gainEnergy} from './EnergySystem.js';
@@ -108,22 +109,24 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   if(c.kind==='tree'){
    if(s.frame>=(c.nextAction??0)){spawnTentacle(s,stage,c.owner,f.x+((s.nextCloneId%2)?1:-1)*130,f.y);c.nextAction=s.frame+180;}continue;
   }
-  const enemies=actors(s).filter(a=>hostile(s,c.owner,a.fighter,a.owner)&&canReceiveDirectHit(a.fighter,s.frame));
-  const target=enemies.sort((a,b)=>Math.abs(a.fighter.x-f.x)-Math.abs(b.fighter.x-f.x))[0]?.fighter;
+  const enemies=summonTargets(s,c.owner,f).filter(a=>!a.fighter||canReceiveDirectHit(a.fighter,s.frame));
+  const target=enemies.sort((a,b)=>Math.abs(a.x-f.x)+Math.abs(a.y-f.y)-Math.abs(b.x-f.x)-Math.abs(b.y-f.y))[0];
   if(c.kind==='tentacle'){
    if(target){
     let destination=target.x;
     const onGround=grounded(f,stage),above=target.y>f.y+100;
-    const platform=above?(stage.platforms??[]).filter(p=>p.y>f.y+60&&p.y-f.y<=420).sort((a,b)=>Math.abs(a.x+a.width/2-target.x)-Math.abs(b.x+b.width/2-target.x))[0]:undefined;
+    const platform=above?(stage.platforms??[]).filter(p=>p.y>f.y+60&&p.y-f.y<=1000).sort((a,b)=>Math.abs(a.x+a.width/2-target.x)-Math.abs(b.x+b.width/2-target.x))[0]:undefined;
     if(platform)destination=Math.max(platform.x+35,Math.min(platform.x+platform.width-35,target.x));
     if(onGround&&target.y<f.y-100){const current=(stage.platforms??[]).find(p=>p.y===f.y&&f.x>=p.x&&f.x<=p.x+p.width);if(current)destination=target.x<f.x?current.x-40:current.x+current.width+40;}
     const dx=destination-f.x;if(Math.abs(dx)>5)f.facing=dx<0?-1:1;
+    if(onGround)f.airJumpsUsed=0;
+    if(!onGround&&above&&f.vy<8&&f.airJumpsUsed<2){f.airJumpsUsed++;f.vy=29;enter(f,'Jump');}
     if(onGround&&platform&&f.x>=platform.x-70&&f.x<=platform.x+platform.width+70&&s.frame>=(c.nextJump??0)){f.vy=29;f.y+=1;c.nextJump=s.frame+70;}
     f.x=clamp(f.x+f.facing*(Math.abs(dx)>(platform||target.y!==f.y?5:100)?2.5:0),stage);
    }
    if(!grounded(f,stage)||f.vy>0){const oldY=f.y;f.y+=f.vy;f.vy-=1;const floor=surfaceBelow(stage,f.x,oldY);if(f.vy<=0&&f.y<=floor){f.y=floor;f.vy=0;enter(f,'Idle');}else enter(f,f.vy>0?'Jump':'Fall');}
    if(target){
-    if(Math.abs(target.x-f.x)<155&&Math.abs(target.y-f.y)<170&&s.frame>=(c.nextAction??0)){strike(s,f,c.owner,target,35,18,stage.floorHeight,'tree',stage.width);c.nextAction=s.frame+60;enter(f,'HeavyAttack');}else if(grounded(f,stage)&&s.frame>(c.nextAction??0)-42)enter(f,'Idle');
+    if(Math.abs(target.x-f.x)<155&&Math.abs(target.y-f.y)<170&&s.frame>=(c.nextAction??0)){if(target.fighter)strike(s,f,c.owner,target.fighter,35,18,stage.floorHeight,'tree',stage.width);else damageStructure(s,target.structure,35,`tentacle:${c.id}`,60,stage,f);c.nextAction=s.frame+60;enter(f,'HeavyAttack');}else if(grounded(f,stage)&&s.frame>(c.nextAction??0)-42)enter(f,'Idle');
    }
    continue;
   }
@@ -135,8 +138,8 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   const onGround=grounded(f,stage);if(onGround)f.airJumpsUsed=0;
   const rebounding=s.frame<(c.reboundUntil??0);
   const recovering=s.frame<(c.recoveryUntil??0);
-  const jump=!rebounding&&!recovering&&(rider?!!((rider.buffer.at(-1)?.pressed??0)&Button.Up):!!target&&s.frame>=(c.nextAction??0));
-  if(jump&&(onGround||f.airJumpsUsed<1)){if(!onGround)f.airJumpsUsed++;f.vy=24;f.y+=1;c.nextAction=s.frame+75;enter(f,'Jump');}
+  const jump=!rebounding&&!recovering&&(rider?!!((rider.buffer.at(-1)?.pressed??0)&Button.Up):!!target&&(onGround?s.frame>=(c.nextAction??0):target.y>f.y+70&&f.vy<8));
+  if(jump&&(onGround||f.airJumpsUsed<2)){if(!onGround)f.airJumpsUsed++;f.vy=24;f.y+=1;c.nextAction=s.frame+75;enter(f,'Jump');}
   const oldX=f.x,oldY=f.y;
   const airborne=!grounded(f,stage)||f.vy>0;
   if(airborne)f.x=clamp(f.x+(rebounding?f.vx:horizontal*(recovering?3:6))*JOPA.knightSpeed,stage);
@@ -144,7 +147,7 @@ export function advanceJopa(s:SimulationSnapshot,stage:StageDefinition,impact?:(
   if(!grounded(f,stage)||f.vy>0){f.y+=f.vy;f.vy-=1;const floor=surfaceBelow(stage,f.x,oldY);
    if(f.vy<=0&&f.y<=floor){
     f.y=floor;f.vy=0;enter(f,'Land');let hit=false;
-    if(s.frame>=(c.landingHitReadyAt??0))for(const a of enemies)if(Math.abs(a.fighter.x-f.x)<140&&Math.abs(a.fighter.y-f.y)<170){strike(s,f,c.owner,a.fighter,JOPA.knightDamage,JOPA.knightStun,stage.floorHeight,'knight',stage.width);hit=true;}
+    if(s.frame>=(c.landingHitReadyAt??0))for(const a of enemies)if(Math.abs(a.x-f.x)<140&&Math.abs(a.y-f.y)<170){if(a.fighter)strike(s,f,c.owner,a.fighter,JOPA.knightDamage,JOPA.knightStun,stage.floorHeight,'knight',stage.width);else damageStructure(s,a.structure,JOPA.knightDamage,`knight:${c.id}`,JOPA.knightRecovery,stage,f);hit=true;}
     if(hit){impact?.(f,c.owner);c.impactAt=s.frame;c.reboundUntil=s.frame+30;c.recoveryUntil=s.frame+JOPA.knightRecovery;c.landingHitReadyAt=c.recoveryUntil;f.vx=-f.facing*5;f.vy=12;f.y+=1;enter(f,'Jump');}
    }
    else enter(f,f.vy>0?'Jump':'Fall');

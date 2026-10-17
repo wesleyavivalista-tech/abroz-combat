@@ -1,3 +1,5 @@
+import {randomArena} from '../stages/random.js';
+import {stages} from '../stages/registry.js';
 import {spawnSoundWave,advanceSoundWaves} from './SoundWaveSystem.js';
 import {newMatchStatistics,beginStatisticsFrame,finishStatistics,spendEnergy,healTo,trackActivation} from './MatchStatistics.js';
 import {advanceInvasionWaves,advanceInvasionBullets} from './InvasionSystem.js';
@@ -122,6 +124,7 @@ export class GameSimulation {
     if(typeof tournament==='string')initializeElimination(this.state,tournament,seed,()=>this.resetPositions());
     else if(tournament){if(training||teamMatch)throw new Error("Tournament requires free-for-all");this.state.tournament={wins:ids.map(()=>0),round:1,scoredRound:0,withdrawn:[],complete:false,champion:-1,byForfeit:false};}
     if(!training&&!teamMatch&&typeof tournament!=='string')this.state.statistics=newMatchStatistics(ids.length);
+    if(tournament)this.state.seriesArena={id:this.stage.id,seed:seed>>>0};
     if (training) this.state.fighters.forEach((f) => enter(f, "Idle"));
   }
   private spawnFighters(ids: string[], teams = ids.map((_, i) => i), teamMatch = false): Fighter[] {
@@ -151,8 +154,14 @@ export class GameSimulation {
   }
   restore(s: SimulationSnapshot): void {
     this.state = structuredClone(s);
+    if(s.seriesArena&&stages[s.seriesArena.id])this.stage=stages[s.seriesArena.id];
     this.resolvedStage=undefined;
     this.clearPresentationEvents();
+  }
+  private nextSeriesArena():void {
+    const arena=this.state.seriesArena;
+    if(arena){arena.seed=(Math.imul(arena.seed,1664525)+1013904223)>>>0;arena.id=randomArena(arena.id,()=>arena.seed/0x100000000);this.stage=stages[arena.id];}
+    this.resetPositions();
   }
   resetPositions(): void {
     this.clearPresentationEvents();
@@ -190,8 +199,8 @@ export class GameSimulation {
   step(inputs: number[], forfeits: number[] = []): void {
     beginStatisticsFrame(this.state,forfeits);
     clearGameplayEvents(this.state);const finish=observeFrame(this.state);
-    advanceTournament(this.state,forfeits,()=>this.resetPositions());
-    advanceElimination(this.state,forfeits,()=>this.resetPositions());
+    advanceTournament(this.state,forfeits,()=>this.nextSeriesArena());
+    advanceElimination(this.state,forfeits,()=>this.nextSeriesArena());
     this.advanceFrame(inputs,forfeits);
     scoreTournament(this.state);scoreElimination(this.state);finish();finishStatistics(this.state);
   }
@@ -408,7 +417,7 @@ export class GameSimulation {
   }
   updateFighter(f: Fighter, input: number, player: number): void {
     const base = characters[f.characterId];
-    const def = f.cookieBoss ? {...base,stats:{...base.stats,walkSpeed:1.8,backwardSpeed:1.8,jumpVelocity:0}} : base;
+    const def = f.cookieBoss ? {...base,stats:{...base.stats,walkSpeed:1.8,backwardSpeed:1.8}} : base;
     const companionSpeed=f.companionVariant!==undefined&&base.companionStyle==='basketball'?.85:1;
     const basics = basicAttacks(def,f);
     const boosted = f.onFireUntil > this.state.frame;
@@ -435,7 +444,7 @@ export class GameSimulation {
     if (
       jumpPressed &&
       !grounded(f,this.collisionStage) &&
-      f.airJumpsUsed < (f.weaponUntil>this.state.frame?def.weaponModifiers?.airJumps??def.maxAirJumps??1:def.maxAirJumps??1) &&
+      f.airJumpsUsed < (this.state.clones.some(c=>c.fighter===f&&!c.undead)?2:f.weaponUntil>this.state.frame?def.weaponModifiers?.airJumps??def.maxAirJumps??1:def.maxAirJumps??1) &&
       (!f.move || !!def.moves[f.move].holdInvisible || !!def.moves[f.move].talking) &&
       !locked(f) &&
       (["Jump", "Fall"].includes(f.state) || !!(f.move&&(def.moves[f.move].holdInvisible||def.moves[f.move].talking)))
@@ -447,7 +456,7 @@ export class GameSimulation {
         (input & Button.Right ? 1 : 0) - (input & Button.Left ? 1 : 0);
       if (horizontal) f.vx = horizontal * 4;
       enter(f, "Jump");
-      this.emit(f.airJumpsUsed===2 ? "blood-jump" : "dust", f, 2, player);
+      this.emit(f.airJumpsUsed===2 && !this.state.clones.some(c=>c.fighter===f) ? "blood-jump" : "dust", f, 2, player);
     }
     if (f.stun > 0) {
       f.stun--;

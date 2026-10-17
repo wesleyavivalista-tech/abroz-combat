@@ -38,7 +38,7 @@ test('Gym Bro locks facing target, follows jumps, deals nine reps and a throw th
  const g=game(['jomp','gut','gut']),[f,d,other]=g.state.fighters;f.x=500;d.x=950;other.x=300;f.facing=1;
  const hp=d.health;g.step([Button.Super1,0,0]);assert.equal(f.gymTarget,1);d.x=1700;d.y=300;d.vy=15;d.state='Jump';
  for(let i=0;i<500&&!d.gymLandingStun;i++)g.step([0,Button.Right|Button.Up,0]);
- assert.equal(d.health,hp-381);assert.ok(d.gymLandingStun);assert.equal(other.health,1500);
+ assert.equal(d.health,hp-576);assert.ok(d.gymLandingStun);assert.equal(other.health,1500);
  for(let i=0;i<150&&d.gymLandingStun;i++)g.step([0,0,0]);
  assert.equal(d.stun,120);assert.equal(d.state,'HitStunStanding');
  const until=d.gymStunnedUntil!;g.hit(0,characters.jomp.moves.jab,0,false,1);
@@ -89,7 +89,7 @@ test('lethal Gym Bro releases both Jomps and the victim respawns without grab st
 });
 
 test('Gym Bro increased damage retains Perfect Mode bonus and defender reduction',()=>{
- for(const [boost,defense,total] of [[false,false,381],[true,false,576],[false,true,234]] as const){
+ for(const [boost,defense,total] of [[false,false,576],[true,false,855],[false,true,342]] as const){
   const g=game(['jomp','jomp']),[a,d]=g.state.fighters;a.x=500;d.x=600;
   if(boost)a.weaponUntil=2000;if(defense)d.weaponUntil=2000;
   const hp=d.health;g.step([Button.Super1,0]);

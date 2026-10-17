@@ -6,7 +6,7 @@ import {Button,type Fighter,type SimulationSnapshot,type StageDefinition} from '
 import {applyDamage} from '../combat/DamageSystem.js';
 import {isActive,isInvulnerable} from './LifeSystem.js';
 import {enter} from './StateMachine.js';
-export const JOMP={drainInterval:5,repFrames:36,reps:9,repDamage:28.8,throwDamage:120,landingStun:120,homingSpeed:28} as const;
+export const JOMP={drainInterval:5,repFrames:36,reps:9,repDamage:43.2,throwDamage:180,landingStun:120,homingSpeed:28} as const;
 export const coolMuscles=(f:Fighter)=>characters[f.characterId].muscleFighter&&f.move==='coolMuscles';
 export const gymHolding=(f:Fighter)=>characters[f.characterId].muscleFighter&&f.move==='gymBro'&&(f.gymTarget??-1)>=0;
 /** A lock reserves its victim throughout startup and homing. */

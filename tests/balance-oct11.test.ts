@@ -34,7 +34,7 @@ test('Flash Slash charges for exactly 60 simulation frames even in Samurai mode'
 });
 test('Cookie Monster chases distant enemies instead of starting out-of-range melee',()=>{
  const g=game(),s=g.state;activateNapa(s,g.stage,s.fighters[0],0,characters.napa.moves.cookieMonster);
- const c=s.clones[0];assert.equal(c.maxHealth,1140);c.pattern=1;s.frame=100;
+ const c=s.clones[0];assert.equal(c.maxHealth,1340);c.pattern=1;s.frame=100;
  assert.equal(cookieMonsterInput(s,c,g.stage),Button.Right);assert.equal(c.fighter.move,null);
  s.fighters[1].x=c.fighter.x+100;
  cookieMonsterInput(s,c,g.stage);assert.equal(c.fighter.move,'bossSlam');

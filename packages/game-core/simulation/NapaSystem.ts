@@ -1,3 +1,4 @@
+import {nearestSummonTarget} from './SummonTargets.js';
 import {healTo} from './MatchStatistics.js';
 import {hasExecutionArmor} from '../combat/ExecutionArmor.js';
 import {hostile} from './Actors.js';
@@ -11,7 +12,7 @@ import {grounded,surfaceBelow} from './StageCollision.js';
 import {enter,locked} from './StateMachine.js';
 import {initializeProjectile} from './ProjectilePool.js';
 import {isLowProfile} from './DodoSystem.js';
-export const NAPA={summonFrames:180,snotFrames:5100,slow:.3,poisonFrames:300,poisonDamage:10,monsterHealth:.6,monsterBonusHealth:300,snotWidth:720,snotHeight:56,heal:.05};
+export const NAPA={summonFrames:180,snotFrames:7200,slow:.3,poisonFrames:300,poisonDamage:10,monsterHealth:.6,monsterBonusHealth:500,snotWidth:720,snotHeight:56,heal:.05};
 /** Derived from active casters, so movement and attack blocking end immediately with the effect. */
 export function sniffSuppresses(s:SimulationSnapshot,d:Fighter):boolean {
  if(!isActive(d)||hasExecutionArmor(d)||isInvulnerable(d,s.frame)||isLowProfile(d,s.frame)||d.grappleUntil>s.frame)return false;
@@ -76,17 +77,33 @@ export function advanceNapa(s:SimulationSnapshot,stage:StageDefinition):void{
 }
 export function cookieMonsterInput(s:SimulationSnapshot,c:HairClone,stage:StageDefinition):number{
  const f=c.fighter;if(f.move){c.nextAction=s.frame+45;return 0;}if(!isActive(f)||locked(f)||f.trappedUntil>s.frame||f.grappleUntil>s.frame||sniffSuppresses(s,f))return 0;
- const target=actors(s).filter(a=>hostile(s,c.owner,a.fighter,a.owner)&&isActive(a.fighter)&&!isLowProfile(a.fighter,s.frame)).sort((a,b)=>Math.abs(a.fighter.x-f.x)-Math.abs(b.fighter.x-f.x))[0]?.fighter;
+ const target=nearestSummonTarget(s,c.owner,f);
  if(!target)return 0;
  const dx=target.x-f.x,dy=target.y-f.y;f.facing=dx<0?-1:1;
+ const onGround=grounded(f,stage);
+ let goalX=target.x,goalY=target.y;
+ if(dy>70){
+  const landing=(p:NonNullable<StageDefinition['platforms']>[number])=>Math.max(p.x+35,Math.min(p.x+p.width-35,target.x));
+  const platforms=(stage.platforms??[]).filter(p=>p.y>f.y+60&&p.y<=target.y+10&&p.y-f.y<=750).sort((a,b)=>(Math.abs(landing(a)-f.x)+Math.abs(target.y-a.y))-(Math.abs(landing(b)-f.x)+Math.abs(target.y-b.y))||a.x-b.x);
+  if(platforms[0]){goalX=landing(platforms[0]);goalY=platforms[0].y;}
+ }else if(dy< -70&&onGround){
+  const platform=stage.platforms?.find(p=>p.y===f.y&&f.x>=p.x&&f.x<=p.x+p.width);
+  if(platform)goalX=target.x<platform.x+platform.width/2?platform.x-60:platform.x+platform.width+60;
+ }
+ const travel=goalX-f.x;
+ let pursuit=Math.abs(travel)>(Math.abs(dy)>70?20:115)?(travel>0?Button.Right:Button.Left):0;
+ // Reuse the fighter jump input and its two-air-jump limit; never bypass stun or moves.
+ if(goalY>f.y+70&&!(f.previousInput&Button.Up)&&((onGround&&Math.abs(travel)<200)||(!onGround&&f.airJumpsUsed<2&&f.vy<8)))pursuit|=Button.Up;
+ if(!onGround)f.vx=Math.abs(travel)>20?Math.sign(travel)*4:0;
+ if(Math.abs(dy)>70)return pursuit;
  if(s.frame>=(c.nextAction??0)&&grounded(f,stage)){
   const pattern=c.pattern??0,id=['bossBarrage','bossSlam','bossChomp'][pattern%3],m=characters[f.characterId].moves[id];
   const inRange=id==='bossBarrage'?Math.abs(dx)<1100&&Math.abs(dy)<180:Math.abs(dx)<145&&Math.abs(dy)<120;
-  if(!inRange)return Math.abs(dx)>100?(dx>0?Button.Right:Button.Left):0;
+  if(!inRange)return pursuit;
   f.move=id;f.moveFrame=-1;f.stateFrame=0;f.attackSerial++;f.hitTargets=[];f.connected=false;f.projectileSpawned=false;f.speedRemainder=0;enter(f,m.state);
   c.pattern=(pattern+1)%3;c.nextAction=s.frame+m.startupFrames+m.activeFrames+m.recoveryFrames+45;return 0;
  }
- return Math.abs(dx)>115?(dx>0?Button.Right:Button.Left):0;
+ return pursuit;
 }
 /** Call before pruning dead companions, exactly once per defeat. */
 export function dropMonsterCookies(s:SimulationSnapshot,stage:StageDefinition):void{
