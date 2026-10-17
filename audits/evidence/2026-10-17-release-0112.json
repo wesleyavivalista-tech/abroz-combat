@@ -1,0 +1,66 @@
+{
+  "version": "0.1.12",
+  "commit": "9b35a84553c9f959a45edca5eefa83a3a920dd62",
+  "contentVersion": "49-77496d47",
+  "desktopWorkflow": 39037326584,
+  "releaseChecks": 39037328310,
+  "published": true,
+  "rollback": {
+    "pages": "1e8a128c-c773-4bbd-aca0-9cb1e624dd4e",
+    "serverImage": "registry.fly.io/abroz-combat@sha256:dd2d4b6b9edf90e8ce5e4cefb5eee7765d9aff3238822f59136c77ec20e3fc38",
+    "contentVersion": "49-633abe17",
+    "desktopPrefix": "beta-0.1.11"
+  },
+  "serverImage": "registry.fly.io/abroz-combat@sha256:6219caeabc26e662d4a73147aafb959119706cffd61d7af4298e7ec63c93e05f",
+  "tests": {
+    "game": 1659,
+    "desktopDeployment": 27,
+    "lint": "passed",
+    "types": "passed",
+    "browserBuild": "passed",
+    "serverBuild": "passed",
+    "releaseCI": "passed",
+    "nativeCI": "all three passed"
+  },
+  "validation": {
+    "browserPreview": "Menu, selection, training, HUD and moving Fausto cloud rendered successfully",
+    "databaseBackup": "pre-0.1.12.sqlite quick_check OK, two tournaments",
+    "desktop": "All three native CI builds passed; all local installer SHA-256 checks passed; both DMG integrity checks passed; CPU architectures and embedded compatibility metadata verified; native ARM64 app rendered main menu",
+    "liveCombat": "600 frames, private room create/join/start/damage and authoritative hashes passed",
+    "reconnect": "Seat restored at snapshot frame 122; neutral continuation passed",
+    "oldClient": "0.1.11 rejected with VERSION_MISMATCH",
+    "assets": "78 live page, asset and audio checks passed; hashed bundles and artwork match local release",
+    "database": "Two saved championships unchanged; public and summary hash preserved; SQLite quick_check OK; backup retained",
+    "downloads": "All three complete public installer downloads matched SHA-256; live download page links verified",
+    "health": "healthz and readyz OK; startup health check recovered in one second; bounded post-deployment logs show no unexpected fatal or simulation errors; expected old-client rejection observed",
+    "liveBrowser": "Production main menu and version 0.1.12 download links verified"
+  },
+  "webCommit": "d07a06eca1d74e255375fb31887909e0621f12ea",
+  "desktopPublished": true,
+  "desktopPrefix": "beta-0.1.12",
+  "pages": "77e43c7f-2b45-4d50-be04-724250b603eb",
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-77496d47"
+  },
+  "rollout": "Normal guarded deployment passed with zero connections, rooms and active matches; no active persistent attempts. Same machine and volume preserved.",
+  "changes": [
+    "Tocha pentagram lasts 8 seconds and applies contact burn",
+    "Fausto larger moving White Cloud applies 60% slow; HUD reflects actual slow",
+    "Drupa White Buda Beam lasts 18 seconds with active immunity",
+    "Roms Firefighter Water lasts 15 seconds with active immunity; Axe Spin deals 29 damage per hit",
+    "Luizinho house collapse does not damage, stun or interrupt allies"
+  ],
+  "limitations": [
+    "Unsigned beta installers; macOS builds not notarized",
+    "Physical Windows/Intel Mac installation and physical controller testing remain manual",
+    "Browser refresh and manual desktop update to 0.1.12 required for online compatibility"
+  ]
+}
