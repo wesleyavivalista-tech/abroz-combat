@@ -1,3 +1,4 @@
+import {CameraTracking} from './CameraTracking.js';
 import {FullEnergyEffect} from './FullEnergyEffect.js';
 import {StageVisualEnvironment} from './StageVisualEnvironment.js';
 import {visualPresets,type VisualQuality} from './StageLighting.js';
@@ -54,6 +55,7 @@ export class SceneRenderer {
   composer: EffectComposer;
   scene = new THREE.Scene();
   spectatorTarget?:number;
+  private cameraTracking = new CameraTracking();
   camera = new THREE.PerspectiveCamera(35, 16 / 9, 0.1, 80);
   stage = new StageRenderer();
   mountLabels:(string|undefined)[]=[];
@@ -281,9 +283,10 @@ export class SceneRenderer {
       v.update(c.fighter,cosmeticTime??animationTick(c.fighter)/60,s.frame);v.root.visible=!menu&&s.phase==="fight";if(v.shadow)v.shadow.visible=v.root.visible;
     }
   }
-  draw(s: SimulationSnapshot, dt: number, time: number, menu = false, stageDefinition=trainingRoom,cosmeticTime?:number): void {
+  draw(s: SimulationSnapshot, dt: number, time: number, menu = false, stageDefinition=trainingRoom,cosmeticTime?:number, onlineCamera = false): void {
     withRenderStage(stageAtTick(stageDefinition,s.platformTick??0),()=>{
     if(this.stage.definition!==stageDefinition){
+      this.cameraTracking.reset();
       this.environment.configure(stageDefinition);
       this.scene.remove(this.stage.root);this.stage.dispose();this.stage=new StageRenderer(stageDefinition);this.scene.add(this.stage.root);void this.stage.ready.catch(()=>{});
     }
@@ -395,14 +398,14 @@ export class SceneRenderer {
     const deaths=!menu&&finalDeathActive(s)?s.finalDeaths!.filter(d=>s.frame<d.frame+FINAL_DEATH_FRAMES):[];
     const deathY=deaths.length?deaths.reduce((sum,d)=>sum+d.y,0)/deaths.length/100+1:undefined;
     if(deaths.length){targetX=worldX(deaths.reduce((sum,d)=>sum+d.x,0)/deaths.length);const span=(Math.max(...deaths.map(d=>d.x))-Math.min(...deaths.map(d=>d.x)))/100;targetZ=Math.max(8,(span/2+2)/(Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*this.camera.aspect));}
-    const smoothing = 1 - Math.exp(-dt * (deaths.length?35:5));
-    this.camera.position.x += (targetX - this.camera.position.x) * smoothing;
-    this.camera.position.z += (targetZ - this.camera.position.z) * smoothing;
-    this.camera.position.y = stageDefinition.floorHeight/100 + 3.15 + height * 0.18 + (stageDefinition.theme==='mall'?.5:0);
+    this.cameraTracking.update(this.camera, {
+      x: targetX, z: targetZ,
+      y: stageDefinition.floorHeight/100 + 3.15 + height * 0.18 + (stageDefinition.theme==='mall'?.5:0),
+      aimY: deathY??stageDefinition.floorHeight/100 + (menu ? 1.0 : stageDefinition.theme==='mall'?2.6:2.1) + height * 0.25,
+    }, dt, deaths.length?35:5, onlineCamera);
     const fog = this.scene.fog as THREE.Fog;
     fog.near = this.camera.position.z + 1;
     fog.far = this.camera.position.z + 18;
-    this.camera.lookAt(targetX, deathY??stageDefinition.floorHeight/100 + (menu ? 1.0 : stageDefinition.theme==='mall'?2.6:2.1) + height * 0.25, 0);
     this.camera.updateMatrixWorld();
     this.blood.updateCamera(this.camera);
     const tags = document.getElementById("player-tags");

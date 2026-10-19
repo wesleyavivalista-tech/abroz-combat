@@ -1498,6 +1498,7 @@ function loop(now: number) {
     !["fight", "result"].includes(screen),
     simulation.stage,
     renderInterpolation.seconds(screen === "fight" && !paused ? accumulator * 60 * matchTimeScale(simulation.state) : 1),
+    mode === "online" && screen === "fight",
   );
   if(network.diagnosticsEnabled)onlineDiagnostics.update(now,screen==='fight'?(rollback??undefined):undefined,network,fps,matchPerformance.snapshot());
   animationFrame=requestAnimationFrame(loop);
