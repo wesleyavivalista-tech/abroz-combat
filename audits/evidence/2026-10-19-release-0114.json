@@ -1,0 +1,57 @@
+{
+  "version": "0.1.14",
+  "commit": "eef9c42d8640b9b0976bc1cb8a06b312f23054a6",
+  "contentVersion": "49-12d4b5ff",
+  "desktopWorkflow": 39264357883,
+  "releaseChecks": 39264362117,
+  "serverRestartRequired": false,
+  "published": true,
+  "webCommit": "a5a76cfe83083388f0018a8cb10f5600107c2f9f",
+  "pages": "402cbad2-b194-46b9-ae6b-ce7ebd9077ce",
+  "desktopPublished": true,
+  "desktopPrefix": "beta-0.1.14",
+  "rollback": {
+    "pages": "0c5e20e4-28ed-4f33-9d25-af2eb04dcf82",
+    "desktopPrefix": "beta-0.1.13",
+    "contentVersion": "49-12d4b5ff",
+    "serverUnchanged": true
+  },
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-12d4b5ff"
+  },
+  "tests": {
+    "game": 1726,
+    "desktopDeployment": 27,
+    "browserE2E": 22,
+    "types": "passed",
+    "lint": "passed",
+    "webBuild": "passed",
+    "serverBuild": "passed",
+    "releaseCI": "passed",
+    "windowsCI": "passed",
+    "macBuilds": "local fallback from exact candidate commit; both passed"
+  },
+  "validation": {
+    "camera": "Controlled real-renderer dash replay reduced maximum scenery jump from 31.3 to 3.1 pixels; prior-turn evidence retained",
+    "browser": "Production preview and live menu rendered; live version and all download links verified",
+    "desktop": "All three complete public downloads matched SHA-256. Both DMGs passed integrity, architecture, embedded configuration and JS bundle checks. Packaged Apple Silicon app launched and rendered main menu.",
+    "online": "Live private create/join/start/damage and authoritative hashes through 600 frames passed; reconnect restored seat at frame 122",
+    "assets": "61 live pages/assets/audio verified; artwork and JS hashes match output; nine old hashed assets retained",
+    "database": "Two championship records and hashes unchanged; SQLite quick_check OK; no migration or database writes",
+    "server": "No restart or deployment; machine ID, version and complete configuration unchanged; healthz/readyz pass; bounded logs have no fatal/simulation/socket errors",
+    "desktopWorkflow": "GitHub Mac jobs never acquired hosted runners and were cancelled by GitHub due to capacity. Both were replaced by local builds using existing packaging script from detached eef9c42 checkout; Windows CI passed. Local npm tool availability was resolved outside the repo."
+  },
+  "limitations": [
+    "Unsigned beta installers; Mac packages not notarized",
+    "Windows/Intel Mac physical installation and hardware controller QA remain manual",
+    "0.1.13 desktop clients remain online-compatible but need update to receive camera fix"
+  ]
+}

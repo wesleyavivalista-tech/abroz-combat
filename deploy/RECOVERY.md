@@ -464,3 +464,31 @@ an old installer. Retain the legacy error message alongside structured error fie
 - Browser players reload; desktop players manually install 0.1.13. Unsigned
   beta status unchanged. Evidence: audits/evidence/2026-10-17-release-0113.json;
   detailed verification logs are in ignored deploy/local/release-0113.
+
+## Online camera stabilization release — 2026-10-19
+
+- Release 0.1.14; candidate eef9c42d8640b9b0976bc1cb8a06b312f23054a6,
+  web/download commit a5a76cfe83083388f0018a8cb10f5600107c2f9f.
+  Online camera aim/height smoothing reduces dash rollback scenery jolts.
+  Combat, controls, hit detection, local camera behavior and compatibility
+  remain unchanged (49-12d4b5ff, protocol 49).
+- 1,726 game tests, 27 desktop/deployment checks, 22 browser tests, types, lint
+  and builds passed. Release CI 39264362117 passed. Windows packaging passed
+  CI 39264357883; GitHub could not acquire Mac runners. Both Mac packages were
+  built with the same script from a detached candidate checkout instead.
+  DMG integrity, CPU architecture, embedded metadata and bundles verified;
+  ARM64 app startup verified. All three public downloads passed full SHA-256.
+- Pages 402cbad2-b194-46b9-ae6b-ce7ebd9077ce; downloads beta-0.1.14.
+  Server not restarted or redeployed: machine/configuration/version unchanged.
+  Two saved championships and their hashes unchanged; no migration.
+- Live combat/hash agreement through 600 frames, reconnect at frame 122,
+  61 page/asset/audio checks, live browser menu and download links passed.
+  Final health/readiness OK, zero connections/rooms; bounded logs show no
+  fatal/simulation/socket errors. Nine prior hashed assets retained.
+- Browser-only rollback: Pages 0c5e20e4-28ed-4f33-9d25-af2eb04dcf82 and
+  beta-0.1.13 download links; no server rollback required. Existing 0.1.13
+  desktop clients remain online-compatible. Refresh browser or install 0.1.14
+  to receive the fix. Unsigned beta status unchanged; physical Windows/Intel
+  installation and hardware controller QA remain manual.
+- Evidence: audits/evidence/2026-10-19-release-0114.json; detailed logs and
+  validated installers retained in ignored deploy/local/release-0114.
