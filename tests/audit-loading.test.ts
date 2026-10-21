@@ -13,7 +13,7 @@ test('unselected assets do not block a match; failed loads retry without recreat
  globalThis.document={createElement:()=>({width:72,height:24,getContext:()=>({drawImage(){},getImageData:()=>({data:pixels}),createImageData:(w:number,h:number)=>({data:new Uint8ClampedArray(w*h*4)}),putImageData(){}})})} as unknown as Document;
  t.mock.method(THREE.TextureLoader.prototype,'loadAsync',async(url:string)=>{
   calls.push(url);if(url.includes('/roms/')&&fail)throw new Error('Roms unavailable');
-  return /fall-|air-attack|hair-grip/.test(url)?new THREE.Texture({width:72,height:24} as HTMLImageElement):new THREE.Texture();
+  return /fall-|air-attack|hair-grip|block-standing/.test(url)?new THREE.Texture({width:72,height:24} as HTMLImageElement):new THREE.Texture();
  });
  try{
   await loadFighterSprites(['gut']);assert.ok(calls.length);assert.ok(calls.every(url=>!url.includes('/roms/')));
