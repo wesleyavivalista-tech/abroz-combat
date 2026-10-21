@@ -12,6 +12,8 @@ export function romsPose(f:Fighter,skin:number){
  if(['KO','Knockdown','Respawning'].includes(f.state))return result(combat,13);
  if(f.stun)return result(combat,12);
  if(f.state==='MatchWin')return result(combat,15);
+ if(f.state==='BlockStanding')return result(combat,14);
+ if(f.state==='BlockCrouching')return result(combat,10);
  if(f.move==='water')return result(3,10);
  if(f.move==='spin'&&active)return result(motion,Math.floor((f.moveFrame-m!.startupFrames)/3)%4);
  if(f.weaponUntil&&f.move&&['straight','straight2','straight3','up','bounce'].includes(f.move)&&strike)return result(combat,f.move==='up'?6:7);

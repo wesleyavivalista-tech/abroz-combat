@@ -14,6 +14,7 @@ import { gutFrames } from './GutAtlas.js';
 import { worldX } from './StageCoordinates.js';
 import type { FighterVisual } from './FighterRenderer.js';
 export function gutPose(f:Fighter):number {
+ if(f.state==='BlockStanding')return 16;
  if(f.state==='Grappling')return 16;
  if(f.state==='Grappled'||f.state.includes('HitStun')||f.state==='HairTrapped')return 21;
  if(['KO','Knockdown','Respawning'].includes(f.state))return 22;

@@ -1,0 +1,25 @@
+Standing block artwork — 2026-10-21
+Generated with the built-in imagegen tool; transparent PNG originals copied unchanged.
+
+Assets:
+ drupa/block-standing-v1.png: red varsity, purple T-shirt, Giant Buda (3 columns).
+ caio/block-standing-v1.png: teal, black, Blood Master teal, Blood Master black (4 columns).
+ gut/block-standing-v1.png: white shirt spear, kung fu spear (2 columns).
+
+Prompt shared by all three:
+Create a supplemental game sprite sheet of standing BLOCK poses matching the supplied existing sprite sheets exactly in character identity, clothing, proportions, flat painted pixel-art-like rendering, outlines, detail level and colors. References are character/style sources. Equal-width cells with generous transparent separation, all characters same head-to-foot height and shoe baseline, full bodies unclipped. Actual transparent background, no labels, no grid, no shadows, no effects, no attacks. Only one clean defensive pose per character. Landscape sheet.
+
+Drupa-specific prompt:
+THREE columns, ONE row: red varsity Drupa, purple T-shirt Drupa, luminous white Giant Buda. Each stands facing RIGHT with both forearms raised firmly shielding face and upper torso, feet planted. Buda retains white-blue statue body and robes.
+References: drupa/atlas-1.png, drupa/atlas-2.png, drupa/buda-complete-v4.png.
+
+Caio-specific prompt:
+FOUR columns, ONE row: teal shirt Caio, black shirt sunglasses Caio, red blood-body Blood Master without sunglasses, red blood-body Blood Master with sunglasses. All stand facing RIGHT with both forearms raised shielding face and upper torso, feet planted.
+References: caio/atlas-1.png, caio/atlas-2.png, caio/master-1.png, caio/master-2.png.
+
+Gut-specific prompt:
+TWO columns, ONE row: white dress shirt blue pants Gut; black sleeveless kung fu outfit red sash Gut. Both have glasses and beard. Both stand facing RIGHT holding their long spear diagonally across their front as a defensive barrier, both hands gripping shaft with elbows bent, protecting head and torso. Include the complete spear within each cell.
+References: gut/spear-bodies-v3.png, gut/spear-weapon-v3.png.
+
+Reused art: Gut atlas frame 16 for standing block (both skins); Roms combat frame 14 for standing block and frame 10 for crouching block (both skins and armor).
+Validation: 25 focused rendering tests, TypeScript, targeted ESLint, browser lineup standing/crouching/idle transitions without page errors. New art is a rendering-only override; no combat rules changed.
