@@ -492,3 +492,12 @@ an old installer. Retain the legacy error message alongside structured error fie
   installation and hardware controller QA remain manual.
 - Evidence: audits/evidence/2026-10-19-release-0114.json; detailed logs and
   validated installers retained in ignored deploy/local/release-0114.
+
+## Block artwork and portrait release — 2026-10-21
+
+- Release 0.1.15; candidate 5108c42b310a7c7ff0488b216875ab18e8da3380; web/download commit 22552e6f91ff754cc4fc4a37ee522ad2e0d5d3cd. Jopa portraits, missing standing block art, corrected block mappings and local lineup previews. Gameplay unchanged.
+- Pages 88eb60c3-5fff-4dc3-8eae-9778664fd260; downloads beta-0.1.15. Compatibility remains 49-12d4b5ff, protocol 49. Server instance/configuration unchanged; no restart, migration or database changes.
+- 1,729 game tests, 27 desktop/deployment checks, 22 browser tests, types, lint and builds passed. Release CI 39648779397 passed. Windows CI packaging passed; queued Mac jobs replaced by validated local builds for both architectures. All public installer SHA-256 checks passed; ARM64 native startup verified.
+- Live combat/hash agreement through 600 frames and reconnect at frame 122 passed after publication. 69 live page/asset/audio checks passed. Menu and download links verified. Nine previous hashed assets retained.
+- Rollback: Pages 402cbad2-b194-46b9-ae6b-ce7ebd9077ce and beta-0.1.14 links; no server rollback needed. Existing 0.1.13–0.1.14 clients remain compatible.
+- Unsigned beta status unchanged. Physical Windows/Intel installation and controller QA remain manual. Evidence: audits/evidence/2026-10-21-release-0115.json; detailed logs in ignored deploy/local/release-0115.

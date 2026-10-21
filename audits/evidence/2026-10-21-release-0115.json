@@ -1,0 +1,81 @@
+{
+  "version": "0.1.15",
+  "commit": "5108c42b310a7c7ff0488b216875ab18e8da3380",
+  "webCommit": "22552e6f91ff754cc4fc4a37ee522ad2e0d5d3cd",
+  "contentVersion": "49-12d4b5ff",
+  "protocolVersion": 49,
+  "published": true,
+  "pages": "88eb60c3-5fff-4dc3-8eae-9778664fd260",
+  "desktopPublished": true,
+  "desktopPrefix": "beta-0.1.15",
+  "releaseChecks": 39648779397,
+  "desktopWorkflow": 39648773771,
+  "serverRestartRequired": false,
+  "changes": [
+    "Jopa transparent portraits",
+    "Standing block artwork for Drupa, Caio and spear Gut forms",
+    "Gut and Roms block frame mappings; render-only block selection",
+    "Local lineup blocking previews"
+  ],
+  "tests": {
+    "game": 1729,
+    "desktopDeployment": 27,
+    "browserE2E": 22,
+    "types": "passed",
+    "lint": "passed",
+    "webBuild": "passed",
+    "serverBuild": "passed",
+    "releaseCI": "passed",
+    "windowsCI": "passed",
+    "macBuilds": "Both architectures built locally with existing packaging script; hosted Mac jobs stayed queued"
+  },
+  "validation": {
+    "online": "Post-deploy private create/join/start/combat and authoritative hash agreement through 600 frames passed; reconnect restored seat at frame 122",
+    "assets": "69 live pages/assets/audio checked; release artwork and bundles match local output",
+    "browser": "Live menu and all three 0.1.15 download links verified",
+    "desktop": "All three complete public downloads matched SHA-256; DMG integrity, architecture, embedded metadata and bundles verified; ARM64 native launch passed",
+    "server": "Machine instance and configuration unchanged; no deployment/restart; health/readiness passed",
+    "database": "No migration or database configuration changes"
+  },
+  "finalHealth": {
+    "status": "ok",
+    "rooms": 0,
+    "connections": 0,
+    "capacity": 64,
+    "waitingRooms": 0,
+    "activeRooms": 0,
+    "activeMatches": 0,
+    "resultRooms": 0,
+    "contentVersion": "49-12d4b5ff"
+  },
+  "publicDownloads": [
+    {
+      "file": "Abroz.Combat-0.1.15-mac-arm64.dmg",
+      "bytes": 1588349556,
+      "sha256": "6cf87469e9c5021c89ec7b4e15e9a3f0e76c6f9f083519f14c76d8ad234d7109",
+      "verified": true
+    },
+    {
+      "file": "Abroz.Combat-0.1.15-mac-x64.dmg",
+      "bytes": 1592156904,
+      "sha256": "3ea2e00c30b0e3e161e5bad5435038b31e5c62d891db81bd1abbdf837e23330b",
+      "verified": true
+    },
+    {
+      "file": "Abroz.Combat-0.1.15-win-x64.exe",
+      "bytes": 1539316045,
+      "sha256": "d5dc5d1d57b934c6ed2920a4b2f39303b3a96f53462181e8662679eebb0c5835",
+      "verified": true
+    }
+  ],
+  "rollback": {
+    "pages": "402cbad2-b194-46b9-ae6b-ce7ebd9077ce",
+    "desktopPrefix": "beta-0.1.14",
+    "serverUnchanged": true
+  },
+  "limitations": [
+    "Unsigned beta installers; Mac packages not notarized",
+    "Physical Windows/Intel Mac installation and hardware controller QA remain manual",
+    "Existing 0.1.13 and 0.1.14 clients remain compatible but need update for new artwork"
+  ]
+}
